@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context antiJARLocking="true" crossContext="true" path="/web-datacat-v1">
+  <ResourceLink global="jdbc/config-srs" name="jdbc/config-srs" type="javax.sql.DataSource"/>
+  <ResourceLink global="jdbc/config-fermi" name="jdbc/config-fermi" type="javax.sql.DataSource"/>
+  <ResourceLink global="jdbc/config-exo" name="jdbc/config-exo" type="javax.sql.DataSource"/>
+  <ResourceLink global="jdbc/datacat-prod" name="jdbc/datacat-prod" type="javax.sql.DataSource"/>
+  <!--<Logger className="org.apache.catalina.logger.FileLogger" prefix="RESTfulDatacat." suffix=".log" timestamp="true"/> -->
+</Context>

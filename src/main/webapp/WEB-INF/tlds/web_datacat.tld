@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib version="2.0" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee web-jsptaglibrary_2_0.xsd">
+  <tlib-version>1.0</tlib-version>
+  <short-name>datacat</short-name>
+  <uri>http://srs.slac.stanford.edu/web_datacat</uri>
+  <function>
+    <description>Format an (oracle) timestamp</description>
+    <name>formatTimestamp</name>
+    <function-class>org.srs.webapps.datacat.tags.Util</function-class>
+    <function-signature>java.lang.String formatTimestamp(java.sql.Timestamp)</function-signature>
+  </function>
+  <function>
+    <description>Format bytes</description>
+    <name>formatBytes</name>
+    <function-class>org.srs.webapps.datacat.tags.Util</function-class>
+    <function-signature>java.lang.String formatBytes(long)</function-signature>
+  </function>
+  <function>
+    <description>Format events</description>
+    <name>formatEvents</name>
+    <function-class>org.srs.webapps.datacat.tags.Util</function-class>
+    <function-signature>java.lang.String formatEvents(long)</function-signature>
+  </function>
+</taglib>

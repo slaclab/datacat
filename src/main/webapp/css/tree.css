@@ -1,0 +1,96 @@
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    list-style: none;
+}
+
+.tree {
+    outline: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+.tree-root {  
+    margin: 4px;
+}
+
+.tree-file {
+    position: relative;
+    margin-left: 15px;
+}
+
+.tree-children {
+    position: relative;
+    display: none;
+    margin-left: 6px;
+    line-height: 20px;
+}
+
+/* Dotted lines */
+.tree-children > :after {
+    position: absolute;
+    left: 0px;
+    top: -8px;
+    bottom: 12px;
+    width: 2px;
+    content: "";
+    border-left: 1px dotted gray;
+    border-bottom: 1px dotted gray;
+}
+
+.tree-node {
+    display: block;    
+    margin: 2px;
+}
+
+/* No margin for top level nodes */
+.tree-children > .tree-node {
+    margin-left: 10px;
+}
+
+.tree-node > a {
+    padding: 2px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: black;
+    margin-left: 6px;
+}
+
+.tree-node > a:hover {
+    text-decoration: none;
+}
+
+/* Toggles view */
+.open > .tree-children /* ul ? */ {
+    display: block;
+}
+
+.tree-caret {
+  display: inline-block;
+  height: 16px;
+  width: 16px;
+  background-image: url("../icons/foldericon-blue.png"); /*http://glast-ground.slac.stanford.edu/DataCatalog/icon.jsp?name=pnode");*/
+  vertical-align: top;
+  content: "";
+}
+
+.open > .tree-caret {
+  background-image: url("../icons/foldericon-open-red.png"); /*"http://glast-ground.slac.stanford.edu/DataCatalog/icon.jsp?name=mnode"); */
+}
+
+.tree-file-caret {
+  display: inline-block;
+  height: 16px;
+  width: 16px;
+  background-image: url("../icons/file-icon.png"); /*http://glast-ground.slac.stanford.edu/DataCatalog/icon.jsp?name=pnode");*/
+  vertical-align: top;
+  content: "";
+}
+
+.tree-selected {
+    background-color: #cddcff;
+}
