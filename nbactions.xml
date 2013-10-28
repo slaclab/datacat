@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+    <action>
+        <actionName>CUSTOM-fermi-deploy-dev</actionName>
+        <displayName>Fermi Tomcat 7 deploy (dev)</displayName>
+        <goals>
+            <goal>package</goal>
+            <goal>tomcat7:deploy</goal>
+        </goals>
+        <activatedProfiles>
+            <activatedProfile>deploy-dev</activatedProfile>
+            <activatedProfile>Fermi</activatedProfile>
+        </activatedProfiles>
+    </action>
+</actions>
