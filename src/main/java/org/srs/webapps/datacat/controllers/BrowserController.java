@@ -1,8 +1,8 @@
 package org.srs.webapps.datacat.controllers;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,35 +28,31 @@ public class BrowserController extends ConnectionHttpServlet {
                 request.setAttribute( "children", dao.rootChildren() );
                 request.setAttribute( "path", null );
             } else {
-                String strpath = request.getPathInfo().substring( 1 );
-                List<String> path = Arrays.asList( strpath.split( "\\/" ) );
-
-
+                Path dcf = Paths.get("/", request.getPathInfo() );
                 boolean extendedStat = request.getParameter( "stat" ) != null && request.
                         getParameter( "stat" ).equals( "extended" );
                 StatType t = extendedStat ? StatType.DATASET : StatType.BASIC;
 
-                DatacatObject pathObject = dao.findAnyObject( path, t );
+                DatacatObject pathObject = dao.findAnyObject( dcf, t );
                 if(pathObject instanceof DatasetContainer){
                     long ccCount = ((DatasetContainer) pathObject).getStat().
                             getChildContainerCount();
                     long dsCount = ((DatasetContainer) pathObject).getStat().getDatasetCount();
                     if(ccCount == 0){
                         if(dsCount > 0){
-                            pathObject = dao.findAnyObject( path, StatType.DATASET );
+                            pathObject = dao.findAnyObject( dcf, StatType.DATASET );
                             if(dsCount < 10000){
-                                request.setAttribute( "datasets", dao.getDatasets( path ) );
+                                request.setAttribute( "datasets", dao.getDatasets( dcf ) );
                             }
                         }
                         request.setAttribute( "selected", pathObject );
-                        path = path.subList( 0, path.size() - 1 );
-                        pathObject = dao.findAnyObject( path, StatType.DATASET );
+                        pathObject = dao.findAnyObject( dcf.getParent(), StatType.DATASET );
                     }
                 }
 
                 request.setAttribute( "parentURL", request.getPathInfo() );
                 request.setAttribute( "path", pathObject );
-                request.setAttribute( "children", dao.getChildren( path, StatType.LAZY, false ) );
+                request.setAttribute( "children", dao.getChildren( dcf, StatType.LAZY, false ) );
             }
         } catch (Exception ex) {
             request.getRequestDispatcher( "/browseview/error.jsp" ).forward( request, response );
