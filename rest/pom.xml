@@ -24,7 +24,7 @@
         
         <dependency>
             <groupId>srs</groupId>
-            <artifactId>org-srs-datacatalog-core</artifactId>
+            <artifactId>org-srs-datacat-core</artifactId>
             <version>0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
