@@ -1,0 +1,160 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>srs</groupId>
+        <artifactId>org-srs-datacat</artifactId>
+        <version>0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>org-srs-datacat-core</artifactId>
+    <packaging>jar</packaging>
+
+    <name>SRS DataCatalog Core</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>srs</groupId>
+            <artifactId>org-srs-datacatalog-vfs</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-server</artifactId>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-processing</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <version>2.4.0-rc3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-jsonSchema</artifactId>
+            <version>2.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20090211</version>
+            <type>jar</type>
+        </dependency>        
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>srs</groupId>
+            <artifactId>org-srs-datahandling-common</artifactId>
+            <version>1.6.5</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>oracle</groupId>
+            <artifactId>ojdbc6</artifactId>
+            <version>11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>14.0.1</version>
+            <type>jar</type>
+        </dependency>
+    </dependencies>
+    
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxb2-maven-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>schemagen</id>
+                        <goals>
+                            <goal>schemagen</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <!--<transformSchemas>
+                        <transformSchema>
+                            <uri>http://srs.slac.stanford.edu/DataCatalog</uri>
+                            <toPrefix>some</toPrefix>
+                            <toFile>some_schema</toFile>
+                        </transformSchema>
+                    </transformSchemas>
+                    -->
+                    <includes>
+                        <include>org/srs/rest/shared/*.java</include>
+                        <include>org/srs/rest/shared/metadata/*.java</include>
+                        <include>org/srs/datacat/shared/*.java</include>
+                        <include>org/srs/datacat/model/*.java</include>
+                        <include>org/srs/datacat/shared/container/*.java</include>
+                        <include>org/srs/datacat/shared/dataset/*.java</include>
+                    </includes>
+                    <excludes>
+                        <exclude>org/srs/rest/shared/RestException.java</exclude>
+                        <exclude>org/srs/rest/shared/DatacatObjectBuilder.java</exclude>
+                    </excludes>
+                    <outputDirectory>${project.build.directory}/schemas</outputDirectory>
+
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <profiles>
+        <profile>
+            <id>UseLocalDB</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <!--<skipTests>true</skipTests>-->
+                            <systemProperties>
+                                <property>
+                                    <name>db.datacat.prod.url</name>
+                                    <value>${datacatProd}</value>
+                                </property>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
+
+</project>
