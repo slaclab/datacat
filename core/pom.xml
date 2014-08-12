@@ -20,7 +20,7 @@
     <dependencies>
         <dependency>
             <groupId>srs</groupId>
-            <artifactId>org-srs-datacatalog-vfs</artifactId>
+            <artifactId>org-srs-datacat-vfs</artifactId>
             <version>0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
