@@ -71,10 +71,6 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     public DcPath getPath(){
         return (DcPath) super.getPath();
     }
-       
-    public Type getDatacatType(){
-        return Type.typeOf( object );
-    }
 
     @Override
     public <T extends AttributeView> T getAttributeView(Class<T> view){
@@ -111,12 +107,12 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
 
     @Override
     public boolean isRegularFile(){
-        return getDatacatType() == Type.DATASET;
+        return getObject().getType() == Type.DATASET;
     }
 
     @Override
     public boolean isDirectory(){
-        return getDatacatType().isContainer();
+        return getObject().getType().isContainer();
     }
 
     @Override
@@ -126,7 +122,7 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
 
     @Override
     public boolean isOther(){
-        return getDatacatType() == Type.GROUP;
+        return getObject().getType() == Type.GROUP;
     }
 
     @Override
@@ -139,7 +135,7 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
         return object.getPk();
     }
     
-    public DatacatObject getDatacatObject(){
+    public DatacatObject getObject(){
         return this.object;
     }
 

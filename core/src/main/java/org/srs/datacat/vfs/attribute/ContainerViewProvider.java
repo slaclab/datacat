@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import org.srs.datacat.shared.DatacatObject;
-import org.srs.datacat.shared.DatacatObjectBuilder.DatasetContainerBuilder;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.container.BasicStat.StatType;
 import org.srs.datacat.sql.ContainerDAO;
@@ -34,7 +33,7 @@ public class ContainerViewProvider implements DcViewProvider<StatType> {
     @Override
     public DatacatObject withView(StatType statType) throws FileNotFoundException, IOException {
         if(statType == StatType.NONE){
-            return file.getDatacatObject();
+            return file.getObject();
         }
         String wantName = statType.toString();
         String basicName = StatType.BASIC.toString();
@@ -43,11 +42,11 @@ public class ContainerViewProvider implements DcViewProvider<StatType> {
         if(!stats.containsKey(wantName)){
             try(ContainerDAO dao = new ContainerDAO(Utils.getConnection())){
                 if(!stats.containsKey(basicName)){
-                    stats.put(basicName, dao.getBasicStat(file.getDatacatObject()));
+                    stats.put(basicName, dao.getBasicStat(file.getObject()));
                 }
                 basicStat = stats.get(basicName);
                 if(statType == StatType.DATASET){
-                    BasicStat s = dao.getDatasetStat(file.getDatacatObject(), basicStat);
+                    BasicStat s = dao.getDatasetStat(file.getObject(), basicStat);
                     stats.put(statType.toString(), s);
                 }
             } catch(SQLException ex) {
@@ -55,7 +54,7 @@ public class ContainerViewProvider implements DcViewProvider<StatType> {
             }
         }
         BasicStat retStat = stats.get(wantName);
-        DatasetContainerBuilder b = new DatasetContainerBuilder(file.getDatacatObject());
+        org.srs.datacat.model.DatasetContainer.Builder b = new org.srs.datacat.model.DatasetContainer.Builder(file.getObject());
         b.stat( retStat );
         return b.build();
     }

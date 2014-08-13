@@ -5,9 +5,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.shared.DatacatObject.Type;
-import org.srs.datacat.shared.container.BasicStat;
 import org.srs.rest.shared.metadata.MetadataEntry;
 
 /**
@@ -20,7 +18,7 @@ public class DatacatObjectBuilder<T extends DatacatObject, U extends DatacatObje
     public Long parentPk = null;
     public Type parentType = null;
     public String path;
-    public String type;
+    public Type type;
     public List<MetadataEntry> metadata;
     public Map<String,Number> numberMetadata;
     public Map<String,String> stringMetadata;
@@ -52,7 +50,7 @@ public class DatacatObjectBuilder<T extends DatacatObject, U extends DatacatObje
     
     public DatacatObjectBuilder(Type type){
         this();
-        this.type = type != null ? type.toString() : null;
+        this.type = type;
     }
 
     public static DatacatObjectBuilder create(DatacatObject object){
@@ -63,15 +61,18 @@ public class DatacatObjectBuilder<T extends DatacatObject, U extends DatacatObje
                 .path( object.getPath() )
                 .stringMetadata( object.getStringMetadata())
                 .numberMetadata( object.getNumberMetadata() )
-                .type( DatacatObject.Type.typeOf(object).toString() );
+                .jsonType( object.getJsonTypeName() );
     }
 
     public T build(){
         return (T) buildType(type);
     }
     
-    public DatacatObject buildType(String type){
-        switch (Type.valueOf(type)){
+    public DatacatObject buildType(Type type){
+        if(type == null){
+            return new DatacatObject(this);
+        }
+        switch (type){
             case FOLDER:
                 return new LogicalFolder(this);
             case GROUP:
@@ -88,13 +89,18 @@ public class DatacatObjectBuilder<T extends DatacatObject, U extends DatacatObje
         this.name = val;
         return (U) this;
     }
-
-    @JsonSetter
-    public U type(String val){
-        this.type = val;
+    
+    public U type(Type type){
+        this.type = type;
         return (U) this;
     }
 
+    @JsonSetter("type")
+    public U jsonType(String val){
+        this.type = Type.fromJsonType(val);
+        return (U) this;
+    }
+    
     @JsonSetter
     public U pk(Long val){
         this.pk = val;
@@ -145,35 +151,6 @@ public class DatacatObjectBuilder<T extends DatacatObject, U extends DatacatObje
     public U stringMetadata(Map<String, String> val){
         this.stringMetadata = val;
         return (U) this;
-    }
-
-    public static class DatasetContainerBuilder<T extends DatacatObject> extends DatacatObjectBuilder<T, DatasetContainerBuilder>{
-        public BasicStat stat = null;
-        public String description = null;
-        public DatasetContainerBuilder(){super();}
-        public DatasetContainerBuilder(DatacatObject object){
-            super(create(object));
-            if(object instanceof DatasetContainer){
-                this.description = ((DatasetContainer) object).getDescription();
-            }
-        }
-        
-        @JsonSetter
-        public DatasetContainerBuilder stat(BasicStat val) {this.stat = val; return this; }
-        @JsonSetter
-        public DatasetContainerBuilder description(String val) {this.description = val; return this; }
-
-        @Override
-        public DatacatObject buildType(String type){
-            switch(Type.valueOf( type )){
-                case FOLDER:
-                    return new LogicalFolder( this );
-                case GROUP:
-                    return new DatasetGroup( this );
-                default:
-                    return new DatacatObject( this );
-            }
-        }
     }
 
 }

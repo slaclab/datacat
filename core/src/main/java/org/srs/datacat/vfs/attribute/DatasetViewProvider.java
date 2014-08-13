@@ -37,7 +37,7 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
     public Dataset withView(RequestView requestView) throws FileNotFoundException, IOException {
         DatasetView view = requestView.getDatasetView();
         if(view == DatasetView.EMPTY){
-            return (Dataset) file.getDatacatObject();
+            return (Dataset) file.getObject();
         }
         try (DatasetDAO dsdao = new DatasetDAO(Utils.getConnection())){
             DatasetVersion dsv;
@@ -79,7 +79,7 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
             String msg = "No locations found for dataset version %d";
             throw new FileNotFoundException(String.format( msg, view.getVersionId()));
         }
-        DatasetBuilder b = DatasetBuilder.create( (Dataset) file.getDatacatObject());
+        DatasetBuilder b = DatasetBuilder.create( (Dataset) file.getObject());
         if(!requestView.includeMetadata()){ // mask metadata
             retDsv = new DatasetVersion.Builder(retDsv).metadata((List)null).build();
         }

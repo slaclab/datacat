@@ -38,6 +38,10 @@ public class BaseDAO implements AutoCloseable {
         }
     }
     
+    public void commit() throws SQLException {
+        conn.commit();
+    }
+    
     public void rollback() throws SQLException {
         if(conn != null){
             conn.rollback();
@@ -124,7 +128,7 @@ public class BaseDAO implements AutoCloseable {
                 stmt.setString( 2, nameParam);
             }
             ResultSet rs = stmt.executeQuery();
-            assertObjectExists( rs );
+            assertFileExists( rs );
             builder = getBuilder( rs );
             if(parentPath != null){
                 builder.path(parentPath);
@@ -134,7 +138,7 @@ public class BaseDAO implements AutoCloseable {
         return builder.build();
     }
 
-    protected void assertObjectExists(ResultSet rs) throws SQLException, FileNotFoundException{
+    protected void assertFileExists(ResultSet rs) throws SQLException, FileNotFoundException{
         if(!rs.next()){
             throw (new FileNotFoundException( "Unable to resolve objects" ));
         }
@@ -172,7 +176,7 @@ public class BaseDAO implements AutoCloseable {
         }
     }
 
-    protected void completeContainer(DatacatObjectBuilder.DatasetContainerBuilder builder, String sql) throws SQLException{
+    protected void completeContainer(org.srs.datacat.model.DatasetContainer.Builder builder, String sql) throws SQLException{
         try(PreparedStatement stmt = getConnection().prepareStatement( sql )) {
             stmt.setLong( 1, builder.pk );
             ResultSet rs = stmt.executeQuery();

@@ -10,7 +10,6 @@ import javax.xml.bind.annotation.XmlType;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import javax.xml.bind.annotation.XmlTransient;
-import org.srs.datacat.shared.DatacatObjectBuilder.DatasetContainerBuilder;
 import org.srs.datacat.shared.DatasetGroup.Builder;
 
 /**
@@ -48,7 +47,7 @@ public class DatasetGroup extends DatacatObject implements DatasetContainer {
         super(builder);
     }
     
-    public DatasetGroup(DatasetContainerBuilder builder){
+    public DatasetGroup(DatasetContainer.Builder builder){
         super(builder);
         this.stat = builder.stat;
         this.description = builder.description;
@@ -76,7 +75,7 @@ public class DatasetGroup extends DatacatObject implements DatasetContainer {
     }
     
     @XmlTransient
-    public static class Builder extends DatasetContainerBuilder<DatasetGroup> {
+    public static class Builder extends DatasetContainer.Builder<DatasetGroup> {
         
         public Builder(){super();}
         public Builder(DatacatObject object){

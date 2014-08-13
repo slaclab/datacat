@@ -5,12 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -54,7 +54,7 @@ public class DatacatObject implements Serializable {
     private Long pk;
     private Long parentPk;
     private String name;
-    private LinkedList<DatacatObject> pathList;
+    private String path;
     private HashMap<String,String> stringMetadata = null;
     private HashMap<String,Number> numberMetadata = null;
     
@@ -79,6 +79,22 @@ public class DatacatObject implements Serializable {
                 return GROUP;
             return null;
         }        
+        
+        public static Type fromJsonType(String jsonType){
+            jsonType = jsonType == null ? "" : jsonType;
+            switch(jsonType){
+                case "folder":
+                    return Type.FOLDER;
+                case "group":
+                    return Type.GROUP;
+                case "dataset":
+                case "dataset#flat":
+                case "dataset#full":
+                    return Type.DATASET;
+                default:
+                    return null;
+            }
+        }
     }
     
     // Default no-arg constructor needed for jaxb
@@ -96,7 +112,7 @@ public class DatacatObject implements Serializable {
      */
     public DatacatObject(DatacatObject object){
         this(object.pk, object.parentPk, object.name);
-        initPath( object.getPath() );
+        this.path = object.path;
         numberMetadata = object.numberMetadata!=null ? 
                 new HashMap<>(object.numberMetadata) : null;
         stringMetadata = object.stringMetadata!=null ? 
@@ -105,7 +121,7 @@ public class DatacatObject implements Serializable {
     
     public DatacatObject(DatacatObjectBuilder builder){
         this(builder.pk, builder.parentPk, builder.name);
-        initPath( builder.path );
+        this.path = builder.path;
         numberMetadata = builder.numberMetadata!=null ? 
                 new HashMap<String,Number>(builder.numberMetadata) : null;
         stringMetadata = builder.stringMetadata!=null ? 
@@ -156,41 +172,9 @@ public class DatacatObject implements Serializable {
      */
     @XmlElement(required=false)
     public String getPath(){
-        if(pathList == null)
-            return null;
-        String s = "";
-        for(DatacatObject o: pathList){
-            s = s + '/' + o.getName();
-        }
-        return s;
-    }
-
-    /**
-     * If the object has had a parent set, we will return it.
-     * @return Parent object or null
-     */
-    @XmlTransient
-    public DatacatObject getParentDatacatObject(){
-        return pathList != null && parentPk !=0 ? pathList.get(pathList.size()-2) : null;
+        return path;
     }
     
-    public static <S extends DatacatObject> S asType(Class<S> type){
-        DatacatObject o = null;
-        try {
-            o = type.newInstance();
-        } catch(Exception ex) { }
-        return (S) o;
-    }
-
-    /**
-     * Internally, the path is stored as a linked list of basic objects.
-     * @return The path as a linked list
-     */
-    @XmlTransient
-    public LinkedList<DatacatObject> getPathList(){
-        return pathList;
-    }
-
     /**
      * We store the metadata internally as two seperate maps, one for strings
      * and one for numbers.
@@ -235,13 +219,20 @@ public class DatacatObject implements Serializable {
     }
     
     @XmlTransient
-    public String getType(){
+    public Type getType(){
+        return Type.typeOf( this );
+    }
+    
+    @XmlTransient
+    public String getXmlTypeName(){
         XmlType t = getClass().getAnnotation( XmlType.class );
         return t.name();
     }
     
-    public boolean isType(Type type){
-        return Type.typeOf(this) == type;
+    @XmlTransient
+    public String getJsonTypeName(){
+        JsonTypeName t = getClass().getAnnotation( JsonTypeName.class );
+        return t.value();
     }
     
     private void initMetadata(List<MetadataEntry> metadataMap) {
@@ -260,25 +251,6 @@ public class DatacatObject implements Serializable {
         numberMetadata = numberMetadata.isEmpty() ? null : numberMetadata;
     }
     
-    private void initPath(String path){
-        if(path == null){
-            return;
-        }
-        this.pathList = new LinkedList<>();
-        String[] sgmts = path.split("/");
-        DatacatObjectBuilder o;
-        // First split will be empty string because path should start with a /
-        for(int i = 1; i < sgmts.length; i++){
-            if (i == sgmts.length - 2 && this instanceof Dataset) {
-                o = new DatasetGroup.Builder();
-            } else {
-                o = new LogicalFolder.Builder();
-            }
-            o.name(sgmts[i]);
-            this.pathList.add(o.build());
-        }
-    }
-
     @Override
     public String toString(){
         StringBuilder sb = new StringBuilder();
@@ -299,17 +271,16 @@ public class DatacatObject implements Serializable {
         return o != null ? name + o + "\t": "";
     }
     
-    //@XmlTransient
     public static DatacatObjectBuilder builder(String type){
         switch (Type.valueOf(type)){
             case DATASET:
-                return DatasetBuilder.create().type( type );
+                return DatasetBuilder.create().jsonType( type );
             case FOLDER:
                 return new LogicalFolder.Builder();
             case GROUP:
                 return new DatasetGroup.Builder();
             default:
-                return new DatacatObjectBuilder<>().type( type );
+                return new DatacatObjectBuilder<>().jsonType( type );
         }
     }
 
@@ -335,7 +306,7 @@ public class DatacatObject implements Serializable {
         if(!weakEquivalence(this.name, other.name)){
             return false;
         }
-        if(!weakEquivalence(this.pathList, other.pathList)){
+        if(!weakEquivalence(this.path, other.path)){
             return false;
         }
         return true;

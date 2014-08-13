@@ -1,6 +1,7 @@
 
 package org.srs.datacat.vfs;
 
+import java.io.FileNotFoundException;
 import org.srs.datacat.vfs.security.DcPermissions;
 import java.io.IOException;
 import java.net.URI;
@@ -27,6 +28,7 @@ import java.nio.file.attribute.AttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
+import java.sql.Connection;
 
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -34,6 +36,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.sql.ContainerDAO;
@@ -44,6 +48,7 @@ import org.srs.vfs.ChildrenView;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.sql.BaseDAO;
 import org.srs.datacat.sql.DatasetDAO;
+import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.DatasetCreationAttribute;
 import org.srs.datacat.vfs.attribute.DatasetOption;
 import org.srs.datacat.vfs.security.DcAclFileAttributeView;
@@ -250,8 +255,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     }
 
     @Override
-    public DcFile retrieveFileAttributes(DcPath path, DcFile parent,
-            Class<? extends AttributeView>... attributes) throws IOException {
+    public DcFile retrieveFileAttributes(DcPath path, DcFile parent) throws IOException {
         // LOG: Checking database
         try (BaseDAO dao = new BaseDAO(Utils.getConnection())){
             DcAclFileAttributeView aclView;
@@ -267,7 +271,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                 child = dao.getDatacatObject(null, path);
             } else {
                 aclView = parent.getAttributeView(DcAclFileAttributeView.class);
-                DatacatObject par = parent.getDatacatObject();
+                DatacatObject par = parent.getObject();
                 child = dao.getDatacatObject( par.getPk(), path);
             }
             DcFile f = new DcFile(path, child);
@@ -305,11 +309,11 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         try {
             dao = new DatasetDAO(Utils.getConnection());
         } catch(SQLException ex){
-            throw new IOException(ex);
+            throw new IOException("Unable to connect to database", ex);
         }
         
         try {
-            dao.createDatasetNodeAndView( dsParent.fileKey(), dsParent.getDatacatType(), dsPath, request, dsAttr.getOptions() );
+            dao.createDatasetNodeAndView( dsParent.fileKey(), dsParent.getObject().getType(), dsPath, request, dsAttr.getOptions() );
             
             return new SeekableByteChannel(){
 
@@ -372,25 +376,34 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     @Override
     public void createDirectory(Path dir,
             FileAttribute<?>... attrs) throws IOException {
-        /*
-        DcPath dcDir = checkPath( dir );
-        DcFile parent = resolveFile( dcDir);
-        checkPermission(dcDir, parent, AclEntryPermission.WRITE_DATA);
-        DcAclFileAttributeView parentAcl = parent.getAttributeView(DcAclFileAttributeView.class);
-        
-        String errMsg = "Unable to create container";
+        DcPath dcDir = checkPath(dir);
         try {
-            NewDAO dao = new NewDAO(Utils.getConnection());
-            DatacatObject.Type cType = DatacatObject.Type.FOLDER;
-            for(FileAttribute attr: attrs){
-                
-            }
-            DcFile f = new DcFile(dcDir, dao.createContainer( dir, cType ));
-            getCache().putFile(f);
+            resolveFile(dcDir);
+            AfsException.FILE_EXISTS.throwError(dcDir, "A group or folder already exists at this location");
+        } catch (FileNotFoundException ex){
+            // Do nothing.
+        }
+        DcFile parent = resolveFile(dcDir.getParent());
+        if( !(parent.getObject().getType() == DatacatObject.Type.FOLDER)){
+            AfsException.NOT_DIRECTORY.throwError( parent, "The parent file is not a folder");
+        }
+        //checkPermission(parent, DcPermissions.CREATE_CHILD);
+        
+        if(attrs.length != 1){
+            throw new IOException("Only one attribute allowed for dataset creation");
+        }
+        
+        if( !(attrs[0] instanceof ContainerCreationAttribute) ){
+                throw new IOException("Creation attribute not valid for creating a dataset");
+        }
+        ContainerCreationAttribute dsAttr = (ContainerCreationAttribute) attrs[0];
+        DatacatObject request = dsAttr.value();
+        try (ContainerDAO dao = new ContainerDAO(Utils.getConnection())){
+            dao.createContainer( parent.fileKey(), dcDir.getParent(), request);
+            dao.commit();
         } catch(SQLException ex) {
-            throw new IOException(errMsg, ex);
-        }*/
-        throw new UnsupportedOperationException(); 
+            throw new IOException("Unable to create container", ex);
+        }
     }
 
     @Override
@@ -413,7 +426,16 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     
     @Override
     public void delete(Path path) throws IOException{
-        throw new UnsupportedOperationException(); 
+        /*
+        DcPath dcDir = checkPath(path);
+        DcFile file = resolveFile( dcDir );
+        checkPermission( file, DcPermissions.DELETE );
+        if(file.isDirectory()){
+            try(ContainerDAO dao = new ContainerDAO(Utils.getConnection())){
+                
+            }
+            
+        }*/
     }
     
     @Override

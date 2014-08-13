@@ -13,7 +13,6 @@ import java.util.NoSuchElementException;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.DatacatObjectBuilder;
-import org.srs.datacat.shared.DatacatObjectBuilder.DatasetContainerBuilder;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.container.DatasetStat;
@@ -60,7 +59,7 @@ public class ContainerDAO extends BaseDAO {
             stmt.setLong(2, parentPk);
             stmt.setString(3, description);
             stmt.executeUpdate();
-            DatasetContainerBuilder builder = new DatasetContainerBuilder(request);
+            DatasetContainer.Builder builder = new DatasetContainer.Builder(request);
             try (ResultSet rs = stmt.getGeneratedKeys()){
                 rs.next();
                 builder.pk(rs.getLong(1));
