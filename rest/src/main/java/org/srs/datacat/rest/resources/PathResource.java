@@ -53,6 +53,12 @@ public class PathResource extends ConnectionResource {
     }
     
     @GET
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
+    public DatacatObject getRootBean(@DefaultValue("basic") @QueryParam("stat") StatTypeWrapper statType) throws IOException{
+        return getBean("", statType);
+    }
+    
+    @GET
     @Path(idRegex)
     @HumanPath(idPath)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})

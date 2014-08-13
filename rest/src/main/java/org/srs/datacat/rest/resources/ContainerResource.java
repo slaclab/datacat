@@ -15,6 +15,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
@@ -33,11 +34,11 @@ import org.srs.rest.shared.RestException;
  *
  * @author bvan
  */
-@Path("/{containerType: (group|folder)}")
+@Path("/{containerType: (groups|folders|containers)}")
 public class ContainerResource {
     
     private final String idRegex = "{id: [\\w\\d\\-_\\./]+}";
-    
+        
     @GET
     @Path(idRegex)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
@@ -47,21 +48,30 @@ public class ContainerResource {
             @DefaultValue("0") @QueryParam("offset") int offset) throws IOException{
 
         String path = pathSegment.getPath();
-        RequestView rv = new RequestView(DatacatObject.Type.valueOf(cont.toUpperCase()), pathSegment.getMatrixParameters());
+        DatacatObject.Type type = DatacatObject.Type.FOLDER; // Folder by default
+        if(cont.equalsIgnoreCase( "groups")){
+            type = DatacatObject.Type.GROUP;
+        }
+        RequestView rv = new RequestView(type, pathSegment.getMatrixParameters());
         path = "/" + path;
         DcPath containerPath = App.fsProvider.getPath(DcUriUtils.toFsUri(path, null, "SRS"));
         
         try {
-            Files.readAttributes(containerPath, DcFile.class);
+            if(!Files.readAttributes(containerPath, DcFile.class).isDirectory()){
+                throw new NotDirectoryException(containerPath.toString());
+            }
         } catch (FileNotFoundException ex){
              throw new RestException("File doesn't exist", 404);
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
+        } catch (NotDirectoryException ex){
+            throw new RestException( "File exists, but Path is not a container", 404);
         } catch (IOException ex){
             throw new RestException(ex, 500);
         }
+        
         StatType statType = StatType.NONE;
-        if(rv.containsValue( "stat" )){
+        if(rv.containsKey( "stat" )){
             statType = StatType.valueOf(rv.get("stat").toUpperCase());
         }
         if(rv.containsKey("children")){
@@ -82,7 +92,7 @@ public class ContainerResource {
     public Response childrenView(DcPath containerPath, RequestView rv, int offset, int max, StatType statType){
         
         boolean withDs = true;
-        if(rv.containsValue("datasets")){
+        if(rv.containsKey("datasets")){
             withDs = Boolean.valueOf(rv.get("datasets"));
         }
         
@@ -106,12 +116,10 @@ public class ContainerResource {
                 }
                 retList.add(ret);
             }
-        } catch (NotDirectoryException ex){
-            throw new RestException( "File exists, but Path is not a directory", 404);
         } catch (IOException ex){
             throw new RestException(ex, 500);
         }
-        return Response.ok( retList ).build();
+        return Response.ok( new GenericEntity<ArrayList<DatacatObject>>(retList){} ).build();
     }
 
 }
