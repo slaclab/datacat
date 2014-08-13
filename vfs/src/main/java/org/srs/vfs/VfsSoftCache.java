@@ -154,7 +154,7 @@ public class VfsSoftCache<V extends VirtualFile> implements VfsCache<V> {
         
         lock.lock();
         try {
-            final Object ref = virtualFileSystemCache.remove(key.getFileName());
+            final Object ref = virtualFileSystemCache.remove(key);
             if (ref != null) {
                 refReverseMap.remove(ref);
             }
