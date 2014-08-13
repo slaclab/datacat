@@ -7,6 +7,7 @@ import java.net.URI;
 
 import java.nio.file.AccessDeniedException;
 import java.nio.file.CopyOption;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileStore;
@@ -146,6 +147,7 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
         ACCESS_DENIED(AccessDeniedException.class),
         NO_SUCH_FILE(NoSuchFileException.class),
         NOT_DIRECTORY(NotDirectoryException.class),
+        DIRECTORY_NOT_EMPTY(DirectoryNotEmptyException.class),
         FILE_EXISTS(FileAlreadyExistsException.class),
         GENERIC(FileSystemException.class);
         
@@ -176,6 +178,18 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
                     throw new NoSuchFileException(path, msg, reason);
                 case NOT_DIRECTORY:
                     throw new NotDirectoryException(path){
+                        @Override
+                        public String getReason(){
+                            return reason;
+                        }
+
+                        @Override
+                        public String getMessage(){
+                            return msg;
+                        }
+                    };
+                case DIRECTORY_NOT_EMPTY:
+                    throw new DirectoryNotEmptyException(path){
                         @Override
                         public String getReason(){
                             return reason;
