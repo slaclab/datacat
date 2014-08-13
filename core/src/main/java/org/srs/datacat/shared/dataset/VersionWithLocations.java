@@ -10,6 +10,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.VersionWithLocations.Builder;
@@ -80,7 +81,7 @@ public class VersionWithLocations extends DatasetVersion {
         public List<DatasetLocation> locations = null;
         
         public Builder(){}
-        public Builder(DatasetBuilder builder){
+        public Builder(Dataset.Builder builder){
             super(builder);
             this.locations = builder.locations;
         }

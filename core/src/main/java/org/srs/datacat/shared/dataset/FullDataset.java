@@ -48,7 +48,7 @@ public class FullDataset extends Dataset {
         }
     }
 
-    public FullDataset(DatasetBuilder builder){
+    public FullDataset(Dataset.Builder builder){
         super(builder);
         dsVersion = builder.version;
     }
@@ -60,11 +60,11 @@ public class FullDataset extends Dataset {
     
     
     @XmlTransient
-    public static class Builder extends DatasetBuilder<FullDataset>{
+    public static class Builder extends Dataset.Builder{
         
         public Builder(){}
         
-        public Builder(DatasetBuilder builder){
+        public Builder(Dataset.Builder builder){
             super(builder);
         }
         

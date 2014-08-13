@@ -13,7 +13,6 @@ import org.srs.datacat.model.RequestView;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
-import org.srs.datacat.shared.dataset.DatasetBuilder;
 import org.srs.datacat.sql.DatasetDAO;
 import org.srs.datacat.sql.Utils;
 import org.srs.datacat.vfs.DcFile;
@@ -79,7 +78,7 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
             String msg = "No locations found for dataset version %d";
             throw new FileNotFoundException(String.format( msg, view.getVersionId()));
         }
-        DatasetBuilder b = DatasetBuilder.create( (Dataset) file.getObject());
+        Dataset.Builder b = Dataset.Builder.create( (Dataset) file.getObject());
         if(!requestView.includeMetadata()){ // mask metadata
             retDsv = new DatasetVersion.Builder(retDsv).metadata((List)null).build();
         }

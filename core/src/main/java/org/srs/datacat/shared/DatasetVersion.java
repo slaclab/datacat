@@ -15,7 +15,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import org.srs.datacat.model.DatasetView.VersionId;
 import org.srs.datacat.shared.DatasetVersion.Builder;
-import org.srs.datacat.shared.dataset.DatasetBuilder;
 import org.srs.rest.shared.RestDateAdapter;
 
 /**
@@ -108,7 +107,7 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
     }
     
     @XmlTransient
-    public static class Builder extends DatacatObjectBuilder<DatasetVersion, Builder>{
+    public static class Builder extends DatacatObject.Builder<Builder>{
         public Boolean latest;
         public String fileFormat;
         public String datasetDataType;
@@ -130,7 +129,7 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
             this.latest = version.isLatest;
         }
 
-        public Builder(DatasetBuilder builder){
+        public Builder(Dataset.Builder builder){
             this.pk = builder.versionPk;
             this.parentPk = builder.pk;
             this.metadata = builder.versionMetadata;

@@ -12,7 +12,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.shared.DatacatObject;
-import org.srs.datacat.shared.DatacatObjectBuilder;
+import org.srs.datacat.shared.DatasetGroup;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.container.DatasetStat;
@@ -36,13 +36,17 @@ public class ContainerDAO extends BaseDAO {
     protected DatacatObject insertContainer(Long parentPk, String parentPath, DatacatObject request) throws SQLException{
         String tableName;
         String parentColumn;
-        DatacatObject.Type newType = DatacatObject.Type.typeOf(request);
+        DatacatObject.Type newType = request.getType();
+        DatacatObject retObject;
+        DatasetContainer.Builder builder;
         switch(newType){
             case FOLDER:
+                builder = new LogicalFolder.Builder(request);
                 tableName = "DatasetLogicalFolder";
                 parentColumn = "Parent";
                 break;
             case GROUP:
+                builder = new DatasetGroup.Builder(request);
                 tableName = "DatasetGroup";
                 parentColumn = "DatasetLogicalFolder";
                 break;
@@ -53,13 +57,12 @@ public class ContainerDAO extends BaseDAO {
         String sql = String.format( insertSqlTemplate, tableName, parentColumn );
         
         String description = request instanceof DatasetContainer ? ((DatasetContainer) request).getDescription() : null;
-        DatacatObject retObject;
+        
         try (PreparedStatement stmt = getConnection().prepareStatement( sql, new String[]{tableName} )) {
             stmt.setString( 1, request.getName());
             stmt.setLong(2, parentPk);
             stmt.setString(3, description);
             stmt.executeUpdate();
-            DatasetContainer.Builder builder = new DatasetContainer.Builder(request);
             try (ResultSet rs = stmt.getGeneratedKeys()){
                 rs.next();
                 builder.pk(rs.getLong(1));
@@ -114,7 +117,7 @@ public class ContainerDAO extends BaseDAO {
                 + ") "
                 + "SELECT type, pk, name, parent, lev, relpath FROM CONTAINERS "
                 + "ORDER BY relpath";
-        DatacatObjectBuilder builder = null;
+        DatacatObject.Builder builder = null;
         try (PreparedStatement stmt = getConnection().prepareStatement( sql )){
             stmt.setLong(1, pk);
             ResultSet rs = stmt.executeQuery();

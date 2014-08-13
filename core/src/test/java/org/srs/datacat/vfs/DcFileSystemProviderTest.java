@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.vfs.VirtualFile.FileType;
 import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.dataset.DatasetBuilder;
 import org.srs.datacat.vfs.attribute.DatasetCreationAttribute;
 import org.srs.datacat.vfs.attribute.DatasetOption;
 
@@ -121,7 +120,7 @@ public class DcFileSystemProviderTest {
     public void testCreateDataset() throws IOException{
         DcFileSystemProvider provider  = new DcFileSystemProvider();
         
-        DatasetBuilder builder = DatasetBuilder.create();
+        Dataset.Builder builder = new Dataset.Builder();
         builder.name("testCaseDataset001");
         builder.datasetDataType("TEST");
         builder.datasetFileFormat("TEST");

@@ -43,7 +43,7 @@ public class DatasetGroup extends DatacatObject implements DatasetContainer {
         this.description = group.description;
     }
     
-    public DatasetGroup(DatacatObjectBuilder builder){
+    public DatasetGroup(DatacatObject.Builder builder){
         super(builder);
     }
     
@@ -75,12 +75,11 @@ public class DatasetGroup extends DatacatObject implements DatasetContainer {
     }
     
     @XmlTransient
-    public static class Builder extends DatasetContainer.Builder<DatasetGroup> {
+    public static class Builder extends DatasetContainer.Builder {
         
         public Builder(){super();}
-        public Builder(DatacatObject object){
-            super(object);
-        }
+        public Builder(DatacatObject object){ super(object); }
+        public Builder(DatasetContainer.Builder builder){ super(builder); }
         
         @Override
         public DatasetGroup build(){

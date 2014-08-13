@@ -16,7 +16,6 @@ import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
-import org.srs.datacat.shared.dataset.DatasetBuilder;
 import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacat.vfs.DcPath;
@@ -56,7 +55,7 @@ public class DatasetDAO extends BaseDAO {
             ds = (Dataset) o;
         }
         
-        DatasetBuilder builder = DatasetBuilder.create(ds);
+        Dataset.Builder builder = Dataset.Builder.create(ds);
         
         if(!dsOptions.isEmpty()){ 
             // We should have enought information to continue on
@@ -71,7 +70,7 @@ public class DatasetDAO extends BaseDAO {
         return builder.build();
     }
     
-    public void createDatasetView(Dataset ds, DatasetBuilder builder, DatasetVersion requestVersion, DatasetLocation requestLocation, 
+    public void createDatasetView(Dataset ds, Dataset.Builder builder, DatasetVersion requestVersion, DatasetLocation requestLocation, 
             Set<DatasetOption> dsOptions) throws IOException, SQLException{        
         boolean mergeVersion = dsOptions.remove(DatasetOption.MERGE_VERSION);
         boolean createVersion = dsOptions.remove(DatasetOption.CREATE_VERSION);
@@ -227,7 +226,7 @@ public class DatasetDAO extends BaseDAO {
                     stmt.setLong( 5, parentPk);
             }
             stmt.executeUpdate();   // will throw exception if required parameter is empty...
-            DatasetBuilder builder = DatasetBuilder.create(request);
+            Dataset.Builder builder = Dataset.Builder.create(request);
             try(ResultSet rs = stmt.getGeneratedKeys()){
                 rs.next();
                 builder.pk(rs.getLong(1));

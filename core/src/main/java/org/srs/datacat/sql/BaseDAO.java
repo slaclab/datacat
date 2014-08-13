@@ -11,13 +11,13 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import org.srs.datacat.model.DatasetContainer;
 import org.srs.vfs.PathUtils;
 import org.srs.datacat.shared.DatacatObject;
-import org.srs.datacat.shared.DatacatObjectBuilder;
+import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetGroup;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
-import org.srs.datacat.shared.dataset.DatasetBuilder;
 import org.srs.datacat.vfs.DcPath;
 
 /**
@@ -121,7 +121,7 @@ public class BaseDAO implements AutoCloseable {
                 + "  WHERE parent %s "
                 + "  ORDER BY name", parentClause);
 
-        DatacatObjectBuilder builder = null;
+        org.srs.datacat.shared.DatacatObject.Builder builder = null;
         try(PreparedStatement stmt = getConnection().prepareStatement( sql )) {
             if(nameParam != null){
                 stmt.setLong( 1, parentPk);
@@ -144,10 +144,10 @@ public class BaseDAO implements AutoCloseable {
         }
     }    
 
-    protected void completeObject(DatacatObjectBuilder builder) throws SQLException{
+    protected void completeObject(org.srs.datacat.shared.DatacatObject.Builder builder) throws SQLException{
 
-        if(builder instanceof DatasetBuilder){
-            completeDataset((DatasetBuilder) builder );
+        if(builder instanceof org.srs.datacat.shared.Dataset.Builder){
+            completeDataset((org.srs.datacat.shared.Dataset.Builder) builder );
         } else if(builder instanceof DatasetGroup.Builder){
             completeContainer((DatasetGroup.Builder) builder,
                     "select description from datasetgroup where datasetgroup = ?" );
@@ -160,7 +160,7 @@ public class BaseDAO implements AutoCloseable {
         
     }
 
-    protected void completeDataset(DatasetBuilder builder) throws SQLException{
+    protected void completeDataset(Dataset.Builder builder) throws SQLException{
         String sql = "select vd.datasetfileformat, "
                 + "vd.datasetdatatype, vd.latestversion, "
                 + "vd.registered vregistered "
@@ -176,7 +176,7 @@ public class BaseDAO implements AutoCloseable {
         }
     }
 
-    protected void completeContainer(org.srs.datacat.model.DatasetContainer.Builder builder, String sql) throws SQLException{
+    protected void completeContainer(DatasetContainer.Builder builder, String sql) throws SQLException{
         try(PreparedStatement stmt = getConnection().prepareStatement( sql )) {
             stmt.setLong( 1, builder.pk );
             ResultSet rs = stmt.executeQuery();
@@ -220,7 +220,7 @@ public class BaseDAO implements AutoCloseable {
         }
     }
 
-    protected void setContainerMetadata(DatacatObjectBuilder builder) throws SQLException{
+    protected void setContainerMetadata(org.srs.datacat.shared.DatacatObject.Builder builder) throws SQLException{
         HashMap<String, String> smap = new HashMap<>();
         HashMap<String, Number> nmap = new HashMap<>();
 
@@ -326,12 +326,12 @@ public class BaseDAO implements AutoCloseable {
         }
     }
     
-    public static DatacatObjectBuilder getBuilder(ResultSet rs) throws SQLException {
+    public static DatacatObject.Builder getBuilder(ResultSet rs) throws SQLException {
         String type = rs.getString("type");
-        DatacatObjectBuilder o = DatacatObject.builder( type )
-            .pk(rs.getLong("pk"))
-            .parentPk(rs.getLong("parent"))
-            .name(rs.getString("name"));
+        DatacatObject.Builder o = DatacatObject.rawTypeBuilder( type )
+                .pk(rs.getLong("pk"))
+                .parentPk(rs.getLong("parent"))
+                .name(rs.getString("name"));
         return o;
     }
 

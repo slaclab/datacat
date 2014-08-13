@@ -7,7 +7,6 @@
 package org.srs.datacat.shared;
 
 
-import org.srs.datacat.shared.DatacatObjectBuilder;
 import junit.framework.TestCase;
 import static org.junit.Assert.*;
 
@@ -21,7 +20,7 @@ public class DatacatObjectBuilderTest extends TestCase {
     }
 
     public void testMask(){
-        DatacatObjectBuilder b = new DatacatObjectBuilder();
+        DatacatObject.Builder b = new DatacatObject.Builder();
         b.jsonType( "DATASET");
         b.pk(1234L);
         b.name("hello");

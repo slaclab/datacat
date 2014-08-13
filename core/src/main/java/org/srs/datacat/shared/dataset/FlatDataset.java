@@ -61,7 +61,7 @@ public class FlatDataset extends Dataset implements DatasetVersionModel, Dataset
         }
     }
     
-    protected FlatDataset(DatasetBuilder builder){
+    protected FlatDataset(Dataset.Builder builder){
         super(builder);
         dsVersion = builder.version;
         dsLocation = builder.location;
@@ -167,14 +167,14 @@ public class FlatDataset extends Dataset implements DatasetVersionModel, Dataset
     }
     
     @XmlTransient
-    public static class Builder extends DatasetBuilder<FlatDataset>{
+    public static class Builder extends Dataset.Builder{
         
         public Builder(){}
         /**
          * Copy constructor
          * @param builder 
          */
-        public Builder(DatasetBuilder builder){
+        public Builder(Dataset.Builder builder){
             super(builder);
         }
         

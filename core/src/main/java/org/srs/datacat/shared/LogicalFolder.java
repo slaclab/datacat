@@ -40,7 +40,7 @@ public class LogicalFolder extends DatacatObject implements DatasetContainer {
         this.description = folder.description;
     }
     
-    public LogicalFolder(DatacatObjectBuilder builder){
+    public LogicalFolder(DatacatObject.Builder builder){
         super(builder);
     }
     
@@ -90,9 +90,11 @@ public class LogicalFolder extends DatacatObject implements DatasetContainer {
     }
     
     @XmlTransient
-    public static class Builder extends DatasetContainer.Builder<LogicalFolder> {
+    public static class Builder extends DatasetContainer.Builder {
         public Builder(){super();}
         public Builder(DatacatObject o){super(o);}
+        public Builder(DatasetContainer.Builder o){super(o);}
+        
         @Override
         public LogicalFolder build(){
             return new LogicalFolder(this);

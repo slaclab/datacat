@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.Objects;
 import javax.xml.bind.annotation.XmlTransient;
 import org.srs.datacat.shared.DatasetLocation.Builder;
-import org.srs.datacat.shared.dataset.DatasetBuilder;
 import org.srs.rest.shared.RestDateAdapter;
 
 
@@ -80,7 +79,7 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
         this.master = builder.master;
     }
     
-    public DatasetLocation(DatasetBuilder builder){
+    public DatasetLocation(Dataset.Builder builder){
         super(builder.locationPk, builder.versionPk, builder.fileSystemPath);
         this.fileSystemPath = builder.fileSystemPath;
         this.fileSize = builder.fileSize;
@@ -138,7 +137,7 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     }
 
     @XmlTransient
-    public static class Builder extends DatacatObjectBuilder<DatasetLocation, Builder>{
+    public static class Builder extends DatacatObject.Builder<Builder>{
         private String fileSystemPath;
         private Long fileSize;
         private String site;
@@ -171,7 +170,7 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
             this.master = location.master;
         }
         
-        public Builder(DatasetBuilder builder){
+        public Builder(Dataset.Builder builder){
             this.pk = builder.locationPk;
             this.parentPk = builder.versionPk;
             this.name = builder.site;

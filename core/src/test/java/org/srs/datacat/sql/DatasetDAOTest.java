@@ -22,7 +22,6 @@ import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
-import org.srs.datacat.shared.dataset.DatasetBuilder;
 import org.srs.datacat.shared.dataset.FlatDataset;
 
 /**
@@ -118,7 +117,7 @@ public class DatasetDAOTest {
         
         DatasetVersion newVer = dao.createOrMergeDatasetVersion(ds.getPk(), req.getPath(), null, req.getVersion(), false );
         System.out.println("Registered: " + newVer.toString());
-        System.out.println(DatasetBuilder.create(ds).version(newVer).build().toString());
+        System.out.println(Dataset.Builder.create(ds).version(newVer).build().toString());
         dao.deleteDatasetVersion(ds.getParentPk(), newVer);
     }
     

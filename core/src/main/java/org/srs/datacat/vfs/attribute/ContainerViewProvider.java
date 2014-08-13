@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
+import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.container.BasicStat.StatType;
@@ -54,7 +55,7 @@ public class ContainerViewProvider implements DcViewProvider<StatType> {
             }
         }
         BasicStat retStat = stats.get(wantName);
-        org.srs.datacat.model.DatasetContainer.Builder b = new org.srs.datacat.model.DatasetContainer.Builder(file.getObject());
+        DatasetContainer.Builder b = DatasetContainer.Builder.create(file.getObject());
         b.stat( retStat );
         return b.build();
     }

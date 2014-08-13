@@ -4,7 +4,8 @@ package org.srs.datacat.model;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import javax.xml.bind.annotation.XmlTransient;
 import org.srs.datacat.shared.DatacatObject;
-import org.srs.datacat.shared.DatacatObjectBuilder;
+import org.srs.datacat.shared.DatasetGroup;
+import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.container.BasicStat;
 
 /**
@@ -21,19 +22,47 @@ public interface DatasetContainer {
      * @author bvan
      */
     @XmlTransient
-    public static class Builder<T extends DatacatObject> extends DatacatObjectBuilder<T, Builder> {
+    public static class Builder extends DatacatObject.Builder<Builder> {
         public BasicStat stat = null;
         public String description = null;
 
         public Builder(){
             super();
         }
-
+        
         public Builder(DatacatObject object){
-            super( DatacatObjectBuilder.create( object ) );
+            super(object);
             if(object instanceof DatasetContainer){
                 this.description = ((DatasetContainer) object).getDescription();
+                this.stat = ((DatasetContainer) object).getStat();
             }
+        }
+
+        public Builder(DatasetContainer.Builder builder){
+            super(builder);
+            this.stat = builder.stat;
+            this.description = builder.description;
+        }
+        
+        public static Builder create(DatacatObject container){
+            if(container.getType() == null){
+                return new LogicalFolder.Builder(container);
+            }
+            switch(container.getType()){
+                case FOLDER:
+                    return new LogicalFolder.Builder(container);
+                case GROUP:
+                    return new DatasetGroup.Builder(container);
+            }
+            return null;
+        }
+
+        @Override
+        public DatacatObject build(){
+            if(type == DatacatObject.Type.GROUP){
+                return new DatasetGroup.Builder(this).build();
+            }
+            return new LogicalFolder.Builder(this).build();    
         }
 
         @JsonSetter

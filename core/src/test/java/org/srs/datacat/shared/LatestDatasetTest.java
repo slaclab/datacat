@@ -26,7 +26,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import junit.framework.TestCase;
-import org.srs.datacat.shared.dataset.DatasetBuilder;
 import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.shared.dataset.FullDataset;
 import org.srs.rest.shared.metadata.MetadataEntry;
@@ -93,7 +92,7 @@ public class LatestDatasetTest extends TestCase {
     
     
     public void testFlatDataset() throws JAXBException, IOException{
-        DatasetBuilder db =  DatasetBuilder.create();
+        Dataset.Builder db =  new Dataset.Builder();
         db.name("my-flat-dataset.txt");
         db.datasetFileFormat("FITS");
         db.fileSystemPath( "/path/to/somewhere");
@@ -134,7 +133,7 @@ public class LatestDatasetTest extends TestCase {
     }
     
     public void testFlatDatasetXML() throws JAXBException, IOException {
-        DatasetBuilder db =  DatasetBuilder.create();
+        Dataset.Builder db =  new Dataset.Builder();
         db.name("my-flat-dataset.txt");
         db.datasetFileFormat("FITS");
         db.fileSystemPath( "/path/to/somewhere");
@@ -213,7 +212,7 @@ public class LatestDatasetTest extends TestCase {
         mmap.put( "versionId", Arrays.asList("123") );
         mmap.put( "versionMetadata", Arrays.asList("[ {\"key\":\"nRuns\", \"value\":\"hello\"} ]") );
 
-        DatasetBuilder builder = DatasetBuilder.create( FlatDataset.Builder.class );
+        Dataset.Builder builder = new FlatDataset.Builder();
         HashMap<String, Method> methods = new HashMap<>();
         
         for(Method m: builder.getClass().getMethods()){
