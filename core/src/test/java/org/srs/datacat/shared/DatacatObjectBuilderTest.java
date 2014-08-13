@@ -22,7 +22,7 @@ public class DatacatObjectBuilderTest extends TestCase {
 
     public void testMask(){
         DatacatObjectBuilder b = new DatacatObjectBuilder();
-        b.type( "DATASET");
+        b.jsonType( "DATASET");
         b.pk(1234L);
         b.name("hello");
         assertTrue(b.build().getPk() == 1234L);

@@ -57,7 +57,7 @@ public class DcFileSystemProviderTest {
         System.out.println(DatacatObject.Type.values()[ord]);
         
         System.out.println(provider.resolveFile(path.resolve( "EXO")).getPath().toString());
-        DatacatObject o = provider.resolveFile(path.resolve( "EXO")).getAttributeView(DcFile.class).getDatacatObject();
+        DatacatObject o = provider.resolveFile(path.resolve( "EXO")).getAttributeView(DcFile.class).getObject();
         
         long t0 = System.currentTimeMillis();
         try(DirectoryStream<Path> cstream = Files.newDirectoryStream( path.resolve("EXO") )){
