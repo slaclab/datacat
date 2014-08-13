@@ -1,6 +1,7 @@
 
 package org.srs.vfs;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 
@@ -11,6 +12,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystemException;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 
 import java.nio.file.attribute.AclEntry;
@@ -60,19 +62,18 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
     @Override
     public abstract P getPath(URI uri);
     
-    public abstract V retrieveFileAttributes(P path, V parent, Class<? extends AttributeView>... attributes) throws IOException;
+    public abstract V retrieveFileAttributes(P path, V parent) throws FileNotFoundException, IOException;
 
-    public V resolveFile(P path, Class<? extends AttributeView>... attributes) throws IOException {
+    public V resolveFile(P path) throws FileNotFoundException, IOException {
         // Find this file in the cache. If it's not in the cache, resolve it's parents
         // (thereby putting them in the cache), and eventually this file.
         V file = getCache().getFile(path);
         if(file == null){
-            System.out.println("cache fail");
             V parent = null;
             if(!path.equals( path.getRoot())){
-                parent = resolveFile( (P) path.getParent(), attributes);
+                parent = resolveFile( (P) path.getParent());
             }
-            file = retrieveFileAttributes(path, parent, attributes);
+            file = retrieveFileAttributes(path, parent);
             getCache().putFile(file);
             return file;
         }
@@ -84,7 +85,7 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
         String userName = path.getUserName();
         AbstractFs fs = path.getFileSystem();
         UserPrincipal user = fs.getUserPrincipalLookupService().lookupPrincipalByName(userName);
-
+        
         AclFileAttributeView aclView = file.getAttributeView(AclFileAttributeView.class);
         
         for(AclEntry entry: aclView.getAcl()){
@@ -144,6 +145,7 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
     public static enum AfsException {
         ACCESS_DENIED(AccessDeniedException.class),
         NO_SUCH_FILE(NoSuchFileException.class),
+        NOT_DIRECTORY(NotDirectoryException.class),
         FILE_EXISTS(FileAlreadyExistsException.class),
         GENERIC(FileSystemException.class);
         
@@ -153,26 +155,37 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
             this.exceptionClass = exceptionClass;
         }
         
+        /*
+          TODO: Untested and unused
         public static AfsException whichError(Class<? extends FileSystemException> exception){
-            Class err = AfsException.ACCESS_DENIED.exceptionClass;
-            if(ACCESS_DENIED.exceptionClass.isInstance( err )){
-                return ACCESS_DENIED;
-            } else if(NO_SUCH_FILE.exceptionClass.isInstance( err )){
-                return NO_SUCH_FILE;
-            } else if(FILE_EXISTS.exceptionClass.isInstance( err )){
-                return  FILE_EXISTS;
+            for(AfsException e: AfsException.values()){
+                if(e.exceptionClass.isAssignableFrom(exception)){
+                    return e;
+                }
             }
             return GENERIC;
-        }
+        }*/
         
-        public void throwError(Object target, String msg) throws FileSystemException{
+        public void throwError(Object target, final String msg) throws FileSystemException{
             String path = target.toString();
-            String reason = toString();
+            final String reason = toString();
             switch(this){
                 case ACCESS_DENIED:
                     throw new AccessDeniedException(path, msg, reason);
                 case NO_SUCH_FILE:
                     throw new NoSuchFileException(path, msg, reason);
+                case NOT_DIRECTORY:
+                    throw new NotDirectoryException(path){
+                        @Override
+                        public String getReason(){
+                            return reason;
+                        }
+
+                        @Override
+                        public String getMessage(){
+                            return msg;
+                        }
+                    };
                 case FILE_EXISTS:
                     throw new FileAlreadyExistsException(path, msg, reason);
                 default:
