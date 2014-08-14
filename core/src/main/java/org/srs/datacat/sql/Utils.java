@@ -1,8 +1,11 @@
 
 package org.srs.datacat.sql;
 
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.util.logging.Logger;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
@@ -21,7 +24,47 @@ public class Utils {
             try {
                 initDatasource("jdbc/datacat-prod");
             } catch(NamingException ex) {
-                throw new SQLException("Unable to initialize datasource", ex);
+                return new DataSource(){
+
+                    @Override
+                    public Connection getConnection() throws SQLException{
+                        return DataCatConnectionManager.instance( DataCatConnectionManager.DatabaseServerAlias.PROD ).getConnection();
+                    }
+
+                    @Override
+                    public Connection getConnection(String username, String password) throws SQLException{
+                        throw new UnsupportedOperationException( ""); }
+
+                    @Override
+                    public PrintWriter getLogWriter() throws SQLException{
+                        throw new UnsupportedOperationException( ""); }
+
+                    @Override
+                    public void setLogWriter(PrintWriter out) throws SQLException{
+                        throw new UnsupportedOperationException( ""); }
+
+                    @Override
+                    public void setLoginTimeout(int seconds) throws SQLException{
+                        throw new UnsupportedOperationException( ""); }
+
+                    @Override
+                    public int getLoginTimeout() throws SQLException{
+                        throw new UnsupportedOperationException( ""); }
+
+                    @Override
+                    public Logger getParentLogger() throws SQLFeatureNotSupportedException{
+                        throw new UnsupportedOperationException( ""); }
+
+                    @Override
+                    public <T> T unwrap(Class<T> iface) throws SQLException{
+                        throw new UnsupportedOperationException( ""); }
+
+                    @Override
+                    public boolean isWrapperFor(
+                            Class<?> iface) throws SQLException{
+                        throw new UnsupportedOperationException( ""); }
+                    
+                };
             }
         }
         return dataSource;
@@ -33,17 +76,5 @@ public class Utils {
         javax.naming.Context envCtx = (javax.naming.Context) ctx.lookup( "java:comp/env" );
         dataSource = (DataSource) envCtx.lookup( jndi );
     }
-    
-    public static Connection getConnection() throws SQLException {
-        if(dataSource == null){
-            try {
-                initDatasource("jdbc/datacat-prod");
-            } catch(NamingException ex) {
-                return DataCatConnectionManager.instance( DataCatConnectionManager.DatabaseServerAlias.PROD ).getConnection();
-            }
-        }
-        return dataSource.getConnection();
-    }
-
 
 }

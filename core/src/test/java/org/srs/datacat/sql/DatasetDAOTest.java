@@ -11,7 +11,8 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
-import junit.framework.TestCase;
+import javax.sql.DataSource;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -44,7 +45,8 @@ public class DatasetDAOTest {
     @BeforeClass
     public static void setUpDb() throws SQLException, IOException{
         System.out.println("working...");
-        Connection c = Utils.getConnection();
+        DataSource d = Utils.getDataSource();
+        Connection c = d.getConnection();
         ContainerDAO dao = new ContainerDAO(c);
         try {
             dao.getDatacatObject(TEST_BASE_PATH);
@@ -73,7 +75,8 @@ public class DatasetDAOTest {
     @AfterClass
     public static void tearDownDb() throws Exception{
         System.out.println("Cleaning up...");
-        Connection c = Utils.getConnection();
+        DataSource d = Utils.getDataSource();
+        Connection c = d.getConnection();
         ContainerDAO dao = new ContainerDAO(c);
         DatacatObject folder = dao.getDatacatObject(TEST_BASE_PATH);
         dao.deleteFolder(folder.getPk());
@@ -86,7 +89,8 @@ public class DatasetDAOTest {
     
     @Before
     public void connection() throws Exception {
-        conn = Utils.getConnection();
+        DataSource d = Utils.getDataSource();
+        conn = d.getConnection();
     }
 
     @After

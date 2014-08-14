@@ -34,6 +34,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.sql.DataSource;
 
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
@@ -60,14 +63,34 @@ import org.srs.datacat.vfs.security.DcGroup;
  */
 public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     
-    private final DcFileSystem fileSystem = new DcFileSystem(this);
+    private final DcFileSystem fileSystem;
+    private final DataSource dataSource;
     
     public DcFileSystemProvider() throws IOException{
         super();
+        try {
+            this.dataSource = Utils.getDataSource();
+        } catch(SQLException ex) {
+            throw new IOException("Unable to initiate datasource");
+        }
+        fileSystem = new DcFileSystem(this, dataSource);
+    }
+    
+    public DcFileSystemProvider(DataSource dataSource) throws IOException{
+        super();
+        this.dataSource = dataSource;
+        fileSystem = new DcFileSystem(this, dataSource);
     }
     
     public DcFileSystemProvider(boolean warmCache) throws IOException{
-        super();
+        this();
+        if(warmCache){
+            refreshCache();
+        }
+    }
+    
+    public DcFileSystemProvider(DataSource dataSource, boolean warmCache) throws IOException{
+        this(dataSource);
         if(warmCache){
             refreshCache();
         }
@@ -81,7 +104,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         long t0 = System.currentTimeMillis();
         getCache().clear();
         DcPath root = fileSystem.getPathProvider().getRoot();
-        try(ContainerDAO dao = new ContainerDAO(Utils.getConnection())){
+        try(ContainerDAO dao = new ContainerDAO(dataSource.getConnection())){
             DcAclFileAttributeView parentAcl;
             DcPath childPath;
             DcFile childFile;
@@ -140,7 +163,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         Long fileKey = dirFile.fileKey();
         try {
-            ContainerDAO dao = new ContainerDAO( Utils.getConnection() );
+            ContainerDAO dao = new ContainerDAO( dataSource.getConnection() );
             DirectoryStream<DatacatObject> stream = dao.getChildrenStream( fileKey, dcPath.toString() );
             final Iterator<DatacatObject> iter = stream.iterator();
             
@@ -257,7 +280,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     @Override
     public DcFile retrieveFileAttributes(DcPath path, DcFile parent) throws IOException {
         // LOG: Checking database
-        try (BaseDAO dao = new BaseDAO(Utils.getConnection())){
+        try (BaseDAO dao = new BaseDAO(dataSource.getConnection())){
             DcAclFileAttributeView aclView;
             DatacatObject child;
             if(path.equals( path.getRoot())){
@@ -292,7 +315,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         DcFile dsParent = resolveFile(dsPath.getParent());
         //checkPermission(dsParent, DcPermissions.CREATE_CHILD);
         
-        try (DatasetDAO dao = new DatasetDAO(Utils.getConnection())){
+        try (DatasetDAO dao = new DatasetDAO(dataSource.getConnection())){
             dao.createDatasetNodeAndView( dsParent.fileKey(), dsParent.getObject().getType(), dsPath, ds, options );
             dao.commit();
             dao.close();    
@@ -317,7 +340,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         
         //checkPermission(dsFile, DcPermissions.MODIFY);
         Dataset.Builder builder = new Dataset.Builder(ds);
-        try (DatasetDAO dao = new DatasetDAO(Utils.getConnection())){
+        try (DatasetDAO dao = new DatasetDAO(dataSource.getConnection())){
             dao.createDatasetView(ds, builder, verRequest, locRequest, options);
             dao.commit();
             dao.close();    
@@ -353,7 +376,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         ContainerCreationAttribute dsAttr = (ContainerCreationAttribute) attrs[0];
         DatacatObject request = dsAttr.value();
-        try (ContainerDAO dao = new ContainerDAO(Utils.getConnection())){
+        try (ContainerDAO dao = new ContainerDAO(dataSource.getConnection())){
             dao.createContainer( parent.fileKey(), dcDir.getParent(), request);
             dao.commit();
             parent.childAdded(dcDir);
@@ -393,7 +416,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     }
     
     protected void doDeleteDirectory(String path, DcFile file) throws DirectoryNotEmptyException, IOException{
-        try(ContainerDAO dao = new ContainerDAO(Utils.getConnection())) {
+        try(ContainerDAO dao = new ContainerDAO(dataSource.getConnection())) {
             // Verify directory is empty
             try(DirectoryStream ds = dao.getChildrenStream( file.fileKey(), path )) {
                 if(ds.iterator().hasNext()){
@@ -408,7 +431,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     }
     
     protected void doDeleteDataset(String path, DcFile file) throws IOException {
-        try(DatasetDAO dao = new DatasetDAO(Utils.getConnection())){
+        try(DatasetDAO dao = new DatasetDAO(dataSource.getConnection())){
             dao.deleteDataset(file.getObject());
         } catch(SQLException ex) {
             throw new IOException("Unable to delete dataset: " + path, ex);

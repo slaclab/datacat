@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import javax.sql.DataSource;
 
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RequestView;
@@ -14,7 +15,6 @@ import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.sql.DatasetDAO;
-import org.srs.datacat.sql.Utils;
 import org.srs.datacat.vfs.DcFile;
 
 /**
@@ -24,12 +24,14 @@ import org.srs.datacat.vfs.DcFile;
 public class DatasetViewProvider implements DcViewProvider<RequestView> {
 
     private final DcFile file;
+    private final DataSource dataSource;
     
     private final HashMap<Integer, DatasetVersion> versionCache = new HashMap<>(4);
     private final HashMap<Integer, HashMap<String,DatasetLocation>> locationCache = new HashMap<>(4);
 
     public DatasetViewProvider(DcFile file){
         this.file = file;
+        this.dataSource = file.getPath().getFileSystem().getDataSource();
     }
     
     public void clear(){
@@ -49,7 +51,7 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
         DatasetVersion retDsv;
         HashMap<String, DatasetLocation> retLocations;
         synchronized(this) {
-            try(DatasetDAO dsdao = new DatasetDAO( Utils.getConnection() )) {
+            try(DatasetDAO dsdao = new DatasetDAO( dataSource.getConnection() )) {
                 DatasetVersion dsv;
                 HashMap<String, DatasetLocation> locations;
                 if(!versionCache.containsKey( view.getVersionId() )){

@@ -7,6 +7,7 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.sql.SQLException;
 import java.util.HashMap;
+import javax.sql.DataSource;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.container.BasicStat;
@@ -22,10 +23,12 @@ import org.srs.datacat.vfs.DcFile;
 public class ContainerViewProvider implements DcViewProvider<StatType> {
     
     private final DcFile file;
+    private final DataSource dataSource;
     private HashMap<String,BasicStat> stats = new HashMap<>(4);
 
     public ContainerViewProvider(DcFile file){
         this.file = file;
+        this.dataSource = file.getPath().getFileSystem().getDataSource();
     }
 
     @Override
@@ -51,7 +54,7 @@ public class ContainerViewProvider implements DcViewProvider<StatType> {
         BasicStat retStat = null;
         synchronized(this) {
             if(!stats.containsKey( wantName )){
-                try(ContainerDAO dao = new ContainerDAO( Utils.getConnection() )) {
+                try(ContainerDAO dao = new ContainerDAO( dataSource.getConnection() )) {
                     if(!stats.containsKey( basicName )){
                         stats.put( basicName, dao.getBasicStat( file.getObject() ) );
                     }
