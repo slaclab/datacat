@@ -6,28 +6,41 @@
 
 package org.srs.datacat.vfs;
 
+import java.io.FileNotFoundException;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacat.vfs.DcUriUtils;
 import org.srs.datacat.vfs.DcFile;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Iterator;
+import org.junit.AfterClass;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.vfs.VirtualFile.FileType;
 import org.srs.datacat.shared.Dataset;
+import org.srs.datacat.shared.LogicalFolder;
+import org.srs.datacat.sql.ContainerDAO;
+import org.srs.datacat.sql.DatasetDAO;
+import org.srs.datacat.sql.DatasetDAOTest;
+import org.srs.datacat.sql.Utils;
+import static org.srs.datacat.vfs.DcUriUtils.toFsUri;
+import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.DatasetCreationAttribute;
 import org.srs.datacat.vfs.attribute.DatasetOption;
+import org.srs.vfs.PathUtils;
 
 /**
  *
@@ -35,7 +48,16 @@ import org.srs.datacat.vfs.attribute.DatasetOption;
  */
 public class DcFileSystemProviderTest {
     
-    public DcFileSystemProviderTest(){
+    public DcFileSystemProviderTest(){ }
+    
+    @BeforeClass
+    public static void setUpDb() throws SQLException, IOException{
+        DatasetDAOTest.setUpDb();
+    }
+    
+    @AfterClass
+    public static void tearDownDb() throws Exception{
+        DatasetDAOTest.tearDownDb();
     }
     
     @Before
@@ -132,5 +154,32 @@ public class DcFileSystemProviderTest {
         //Files.createFile( parentPath, dsAttr );
 
     }
+    
+    @Test
+    public void testCreateDeleteDirectory() throws IOException {
+        DcFileSystemProvider provider  = new DcFileSystemProvider();
+        
+        String folderName = "createFolderTest";
+        LogicalFolder request = new LogicalFolder(new DatacatObject(0L, 0L, folderName));
+        ContainerCreationAttribute attr = new ContainerCreationAttribute(request);
+        URI uri = DcUriUtils.toFsUri(DatasetDAOTest.TEST_BASE_PATH, null, "SRS");
+        DcPath path =  provider.getPath(uri);
+        provider.createDirectory(path.resolve(folderName), attr);
+        provider.createDirectory(path.resolve(folderName).resolve(folderName), attr);
+        
+        // directory not empty
+        try {
+            provider.delete(path.resolve(folderName));
+        } catch (DirectoryNotEmptyException ex){}
+        
+        provider.delete(path.resolve(folderName).resolve(folderName));
+        provider.delete(path.resolve(folderName));
+        
+        try {
+            // File should already be deleted
+            provider.delete(path.resolve(folderName));
+        } catch (FileNotFoundException ex){}
+    }
+
     
 }

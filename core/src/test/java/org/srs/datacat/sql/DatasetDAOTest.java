@@ -34,11 +34,11 @@ public class DatasetDAOTest {
     
     public DatasetDAOTest(){ }
     
-    private static final String TEST_BASE_NAME = "junit";
-    private static final String TEST_BASE_PATH = "/" + TEST_BASE_NAME;
-    private static final String TEST_DATATYPE_01 = "JUNIT_TEST01";
-    private static final String TEST_FILEFORMAT_01 = "junit.test";
-    private static final String TEST_DATASET_SOURCE = "JUNIT";
+    public static final String TEST_BASE_NAME = "junit";
+    public static final String TEST_BASE_PATH = "/" + TEST_BASE_NAME;
+    public static final String TEST_DATATYPE_01 = "JUNIT_TEST01";
+    public static final String TEST_FILEFORMAT_01 = "junit.test";
+    public static final String TEST_DATASET_SOURCE = "JUNIT";
 
     
     @BeforeClass

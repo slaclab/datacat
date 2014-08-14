@@ -84,6 +84,18 @@ public class ContainerDAO extends BaseDAO {
         return retObject;
     }
     
+    public void deleteContainer(DatacatObject container) throws SQLException, IOException{
+        switch(container.getType()){
+            case GROUP:
+                deleteGroup(container.getPk());
+                return;
+            case FOLDER:
+                deleteFolder(container.getPk());
+                return;
+        }
+        throw new IOException("Unable to delete object: Not a Group or Folder" + container.getType());
+    }
+    
     protected void deleteFolder(long folderPk) throws SQLException {
         String deleteSql = "delete from DatasetLogicalFolder where DatasetLogicalFolder=?";
         delete1( deleteSql, folderPk);

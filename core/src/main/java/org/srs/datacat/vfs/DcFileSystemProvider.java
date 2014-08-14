@@ -8,6 +8,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileStore;
@@ -426,16 +427,29 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     
     @Override
     public void delete(Path path) throws IOException{
-        /*
-        DcPath dcDir = checkPath(path);
-        DcFile file = resolveFile( dcDir );
-        checkPermission( file, DcPermissions.DELETE );
+        DcPath dcPath = checkPath(path);
+        DcFile file = resolveFile( dcPath );
+        // TODO: Delete permissions
+        // checkPermission( file, DcPermissions.DELETE );
         if(file.isDirectory()){
-            try(ContainerDAO dao = new ContainerDAO(Utils.getConnection())){
-                
+            doDeleteDirectory(dcPath.toString(), file);
+        }
+        getCache().removeFile(dcPath);
+    }
+    
+    protected void doDeleteDirectory(String path, DcFile file) throws DirectoryNotEmptyException, IOException{
+        try(ContainerDAO dao = new ContainerDAO(Utils.getConnection())) {
+            // Verify directory is empty
+            try(DirectoryStream ds = dao.getChildrenStream( file.fileKey(), path )) {
+                if(ds.iterator().hasNext()){
+                    AfsException.DIRECTORY_NOT_EMPTY.throwError( path, "Container not empty" );
+                }
             }
-            
-        }*/
+            dao.deleteContainer( file.getObject() );
+            dao.commit();
+        } catch(SQLException ex) {
+            throw new IOException( "Unable to delete object: " + path, ex );
+        }
     }
     
     @Override
