@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.srs.vfs.AbstractFsProvider;
 import org.srs.datacat.model.DatasetView;
@@ -55,7 +56,7 @@ public class DatasetDAO extends BaseDAO {
             ds = (Dataset) o;
         }
         
-        Dataset.Builder builder = Dataset.Builder.create(ds);
+        Dataset.Builder builder = new Dataset.Builder(ds);
         
         if(!dsOptions.isEmpty()){ 
             // We should have enought information to continue on
@@ -75,25 +76,38 @@ public class DatasetDAO extends BaseDAO {
         boolean mergeVersion = dsOptions.remove(DatasetOption.MERGE_VERSION);
         boolean createVersion = dsOptions.remove(DatasetOption.CREATE_VERSION);
         boolean createLocation = dsOptions.remove(DatasetOption.CREATE_LOCATION);
-        
+                
         String path = ds.getPath();
         DatasetVersion currentVersion = getCurrentVersion(ds.getPk());
         
         if(createVersion || mergeVersion) {
+            Objects.requireNonNull( requestVersion, "Unable to create a view with a null version");
             currentVersion = createOrMergeDatasetVersion(ds.getPk(), path, currentVersion, requestVersion, mergeVersion);
-            builder.version(currentVersion);
+            if(builder != null){
+                builder.version(currentVersion);
+            }
         }
         
         if(createLocation){
+            Objects.requireNonNull( requestLocation, "Unable to create a view with a null location");
             if(currentVersion == null){
                 DcFileSystemProvider.DcFsException.NO_SUCH_VERSION.throwError(path, "No version exists which we can add a location to");
             }
-            builder.location(createDatasetLocation(currentVersion, path, requestLocation));
+            if(builder != null){
+                builder.location(createDatasetLocation(currentVersion, path, requestLocation));
+            }
         }
     }
     
     public Dataset createDatasetNode(Long parentPk, DatacatObject.Type parentType, DcPath path, Dataset request) throws SQLException, FileSystemException{
         return insertDataset( parentPk, parentType, path.toString(), request );
+    }
+    
+    public void deleteDataset(DatacatObject dataset) throws IOException, SQLException{
+        if( !(dataset instanceof Dataset)){
+            throw new IOException("Can only delete Datacat objects");
+        }
+        deleteDataset( dataset.getPk());
     }
 
     public DatasetVersion createOrMergeDatasetVersion(Long datasetPk, DcPath path, DatasetVersion newVer,
@@ -226,7 +240,7 @@ public class DatasetDAO extends BaseDAO {
                     stmt.setLong( 5, parentPk);
             }
             stmt.executeUpdate();   // will throw exception if required parameter is empty...
-            Dataset.Builder builder = Dataset.Builder.create(request);
+            Dataset.Builder builder = new Dataset.Builder(request);
             try(ResultSet rs = stmt.getGeneratedKeys()){
                 rs.next();
                 builder.pk(rs.getLong(1));
