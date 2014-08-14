@@ -216,12 +216,12 @@ public class Dataset extends DatacatObject implements DatasetModel {
             this.locationScanned = builder.locationScanned;
             this.scanStatus = builder.scanStatus;
         }
-
-        public static Builder create(Dataset ds){
-            Builder db = new Builder().datasetFileFormat( ds.getFileFormat() ).
-                    datasetDataType( ds.getDataType() ).created( ds.getDateCreated() );
-            db.pk( ds.getPk() ).parentPk( ds.getParentPk() ).name( ds.getName() );
-            return db;
+        
+        public Builder(Dataset ds){
+            super(ds);
+            this.fileFormat = ds.datasetFileFormat;
+            this.datasetDataType = ds.datasetDataType;
+            this.created = ds.dateCreated;
         }
 
         @Override

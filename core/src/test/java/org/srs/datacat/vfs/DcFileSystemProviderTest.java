@@ -1,9 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
+ 
 package org.srs.datacat.vfs;
 
 import java.io.FileNotFoundException;
@@ -22,6 +17,8 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import org.junit.AfterClass;
 
@@ -32,15 +29,10 @@ import org.srs.datacat.shared.DatacatObject;
 import org.srs.vfs.VirtualFile.FileType;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.LogicalFolder;
-import org.srs.datacat.sql.ContainerDAO;
-import org.srs.datacat.sql.DatasetDAO;
 import org.srs.datacat.sql.DatasetDAOTest;
-import org.srs.datacat.sql.Utils;
-import static org.srs.datacat.vfs.DcUriUtils.toFsUri;
+
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
-import org.srs.datacat.vfs.attribute.DatasetCreationAttribute;
 import org.srs.datacat.vfs.attribute.DatasetOption;
-import org.srs.vfs.PathUtils;
 
 /**
  *
@@ -144,15 +136,15 @@ public class DcFileSystemProviderTest {
         
         Dataset.Builder builder = new Dataset.Builder();
         builder.name("testCaseDataset001");
-        builder.datasetDataType("TEST");
-        builder.datasetFileFormat("TEST");
-        Dataset request = builder.build();
+        builder.datasetDataType(DatasetDAOTest.TEST_DATATYPE_01);
+        builder.datasetFileFormat(DatasetDAOTest.TEST_FILEFORMAT_01);
+        builder.datasetSource( DatasetDAOTest.TEST_DATASET_SOURCE);
         
-        DcPath parentPath = provider.getPath( DcUriUtils.toFsUri( "/testpath/testfolder", null, "SRS"));
+        Dataset request = builder.build();
+        DcPath parentPath = provider.getPath( DcUriUtils.toFsUri(DatasetDAOTest.TEST_BASE_PATH, null, "SRS"));
         DcPath filePath = parentPath.resolve(request.getName());
-        DatasetCreationAttribute dsAttr = new DatasetCreationAttribute(request, DatasetOption.CREATE_NODE);
-        //Files.createFile( parentPath, dsAttr );
-
+        HashSet<DatasetOption> options = new HashSet<>(Arrays.asList( DatasetOption.CREATE_NODE));
+        provider.createDataset( filePath, request, options);
     }
     
     @Test

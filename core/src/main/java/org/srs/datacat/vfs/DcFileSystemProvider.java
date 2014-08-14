@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import org.srs.datacat.vfs.security.DcPermissions;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.DirectoryNotEmptyException;
@@ -25,11 +24,9 @@ import java.nio.file.attribute.AclEntryFlag;
 import java.nio.file.attribute.AclEntryPermission;
 import java.nio.file.attribute.AclEntryType;
 
-import java.nio.file.attribute.AttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
-import java.sql.Connection;
 
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -37,21 +34,23 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.srs.datacat.shared.DatacatObject;
+import org.srs.datacat.shared.Dataset;
+import org.srs.datacat.shared.DatasetLocation;
+import org.srs.datacat.shared.DatasetVersion;
+
 import org.srs.datacat.sql.ContainerDAO;
 import org.srs.datacat.sql.Utils;
 import org.srs.vfs.AbstractFsProvider;
 import org.srs.vfs.AbstractPath;
 import org.srs.vfs.ChildrenView;
-import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.sql.BaseDAO;
 import org.srs.datacat.sql.DatasetDAO;
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
-import org.srs.datacat.vfs.attribute.DatasetCreationAttribute;
+
 import org.srs.datacat.vfs.attribute.DatasetOption;
+import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 import org.srs.datacat.vfs.security.DcAclFileAttributeView;
 import org.srs.datacat.vfs.security.DcGroup;
 
@@ -282,98 +281,53 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             throw new IOException(ex);
         }
     }
-    
-    @Override
-    public SeekableByteChannel newByteChannel(Path path,
-            Set<? extends OpenOption> options,
-            FileAttribute<?>... attrs) throws IOException{
-                
+
+    public void createDataset(Path path, Dataset ds, Set<DatasetOption> options) throws IOException{
         DcPath dsPath = checkPath( path );
-        Dataset request = null;
-        if(attrs.length != 1){
-            throw new IOException("Only one attribute allowed for dataset creation");
-        }
-        if( !(attrs[0] instanceof DatasetCreationAttribute) ){
-                throw new IOException("Creation attribute not valid for creating a dataset");
-        }
-        DatasetCreationAttribute dsAttr = (DatasetCreationAttribute) attrs[0];
-        request = dsAttr.value();
         
-        if(Files.exists(dsPath) && dsAttr.getOptions().contains( DatasetOption.CREATE_NODE)){
-            AfsException.FILE_EXISTS.throwError( dsPath, "A dataset node alread exists at this location");
+        if(Files.exists(dsPath) && options.contains(DatasetOption.CREATE_NODE)){
+            AfsException.FILE_EXISTS.throwError( dsPath, "A dataset node already exists at this location");
         }
         
         DcFile dsParent = resolveFile(dsPath.getParent());
-        checkPermission(dsParent, DcPermissions.CREATE_CHILD);
+        //checkPermission(dsParent, DcPermissions.CREATE_CHILD);
         
-        final DatasetDAO dao;
-        try {
-            dao = new DatasetDAO(Utils.getConnection());
-        } catch(SQLException ex){
+        try (DatasetDAO dao = new DatasetDAO(Utils.getConnection())){
+            dao.createDatasetNodeAndView( dsParent.fileKey(), dsParent.getObject().getType(), dsPath, ds, options );
+            dao.commit();
+            dao.close();    
+        } catch (SQLException ex){
             throw new IOException("Unable to connect to database", ex);
         }
-        
-        try {
-            dao.createDatasetNodeAndView( dsParent.fileKey(), dsParent.getObject().getType(), dsPath, request, dsAttr.getOptions() );
-            
-            return new SeekableByteChannel(){
-
-                @Override
-                public int read(ByteBuffer dst) throws IOException{
-                    throw new UnsupportedOperationException("Illegal operation");
-                }
-
-                @Override
-                public int write(ByteBuffer src) throws IOException{
-                    throw new UnsupportedOperationException("Illegal operation");
-                }
-
-                @Override
-                public long position() throws IOException{
-                    throw new UnsupportedOperationException("Illegal operation");
-                }
-
-                @Override
-                public SeekableByteChannel position(long newPosition) throws IOException{
-                    throw new UnsupportedOperationException("Illegal operation");
-                }
-
-                @Override
-                public long size() throws IOException{
-                    throw new UnsupportedOperationException("Illegal operation");
-                }
-
-                @Override
-                public SeekableByteChannel truncate(long size) throws IOException{
-                    throw new UnsupportedOperationException("Illegal operation");
-                }
-
-                @Override
-                public boolean isOpen(){
-                    throw new UnsupportedOperationException("Illegal operation");
-                }
-
-                @Override
-                public void close() throws IOException{
-                    try {
-                        dao.close();
-                    } catch(SQLException ex) {
-                        try { dao.rollback(); } catch(SQLException ex1) { }
-                        throw new IOException("Unable to create dataset", ex);
-                    } finally {
-                        try { dao.close(); } catch(SQLException ex1) { }
-                    }
-                }
-            };
-            
-        } catch (SQLException ex){
-            try { dao.rollback(); } catch(SQLException ex1) { }
-            throw new IOException(ex);
-        } finally {
-            try { dao.close(); } catch(SQLException ex1) { }
-        }
+        dsParent.childAdded(dsPath);
     }
     
+    public void createDatasetView(Path path, DatasetVersion verRequest, DatasetLocation locRequest, Set<DatasetOption> options) throws IOException{
+        DcPath dsPath = checkPath( path );
+        DcFile dsFile = resolveFile(dsPath);
+        if(dsFile.getObject().getType() != DatacatObject.Type.DATASET){
+            AfsException.NO_SUCH_FILE.throwError(path, "Path is not a dataset");
+        }
+        
+        Dataset ds = (Dataset) dsFile.getObject();
+
+        if(options.contains(DatasetOption.CREATE_NODE)){
+            throw new UnsupportedOperationException("This method cannot create a node");
+        }
+        
+        //checkPermission(dsFile, DcPermissions.MODIFY);
+        Dataset.Builder builder = new Dataset.Builder(ds);
+        try (DatasetDAO dao = new DatasetDAO(Utils.getConnection())){
+            dao.createDatasetView(ds, builder, verRequest, locRequest, options);
+            dao.commit();
+            dao.close();    
+        } catch (SQLException ex){
+            throw new IOException("Unable to connect to database", ex);
+        }
+        dsFile.getAttributeView(DatasetViewProvider.class).clear();
+        resolveFile(dsPath.getParent()).childModified(dsPath);
+    }
+        
     @Override
     public void createDirectory(Path dir,
             FileAttribute<?>... attrs) throws IOException {
@@ -402,6 +356,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         try (ContainerDAO dao = new ContainerDAO(Utils.getConnection())){
             dao.createContainer( parent.fileKey(), dcDir.getParent(), request);
             dao.commit();
+            parent.childAdded(dcDir);
         } catch(SQLException ex) {
             throw new IOException("Unable to create container", ex);
         }
@@ -421,20 +376,20 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         throw new UnsupportedOperationException(); 
     }
     
-    /*
-            NOT IMPLEMENTED
-    */
-    
     @Override
     public void delete(Path path) throws IOException{
         DcPath dcPath = checkPath(path);
         DcFile file = resolveFile( dcPath );
+        DcFile parentFile = resolveFile(dcPath.getParent());
         // TODO: Delete permissions
         // checkPermission( file, DcPermissions.DELETE );
         if(file.isDirectory()){
             doDeleteDirectory(dcPath.toString(), file);
+        } else if (file.isRegularFile()){
+            doDeleteDataset(dcPath.toString(), file );
         }
         getCache().removeFile(dcPath);
+        parentFile.childRemoved(dcPath);
     }
     
     protected void doDeleteDirectory(String path, DcFile file) throws DirectoryNotEmptyException, IOException{
@@ -450,6 +405,25 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         } catch(SQLException ex) {
             throw new IOException( "Unable to delete object: " + path, ex );
         }
+    }
+    
+    protected void doDeleteDataset(String path, DcFile file) throws IOException {
+        try(DatasetDAO dao = new DatasetDAO(Utils.getConnection())){
+            dao.deleteDataset(file.getObject());
+        } catch(SQLException ex) {
+            throw new IOException("Unable to delete dataset: " + path, ex);
+        }
+    }
+    
+    /*
+            NOT IMPLEMENTED
+    */
+    
+    @Override
+    public SeekableByteChannel newByteChannel(Path path,
+            Set<? extends OpenOption> options,
+            FileAttribute<?>... attrs) throws IOException{
+        throw new UnsupportedOperationException("Use createDataset method to create a dataset");
     }
     
     @Override

@@ -145,4 +145,28 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
         throw new UnsupportedOperationException( "Not supported yet." );
     }
     
+    public void childRemoved(DcPath child){
+        if(!isDirectory()){
+            return;
+        }
+        getAttributeView(ChildrenView.class).unlink(child.getFileName().toString());
+        getAttributeView(ContainerViewProvider.class).clearStats();
+    }
+    
+    public void childAdded(DcPath child){
+        if(!isDirectory()){
+            return;
+        }
+        getAttributeView(ChildrenView.class).link(child);
+        getAttributeView(ContainerViewProvider.class).clearStats();
+    }
+    
+    public void childModified(DcPath child){
+        if(!isDirectory()){
+            return;
+        }
+        getAttributeView(ChildrenView.class).unlink(child.getFileName().toString());
+        getAttributeView(ChildrenView.class).link(child);
+        getAttributeView(ContainerViewProvider.class).clearStats();
+    }
 }
