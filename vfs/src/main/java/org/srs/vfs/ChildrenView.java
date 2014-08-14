@@ -6,9 +6,9 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.attribute.FileAttributeView;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -19,7 +19,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ChildrenView<P extends AbstractPath> implements FileAttributeView {
 
     private boolean hasCache = false;
-    private LinkedHashMap<String, P> children;
+    private TreeMap<String, P> children;
     private final P path;
     private final ReentrantLock lock = new ReentrantLock();
     
@@ -47,11 +47,49 @@ public class ChildrenView<P extends AbstractPath> implements FileAttributeView {
         return hasCache;
     }
     
+    /**
+     * Return true if we were able to link the file to the current list of children
+     * @param filename
+     * @return 
+     */
+    public boolean link(P path){
+        lock.lock();
+        try {  
+            if(children == null){
+                return false;
+            }
+            children.put( path.getFileName().toString(), path);
+            return false;
+        } finally {
+            lock.unlock();
+        }
+    }
+    
+    /**
+     * Return true if we were able to unlink the file to the current list of children
+     * @param filename
+     * @return 
+     */
+    public boolean unlink(String filename){
+        lock.lock();
+        try {  
+            if(children == null){
+                return false;
+            }
+            if(children.remove(filename) != null){
+                return true;
+            }
+            return false;
+        } finally {
+            lock.unlock();
+        }
+    }
+    
     public void refreshCache() throws IOException{
         lock.lock();
         try {  
             if(children == null){
-                children = new LinkedHashMap<>();
+                children = new TreeMap<>();
             }
             children.clear();
             AbstractFsProvider provider = path.getFileSystem().provider();
