@@ -286,7 +286,24 @@ public abstract class AbstractPath<T extends AbstractPath> implements Path {
     @Override
     public int hashCode(){
         // Use absolute, normalized name for this (extra CPUs, but easier)
-        return Util.smearHash(toAbsolutePath().path.hashCode());
+        return smearHash(toAbsolutePath().path.hashCode());
+    }
+    
+    private static final int C1 = 0xcc9e2d51;
+    private static final int C2 = 0x1b873593;
+
+    /*
+     * This was taken from Google's jimfs implementation.
+     * 
+     * This method was rewritten in Java from an intermediate step of the Murmur hash function in
+     * http://code.google.com/p/smhasher/source/browse/trunk/MurmurHash3.cpp, which contained the
+     * following header:
+     *
+     * MurmurHash3 was written by Austin Appleby, and is placed in the public domain. The author
+     * hereby disclaims copyright to this source code.
+     */
+    static int smearHash(int hashCode){
+        return C2 * Integer.rotateLeft( hashCode * C1, 15 );
     }
 
 }
