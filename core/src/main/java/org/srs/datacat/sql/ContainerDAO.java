@@ -42,13 +42,13 @@ public class ContainerDAO extends BaseDAO {
         switch(newType){
             case FOLDER:
                 builder = new LogicalFolder.Builder(request);
-                tableName = "DatasetLogicalFolder";
-                parentColumn = "Parent";
+                tableName = "DATASETLOGICALFOLDER";
+                parentColumn = "PARENT";
                 break;
             case GROUP:
                 builder = new DatasetGroup.Builder(request);
-                tableName = "DatasetGroup";
-                parentColumn = "DatasetLogicalFolder";
+                tableName = "DATASETGROUP";
+                parentColumn = "DATASETLOGICALFOLDER";
                 break;
             default:
                 throw new SQLException("Unknown parent table: " + newType.toString());
@@ -109,7 +109,7 @@ public class ContainerDAO extends BaseDAO {
     public ArrayList<DatacatObject> getAllContainers(DcPath path, Long pk) throws SQLException{
         String sql = 
                 " WITH CONTAINERS (type, pk, name, parent, lev, relpath) AS ( "
-                + "     SELECT 'FOLDER', datasetlogicalfolder, name, parent, 0, '.' from datasetlogicalfolder where parent = ? "
+                + "     SELECT 'F', datasetlogicalfolder, name, parent, 0, '.' from datasetlogicalfolder where parent = ? "
                 + "   UNION ALL "
                 + "     SELECT   objects.type, objects.pk, objects.name, objects.parent, parent.lev+1,  "
                 + "     CASE WHEN parent.relpath = '.'  "
@@ -117,11 +117,11 @@ public class ContainerDAO extends BaseDAO {
                 + "        ELSE parent.relpath || '/' || parent.name  "
                 + "        END      "
                 + "      FROM ( "
-                + "        SELECT   'FOLDER' type, DatasetLogicalFolder.datasetLogicalFolder pk, "
+                + "        SELECT   'F' type, DatasetLogicalFolder.datasetLogicalFolder pk, "
                 + "          DatasetLogicalFolder.name, DatasetLogicalFolder.parent parent "
                 + "          FROM DatasetLogicalFolder "
                 + "      UNION ALL "
-                + "        SELECT   'GROUP' type, DatasetGroup.datasetGroup pk, DatasetGroup.name, "
+                + "        SELECT   'G' type, DatasetGroup.datasetGroup pk, DatasetGroup.name, "
                 + "          DatasetGroup.datasetLogicalFolder parent "
                 + "          FROM DatasetGroup  "
                 + "      ) objects  "
@@ -149,10 +149,10 @@ public class ContainerDAO extends BaseDAO {
     public BasicStat getBasicStat(DatacatObject container) throws SQLException {
         String parent = container instanceof LogicalFolder ? "datasetlogicalfolder" : "datasetgroup";
 
-        String statSQL = "select 'DATASET' type, count(1) count from verdataset where " + parent + " = ? ";
+        String statSQL = "select 'D' type, count(1) count from verdataset where " + parent + " = ? ";
         if(container instanceof LogicalFolder){
-            statSQL = statSQL + "UNION ALL select 'GROUP' type, count(1) count from datasetgroup where datasetlogicalfolder = ? ";
-            statSQL = statSQL + "UNION ALL select 'FOLDER' type, count(1) count from datasetlogicalfolder where parent = ? ";
+            statSQL = statSQL + "UNION ALL select 'G' type, count(1) count from datasetgroup where datasetlogicalfolder = ? ";
+            statSQL = statSQL + "UNION ALL select 'F' type, count(1) count from datasetlogicalfolder where parent = ? ";
         }
         try(PreparedStatement stmt = getConnection().prepareStatement( statSQL )) {
             stmt.setLong( 1, ((DatacatObject) container).getPk() );
@@ -163,14 +163,18 @@ public class ContainerDAO extends BaseDAO {
             ResultSet rs = stmt.executeQuery();
             BasicStat cs = new BasicStat();
             while(rs.next()){
-                String type = rs.getString( "type" );
                 Long count = rs.getLong( "count");
-                if("DATASET".equals( type ) )
-                    cs.setDatasetCount( count );
-                else if("GROUP".equals( type ) )
-                    cs.setGroupCount( count );
-                else if("FOLDER".equals( type ) )
-                    cs.setFolderCount( count );
+                switch(getType(rs.getString( "type" ))){
+                    case DATASET:
+                        cs.setDatasetCount( count );
+                        break;
+                    case GROUP:
+                        cs.setGroupCount( count );
+                        break;
+                    case FOLDER:
+                        cs.setFolderCount( count );
+                        break;
+                }
             }
             return cs;
         }
@@ -212,13 +216,13 @@ public class ContainerDAO extends BaseDAO {
     
     public DirectoryStream<DatacatObject> getChildrenStream(Long parentPk, final String parentPath) throws SQLException, IOException{
         String sql = "WITH OBJECTS (type, pk, name, parent) AS ( "
-                + "    SELECT 'FOLDER', datasetlogicalfolder, name, parent "
+                + "    SELECT 'F', datasetlogicalfolder, name, parent "
                 + "      FROM datasetlogicalfolder "
                 + "  UNION ALL "
-                + "    SELECT 'GROUP', datasetGroup, name, datasetLogicalFolder "
+                + "    SELECT 'G', datasetGroup, name, datasetLogicalFolder "
                 + "      FROM DatasetGroup "
                 + "  UNION ALL "
-                + "    SELECT   'DATASET', dataset, datasetName, "
+                + "    SELECT   'D', dataset, datasetName, "
                 + "      CASE WHEN datasetlogicalfolder is not null THEN datasetlogicalfolder else datasetgroup END "
                 + "      FROM VerDataset "
                 + ") "

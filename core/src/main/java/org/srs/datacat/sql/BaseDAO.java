@@ -107,13 +107,13 @@ public class BaseDAO implements AutoCloseable {
         }
         
         String sql = String.format("WITH OBJECTS (type, pk, name, parent) AS ( "
-                + "    SELECT 'FOLDER', datasetlogicalfolder, name, parent "
+                + "    SELECT 'F', datasetlogicalfolder, name, parent "
                 + "      FROM datasetlogicalfolder "
                 + "  UNION ALL "
-                + "    SELECT 'GROUP', datasetGroup, name, datasetLogicalFolder "
+                + "    SELECT 'G', datasetGroup, name, datasetLogicalFolder "
                 + "      FROM DatasetGroup "
                 + "  UNION ALL "
-                + "    SELECT   'DATASET', dataset, datasetName, "
+                + "    SELECT 'D', dataset, datasetName, "
                 + "      CASE WHEN datasetlogicalfolder is not null THEN datasetlogicalfolder else datasetgroup END "
                 + "      FROM VerDataset "
                 + ") "
@@ -121,14 +121,16 @@ public class BaseDAO implements AutoCloseable {
                 + "  WHERE parent %s "
                 + "  ORDER BY name", parentClause);
 
-        org.srs.datacat.shared.DatacatObject.Builder builder = null;
+        DatacatObject.Builder builder = null;
         try(PreparedStatement stmt = getConnection().prepareStatement( sql )) {
             if(nameParam != null){
                 stmt.setLong( 1, parentPk);
                 stmt.setString( 2, nameParam);
             }
             ResultSet rs = stmt.executeQuery();
-            assertFileExists( rs );
+            if(!rs.next()){
+                throw (new FileNotFoundException( "Unable to resolve objects: " + path ));
+            }
             builder = getBuilder( rs );
             if(parentPath != null){
                 builder.path(parentPath);
@@ -137,13 +139,7 @@ public class BaseDAO implements AutoCloseable {
         completeObject(builder);
         return builder.build();
     }
-
-    protected void assertFileExists(ResultSet rs) throws SQLException, FileNotFoundException{
-        if(!rs.next()){
-            throw (new FileNotFoundException( "Unable to resolve objects" ));
-        }
-    }    
-
+    
     protected void completeObject(org.srs.datacat.shared.DatacatObject.Builder builder) throws SQLException{
 
         if(builder instanceof org.srs.datacat.shared.Dataset.Builder){
@@ -326,12 +322,37 @@ public class BaseDAO implements AutoCloseable {
         }
     }
     
+    public static DatacatObject.Type getType(String typeChar){
+        switch(typeChar){
+            case "F":
+                return DatacatObject.Type.FOLDER;
+            case "G":
+                return DatacatObject.Type.GROUP;
+            case "D":
+                return DatacatObject.Type.DATASET;
+        }
+        return null;
+    }
+    
     public static DatacatObject.Builder getBuilder(ResultSet rs) throws SQLException {
-        String type = rs.getString("type");
-        DatacatObject.Builder o = DatacatObject.rawTypeBuilder( type )
-                .pk(rs.getLong("pk"))
-                .parentPk(rs.getLong("parent"))
-                .name(rs.getString("name"));
+        DatacatObject.Type type = getType(rs.getString("type"));
+        DatacatObject.Builder o;
+        switch (type){
+            case DATASET:
+                o =  new Dataset.Builder();
+                break;
+            case FOLDER:
+                o = new LogicalFolder.Builder();
+                break;
+            case GROUP:
+                o = new DatasetGroup.Builder();
+                break;
+            default:
+                o = new DatacatObject.Builder();
+        }
+        o.pk( rs.getLong( "pk" ) )
+                .parentPk( rs.getLong( "parent" ) )
+                .name( rs.getString( "name" ) );
         return o;
     }
 

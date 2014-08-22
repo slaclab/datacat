@@ -226,7 +226,7 @@ public class DatasetDAO extends BaseDAO {
     protected Dataset insertDataset(Long parentPk, DatacatObject.Type parentType, String parentPath, Dataset request) throws SQLException {
         String insertSql = "insert into VerDataset (DatasetName, DataSetFileFormat, DataSetDataType, "
                 + "DatasetLogicalFolder, DatasetGroup) values (?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = getConnection().prepareStatement( insertSql, new String[]{"Dataset", "Registered"} )) {
+        try (PreparedStatement stmt = getConnection().prepareStatement( insertSql, new String[]{"DATASET", "REGISTERED"} )) {
             stmt.setString(1, request.getName() );
             stmt.setString(2, request.getFileFormat() );
             stmt.setString(3, request.getDataType().toUpperCase());
@@ -323,7 +323,7 @@ public class DatasetDAO extends BaseDAO {
                 + "values (?, ?, ?, ?, ?)";
       
         DatasetVersion retVersion = null;
-        try(PreparedStatement stmt = getConnection().prepareStatement( sql, new String[]{"DatasetVersion", "Registered"} )) {
+        try(PreparedStatement stmt = getConnection().prepareStatement( sql, new String[]{"DATASETVERSION", "REGISTERED"} )) {
             stmt.setLong(1, datasetPk );
             stmt.setInt(2, newVersionId );
             stmt.setString(3, request.getDatasetSource() );
@@ -382,7 +382,7 @@ public class DatasetDAO extends BaseDAO {
             try(PreparedStatement stmt = getConnection().prepareStatement( nextLatest )) {
                 stmt.setInt( 1, version.getVersionId() );
                 stmt.setLong( 2, datasetPk );
-                stmt.executeQuery();
+                stmt.executeUpdate();
             }            
         }
 
@@ -396,7 +396,7 @@ public class DatasetDAO extends BaseDAO {
               + " NumberEvents, FileSizeBytes) values (?, ?, ?, ?, ?, ?, ?)";
         
         DatasetLocation retLoc;
-        try(PreparedStatement stmt = getConnection().prepareStatement( insertSql, new String[]{"DatasetLocation", "Registered"} )) {
+        try(PreparedStatement stmt = getConnection().prepareStatement( insertSql, new String[]{"DATASETLOCATION", "REGISTERED"} )) {
             stmt.setLong( 1, datasetVersionPk );
             stmt.setString( 2, request.getSite() );
             stmt.setString( 3, request.getFileSystemPath() );

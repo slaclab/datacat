@@ -272,19 +272,6 @@ public class DatacatObject implements Serializable {
     protected String omitNull(String name, Object o){
         return o != null ? name + o + "\t": "";
     }
-    
-    public static Builder rawTypeBuilder(String rawType){
-        switch (Type.valueOf(rawType)){
-            case DATASET:
-                return new Dataset.Builder();
-            case FOLDER:
-                return new LogicalFolder.Builder();
-            case GROUP:
-                return new DatasetGroup.Builder();
-            default:
-                return new Builder<>();
-        }
-    }
 
     /**
      * Checks to make sure any fields that are declared are equivalent
