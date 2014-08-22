@@ -90,7 +90,7 @@ public abstract class AbstractFs<P extends AbstractPath> extends FileSystem {
 
     @Override
     public PathMatcher getPathMatcher(String syntaxAndPattern){
-        throw new UnsupportedOperationException();
+        return PathMatchers.getPathMatcher(syntaxAndPattern, getSeparator());
     }
 
     public abstract UserPrincipalLookupService getUserPrincipalLookupService();

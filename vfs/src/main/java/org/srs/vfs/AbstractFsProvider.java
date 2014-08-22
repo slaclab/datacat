@@ -20,7 +20,6 @@ import java.nio.file.attribute.AclEntry;
 import java.nio.file.attribute.AclEntryPermission;
 import java.nio.file.attribute.AclEntryType;
 import java.nio.file.attribute.AclFileAttributeView;
-import java.nio.file.attribute.AttributeView;
 import java.nio.file.attribute.UserPrincipal;
 
 import java.nio.file.spi.FileSystemProvider;
@@ -48,10 +47,10 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
     */
     private VfsCache<V> cache = new VfsSoftCache();
     
-    public static final DirectoryStream.Filter<AbstractPath> AcceptAllFilter
-            = new DirectoryStream.Filter<AbstractPath>() {
+    public static final DirectoryStream.Filter<Path> AcceptAllFilter
+            = new DirectoryStream.Filter<Path>() {
                 @Override
-                public boolean accept(AbstractPath entry) throws IOException{
+                public boolean accept(Path entry) throws IOException{
                     return true;
                 }
             };
@@ -80,7 +79,7 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
         }
         return file;
     }
-        
+            
     public void checkPermission(V file, AclEntryPermission permission) throws IOException {
         AbstractPath path = file.getPath();
         String userName = path.getUserName();
@@ -137,8 +136,20 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
         throw new UnsupportedOperationException( "Unimplemented feature" ); 
     }
     
+    public DirectoryStream<Path> newDirectoryStream(P dir) throws IOException{
+        return newDirectoryStream(dir, AcceptAllFilter);
+    }
+    
+    public DirectoryStream<? extends AbstractPath> cachedDirectoryStream(P dir) throws IOException{
+        return cachedDirectoryStream(dir, AcceptAllFilter);
+    }
+    
     public abstract DirectoryStream<? extends AbstractPath> cachedDirectoryStream(Path dir,
             DirectoryStream.Filter<? super Path> filter) throws IOException;
+    
+    public DirectoryStream<? extends AbstractPath> unCachedDirectoryStream(P dir) throws IOException{
+        return unCachedDirectoryStream(dir, AcceptAllFilter);
+    }
     
     public abstract DirectoryStream<? extends AbstractPath> unCachedDirectoryStream(Path dir,
             DirectoryStream.Filter<? super Path> filter) throws IOException;
