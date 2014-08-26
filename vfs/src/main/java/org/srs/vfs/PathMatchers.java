@@ -40,9 +40,9 @@ final class PathMatchers {
    */
   // TODO(cgdecker): Should I be just canonicalizing separators rather than matching any separator?
   // Perhaps so, assuming Path always canonicalizes its separators
-  public static PathMatcher getPathMatcher( String syntaxAndPattern, String separators) {
+  public static PathMatcher getPathMatcher(String syntaxAndPattern, String separators) {
     int syntaxSeparator = syntaxAndPattern.indexOf(':');
-    if(syntaxSeparator > 0) {
+    if(syntaxSeparator <= 0) {
         throw new IllegalArgumentException( String.format("Must be of the form 'syntax:pattern': %s",syntaxAndPattern));
     }
     String syntax = syntaxAndPattern.substring(0, syntaxSeparator).toLowerCase();
