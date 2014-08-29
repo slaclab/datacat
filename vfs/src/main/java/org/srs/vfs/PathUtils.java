@@ -115,7 +115,7 @@ public class PathUtils {
         index = 0;
         if(path.isEmpty()){
             // empty path has one name
-            count = 1;
+            count = 0;
         } else {
             while(index < path.length()){
                 char c = path.charAt( index++ );
@@ -294,6 +294,51 @@ public class PathUtils {
             prevChar = c;
         }
         return sb.toString();
+    }
+    
+    /**
+     * Remove trailing regex path parts
+     * @param pathPattern
+     * @return 
+     */
+    public static String normalizeRegex(String pathPattern){
+        int[] offsets = offsets(pathPattern);
+        int cursor = 0;
+        int ch = pathPattern.codePointAt(cursor);
+        for (;;) {
+            switch (ch) {
+            case '*':
+            case '+':
+            case '?':
+            case '{':
+            case '$':
+            case '.':
+            case '^':
+            case '(':
+            case '[':
+            case '|':
+            case ')':
+            case '\\': // TODO: Should maybe handle escape sequences
+                break;
+            case 0:
+                if (cursor >= pathPattern.length()) {
+                    break;
+                }
+            default:
+                ch = pathPattern.codePointAt(++cursor);
+                continue;
+            }
+            break;
+        }
+        for(int i = 0; i < offsets.length; i++){
+            if(cursor < offsets[i]){
+                return pathPattern.substring( 0, offsets[i-1]);
+            }
+            if(cursor == offsets[i]){
+                return pathPattern.substring( 0, offsets[i]);
+            }
+        }
+        return pathPattern.substring( 0, offsets[0]);
     }
     
     private static void checkValidChar(String input, char c) {
