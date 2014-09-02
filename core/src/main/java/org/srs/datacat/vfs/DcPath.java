@@ -27,5 +27,5 @@ public class DcPath extends AbstractPath<DcPath> {
     public void setView(DatasetView view){
         this.view = view;
     }
-
+    
 }

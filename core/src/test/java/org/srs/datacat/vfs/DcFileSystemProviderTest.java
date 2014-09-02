@@ -20,19 +20,22 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import javax.sql.DataSource;
 import org.junit.AfterClass;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.srs.datacat.shared.DatacatObject;
-import org.srs.vfs.VirtualFile.FileType;
+
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.sql.DatasetDAOTest;
+import org.srs.datacat.test.HSqlDbHarness;
 
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.DatasetOption;
+import org.srs.vfs.AbstractPath;
 
 /**
  *
@@ -40,51 +43,50 @@ import org.srs.datacat.vfs.attribute.DatasetOption;
  */
 public class DcFileSystemProviderTest {
     
+    static HSqlDbHarness harness;
+    
     public DcFileSystemProviderTest(){ }
     
     @BeforeClass
     public static void setUpDb() throws SQLException, IOException{
         DatasetDAOTest.setUpDb();
+        harness = new HSqlDbHarness();
+        DataSource d = harness.getDataSource();
+        DatasetDAOTest.addRecords(d.getConnection());
     }
     
     @AfterClass
     public static void tearDownDb() throws Exception{
-        DatasetDAOTest.tearDownDb();
+        DatasetDAOTest.removeRecords( harness.getDataSource().getConnection());
     }
     
     @Before
     public void setUp() throws IOException, SQLException{
-        DcFileSystemProvider provider  = new DcFileSystemProvider();
+        DcFileSystemProvider provider  = new DcFileSystemProvider(harness.getDataSource());
         URI uri = DcUriUtils.toFsUri( "/", null, "SRS");
-        DcPath path = provider.getPath( uri );
-        try(DirectoryStream<Path> s = Files.newDirectoryStream( path )){
+        DcPath rootPath = provider.getPath( uri );
+        try(DirectoryStream<Path> s = provider.newDirectoryStream( rootPath )){
             for(Path p: s){
                 System.out.println(p.toString());
             }
         }
         
-        provider  = new DcFileSystemProvider(true);
-
-        System.out.println(path.toString());
-        int ord = FileType.userType( provider.resolveFile(path).getType());
-        System.out.println(DatacatObject.Type.values()[ord]);
+        provider  = new DcFileSystemProvider(harness.getDataSource());
         
-        System.out.println(provider.resolveFile(path.resolve( "EXO")).getPath().toString());
-        DatacatObject o = provider.resolveFile(path.resolve( "EXO")).getAttributeView(DcFile.class).getObject();
+        DatacatObject o = provider.resolveFile(rootPath.resolve("testpath")).getAttributeView(DcFile.class).getObject();
         
         long t0 = System.currentTimeMillis();
-        try(DirectoryStream<Path> cstream = Files.newDirectoryStream( path.resolve("EXO") )){
-            for(Iterator<Path> iter = cstream.iterator(); iter.hasNext();){
+        try(DirectoryStream<? extends AbstractPath> cstream = provider.unCachedDirectoryStream( rootPath.resolve("testpath") )){
+            for(Iterator<? extends AbstractPath> iter = cstream.iterator(); iter.hasNext();){
                 iter.next();
                 //System.out.println(iter.next().toString());
             }
         }
         System.out.println("uncached directory stream took:" + (System.currentTimeMillis() - t0));
-                
         
         t0 = System.currentTimeMillis();
         for(int i = 0; i <100; i++){
-            try(DirectoryStream<Path> cstream = Files.newDirectoryStream( path.resolve("EXO") )){
+            try(DirectoryStream<Path> cstream = provider.newDirectoryStream( rootPath.resolve("testpath") )){
                 for(Iterator<Path> iter = cstream.iterator(); iter.hasNext();){
                     iter.next();
                     //System.out.println(iter.next().toString());
@@ -95,7 +97,7 @@ public class DcFileSystemProviderTest {
         System.out.println("100 cached directory streams took:" + (System.currentTimeMillis() - t0));
         
         System.out.println("Walking tree...\n\n");
-        Files.walkFileTree( path.resolve( "EXO"), new SimpleFileVisitor<Path>() {
+        Files.walkFileTree( rootPath.resolve("testpath"), new SimpleFileVisitor<Path>() {
             int filesVisited = 0;
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
@@ -132,7 +134,7 @@ public class DcFileSystemProviderTest {
 
     @Test
     public void testCreateDataset() throws IOException{
-        DcFileSystemProvider provider  = new DcFileSystemProvider();
+        DcFileSystemProvider provider  = new DcFileSystemProvider(harness.getDataSource());
         
         Dataset.Builder builder = new Dataset.Builder();
         builder.name("testCaseDataset001");
@@ -149,7 +151,7 @@ public class DcFileSystemProviderTest {
     
     @Test
     public void testCreateDeleteDirectory() throws IOException {
-        DcFileSystemProvider provider  = new DcFileSystemProvider();
+        DcFileSystemProvider provider  = new DcFileSystemProvider(harness.getDataSource());
         
         String folderName = "createFolderTest";
         LogicalFolder request = new LogicalFolder(new DatacatObject(0L, 0L, folderName));

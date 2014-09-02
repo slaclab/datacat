@@ -56,6 +56,7 @@ import org.srs.datacat.vfs.attribute.DatasetOption;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 import org.srs.datacat.vfs.security.DcAclFileAttributeView;
 import org.srs.datacat.vfs.security.DcGroup;
+import org.srs.vfs.FileType;
 
 /**
  *
@@ -65,37 +66,21 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     
     private final DcFileSystem fileSystem;
     private final DataSource dataSource;
-    
-    public DcFileSystemProvider() throws IOException{
-        super();
-        try {
-            this.dataSource = Utils.getDataSource();
-        } catch(SQLException ex) {
-            throw new IOException("Unable to initiate datasource");
-        }
-        fileSystem = new DcFileSystem(this, dataSource);
-    }
-    
+        
     public DcFileSystemProvider(DataSource dataSource) throws IOException{
         super();
         this.dataSource = dataSource;
         fileSystem = new DcFileSystem(this, dataSource);
     }
     
-    public DcFileSystemProvider(boolean warmCache) throws IOException{
-        this();
-        if(warmCache){
-            refreshCache();
-        }
-    }
-    
+    /* TODO: This isn't working well on HSQLDB
     public DcFileSystemProvider(DataSource dataSource, boolean warmCache) throws IOException{
         this(dataSource);
         if(warmCache){
             refreshCache();
         }
     }
-    
+       
     private void refreshCache() throws IOException{
         doRefreshCache();
     }
@@ -121,7 +106,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             throw new IOException("Unable to refresh cache", ex);
         }
         System.out.println("Cache loading took" + (System.currentTimeMillis() - t0));
-    }
+    }*/
 
     @Override
     public String getScheme(){
@@ -145,7 +130,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             }
             stream = cachedDirectoryStream(dir, filter);
         } else {
-            stream = unCachedDirectoryStream( dir, filter );
+            stream = unCachedDirectoryStream(dir, filter);
         }
         return (DirectoryStream<Path>) stream;
     }
@@ -153,6 +138,11 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     @Override
     public DirectoryStream<DcPath> unCachedDirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
+        return unCachedDirectoryStream(dir, filter, true, true);
+    }
+    
+    public DirectoryStream<DcPath> unCachedDirectoryStream(Path dir,
+            final DirectoryStream.Filter<? super Path> filter, boolean includeDatasets, final boolean cacheDatasets) throws IOException{
         final DcPath dcPath = checkPath( dir );
         DcFile dirFile = resolveFile( dcPath );
         checkPermission(dirFile, AclEntryPermission.READ_DATA );
@@ -163,11 +153,12 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         Long fileKey = dirFile.fileKey();
         try {
-            ContainerDAO dao = new ContainerDAO( dataSource.getConnection() );
-            DirectoryStream<DatacatObject> stream = dao.getChildrenStream( fileKey, dcPath.toString() );
+            // !IMPORTANT!: This object is closed when the stream is closed
+            final ContainerDAO dao = new ContainerDAO( dataSource.getConnection() ); 
+            DirectoryStream<DatacatObject> stream = dao.getChildrenStream(fileKey, dcPath.toString(), includeDatasets);
             final Iterator<DatacatObject> iter = stream.iterator();
             
-            DirectoryStreamWrapper<DcPath> wrapper = new DirectoryStreamWrapper<DcPath>( stream,
+            DirectoryStreamWrapper.IteratorAcceptor acceptor = 
                     new DirectoryStreamWrapper.IteratorAcceptor() {
                 @Override
                 public boolean acceptNext() throws IOException{
@@ -176,7 +167,9 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                         DcPath maybeNext = dcPath.resolve( child.getName() );
                         DcFile file = new DcFile( maybeNext, child );
                         file.addAttributeViews( aclView );
-                        getCache().putFile(file);
+                        if(file.isDirectory() || cacheDatasets){
+                            getCache().putFileIfAbsent(file);
+                        }
                         if(filter.accept( maybeNext )){
                             setNext( maybeNext );
                             return true;
@@ -184,7 +177,22 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                     }
                     throw new NoSuchElementException();
                 }
-            });
+            };
+            
+            DirectoryStreamWrapper<DcPath> wrapper = 
+                    new DirectoryStreamWrapper<DcPath>( stream, acceptor){
+
+                @Override
+                public void close() throws IOException{
+                    try {
+                        super.close();
+                        dao.close();  // Make sure to close dao (and underlying connection)
+                    } catch(SQLException ex) {
+                        throw new IOException(ex);
+                    }
+                }
+
+            };
             return wrapper;
         } catch(SQLException ex) {
             throw new IOException( "Unable to list children", ex );
@@ -322,13 +330,13 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         } catch (SQLException ex){
             throw new IOException("Unable to connect to database", ex);
         }
-        dsParent.childAdded(dsPath);
+        dsParent.childAdded(dsPath, FileType.FILE);
     }
     
     public void createDatasetView(Path path, DatasetVersion verRequest, DatasetLocation locRequest, Set<DatasetOption> options) throws IOException{
         DcPath dsPath = checkPath( path );
         DcFile dsFile = resolveFile(dsPath);
-        if(dsFile.getObject().getType() != DatacatObject.Type.DATASET){
+        if(!dsFile.isRegularFile() ){
             AfsException.NO_SUCH_FILE.throwError(path, "Path is not a dataset");
         }
         
@@ -362,7 +370,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             // Do nothing.
         }
         DcFile parent = resolveFile(dcDir.getParent());
-        if( !(parent.getObject().getType() == DatacatObject.Type.FOLDER)){
+        if(parent.getType() != FileType.DIRECTORY){ // Use the constant instead of instanceof
             AfsException.NOT_DIRECTORY.throwError( parent, "The parent file is not a folder");
         }
         //checkPermission(parent, DcPermissions.CREATE_CHILD);
@@ -379,7 +387,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         try (ContainerDAO dao = new ContainerDAO(dataSource.getConnection())){
             dao.createContainer( parent.fileKey(), dcDir.getParent(), request);
             dao.commit();
-            parent.childAdded(dcDir);
+            parent.childAdded(dcDir, FileType.DIRECTORY);
         } catch(SQLException ex) {
             throw new IOException("Unable to create container", ex);
         }
@@ -418,7 +426,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     protected void doDeleteDirectory(String path, DcFile file) throws DirectoryNotEmptyException, IOException{
         try(ContainerDAO dao = new ContainerDAO(dataSource.getConnection())) {
             // Verify directory is empty
-            try(DirectoryStream ds = dao.getChildrenStream( file.fileKey(), path )) {
+            try(DirectoryStream ds = dao.getChildrenStream( file.fileKey(), path, true )) {
                 if(ds.iterator().hasNext()){
                     AfsException.DIRECTORY_NOT_EMPTY.throwError( path, "Container not empty" );
                 }

@@ -3,8 +3,6 @@ package org.srs.datacat.vfs.attribute;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
 import java.sql.SQLException;
 import java.util.HashMap;
 import javax.sql.DataSource;
@@ -13,7 +11,6 @@ import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.container.BasicStat.StatType;
 import org.srs.datacat.sql.ContainerDAO;
-import org.srs.datacat.sql.Utils;
 import org.srs.datacat.vfs.DcFile;
 
 /**

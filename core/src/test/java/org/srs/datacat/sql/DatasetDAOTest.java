@@ -24,6 +24,7 @@ import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.dataset.FlatDataset;
+import org.srs.datacat.test.HSqlDbHarness;
 
 /**
  *
@@ -31,6 +32,7 @@ import org.srs.datacat.shared.dataset.FlatDataset;
  */
 public class DatasetDAOTest {
     
+    static HSqlDbHarness harness;
     Connection conn;
     
     public DatasetDAOTest(){ }
@@ -41,22 +43,30 @@ public class DatasetDAOTest {
     public static final String TEST_FILEFORMAT_01 = "junit.test";
     public static final String TEST_DATASET_SOURCE = "JUNIT";
 
-    
     @BeforeClass
     public static void setUpDb() throws SQLException, IOException{
-        System.out.println("working...");
-        DataSource d = Utils.getDataSource();
-        Connection c = d.getConnection();
+        harness = new HSqlDbHarness();
+        DataSource d = harness.getDataSource();
+        addRecords(d.getConnection());
+    }
+    
+    @AfterClass
+    public static void tearDownDb() throws Exception{
+        System.out.println("Cleaning up...");
+        DataSource d = harness.getDataSource();
+        removeRecords(d.getConnection());
+    }
+
+    public static void addRecords(Connection c) throws SQLException, IOException{
         ContainerDAO dao = new ContainerDAO(c);
         try {
             dao.getDatacatObject(TEST_BASE_PATH);
             c.close();
             return;
         } catch (FileNotFoundException x){ }
-            
+        
         DatacatObject container = new LogicalFolder.Builder().name( TEST_BASE_NAME ).build();
         dao.insertContainer( 0L, "/", container );
-        System.out.println( "creating file" );
         DatasetDAO dsDao = new DatasetDAO( c );
         try {
             dsDao.insertDatasetSource(TEST_DATASET_SOURCE);
@@ -71,26 +81,21 @@ public class DatasetDAOTest {
         c.commit();
         c.close();
     }
-
-    @AfterClass
-    public static void tearDownDb() throws Exception{
-        System.out.println("Cleaning up...");
-        DataSource d = Utils.getDataSource();
-        Connection c = d.getConnection();
-        ContainerDAO dao = new ContainerDAO(c);
+        
+    public static void removeRecords(Connection conn) throws Exception {
+        ContainerDAO dao = new ContainerDAO(conn);
         DatacatObject folder = dao.getDatacatObject(TEST_BASE_PATH);
         dao.deleteFolder(folder.getPk());
-        DatasetDAO dsDao = new DatasetDAO(c);
+        DatasetDAO dsDao = new DatasetDAO(conn);
         dsDao.deleteDatasetDataType(TEST_DATATYPE_01);
         dsDao.deleteDatasetFileFormat(TEST_FILEFORMAT_01);
-        c.commit();
-        c.close();
+        conn.commit();
+        conn.close();
     }
     
     @Before
     public void connection() throws Exception {
-        DataSource d = Utils.getDataSource();
-        conn = d.getConnection();
+        conn = harness.getDataSource().getConnection();
     }
 
     @After

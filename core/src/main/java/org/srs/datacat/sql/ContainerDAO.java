@@ -106,6 +106,7 @@ public class ContainerDAO extends BaseDAO {
         delete1( deleteSql, groupPk);
     }
     
+    /* TODO: This doesn't work well on HSQLDB
     public ArrayList<DatacatObject> getAllContainers(DcPath path, Long pk) throws SQLException{
         String sql = 
                 " WITH CONTAINERS (type, pk, name, parent, lev, relpath) AS ( "
@@ -144,7 +145,7 @@ public class ContainerDAO extends BaseDAO {
             return olist;
         }
     }
-
+    */
     
     public BasicStat getBasicStat(DatacatObject container) throws SQLException {
         String parent = container instanceof LogicalFolder ? "datasetlogicalfolder" : "datasetgroup";
@@ -214,17 +215,18 @@ public class ContainerDAO extends BaseDAO {
         }
     }
     
-    public DirectoryStream<DatacatObject> getChildrenStream(Long parentPk, final String parentPath) throws SQLException, IOException{
+    public DirectoryStream<DatacatObject> getChildrenStream(Long parentPk, final String parentPath, 
+            boolean includeDatasets) throws SQLException, IOException{
         String sql = "WITH OBJECTS (type, pk, name, parent) AS ( "
                 + "    SELECT 'F', datasetlogicalfolder, name, parent "
                 + "      FROM datasetlogicalfolder "
                 + "  UNION ALL "
                 + "    SELECT 'G', datasetGroup, name, datasetLogicalFolder "
                 + "      FROM DatasetGroup "
-                + "  UNION ALL "
+                + ( includeDatasets ? "  UNION ALL "
                 + "    SELECT   'D', dataset, datasetName, "
                 + "      CASE WHEN datasetlogicalfolder is not null THEN datasetlogicalfolder else datasetgroup END "
-                + "      FROM VerDataset "
+                + "      FROM VerDataset " : " " )
                 + ") "
                 + "SELECT type, pk, name, parent FROM OBJECTS "
                 + "  WHERE parent = ? "
@@ -292,7 +294,7 @@ public class ContainerDAO extends BaseDAO {
                 }
             }
         };
-      
+
     }
 
 }

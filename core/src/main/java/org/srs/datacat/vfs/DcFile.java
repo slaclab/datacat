@@ -3,7 +3,6 @@ package org.srs.datacat.vfs;
 
 
 import java.io.IOException;
-import static org.srs.vfs.VirtualFile.FileType;
 import org.srs.datacat.shared.DatacatObject.Type;
 
 import java.nio.file.attribute.AttributeView;
@@ -16,7 +15,9 @@ import org.srs.vfs.ChildrenView;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
+import org.srs.datacat.vfs.attribute.SubdirectoryView;
 import org.srs.datacat.vfs.security.DcAclFileAttributeView;
+import org.srs.vfs.FileType;
 
 
 /**
@@ -28,12 +29,15 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     {
         addViewName( DcAclFileAttributeView.class, "acl");
         addViewName( DcFile.class, "basic");
+        addViewName( SubdirectoryView.class, "subdirectories");
     }
     
-    private DatacatObject object;
+    public static class GroupType extends FileType.Directory {}
+    
+    private final DatacatObject object;
     
     public DcFile(DcPath path, DatacatObject object){
-        super(path, packedType(object));
+        super(path, fileType(object));
         this.object = object;
         initViews();
     }
@@ -45,26 +49,21 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
         }
         if(isDirectory()){
             addAttributeViews(new ChildrenView<>(getPath()));
+            addAttributeViews(new SubdirectoryView(getPath()));
             addAttributeViews(new ContainerViewProvider(this));
         }
     }
-    
-    protected static int packedType(DatacatObject o){
-        Type fileType = Type.typeOf( o );
-        int ft = fileType.ordinal();
+
+    protected static FileType fileType(DatacatObject o){
         switch (Type.typeOf( o )){
             case GROUP:
+                return new GroupType();
             case FOLDER:
-                ft |= FileType.CONTAINER;
-                break;
+                return FileType.DIRECTORY;
             case DATASET:
-                ft |= FileType.FILE;
+                return FileType.FILE;
         }
-        return ft;
-    }
-
-    public DcFile(DcPath path, int type, Collection<? extends AttributeView> views){
-        super( path, type, views);
+        return FileType.FILE;
     }
 
     @Override
@@ -107,12 +106,12 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
 
     @Override
     public boolean isRegularFile(){
-        return getObject().getType() == Type.DATASET;
+        return getType() instanceof FileType.File;
     }
 
     @Override
     public boolean isDirectory(){
-        return getObject().getType().isContainer();
+        return getType() instanceof FileType.Directory;
     }
 
     @Override
@@ -122,7 +121,7 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
 
     @Override
     public boolean isOther(){
-        return getObject().getType() == Type.GROUP;
+        return getType() instanceof GroupType;
     }
 
     @Override
@@ -149,15 +148,22 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
         if(!isDirectory()){
             return;
         }
-        getAttributeView(ChildrenView.class).unlink(child.getFileName().toString());
+        String fname = child.getFileName().toString();
+        getAttributeView(ChildrenView.class).unlink(fname);
+        getAttributeView(SubdirectoryView.class).unlink(fname);
         getAttributeView(ContainerViewProvider.class).clearStats();
     }
     
-    public void childAdded(DcPath child){
-        if(!isDirectory()){
-            return;
-        }
+    public void datasetAdded(DcPath child){
         getAttributeView(ChildrenView.class).link(child);
+        getAttributeView(ContainerViewProvider.class).clearStats();
+    }
+    
+    public void childAdded(DcPath child, FileType fileType){
+        getAttributeView(ChildrenView.class).link(child);
+        if(fileType instanceof FileType.Directory){
+            getAttributeView(SubdirectoryView.class).link(child);
+        }
         getAttributeView(ContainerViewProvider.class).clearStats();
     }
     
@@ -165,8 +171,18 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
         if(!isDirectory()){
             return;
         }
-        getAttributeView(ChildrenView.class).unlink(child.getFileName().toString());
-        getAttributeView(ChildrenView.class).link(child);
+        String fname = child.getFileName().toString();
+        if(getAttributeView(ChildrenView.class).unlink(fname)){
+            getAttributeView(ChildrenView.class).link(child);
+        }
+        if(getAttributeView(SubdirectoryView.class).unlink(fname)){
+            getAttributeView(SubdirectoryView.class).link( child );
+        }
         getAttributeView(ContainerViewProvider.class).clearStats();
+    }
+
+    @Override
+    public String toString(){
+        return "DcFile{" + "object=" + object.toString() + '}';
     }
 }

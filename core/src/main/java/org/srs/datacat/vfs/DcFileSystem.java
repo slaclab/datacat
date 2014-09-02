@@ -17,7 +17,7 @@ import org.srs.datacat.vfs.security.DcGroup;
  */
 public class DcFileSystem extends AbstractFs<DcPath> {
     private final DataSource dataSource;
-    
+        
     private final PathProvider<DcPath> pathProvider = new PathProvider<DcPath>(){
 
         @Override
@@ -54,7 +54,7 @@ public class DcFileSystem extends AbstractFs<DcPath> {
     public PathProvider<DcPath> getPathProvider(){
         return pathProvider;
     }
-
+    
     @Override
     public UserPrincipalLookupService getUserPrincipalLookupService(){
         return new UserPrincipalLookupService(){
@@ -73,6 +73,11 @@ public class DcFileSystem extends AbstractFs<DcPath> {
             }
             
         };
+    }
+
+    @Override
+    public DcFileSystemProvider provider(){
+        return (DcFileSystemProvider) super.provider();
     }
 
 }
