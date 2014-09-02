@@ -19,7 +19,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ChildrenView<P extends AbstractPath> implements FileAttributeView {
 
     private boolean hasCache = false;
-    private TreeMap<String, P> children;
+    protected TreeMap<String, P> children;
     private final P path;
     private final ReentrantLock lock = new ReentrantLock();
     
@@ -92,17 +92,24 @@ public class ChildrenView<P extends AbstractPath> implements FileAttributeView {
                 children = new TreeMap<>();
             }
             children.clear();
-            AbstractFsProvider provider = path.getFileSystem().provider();
-            try(DirectoryStream<P> stream = 
-                    provider.unCachedDirectoryStream(path, provider.AcceptAllFilter)){
-                for(P p: stream){
-                    children.put( p.getFileName().toString(), p);
-                }
-                hasCache = true;
-            }
+            doRefreshCache();
+            hasCache = true;
         } finally {
             lock.unlock();
         }
+    }
+    
+    protected void doRefreshCache() throws IOException{
+        AbstractFsProvider pro = path.getFileSystem().provider();
+        try(DirectoryStream<P> stream = pro.unCachedDirectoryStream(path, pro.AcceptAllFilter)){
+            for(P child: stream){
+                children.put(child.getFileName().toString(), child);
+            }
+        }
+    }
+
+    public P getPath(){
+        return path;
     }
     
     public Map<String, P> getEntries() throws IOException{

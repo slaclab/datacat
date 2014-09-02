@@ -19,9 +19,9 @@ import java.util.Map;
  * @param <P> AbstractPath type
  * @param <F> fileKey type
  */
-public abstract class AbstractVirtualFile<P extends AbstractPath, F> implements VirtualFile {
+public abstract class AbstractVirtualFile<P extends AbstractPath, F> implements VirtualFile, BasicFileAttributes  {
     private final P path;
-    private int type;
+    private final FileType type;
     private final HashMap<String, AttributeView> attributeViews = new HashMap<>();
     private final HashMap<Class<? extends AttributeView>, String> attrNames = new HashMap<>();
     
@@ -31,12 +31,12 @@ public abstract class AbstractVirtualFile<P extends AbstractPath, F> implements 
         attrNames.put( ChildrenView.class, "children");
     }
     
-    public AbstractVirtualFile(P path, int type){
+    public AbstractVirtualFile(P path, FileType type){
         this.path = path;
         this.type = type;
     }
     
-    public AbstractVirtualFile(P path, int type, 
+    public AbstractVirtualFile(P path, FileType type, 
             Collection<? extends AttributeView> views){
         this.path = path;
         this.type = type;
@@ -64,15 +64,10 @@ public abstract class AbstractVirtualFile<P extends AbstractPath, F> implements 
     }
 
     @Override
-    public int getType(){
+    public FileType getType(){
         return type;
     }
-    
-    @Override
-    public void setType(int type){
-        this.type = type;
-    }
-    
+       
     @Override
     public void addAttributeViews(AttributeView... views){
         synchronized(attributeViews){
