@@ -1,5 +1,7 @@
 SET DATABASE SQL SYNTAX ORA true;
 
+drop table      ContainerSearch;
+
 drop table	VerDatasetMetaString ;
 drop table	VerDatasetMetaNumber ;
 drop table	VerDatasetMetaTimestamp ;
@@ -363,3 +365,4 @@ insert
   into DatasetLogicalFolder (DatasetLogicalFolder, Name, Parent)
   values(0, 'ROOT', NULL);
 
+create global temporary table ContainerSearch (ContainerPk number, ContainerPath varchar2(500)) on commit delete rows;
