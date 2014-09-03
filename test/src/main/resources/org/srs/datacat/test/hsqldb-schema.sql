@@ -365,4 +365,8 @@ insert
   into DatasetLogicalFolder (DatasetLogicalFolder, Name, Parent)
   values(0, 'ROOT', NULL);
 
-create global temporary table ContainerSearch (ContainerPk number, ContainerPath varchar2(500)) on commit delete rows;
+create global temporary table ContainerSearch (
+    DatasetLogicalFolder	number,
+    DatasetGroup		number,
+    ContainerPath varchar2(500)
+) on commit delete rows;
