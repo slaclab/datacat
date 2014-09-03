@@ -114,6 +114,19 @@ public class DirectoryWalker {
             filter = new ContainerFilter(fs.getPathMatcher( syntaxAndPattern ), searchGroups, searchFolders);
         }
         
+        /**
+         * Defaults to glob
+         * @param fs
+         * @param path
+         * @param searchGroups
+         * @param searchFolders 
+         */
+        public ContainerVisitor(DcFileSystem fs, String path, boolean searchGroups, boolean searchFolders){
+            // TODO: Glob check?
+            String globPath = "glob:" + path;
+            filter = new ContainerFilter(fs.getPathMatcher(globPath), searchGroups, searchFolders);
+        }
+        
         public void accept(DcFile file){
             files.add(file);
         }

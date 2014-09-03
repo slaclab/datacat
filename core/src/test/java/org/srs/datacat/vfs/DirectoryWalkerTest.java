@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.junit.BeforeClass;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
+import org.srs.vfs.PathUtils;
 
 /**
  *
@@ -89,6 +90,50 @@ public class DirectoryWalkerTest {
         walker.walk(root);
         TestCase.assertEquals("/testpath/testfolder", visitor.files.get(0).getPath().toString());
         TestCase.assertTrue(visitor.files.size() == 1);
+        
+        boolean searchGroups = true;
+        boolean searchFolders = true;
+        visitor = new ContainerVisitor(root.getFileSystem(), "/testpath", searchGroups, searchFolders);
+        walker = new DirectoryWalker(provider,visitor,5);
+        walker.walk(root);
+        TestCase.assertEquals("/testpath", visitor.files.get(0).getPath().toString());
+        TestCase.assertTrue(visitor.files.size() == 1);
+        
+        searchGroups = true;
+        searchFolders = false;
+        visitor = new ContainerVisitor(root.getFileSystem(), "/testpath", searchGroups, searchFolders);
+        walker = new DirectoryWalker(provider,visitor,5);
+        walker.walk(root);
+        TestCase.assertTrue(visitor.files.size() == 0);
+        
+        searchGroups = false;
+        searchFolders = true;
+        visitor = new ContainerVisitor(root.getFileSystem(), "/testpath/*", searchGroups, searchFolders);
+        walker = new DirectoryWalker(provider,visitor,5);
+        walker.walk(root);
+        TestCase.assertEquals("/testpath/a", visitor.files.get(0).getPath().toString());
+        TestCase.assertEquals("/testpath/abc", visitor.files.get(1).getPath().toString());
+        TestCase.assertEquals("/testpath/testfolder", visitor.files.get(2).getPath().toString());
+        TestCase.assertTrue(visitor.files.size() == 3);
+        
+        searchGroups = true;
+        searchFolders = false;
+        visitor = new ContainerVisitor(root.getFileSystem(), "/testpath/*", searchGroups, searchFolders);
+        walker = new DirectoryWalker(provider,visitor,5);
+        walker.walk(root);
+        TestCase.assertEquals("/testpath/testgroup", visitor.files.get(0).getPath().toString());
+        TestCase.assertTrue(visitor.files.size() == 1);
+        
+        
+        searchGroups = false;
+        searchFolders = true;
+        
+        visitor = new ContainerVisitor(root.getFileSystem(), PathUtils.normalize( "/testpath/."), searchGroups, searchFolders);
+        walker = new DirectoryWalker(provider,visitor,5);
+        walker.walk(root);
+        TestCase.assertEquals("/testpath", visitor.files.get(0).getPath().toString());
+        TestCase.assertTrue(visitor.files.size() == 1);
+        
     }
     
 }
