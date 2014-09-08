@@ -8,6 +8,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -22,6 +24,7 @@ import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.attribute.DatasetOption;
 import static org.srs.datacat.vfs.DcFileSystemProvider.DcFsException.*;
+import org.srs.vfs.PathUtils;
 
 /**
  *
@@ -33,10 +36,11 @@ public class DatasetDAO extends BaseDAO {
         super( conn );
     }
     
-    public Dataset createDatasetNodeAndView(Long parentPk, DatacatObject.Type parentType, DcPath path, Dataset dsReq, 
+    public Dataset createDatasetNodeAndView(Long parentPk, DatacatObject.Type parentType, DcPath targetPath, Dataset dsReq, 
             Set<DatasetOption> dsOptions) throws IOException, SQLException{
+        dsOptions = new HashSet<>(dsOptions); // make a copy
         
-        String pathString = path.toString();
+        String pathString = targetPath.toString();
         boolean createNode = dsOptions.remove(DatasetOption.CREATE_NODE);
         if(dsReq == null){
             throw new IOException("Not enough information to create create a Dataset node or view");
@@ -45,7 +49,8 @@ public class DatasetDAO extends BaseDAO {
         Dataset ds = null;
 
         if(createNode){
-            ds = createDatasetNode(parentPk, parentType, path, dsReq);
+            ds = createDatasetNode(parentPk, parentType, targetPath, dsReq);
+            dsOptions.add(DatasetOption.SKIP_VERSION_CHECK); // If we added a node, skip version check
         }
 
         if(ds == null){
@@ -58,12 +63,16 @@ public class DatasetDAO extends BaseDAO {
         
         Dataset.Builder builder = new Dataset.Builder(ds);
         
-        if(!dsOptions.isEmpty()){ 
+        HashSet<DatasetOption> viewWork = new HashSet<>( 
+                Arrays.asList( DatasetOption.CREATE_VERSION, 
+                        DatasetOption.MERGE_VERSION, DatasetOption.CREATE_LOCATION));
+        viewWork.retainAll(dsOptions);
+        if(!viewWork.isEmpty()){
             // We should have enought information to continue on
             if(dsReq instanceof FlatDataset){
                 DatasetVersion requestVersion = ((FlatDataset) dsReq).getVersion();
                 DatasetLocation requestLocation = ((FlatDataset) dsReq).getLocation();
-                createDatasetView( ds, builder, requestVersion, requestLocation, dsOptions );
+                createDatasetView(ds, builder, requestVersion, requestLocation, dsOptions);
             } else {
                 throw new IOException("Unable to create dataset, not enough information");
             }
@@ -73,16 +82,20 @@ public class DatasetDAO extends BaseDAO {
     
     public void createDatasetView(Dataset ds, Dataset.Builder builder, DatasetVersion requestVersion, DatasetLocation requestLocation, 
             Set<DatasetOption> dsOptions) throws IOException, SQLException{        
+        dsOptions = new HashSet<>(dsOptions); // make a copy
         boolean mergeVersion = dsOptions.remove(DatasetOption.MERGE_VERSION);
         boolean createVersion = dsOptions.remove(DatasetOption.CREATE_VERSION);
         boolean createLocation = dsOptions.remove(DatasetOption.CREATE_LOCATION);
-                
+        boolean skipVersionCheck = dsOptions.remove(DatasetOption.SKIP_VERSION_CHECK);
+        boolean skipLocationCheck = dsOptions.remove(DatasetOption.SKIP_LOCATION_CHECK);
+
         String path = ds.getPath();
-        DatasetVersion currentVersion = getCurrentVersion(ds.getPk());
+        DatasetVersion currentVersion = skipVersionCheck ? null : getCurrentVersion(ds.getPk());
         
         if(createVersion || mergeVersion) {
             Objects.requireNonNull( requestVersion, "Unable to create a view with a null version");
             currentVersion = createOrMergeDatasetVersion(ds.getPk(), path, currentVersion, requestVersion, mergeVersion);
+            skipLocationCheck = true;
             if(builder != null){
                 builder.version(currentVersion);
             }
@@ -94,7 +107,8 @@ public class DatasetDAO extends BaseDAO {
                 DcFileSystemProvider.DcFsException.NO_SUCH_VERSION.throwError(path, "No version exists which we can add a location to");
             }
             if(builder != null){
-                builder.location(createDatasetLocation(currentVersion, path, requestLocation));
+                DatasetLocation loc = createDatasetLocation(currentVersion, path, requestLocation, skipLocationCheck);
+                builder.location(loc);
             }
         }
     }
@@ -110,15 +124,15 @@ public class DatasetDAO extends BaseDAO {
         deleteDataset( dataset.getPk());
     }
 
-    public DatasetVersion createOrMergeDatasetVersion(Long datasetPk, DcPath path, DatasetVersion newVer,
+    /*public DatasetVersion createOrMergeDatasetVersion(Long datasetPk, DcPath path, DatasetVersion newVer,
             boolean mergeVersion) throws SQLException, FileSystemException {
         return createOrMergeDatasetVersion(datasetPk, path, getCurrentVersion(datasetPk), newVer, mergeVersion);
     }
 
     public DatasetVersion createOrMergeDatasetVersion(Long datasetPk, DcPath path, DatasetVersion currentVersion, 
             DatasetVersion request, boolean mergeVersion) throws SQLException, FileSystemException{
-        return createOrMergeDatasetVersion( datasetPk, path.toString(), currentVersion, request, mergeVersion );
-    }
+         return createOrMergeDatasetVersion( datasetPk, path.toString(), currentVersion, request, mergeVersion );
+    }*/
     
     protected DatasetVersion createOrMergeDatasetVersion(Long datasetPk, String dsPath, DatasetVersion currentVersion, 
             DatasetVersion request, boolean mergeVersion) throws SQLException, FileSystemException{
@@ -142,11 +156,13 @@ public class DatasetDAO extends BaseDAO {
     }
     
     public DatasetLocation createDatasetLocation(DatasetVersion version, DcPath path, DatasetLocation newLoc) throws SQLException, FileSystemException{
-        return createDatasetLocation(version, path.toString(), newLoc);
+        return createDatasetLocation(version, path.toString(), newLoc, false);
     }
     
-    public DatasetLocation createDatasetLocation(DatasetVersion version, String path, DatasetLocation newLoc) throws SQLException, FileSystemException{
-        assertCanCreateLocation(version.getPk(), path, newLoc);
+    public DatasetLocation createDatasetLocation(DatasetVersion version, String path, DatasetLocation newLoc, boolean skipCheck) throws SQLException, FileSystemException{
+        if(!skipCheck){
+            assertCanCreateLocation(version.getPk(), path, newLoc);
+        }
         return insertDatasetLocation(version.getPk(), newLoc);
     }
     
@@ -223,11 +239,12 @@ public class DatasetDAO extends BaseDAO {
         }        
     }
     
-    protected Dataset insertDataset(Long parentPk, DatacatObject.Type parentType, String parentPath, Dataset request) throws SQLException {
+    protected Dataset insertDataset(Long parentPk, DatacatObject.Type parentType, String targetPath, Dataset request) throws SQLException {
+        String name = PathUtils.getFileName(targetPath);
         String insertSql = "insert into VerDataset (DatasetName, DataSetFileFormat, DataSetDataType, "
                 + "DatasetLogicalFolder, DatasetGroup) values (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = getConnection().prepareStatement( insertSql, new String[]{"DATASET", "REGISTERED"} )) {
-            stmt.setString(1, request.getName() );
+            stmt.setString(1, name);
             stmt.setString(2, request.getFileFormat() );
             stmt.setString(3, request.getDataType().toUpperCase());
             switch(parentType){
@@ -246,7 +263,7 @@ public class DatasetDAO extends BaseDAO {
                 builder.pk(rs.getLong(1));
                 builder.parentPk(parentPk);
                 builder.parentType(parentType);
-                builder.path(parentPath);
+                builder.path(targetPath);
                 builder.created(rs.getTimestamp(2));
             }
             return builder.build();

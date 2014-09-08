@@ -44,7 +44,6 @@ import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 
 import org.srs.datacat.sql.ContainerDAO;
-import org.srs.datacat.sql.Utils;
 import org.srs.vfs.AbstractFsProvider;
 import org.srs.vfs.AbstractPath;
 import org.srs.vfs.ChildrenView;
@@ -107,7 +106,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         System.out.println("Cache loading took" + (System.currentTimeMillis() - t0));
     }*/
-
+    
     @Override
     public String getScheme(){
         return "dc";
@@ -313,10 +312,19 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
     }
 
+    /**
+     * This will fail if there already exists a Dataset record.
+     * @param path Path of this new dataset
+     * @param ds
+     * @param options
+     * @throws IOException 
+     */
     public void createDataset(Path path, Dataset ds, Set<DatasetOption> options) throws IOException{
         DcPath dsPath = checkPath( path );
         
-        if(Files.exists(dsPath) && options.contains(DatasetOption.CREATE_NODE)){
+        if(!options.contains(DatasetOption.SKIP_NODE_CHECK)     // Fail fast
+                && options.contains(DatasetOption.CREATE_NODE) // Fail fast
+                && Files.exists(dsPath)){                      // -> Can be Expensive
             AfsException.FILE_EXISTS.throwError( dsPath, "A dataset node already exists at this location");
         }
         
@@ -332,7 +340,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         dsParent.childAdded(dsPath, FileType.FILE);
     }
-    
+        
     public void createDatasetView(Path path, DatasetVersion verRequest, DatasetLocation locRequest, Set<DatasetOption> options) throws IOException{
         DcPath dsPath = checkPath( path );
         DcFile dsFile = resolveFile(dsPath);
@@ -362,14 +370,14 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     @Override
     public void createDirectory(Path dir,
             FileAttribute<?>... attrs) throws IOException {
-        DcPath dcDir = checkPath(dir);
+        DcPath targetDir = checkPath(dir);
         try {
-            resolveFile(dcDir);
-            AfsException.FILE_EXISTS.throwError(dcDir, "A group or folder already exists at this location");
+            resolveFile(targetDir);
+            AfsException.FILE_EXISTS.throwError(targetDir, "A group or folder already exists at this location");
         } catch (FileNotFoundException ex){
             // Do nothing.
         }
-        DcFile parent = resolveFile(dcDir.getParent());
+        DcFile parent = resolveFile(targetDir.getParent());
         if(parent.getType() != FileType.DIRECTORY){ // Use the constant instead of instanceof
             AfsException.NOT_DIRECTORY.throwError( parent, "The parent file is not a folder");
         }
@@ -385,9 +393,10 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         ContainerCreationAttribute dsAttr = (ContainerCreationAttribute) attrs[0];
         DatacatObject request = dsAttr.value();
         try (ContainerDAO dao = new ContainerDAO(dataSource.getConnection())){
-            dao.createContainer( parent.fileKey(), dcDir.getParent(), request);
+            DatacatObject ret = dao.createContainer( parent.fileKey(), targetDir, request);
             dao.commit();
-            parent.childAdded(dcDir, FileType.DIRECTORY);
+            parent.childAdded(targetDir, FileType.DIRECTORY);
+            getCache().putFile(new DcFile(targetDir, ret));
         } catch(SQLException ex) {
             throw new IOException("Unable to create container", ex);
         }
