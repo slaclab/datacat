@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package org.srs.datacat.sql;
 
@@ -25,6 +20,7 @@ import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.test.HSqlDbHarness;
+import org.srs.vfs.PathUtils;
 
 /**
  *
@@ -66,7 +62,7 @@ public class DatasetDAOTest {
         } catch (FileNotFoundException x){ }
         
         DatacatObject container = new LogicalFolder.Builder().name( TEST_BASE_NAME ).build();
-        dao.insertContainer( 0L, "/", container );
+        dao.insertContainer( 0L, PathUtils.resolve("/",TEST_BASE_NAME), container );
         DatasetDAO dsDao = new DatasetDAO( c );
         try {
             dsDao.insertDatasetSource(TEST_DATASET_SOURCE);
@@ -134,7 +130,7 @@ public class DatasetDAOTest {
         DatasetDAO dao = new DatasetDAO(conn);
         System.out.println(path);
         DatacatObject folder = dao.getDatacatObject(path);
-        return dao.insertDataset(folder.getPk(), DatacatObject.Type.FOLDER, "/", ds);
+        return dao.insertDataset(folder.getPk(), DatacatObject.Type.FOLDER, PathUtils.resolve(path, ds.getName()), ds);
     }
     
     private FlatDataset.Builder getRequest(String dsName) throws SQLException, IOException{
