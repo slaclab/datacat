@@ -36,9 +36,10 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     
     private final DatacatObject object;
     
-    public DcFile(DcPath path, DatacatObject object){
+    public DcFile(DcPath path, DatacatObject object, DcAclFileAttributeView aclView){
         super(path, fileType(object));
         this.object = object;
+        addAttributeViews(aclView);
         initViews();
     }
     

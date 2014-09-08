@@ -164,8 +164,8 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                     while(iter.hasNext()){
                         DatacatObject child = iter.next();
                         DcPath maybeNext = dcPath.resolve( child.getName() );
-                        DcFile file = new DcFile( maybeNext, child );
-                        file.addAttributeViews( aclView );
+                        DcFile file = new DcFile( maybeNext, child, aclView);
+                        
                         if(file.isDirectory() || cacheDatasets){
                             getCache().putFileIfAbsent(file);
                         }
@@ -290,7 +290,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         try (BaseDAO dao = new BaseDAO(dataSource.getConnection())){
             DcAclFileAttributeView aclView;
             DatacatObject child;
-            if(path.equals( path.getRoot())){
+            if(path.equals(path.getRoot())){
                 AclEntry e = AclEntry.newBuilder()
                         .setPrincipal(DcGroup.PUBLIC_GROUP)
                         .setPermissions(DcPermissions.READ)
@@ -304,14 +304,13 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                 DatacatObject par = parent.getObject();
                 child = dao.getDatacatObject( par.getPk(), path);
             }
-            DcFile f = new DcFile(path, child);
-            f.addAttributeViews(aclView);
+            DcFile f = new DcFile(path, child, aclView);
             return f;
         } catch(SQLException ex) {
             throw new IOException(ex);
         }
     }
-
+    
     /**
      * This will fail if there already exists a Dataset record.
      * @param path Path of this new dataset
@@ -396,7 +395,8 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             DatacatObject ret = dao.createContainer( parent.fileKey(), targetDir, request);
             dao.commit();
             parent.childAdded(targetDir, FileType.DIRECTORY);
-            getCache().putFile(new DcFile(targetDir, ret));
+            DcFile f = new DcFile(targetDir, ret, parent.getAttributeView( DcAclFileAttributeView.class ));
+            getCache().putFile(f);
         } catch(SQLException ex) {
             throw new IOException("Unable to create container", ex);
         }
