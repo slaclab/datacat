@@ -131,10 +131,7 @@ public class BaseDAO implements AutoCloseable {
             if(!rs.next()){
                 throw (new FileNotFoundException( "Unable to resolve objects: " + path ));
             }
-            builder = getBuilder( rs );
-            if(parentPath != null){
-                builder.path(parentPath);
-            }
+            builder = getBuilder(rs, parentPath);
         }
         completeObject(builder);
         return builder.build();
@@ -334,7 +331,7 @@ public class BaseDAO implements AutoCloseable {
         return null;
     }
     
-    public static DatacatObject.Builder getBuilder(ResultSet rs) throws SQLException {
+    public static DatacatObject.Builder getBuilder(ResultSet rs, String parentPath) throws SQLException {
         DatacatObject.Type type = getType(rs.getString("type"));
         DatacatObject.Builder o;
         switch (type){
@@ -350,9 +347,13 @@ public class BaseDAO implements AutoCloseable {
             default:
                 o = new DatacatObject.Builder();
         }
+        String name = rs.getString( "name" );
         o.pk( rs.getLong( "pk" ) )
                 .parentPk( rs.getLong( "parent" ) )
-                .name( rs.getString( "name" ) );
+                .name(name);
+        if(parentPath != null && !parentPath.isEmpty()){
+            o.path(PathUtils.resolve( parentPath, name));
+        }
         return o;
     }
 

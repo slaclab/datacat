@@ -17,6 +17,7 @@ import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.container.DatasetStat;
 import org.srs.datacat.vfs.DcPath;
+import org.srs.vfs.PathUtils;
 
 
 /**
@@ -29,11 +30,12 @@ public class ContainerDAO extends BaseDAO {
         super( conn );
     }
     
-    public DatacatObject createContainer(Long parentPk, DcPath parentPath, DatacatObject request) throws SQLException{
-        return insertContainer( parentPk, parentPath.toString(), request );
+    public DatacatObject createContainer(Long parentPk, DcPath targetPath, DatacatObject request) throws SQLException{
+        return insertContainer( parentPk, targetPath.toString(), request );
     }
 
-    protected DatacatObject insertContainer(Long parentPk, String parentPath, DatacatObject request) throws SQLException{
+    protected DatacatObject insertContainer(Long parentPk, String targetPath, DatacatObject request) throws SQLException{
+        String name = PathUtils.getFileName(targetPath);
         String tableName;
         String parentColumn;
         DatacatObject.Type newType = request.getType();
@@ -59,7 +61,7 @@ public class ContainerDAO extends BaseDAO {
         String description = request instanceof DatasetContainer ? ((DatasetContainer) request).getDescription() : null;
         
         try (PreparedStatement stmt = getConnection().prepareStatement( sql, new String[]{tableName} )) {
-            stmt.setString( 1, request.getName());
+            stmt.setString( 1, name);
             stmt.setLong(2, parentPk);
             stmt.setString(3, description);
             stmt.executeUpdate();
@@ -68,7 +70,7 @@ public class ContainerDAO extends BaseDAO {
                 builder.pk(rs.getLong(1));
             }
             builder.parentPk(parentPk);
-            builder.path(parentPath);
+            builder.path(targetPath);
             retObject = builder.build();
         }
         
@@ -256,7 +258,7 @@ public class ContainerDAO extends BaseDAO {
                             return true;
                         }
                         if(rs.next()){
-                            next = getBuilder( rs ).path( parentPath ).build();
+                            next = getBuilder(rs, parentPath).build();
                             return true;
                         }
                         throw new NoSuchElementException();
