@@ -43,11 +43,14 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
 
     @Override
     public Dataset withView(RequestView requestView) throws FileNotFoundException, IOException {
-        DatasetView view = requestView.getDatasetView();
+        return withView(requestView.getDatasetView(), requestView.includeMetadata());
+    }
+        
+    public Dataset withView(DatasetView view, boolean withMetadata) throws FileNotFoundException, IOException {
         if(view == DatasetView.EMPTY){
             return (Dataset) file.getObject();
         }
-        
+        boolean noSites = DatasetView.EMPTY_SITES.equals(view.getSite());
         DatasetVersion retDsv;
         HashMap<String, DatasetLocation> retLocations;
         synchronized(this) {
@@ -67,7 +70,7 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
                     String msg = "Invalid View. Version %d not found";
                     throw new FileNotFoundException( String.format( msg, view.getVersionId() ) );
                 }
-                if(!locationCache.containsKey( view.getVersionId() )){
+                if(!noSites && !locationCache.containsKey( view.getVersionId() )){
                     locations = new HashMap<>( 4 );
                     for(DatasetLocation l: dsdao.getDatasetLocations( dsv.getPk() )){
                         if(l.isMaster()){
@@ -75,34 +78,37 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
                         }
                         locations.put( l.getSite(), l );
                     }
-                    if(dsv.isLatest()){
-                        locationCache.put( DatasetView.CURRENT_VER, locations );
+                        if(dsv.isLatest()){
+                            locationCache.put( DatasetView.CURRENT_VER, locations );
+                        }
+                        locationCache.put( dsv.getVersionId(), locations );
                     }
-                    locationCache.put( dsv.getVersionId(), locations );
-                }
             } catch(SQLException ex) {
                 throw new IOException( "Error talking to the database", ex );
             }
             retDsv = versionCache.get( view.getVersionId() );
             retLocations = locationCache.get( view.getVersionId() );
         }
-        if(retLocations == null){
+        // TODO: Handle the case where no locations exist
+        if(retLocations == null && !DatasetView.EMPTY_SITES.equals(view.getSite())){
             String msg = "No locations found for dataset version %d";
             throw new FileNotFoundException(String.format( msg, view.getVersionId()));
         }
         Dataset.Builder b = new Dataset.Builder((Dataset) file.getObject());
-        if(!requestView.includeMetadata()){ // mask metadata
+        if(!withMetadata){ // mask metadata
             retDsv = new DatasetVersion.Builder(retDsv).metadata((List)null).build();
         }
         b.version(retDsv);
-        if(view.isAll()){
-            b.locations(new ArrayList<>(retLocations.values()));
-        } else {
-            if(retLocations.containsKey(view.getSite())){
-                b.location(retLocations.get(view.getSite()));
+        if(!noSites){
+            if(view.isAll()){
+                b.locations(new ArrayList<>(retLocations.values()));
             } else {
-                String msg = "Location %s not found";
-                throw new FileNotFoundException(String.format( msg, view.getSite()));
+            if(retLocations.containsKey(view.getSite())){
+                    b.location(retLocations.get(view.getSite()));
+                } else {
+                    String msg = "Location %s not found";
+                    throw new FileNotFoundException(String.format( msg, view.getSite()));
+                }
             }
         }
         return b.buildDataset();
