@@ -181,7 +181,6 @@ public class DatasetDAO extends BaseDAO {
                 + "CASE WHEN vd.latestversion = dsv.datasetversion THEN 1 ELSE 0 END isLatest "
                 + "FROM verdataset vd "
                 + "JOIN datasetversion dsv on (vd.latestversion = dsv.datasetversion) "
-                + "JOIN verdatasetlocation vdl on (dsv.masterlocation = vdl.datasetlocation) "
                 + "WHERE vd.dataset = ? ";
 
         try (PreparedStatement stmt = getConnection().prepareStatement( sql )){
@@ -361,6 +360,7 @@ public class DatasetDAO extends BaseDAO {
                 builder.pk(rs.getLong(1));
                 builder.parentPk(datasetPk);
                 builder.created(rs.getTimestamp(2));
+                builder.metadata(request.getMetadata());
             }
             retVersion = builder.build();
         }
