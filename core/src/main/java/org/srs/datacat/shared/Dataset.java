@@ -240,6 +240,11 @@ public class Dataset extends DatacatObject implements DatasetModel {
             return this;
         }
 
+        @Override
+        public Builder metadata(Map<String, Object> val){
+            throw new UnsupportedOperationException();
+        }
+
         @JsonSetter
         public Builder location(DatasetLocation val){
             this.location = val;
