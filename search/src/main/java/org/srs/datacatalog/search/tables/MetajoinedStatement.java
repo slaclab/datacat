@@ -55,7 +55,7 @@ public abstract class MetajoinedStatement extends Select {
 
         getMetajoins().put( metaName, mSelect );
         selection( new Column( ms.metaValue.getName(), mSelect ).asExact( metaName ) )
-                .leftOuterJoin( mSelect, getMetajoinColumn().eq( ms.datacatKey ) );
+                .join( mSelect, getMetajoinColumn().eq( ms.datacatKey ) );
         return ms.metaValue;
     }
     

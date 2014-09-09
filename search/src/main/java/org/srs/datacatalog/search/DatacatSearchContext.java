@@ -88,7 +88,7 @@ public class DatacatSearchContext implements SearchContext {
         for(String s: exprIdents.elementSet()){
             if(!inScope( s )){
                 throw new IllegalArgumentException(
-                        "Unable to resolve '" + s + "' in '" + getErrorString( ast, s ) + "'" );
+                        "Unable to resolve '" + s + "' in '" + SearchUtils.getErrorString( ast, s ) + "'" );
             }
         }
     }
@@ -115,7 +115,6 @@ public class DatacatSearchContext implements SearchContext {
 
     @Override
     public Expr evaluateNode(AST.Node node){
-
         Object tLeft = getTokenOrExpression( node.getLeft() );
         Object tRight = getTokenOrExpression( node.getRight() );
         Op tOper = node.getValue() != null ? Op.valueOf( node.getValue().toString() ) : null;
@@ -125,7 +124,6 @@ public class DatacatSearchContext implements SearchContext {
             if( tOper == Op.AND || tOper == Op.OR){
                 return tOper.apply( (Expr) tLeft, (Expr) tRight );
             }
-            
             return preEvaluateExpression( (MetajoinedStatement)dsv, node, tLeft, tOper, tRight);
         }
         return null;
@@ -150,46 +148,36 @@ public class DatacatSearchContext implements SearchContext {
         if(node == null) {
             return null;
         }
-        // If it's a value node, try to find the value (Timestamp, String, Number)
-        if(node.getLeft() == null && node.getRight() == null){
-            Object val = node.getValue();
-            
-            if(val instanceof String) {
-                if(inSelectionScope( val.toString() )){
-                    return getColumnFromSelectionScope( val.toString() );
-                }
-
-                if(pluginScope.contains( val.toString() )){
-                    // Optionally, Join plugin/ foreign table here
-                }
-            }
-            return val;
-        }
-        // Otherwise, evaluate it
-        return evaluateNode( node );
+        Object ret = null;
+        ret = getValueNode(node);
+        return ret != null ? ret : evaluateNode(node);
     }
     
     private Object getTokenOrExpression(AST.Node node, MetajoinedStatement statement){
         if(node == null) {
             return null;
         }
-        // If it's a value node, try to find the value (Timestamp, String, Number)
+        Object ret = null;
+        ret = getValueNode(node);
+        return ret != null ? ret : evaluateNode(node, statement);
+    }
+    
+    private Object getValueNode(AST.Node node){
         if(node.getLeft() == null && node.getRight() == null){
-            Object val = node.getValue();
-            
-            if(val instanceof String) {
-                if(inSelectionScope( val.toString() )){
-                    return getColumnFromSelectionScope( val.toString() );
+            Object nVal = node.getValue();
+            if(nVal instanceof String){
+                String strVal = (String) nVal;
+                if(inSelectionScope( strVal )){
+                    return getColumnFromSelectionScope( strVal );
                 }
 
-                if(pluginScope.contains( val.toString() )){
+                if(pluginScope.contains( strVal )){
                     // Optionally, Join plugin/ foreign table here
                 }
             }
-            return val;
+            return nVal;
         }
-        // Otherwise, evaluate it
-        return evaluateNode( node, statement );
+        return null;
     }
     
     private Expr preEvaluateExpression(MetajoinedStatement statement, AST.Node leftNode, Object tLeft, Op tOper, Object tRight){
@@ -235,44 +223,6 @@ public class DatacatSearchContext implements SearchContext {
             }
         }
         return null;
-    }
-    
-    private String getErrorString(AST ast, final String ident){
-        if(ast.toString().length() < 32){
-            return ast.toString();
-        }
-        
-        final StringBuilder startOfError = new StringBuilder();
-        AST.Visitor errorVisitor = new AST.Visitor() {
-            public boolean visit(AST.Node n){
-                if(n.getLeft() != null && n.getRight() != null) {
-                    startOfError.append( "( " );
-                }
-                boolean continueVisit = true;
-                if(n.getLeft() != null) {
-                    continueVisit = n.getLeft().accept( this );
-                }
-                if(continueVisit && n.getValue() != null){
-                    continueVisit = !ident.equals( n.getValue() );
-                    startOfError.append( " " + n.getValue().toString() + " " );
-                }
-                if(continueVisit && n.getRight() != null){
-                    continueVisit = n.getRight().accept( this );
-                    if(continueVisit && n.getLeft() != null && n.getRight() != null){
-                        startOfError.append( " )" );
-                    }
-                }
-
-                if(!continueVisit){
-                    int partial = ident.length() + 25;
-                    startOfError.delete( 0, startOfError.length() - partial );
-                    startOfError.insert( 0, "..." );
-                }
-                return continueVisit;
-            }
-        };
-        ast.getRoot().accept( errorVisitor );
-        return startOfError.toString();
     }
 
 }

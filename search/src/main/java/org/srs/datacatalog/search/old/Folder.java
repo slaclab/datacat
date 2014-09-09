@@ -1,9 +1,11 @@
 
-package org.srs.datacatalog.search.tables;
+package org.srs.datacatalog.search.old;
 
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Map;
+import org.srs.datacatalog.search.tables.MetajoinedStatement;
+import org.srs.datacatalog.search.tables.Metatable;
 import org.zerorm.core.Column;
 import org.zerorm.core.Expr;
 import org.zerorm.core.Op;

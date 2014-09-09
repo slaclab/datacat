@@ -17,7 +17,8 @@ public class DatasetVersions extends MetajoinedStatement {
     public Location l = new Location().as( "l", Location.class );
 
     private DatasetVersions(){
-        from( ds ).selection( ds.columns() ).selection( v.columns() ).selection( l.columns() );
+        ds.dataset.as( "pk");
+        from( ds ).selection( ds.getColumns() ).selection( v.getColumns() ).selection( l.getColumns() );
     }
 
     public void init(Expr datasetVersionExpr){
@@ -73,7 +74,7 @@ public class DatasetVersions extends MetajoinedStatement {
 
     @Override
     public Column getMetajoinColumn(){
-        return l.datasetVersion;
+        return v.datasetVersion;
     }
     
     @Override

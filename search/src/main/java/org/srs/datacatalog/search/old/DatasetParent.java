@@ -1,5 +1,5 @@
 
-package org.srs.datacatalog.search.tables;
+package org.srs.datacatalog.search.old;
 
 /**
  *

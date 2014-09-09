@@ -1,4 +1,4 @@
-package org.srs.datacatalog.search.tables;
+package org.srs.datacatalog.search.old;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,11 +13,13 @@ import org.zerorm.core.Param;
 import org.zerorm.core.Select;
 import org.zerorm.core.Val;
 import org.zerorm.core.interfaces.MaybeHasAlias;
-import org.srs.datacatalog.search.tables.Folder.FolderSelect;
-import org.srs.datacatalog.search.tables.Group.GroupSelect;
-import org.srs.rest.datacat.shared.DatacatObject;
-import org.srs.rest.datacat.shared.DatasetGroup;
-import org.srs.rest.datacat.shared.LogicalFolder;
+import org.srs.datacatalog.search.old.Folder.FolderSelect;
+import org.srs.datacatalog.search.old.Group.GroupSelect;
+import org.srs.datacat.shared.DatacatObject;
+import org.srs.datacat.shared.DatasetGroup;
+import org.srs.datacat.shared.LogicalFolder;
+import org.srs.datacatalog.search.tables.MetajoinedStatement;
+import org.srs.datacatalog.search.tables.Metatable;
 
 /**
  *

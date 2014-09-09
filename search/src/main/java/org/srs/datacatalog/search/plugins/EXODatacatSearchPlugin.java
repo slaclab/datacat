@@ -38,7 +38,7 @@ public class EXODatacatSearchPlugin implements DatacatPlugin {
     
     public EXODatacatSearchPlugin(){
 
-        for(Column c: new EXORunIndex().columns()){
+        for(Column c: new EXORunIndex().getColumns()){
             mappings.put( c.canonical(), c);
         }
     }
@@ -59,7 +59,7 @@ public class EXODatacatSearchPlugin implements DatacatPlugin {
         DatasetVersions dsv = (DatasetVersions) statement;
         Column vecColumn = dsv.setupMetadataJoin( metadataPivot,  1234L );
 
-        dsv.selection( eri.columns() ).leftOuterJoin( eri, vecColumn.eq( eri.runId )  );
+        dsv.selection( eri.getColumns() ).leftOuterJoin( eri, vecColumn.eq( eri.runId )  );
         joined = true;
         return eri;
     }
