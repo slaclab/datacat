@@ -186,7 +186,7 @@ public class SearchUtils {
         }
     }
     
-    public static List<Dataset> getResultsDeferred(final Connection conn, final Select sel, final boolean keepAlive) throws SQLException{
+    public static List<Dataset> getResultsDeferredFill(final Connection conn, final Select sel, final boolean keepAlive) throws SQLException{
         
         final Iterator<Dataset> iter = new Iterator<Dataset>() {
             PreparedStatement stmt = sel.prepareAndBind( conn );

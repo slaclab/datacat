@@ -48,7 +48,7 @@ public class DatasetSearch {
     }
     
     public List<Dataset> searchForDatasetsInParent(Connection conn, Select statement, boolean keepAlive) throws Exception{
-        return SearchUtils.getResultsDeferred( conn, statement, keepAlive );
+        return SearchUtils.getResultsDeferredFill( conn, statement, keepAlive );
     }
     
     public Select compileStatement(Connection conn, DcPath parent, 
@@ -65,13 +65,6 @@ public class DatasetSearch {
         DirectoryWalker walker = new DirectoryWalker(provider, visitor, maxDepth);
         walker.walk(parent);
         SearchUtils.populateParentTempTable(conn, visitor);     
-        System.out.println("checking...");
-        try (PreparedStatement stmt = conn.prepareStatement( "SELECT * FROM ContainerSearch")){
-            ResultSet rs = stmt.executeQuery();
-            while(rs.next()){
-                System.out.println(rs.getString("ContainerPath"));
-            }
-        }
 
         HashMap<String, MaybeHasAlias> availableSelections = new HashMap<>();
         for(MaybeHasAlias a: dsv.getAvailableSelections()){
@@ -100,8 +93,6 @@ public class DatasetSearch {
         
         Table containerSearch = new Table("ContainerSearch", "cp");
         
-        System.out.println(dsv.getSelections());
-        System.out.println(dsv.getColumns());
         
         Select selectStatement = containerSearch
                 .select( containerSearch.$("ContainerPath"))
