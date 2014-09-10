@@ -39,7 +39,7 @@ public class MetadataInteger implements MetadataValue<Number> {
     @XmlValue
     @JsonValue
     // TODO: Fix this to be BigInteger if https://github.com/FasterXML/jackson-databind/issues/466 gets fixed.
-    public Integer getValue(){return value.intValue(); }
+    public Long getValue(){return value.longValue(); }
     
     @XmlTransient
     public static class Builder extends MetadataValue.Builder<MetadataInteger> {

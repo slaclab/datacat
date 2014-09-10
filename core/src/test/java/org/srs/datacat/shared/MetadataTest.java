@@ -12,7 +12,10 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.List;
 import junit.framework.TestCase;
+import org.srs.rest.shared.metadata.MetadataDecimal;
 import org.srs.rest.shared.metadata.MetadataEntry;
+import org.srs.rest.shared.metadata.MetadataInteger;
+import org.srs.rest.shared.metadata.MetadataValue;
 
 /**
  *
@@ -170,5 +173,28 @@ public class MetadataTest extends TestCase {
         
     }
 
+    public void testLong(){
+        MetadataEntry e;
+        Number n1 = 4294967296L;
+        Number n2 = 4294967297L;
+        Number n3 = 4294967295L;
+        MetadataValue o;
+        o = getEntry(n1);
+        assertEquals(n1, o.getValue());
+        o = getEntry(n2);
+        assertEquals(n2, o.getValue());
+        o = getEntry(n3);
+        assertEquals(n3, o.getValue());
+
+    }
+    
+    private MetadataValue getEntry(Number v){
+        if(v instanceof Double || v instanceof java.math.BigDecimal || v instanceof Float){
+            return new MetadataDecimal( v.doubleValue() );
+        } else if(v instanceof Long || v instanceof java.math.BigInteger || v instanceof Integer){
+            return new MetadataInteger( v.longValue() );
+        }
+        return null;
+    }
 
 }
