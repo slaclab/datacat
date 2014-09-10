@@ -18,11 +18,11 @@ import junit.framework.TestCase;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.model.RequestView;
 import org.srs.datacatalog.search.plugins.DatacatPlugin;
 import org.srs.datacatalog.search.plugins.EXODatacatSearchPlugin;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.LogicalFolder;
+import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcFileSystemProvider;
@@ -126,7 +126,7 @@ public class DatacatSearchTest {
             DcPath newPath = parent.resolve(name);
             System.out.println(newPath);
             for(int j = 0; j < 1000; j++){
-                Dataset.Builder dsBuilder = new Dataset.Builder();
+            Dataset.Builder dsBuilder = new Dataset.Builder();
                 name = String.format("dataset%05d", j);
                 dsBuilder.name(name);
                 dsBuilder.datasetDataType(HSqlDbHarness.JUNIT_DATASET_DATATYPE);
@@ -205,14 +205,12 @@ public class DatacatSearchTest {
         datasets = datacatSearch.searchForDatasetsInParent( conn, statement, keepAlive);
         ii = 0;
         for(Dataset d: datasets){
-            System.out.println(d.getPath());
-            System.out.println(d.toString());
             if(ii == 0){
                 TestCase.assertEquals("First dataset found incorrect", "dataset00001", d.getName());
             }
             ii++;
         }
-        TestCase.assertEquals("Should have found 250 datasets out of 1000", 500*10, ii);
+        TestCase.assertEquals("Should have found 1250 datasets out of 20000", 1250, ii);
         System.out.println("Found " + ii + " results");
         conn.commit(); // Remove from parents on commit
         
