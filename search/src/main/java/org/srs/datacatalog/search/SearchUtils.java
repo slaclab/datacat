@@ -157,6 +157,7 @@ public class SearchUtils {
             stmt.setNull( isGroup ? 1 : 2, Types.VARCHAR);
             stmt.setLong( isGroup ? 2 : 1, file.fileKey());
             stmt.setString( 3, file.getPath().toString());
+            stmt.executeUpdate();
         }
 
         /*try (PreparedStatement stmt2 = conn.prepareStatement( "SELECT ContainerPath FROM ContainerSearch")){
