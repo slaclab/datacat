@@ -132,7 +132,14 @@ public class DatacatSearchContext implements SearchContext {
     public Expr evaluateNode(AST.Node node, MetajoinedStatement statement){
         Object tLeft = getTokenOrExpression( node.getLeft(), statement );
         Object tRight = getTokenOrExpression( node.getRight(), statement );
-        Op tOper = node.getValue() != null ? Op.valueOf( node.getValue().toString() ) : null;
+        Op tOper = null;
+        if(node.getValue() != null){
+            String opName = node.getValue().toString();
+            if("MATCHES".equalsIgnoreCase( opName )){
+                opName = "LIKE";
+            }
+            tOper = Op.valueOf(opName);
+        }
         
         if(tLeft != null || tOper != null || tRight != null){
             
