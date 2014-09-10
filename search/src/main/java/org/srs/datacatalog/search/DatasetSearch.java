@@ -1,10 +1,11 @@
 
 package org.srs.datacatalog.search;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -41,19 +42,19 @@ public class DatasetSearch {
     HashMap<String, DatacatPlugin> pluginMap;
     MetanameContext dmc;
     
-    public DatasetSearch(DcFileSystemProvider provider, Connection conn, HashMap<String, DatacatPlugin> pluginMap) throws Exception {
+    public DatasetSearch(DcFileSystemProvider provider, Connection conn, HashMap<String, DatacatPlugin> pluginMap) throws SQLException {
         this.provider = provider;
         this.pluginMap = pluginMap;
         this.dmc = SearchUtils.buildMetanameGlobalContext( conn );
     }
     
-    public List<Dataset> searchForDatasetsInParent(Connection conn, Select statement, boolean keepAlive) throws Exception{
+    public List<Dataset> searchForDatasetsInParent(Connection conn, Select statement, boolean keepAlive) throws SQLException {
         return SearchUtils.getResultsDeferredFill( conn, statement, keepAlive );
     }
     
     public Select compileStatement(Connection conn, DcPath parent, 
             ContainerVisitor visitor, boolean checkParent, int maxDepth,
-            String queryString, String[] sites, String[] metaFieldsToRetrieve,  String[] sortFields, int offset, int max) throws Exception{
+            String queryString, String[] sites, String[] metaFieldsToRetrieve,  String[] sortFields, int offset, int max) throws ParseException, SQLException, IOException {
         AST ast = parseQueryString(queryString);
         DatasetVersions dsv = prepareDatasetVersion(sites, null);
         DatacatSearchContext sd = prepareSelection(ast, dsv);
@@ -129,7 +130,7 @@ public class DatasetSearch {
         return sel;
     }
    
-    private AST parseQueryString(String queryString) throws Exception{
+    private AST parseQueryString(String queryString) throws ParseException {
         if(queryString == null || queryString.isEmpty()){
             return null;
         }
@@ -138,13 +139,19 @@ public class DatasetSearch {
         try {
             return (AST) p.parse().value;
         } catch(Exception ex) {
+            if(ex instanceof RuntimeException){
+                if(ex.getCause() instanceof ParseException){
+                    throw (ParseException) ex.getCause();
+                }
+                throw (RuntimeException) ex;
+            }
             Logger.getLogger( DatasetSearch.class.getName() )
                     .log( Level.WARNING, "Error parsing", ex);
-            throw ex;
+            throw new RuntimeException(ex);
         }
     }
     
-    private DatacatSearchContext prepareSelection(AST ast, DatasetVersions stmt) throws Exception {
+    private DatacatSearchContext prepareSelection(AST ast, DatasetVersions stmt) {
         for(DatacatPlugin p: pluginMap.values()){
             p.reset();
         }
