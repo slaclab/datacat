@@ -157,15 +157,14 @@ public class SearchUtils {
             stmt.setNull( isGroup ? 1 : 2, Types.VARCHAR);
             stmt.setLong( isGroup ? 2 : 1, file.fileKey());
             stmt.setString( 3, file.getPath().toString());
-            System.out.println("inserted something: " + stmt.execute());
         }
 
-        try (PreparedStatement stmt2 = conn.prepareStatement( "SELECT ContainerPath FROM ContainerSearch")){
+        /*try (PreparedStatement stmt2 = conn.prepareStatement( "SELECT ContainerPath FROM ContainerSearch")){
             ResultSet rs = stmt2.executeQuery();
             while(rs.next()){
                 System.out.println(rs.getString("ContainerPath"));
             }
-        }
+        }*/
 
     }
     
