@@ -91,6 +91,8 @@ public class PathUtilsTest extends TestCase {
     
     @Test
     public void testPathPattern(){
+        TestCase.assertEquals("/abc/def001", PathUtils.normalize(PathUtils.normalizeRegex("/abc/def001")));
+        TestCase.assertEquals("/abc/def001", PathUtils.normalize(PathUtils.normalizeRegex("/abc/def001/")));
         TestCase.assertEquals("/", PathUtils.normalize(PathUtils.normalizeRegex("/a*")));
         TestCase.assertEquals("/abc", PathUtils.normalize(PathUtils.normalizeRegex("/abc/*")));
         TestCase.assertEquals("/abc", PathUtils.normalize(PathUtils.normalizeRegex("/abc/[")));

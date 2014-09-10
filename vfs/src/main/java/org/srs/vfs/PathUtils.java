@@ -320,12 +320,11 @@ public class PathUtils {
             case ')':
             case '\\': // TODO: Should maybe handle escape sequences
                 break;
-            case 0:
-                if (cursor >= pathPattern.length()) {
-                    break;
-                }
             default:
-                ch = pathPattern.codePointAt(++cursor);
+                if (++cursor >= pathPattern.length()) {
+                    return pathPattern;
+                }
+                ch = pathPattern.codePointAt(cursor);
                 continue;
             }
             break;
