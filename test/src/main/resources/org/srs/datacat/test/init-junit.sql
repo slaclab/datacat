@@ -10,7 +10,7 @@ insert into datasetdatatype (datasetdatatype) values ('JUNIT_TEST');
 insert into datasetfileformat (datasetfileformat) values ('junit.test');
 insert into datasetsource (datasetsource) values ('JUNIT_SOURCE');
 
-insert into datasetlogicalfolder (name, parent) values ('testpath',0);
+insert into datasetlogicalfolder (name, parent) values  ('testpath',0);
 insert into datasetlogicalfolder (name, parent) values ('testfolder',(select datasetlogicalfolder from datasetlogicalfolder where name = 'testpath'));
 insert into datasetgroup (name, datasetlogicalfolder) values ('testgroup',(select datasetlogicalfolder from datasetlogicalfolder where name = 'testpath'));
 
@@ -47,3 +47,8 @@ insert into datasetlogicalfolder (name, parent) values ('xyz',(select datasetlog
 
 insert into datasetgroup (name, datasetlogicalfolder) values ('fed',(select datasetlogicalfolder from datasetlogicalfolder where name = 'abc'));
 insert into datasetgroup (name, datasetlogicalfolder) values ('zyx',(select datasetlogicalfolder from datasetlogicalfolder where name = 'def'));
+
+insert into datasetmetaname (metaname) VALUES ('nRun');
+insert into datasetmetaname (metaname) VALUES ('alpha');
+insert into datasetmetaname (metaname) VALUES ('num');
+insert into datasetmetaname (metaname) VALUES ('sIntent');
