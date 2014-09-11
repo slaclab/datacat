@@ -52,6 +52,10 @@ public class DatasetSearch {
         return SearchUtils.getResultsDeferredFill( conn, statement, keepAlive );
     }
     
+    public List<Dataset> searchForDatasetsInParent(Connection conn, Select statement) throws SQLException {
+        return SearchUtils.getResults(conn, statement);
+    }
+    
     public Select compileStatement(Connection conn, DcPath parent, 
             ContainerVisitor visitor, boolean checkParent, int maxDepth,
             String queryString, String[] sites, String[] metaFieldsToRetrieve,  String[] sortFields, int offset, int max) throws ParseException, SQLException, IOException {

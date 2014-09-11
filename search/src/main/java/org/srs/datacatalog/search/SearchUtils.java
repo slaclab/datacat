@@ -186,6 +186,17 @@ public class SearchUtils {
         }
     }
     
+    public static List<Dataset> getResults(final Connection conn, final Select sel) throws SQLException{
+        ArrayList<Dataset> datasets = new ArrayList<>();        
+        try(PreparedStatement stmt = sel.prepareAndBind( conn )){
+            ResultSet rs = stmt.executeQuery();
+            while(rs.next()){
+                datasets.add(SearchUtils.datasetFactory(rs, null));
+            }
+        }
+        return datasets;
+    }
+    
     public static List<Dataset> getResultsDeferredFill(final Connection conn, final Select sel, final boolean keepAlive) throws SQLException{
         
         final Iterator<Dataset> iter = new Iterator<Dataset>() {
@@ -264,5 +275,5 @@ public class SearchUtils {
             }
         };
     }
-
+    
 }
