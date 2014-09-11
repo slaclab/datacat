@@ -4,6 +4,7 @@ package org.srs.datacatalog.search;
 import com.google.common.collect.Multiset;
 import java.util.HashMap;
 import org.freehep.commons.lang.AST;
+import org.freehep.commons.lang.bool.sym;
 import org.zerorm.core.Column;
 import org.zerorm.core.Expr;
 import org.zerorm.core.Op;
@@ -134,9 +135,20 @@ public class DatacatSearchContext implements SearchContext {
         Object tRight = getTokenOrExpression( node.getRight(), statement );
         Op tOper = null;
         if(node.getValue() != null){
+            // Op translation
             String opName = node.getValue().toString();
-            if("MATCHES".equalsIgnoreCase( opName )){
-                opName = "LIKE";
+            switch (opName){
+                case "MATCHES":
+                    opName = "LIKE";
+                    break;
+                case "IN":
+                    switch (node.getRight().getType()){
+                        case sym.NUMRANGE:
+                        case sym.STRINGRANGE:
+                        case sym.DATERANGE:
+                            opName = "BETWEEN";
+                    }
+                    break;
             }
             tOper = Op.valueOf(opName);
         }
