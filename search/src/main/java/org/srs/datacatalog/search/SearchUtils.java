@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import org.freehep.commons.lang.AST;
@@ -275,5 +276,14 @@ public class SearchUtils {
             }
         };
     }
-    
+    public static Class<?> getParamType(Object tRight){
+        if(tRight instanceof List){
+            List r = ((List) tRight);
+            tRight = Collections.checkedList( r, r.get( 0 ).getClass() ).get( 0 );
+        }
+        if(tRight instanceof Number){
+            return Number.class;
+        }
+        return tRight.getClass();
+    }
 }

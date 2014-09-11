@@ -57,7 +57,7 @@ public class EXODatacatSearchPlugin implements DatacatPlugin {
         }
         String metadataPivot = "nRun";
         DatasetVersions dsv = (DatasetVersions) statement;
-        Column vecColumn = dsv.setupMetadataJoin( metadataPivot,  1234L );
+        Column vecColumn = dsv.setupMetadataJoin( metadataPivot,  Number.class );
 
         dsv.selection( eri.getColumns() ).leftOuterJoin( eri, vecColumn.eq( eri.runId )  );
         joined = true;
