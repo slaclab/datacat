@@ -3,15 +3,19 @@
 
 package org.srs.datacat.rest.resources;
 
-import org.srs.datacat.rest.resources.ContainerResource;
-import org.srs.datacat.rest.resources.PathResource;
+import java.sql.SQLException;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import junit.framework.TestCase;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.model.Resource;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
 import org.srs.datacat.rest.App;
+import org.srs.datacat.test.HSqlDbHarness;
 
 /**
  *
@@ -23,8 +27,15 @@ public class ContainerResourceTest extends JerseyTest {
 
     @Override
     protected Application configure(){
-        System.out.println("\n\nHELLO\n\n");
-        ResourceConfig app = new App().register(ContainerResource.class).register( PathResource.class);
+        HSqlDbHarness harness = null;
+        try {
+            harness = new HSqlDbHarness();
+        } catch(SQLException ex) {
+            System.out.println(ex);
+
+        }
+
+        ResourceConfig app = new App(harness.getDataSource()).register(ContainerResource.class).register( PathResource.class);
         for(Resource r: app.getResources()){
             System.out.println(r.getPath());
         }
@@ -33,10 +44,74 @@ public class ContainerResourceTest extends JerseyTest {
 
     @Test           
     public void testDispatch(){
-        Response resp = target("/folder.txt/testpath")
+        Response resp;
+        
+        resp = target("/folders.txt/testpath")
                 .request()
                 .get();
         System.out.println(resp.readEntity(String.class));
+        
+        resp = target("/folders.txt/testpath;something=hello")
+                .request()
+                .get();
+        System.out.println(resp.readEntity(String.class));
+    }
+    
+    @Test
+    public void testCreate(){
+        MultivaluedHashMap<String,String> entity = new MultivaluedHashMap<>();
+        entity.add( "name", "createFolderTest");
+        
+        Response resp;
+        
+        System.out.println("getting /folders.txt/testpath");
+        resp = target("/folders.txt/testpath")
+                .request()
+                .get();
+        System.out.println("got:" + resp.readEntity( String.class));
+                
+        resp = target("/folders.txt/testpath")
+                .request()
+                .post(Entity.form( entity ));
+        TestCase.assertEquals( Status.CREATED, Status.fromStatusCode(resp.getStatus()));
+        
+        System.out.println("getting /folders.txt/testpath/createFolderTest");
+        resp = target("/folders.txt/testpath/createFolderTest")
+                .request()
+                .get();
+        System.out.println(resp.readEntity( String.class));
+        
+        resp = target("/folders.txt/testpath/createFolderTest")
+                .request()
+                .post(Entity.form( entity ));
+        TestCase.assertEquals( Status.CREATED, Status.fromStatusCode(resp.getStatus()));
+        
+        resp = target("/folders.txt/testpath/createFolderTest")
+            .request()
+            .delete();
+        TestCase.assertEquals( Status.CONFLICT, Status.fromStatusCode(resp.getStatus()));
+        
+        resp = target("/folders.txt/testpath/createFolderTest/createFolderTest")
+            .request()
+            .delete();
+        TestCase.assertEquals( Status.NO_CONTENT, Status.fromStatusCode(resp.getStatus()));
+        
+        resp = target("/folders.txt/testpath/createFolderTest")
+            .request()
+            .delete();
+        TestCase.assertEquals( Status.NO_CONTENT, Status.fromStatusCode(resp.getStatus()));
+        
+        resp = target("/folders.txt/testpath/createFolderTest")
+            .request()
+            .delete();
+        TestCase.assertEquals( Status.NOT_FOUND, Status.fromStatusCode(resp.getStatus()));
+        
+        /*resp = target("/folders.txt/junit/createFolderTest")
+            .request()
+            .delete();
+        TestCase.assertEquals( Status.NO_CONTENT, Status.fromStatusCode(resp.getStatus()));
+                */
+        
     }
     
 }

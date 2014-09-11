@@ -7,14 +7,19 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.CommonProperties;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.model.Resource;
@@ -31,6 +36,7 @@ import org.srs.rest.shared.plugins.ResourcePlugin;
 public class App extends ResourceConfig {
     private static boolean classesLoaded = false;
     public static DcFileSystemProvider fsProvider;
+    private DataSource dataSource;
 
     public static class JacksonFeature implements Feature {
 
@@ -44,19 +50,50 @@ public class App extends ResourceConfig {
             return true;
         }
     }
+    
+    public static class FsBinder extends AbstractBinder {
+        private final DcFileSystemProvider provider;
+        
+        FsBinder(DcFileSystemProvider provider){
+            this.provider = provider;
+        }
+
+        @Override
+        protected void configure(){
+            bind(provider).to( DcFileSystemProvider.class);
+        }
+    }
+    
+    public static class DataSourceBinder extends AbstractBinder {
+        private final DataSource dataSource;
+        
+        DataSourceBinder(DataSource dataSource){
+            this.dataSource = dataSource;
+        }
+
+        @Override
+        protected void configure(){
+            bind(dataSource).to(DataSource.class);
+        }
+    }
 
     public App(){
+        this(initDatasource("jdbc/datacat-prod"));
+    }
+        
+    public App(DataSource dataSource){
         super();
+        this.dataSource = dataSource;
         registerInstances( new Reloader() );
         register( JacksonFeature.class );
         register( RequestAcceptFilter.class );
         register( ListPlainTextProvider.class );
         register( DatacatObjectTextProvider.class );
-        
+                
         try {
             initPlugins();
         } catch(IOException ex) {
-            Logger.getLogger( App.class.getName() ).log( Level.SEVERE, "Error while attempting to initiate plugins");
+            throw new IllegalStateException(ex);
         }
     }
     
@@ -64,11 +101,22 @@ public class App extends ResourceConfig {
         return this.fsProvider;
     }
     
-    void initPlugins() throws IOException {
-        if(fsProvider == null){
-            fsProvider = new DcFileSystemProvider();
+    private static DataSource initDatasource(String jndi){
+        try {
+            javax.naming.Context ctx = new InitialContext();
+            // relative to standard JNDI root for J2EE app
+            javax.naming.Context envCtx = (javax.naming.Context) ctx.lookup( "java:comp/env" );
+            return (DataSource) envCtx.lookup( jndi );
+        } catch(NamingException ex) {
+            throw new IllegalStateException(ex);
         }
-        
+    }
+    
+    void initPlugins() throws IOException {
+        fsProvider = new DcFileSystemProvider(dataSource);
+        register(new DataSourceBinder(dataSource));
+        register(new FsBinder(fsProvider));
+
         if(classesLoaded)
             return;
         File loc = new File( "/Users/bvan/.m2/repository/exo/exo-datacat-plugins/1.0-SNAPSHOT/exo-datacat-plugins-1.0-SNAPSHOT.jar" );

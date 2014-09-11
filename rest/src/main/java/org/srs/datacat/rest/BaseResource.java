@@ -9,22 +9,25 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Inject;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import javax.ws.rs.core.Context;
+import org.srs.datacat.vfs.DcFileSystemProvider;
 
 /**
  *
  * @author bvan
  */
-public class ConnectionResource {
+public class BaseResource {
     
     @Context HttpServletRequest request;
     @Context HttpServletResponse response;
-    private DataSource dataSource;
+    @Inject DcFileSystemProvider provider;
+    @Inject DataSource dataSource;
 
     private void initDatasource(String jndi) throws NamingException {
         javax.naming.Context ctx = new InitialContext();
@@ -42,6 +45,10 @@ public class ConnectionResource {
             }
         }
         return dataSource.getConnection();
+    }
+    
+    public DcFileSystemProvider getProvider(){
+        return this.provider;
     }
     
     public <T> List<T> paginateList( List<T> list, int offset, int max){
