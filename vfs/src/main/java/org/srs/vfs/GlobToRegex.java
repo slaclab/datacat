@@ -27,7 +27,7 @@ import java.util.regex.PatternSyntaxException;
  *
  * @author Colin Decker
  */
-final class GlobToRegex {
+public final class GlobToRegex {
     
     final static class InternalCharMatcher {
 
