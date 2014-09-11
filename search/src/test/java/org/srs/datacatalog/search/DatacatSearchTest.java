@@ -204,6 +204,52 @@ public class DatacatSearchTest {
         System.out.println("Found " + ii + " results");
         conn.commit(); // Remove from parents on commit
         
+        queryString = "alpha == 'def'";
+        pathPattern = "/testpath/folder0000*$";
+        searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern,"/"));
+        searchPath = root.resolve(searchBase);
+        System.out.println(searchPath.toString());
+        visitor = new ContainerVisitor(root.getFileSystem(), pathPattern, searchGroups, searchFolders);
+        keepAlive = true;
+        statement = datacatSearch.compileStatement( conn, searchPath, visitor, false, 100, queryString, sites, metaFieldsToRetrieve, sortFields,0,-1);
+        System.out.println("ready");
+        
+        System.out.println(statement.formatted());
+        datasets = datacatSearch.searchForDatasetsInParent( conn, statement, keepAlive);
+        ii = 0;
+        for(Dataset d: datasets){
+            if(ii == 0){
+                TestCase.assertEquals("First dataset found incorrect", "dataset00001", d.getName());
+            }
+            ii++;
+        }
+        TestCase.assertEquals("Should have found 2500 datasets out of 10000",0, ii);
+        System.out.println("Found " + ii + " results");
+        conn.commit(); // Remove from parents on commit
+        
+        queryString = "alpha == 'def'";
+        pathPattern = "/testpath/folder0000*^";
+        searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern,"/"));
+        searchPath = root.resolve(searchBase);
+        System.out.println(searchPath.toString());
+        visitor = new ContainerVisitor(root.getFileSystem(), pathPattern, searchGroups, searchFolders);
+        keepAlive = true;
+        statement = datacatSearch.compileStatement( conn, searchPath, visitor, false, 100, queryString, sites, metaFieldsToRetrieve, sortFields,0,-1);
+        System.out.println("ready");
+        
+        System.out.println(statement.formatted());
+        datasets = datacatSearch.searchForDatasetsInParent( conn, statement, keepAlive);
+        ii = 0;
+        for(Dataset d: datasets){
+            if(ii == 0){
+                TestCase.assertEquals("First dataset found incorrect", "dataset00001", d.getName());
+            }
+            ii++;
+        }
+        TestCase.assertEquals("Should have found 2500 datasets out of 10000", 250, ii);
+        System.out.println("Found " + ii + " results");
+        conn.commit(); // Remove from parents on commit
+        
         queryString = "alpha =~ 'de%'";
         searchPath = root.resolve("/testpath/folder00001");
         visitor = new ContainerVisitor(root.getFileSystem(), searchPath.toString(), searchGroups, searchFolders);
