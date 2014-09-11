@@ -69,11 +69,11 @@ public class Dataset extends DatacatObject implements DatasetModel {
     
     @Override
     @XmlElement(required=false)
-    public String getDataType() { return this.datasetDataType;}
+    public String getDatasetDataType() { return this.datasetDataType;}
         
     @Override
     @XmlElement(required=false)
-    public String getFileFormat() { return this.datasetFileFormat;}
+    public String getDatasetFileFormat() { return this.datasetFileFormat;}
     
     @Override
     @XmlJavaTypeAdapter(RestDateAdapter.class) 

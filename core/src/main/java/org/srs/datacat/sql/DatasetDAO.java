@@ -244,8 +244,8 @@ public class DatasetDAO extends BaseDAO {
                 + "DatasetLogicalFolder, DatasetGroup) values (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = getConnection().prepareStatement( insertSql, new String[]{"DATASET", "REGISTERED"} )) {
             stmt.setString(1, name);
-            stmt.setString(2, request.getFileFormat() );
-            stmt.setString(3, request.getDataType().toUpperCase());
+            stmt.setString(2, request.getDatasetFileFormat() );
+            stmt.setString(3, request.getDatasetDataType().toUpperCase());
             switch(parentType){
                 case FOLDER:
                     stmt.setLong( 4, parentPk);

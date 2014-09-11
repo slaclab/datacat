@@ -156,7 +156,7 @@ public class LatestDatasetTest extends TestCase {
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
                 + "<flatDataset>\n"
                 + "    <name>my-flat-dataset.txt</name>\n"
-                + "    <fileFormat>FITS</fileFormat>\n"
+                + "    <datasetFileFormat>FITS</datasetFileFormat>\n"
                 + "    <fileSize>1234</fileSize>\n"
                 + "    <fileSystemPath>/path/to/somewhere</fileSystemPath>\n"
                 + "    <latest>true</latest>\n"

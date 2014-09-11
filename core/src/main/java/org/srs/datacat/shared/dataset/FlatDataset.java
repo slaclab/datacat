@@ -68,10 +68,10 @@ public class FlatDataset extends Dataset implements DatasetVersionModel, Dataset
     }
     
     @XmlElement(required=false)
-    public Long getDatasetVersionPk(){ return dsVersion.getPk(); }
+    public Long getVersionPk(){ return dsVersion.getPk(); }
     
     @XmlElement(required=false)
-    public Long getDatasetLocationPk(){ return dsLocation.getPk(); }
+    public Long getLocationPk(){ return dsLocation.getPk(); }
     
     @XmlTransient
     public DatasetVersion getVersion(){ return dsVersion; }

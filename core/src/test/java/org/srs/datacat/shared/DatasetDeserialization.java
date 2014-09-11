@@ -57,16 +57,16 @@ public class DatasetDeserialization extends TestCase {
         Dataset fds;
         
         fds = mapper.readValue( datasetWithType, Dataset.class);
-        System.out.println(fds.getFileFormat());
+        System.out.println(fds.getDatasetFileFormat());
         //mapper.enableDefaultTyping();
         fds = mapper.readValue( datasetWithNoType, new TypeReference<FlatDataset>(){});
-                System.out.println(fds.getFileFormat());
+                System.out.println(fds.getDatasetFileFormat());
 
         fds = mapper.readValue( datasetWithNoType, new TypeReference<FlatDataset>(){});
-                System.out.println(fds.getFileFormat());
+                System.out.println(fds.getDatasetFileFormat());
 
         fds = mapper.readValue( datasetWithNoType, FlatDataset.class);
-                System.out.println(fds.getFileFormat());
+                System.out.println(fds.getDatasetFileFormat());
 
     }
 }
