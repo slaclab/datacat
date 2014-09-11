@@ -37,7 +37,7 @@ import org.zerorm.core.Select;
  */
 @Path("/search")
 public class SearchResource extends BaseResource {
-    private final String searchRegex = "{id: [\\w\\d\\-_\\./\\*\\^\\$]+}";
+    private final String searchRegex = "{id: [^\\?]+}";
     
     @GET
     @Path(searchRegex)
@@ -49,8 +49,8 @@ public class SearchResource extends BaseResource {
             @QueryParam("sort") List<String> sortParams, 
             /*@DefaultValue("false") @QueryParam("unscanned") boolean unscanned,*/
             /*@DefaultValue("false") @QueryParam("nonOk") boolean nonOk,*/
-            @DefaultValue("true") @QueryParam("checkFolders") boolean checkFolders,
-            @DefaultValue("true") @QueryParam("checkGroups") boolean checkGroups,
+            @QueryParam("checkFolders") Boolean checkFolders,
+            @QueryParam("checkGroups") Boolean checkGroups,
             /*@DefaultValue("false") @QueryParam("allMetadata") boolean metadata,*/
             @DefaultValue("-1") @QueryParam("max") int max,
             @DefaultValue("0") @QueryParam("offset") int offset) {
@@ -64,13 +64,11 @@ public class SearchResource extends BaseResource {
             DatasetSearch datacatSearch = new DatasetSearch(getProvider(), conn, new HashMap<String, DatacatPlugin>());
 
             String queryString = filter;
-            queryString = "alpha == 'def'";
 
             String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern,"/"));
             DcPath root = getProvider().getPath(DcUriUtils.toFsUri("/", null, "SRS"));
             DcPath searchPath = root.resolve(searchBase);
             ContainerVisitor visitor = new ContainerVisitor(searchPath.getFileSystem(), pathPattern, checkGroups, checkFolders);
-
             Select stmt = datacatSearch.compileStatement( conn, searchPath, visitor, 
                             false, 100, queryString, null, metafields, sortFields,0,-1);
             datasets = datacatSearch.searchForDatasetsInParent(conn, stmt);

@@ -81,36 +81,94 @@ public class SearchResourceTest extends JerseyTest{
         client().register( new JacksonJsonProvider( mapper ) );
         
         Response resp;
-        List<? super FlatDataset> datasets;
-        resp = target("/search/testpath/folder00001")
-                .queryParam( "filter", "alpha == 'def'" )
-                .request( MediaType.APPLICATION_JSON )
-                .get();
+        String filter;
+        String pathPattern;
+        int expected;
         
-        datasets = mapper.readValue( resp.readEntity(String.class), new TypeReference<List<FlatDataset>>(){});
+        List<? super FlatDataset> datasets;
+        
+        filter = "alpha == 'def'";
+        pathPattern = "/testpath/folder00001";
+        expected = 25;
+        datasets = doSearch(pathPattern, filter, 200);
         TestCase.assertEquals("Expected 25 datasets", 25, datasets.size());
         
-        resp = target("/search/testpath/folder0000*")
-                .queryParam( "filter", "alpha == 'def'" )
-                .request( MediaType.APPLICATION_JSON )
-                .get();
-        datasets = mapper.readValue( resp.readEntity(String.class), new TypeReference<List<FlatDataset>>(){});
+        pathPattern = "/testpath/folder0000*";
+        filter = "alpha == 'def'";
+        expected = 250;
+        datasets = doSearch(pathPattern, filter, 200);
         TestCase.assertEquals("Expected 250 datasets", 250, datasets.size());
         
-        resp = target("/search/testpath/folder0000*")
-                .queryParam( "filter", "alpha =~ 'de%'" )
+        pathPattern = "/testpath/folder0000*";
+        filter = "alpha =~ 'de%'";
+        expected = 250;
+        datasets = doSearch( pathPattern, filter, 200 );
+        TestCase.assertEquals( "Expected 250 datasets", 250, datasets.size() );
+
+        pathPattern = "/testpath/folder0000[1]";
+        filter = "alpha == 'def'";
+        expected = 25;
+        datasets = doSearch( pathPattern, filter, 200 );
+        TestCase.assertEquals( "Expected 25 datasets", 25, datasets.size() );
+
+        pathPattern = "/testpath/folder0000*$";
+        filter = "alpha == 'def'";
+        expected = 250;
+        datasets = doSearch( pathPattern, filter, 200 );
+        TestCase.assertEquals( "Expected 25 datasets", 250, datasets.size() );
+
+        pathPattern = "/testpath/folder0000[12]$";
+        filter = "alpha == 'def'";
+        expected = 50;
+        datasets = doSearch( pathPattern, filter, 200 );
+        TestCase.assertEquals( "Expected 25 datasets", 50, datasets.size() );
+
+        pathPattern = "/testpath/folder0000*^";
+        filter = "alpha == 'def'";
+        expected = 0;
+        datasets = doSearch( pathPattern, filter, 200 );
+        TestCase.assertEquals( "Expected 0 datasets, no groups in search path", 0, datasets.size() );
+
+        pathPattern = "/testpath/folder0000*$";
+        filter = "alpha == 'def' or num == 3.14159f";
+        expected = (25 * 10) + (75 * 3);
+        datasets = doSearch( pathPattern, filter, 200 );
+        TestCase.assertEquals( "Expected 0 datasets, no groups in search path", expected, datasets.size() );
+        
+
+        filter = "alpha == 'def' or num in (0,3.14159f)";
+        pathPattern = "/testpath/folder0000*$";
+        expected = 25*10;
+        for(int j = 0; j < 10; j++){
+            Number num = TestUtils.numberMdValues[j%4];
+            if(num.equals( 3.14159f) || num.equals(0)){
+                expected += 75;
+            }
+        }
+        datasets = doSearch(pathPattern, filter, 200);
+        TestCase.assertEquals("Expected 0 datasets, no groups in search path", expected, datasets.size());
+        
+        pathPattern = "/testpath/folder0000*$";
+        filter = "alpha == 'def' or num in (3.1414:3.1416)";
+        expected = (25*10) + (75*3); // choose 1 mod 4 folders under 10, so 3 will include all
+        datasets = doSearch(pathPattern, filter, 200);
+        TestCase.assertEquals("Expected 0 datasets, no groups in search path", expected, datasets.size());
+        
+        pathPattern ="/testpath/*";
+        filter = "num == 0 and alpha == 'def'";
+        expected = 25 * 3;
+        datasets = doSearch(pathPattern, filter, 200);
+        TestCase.assertEquals("Expected 0 datasets, no groups in search path", expected, datasets.size());
+
+    }
+    
+    private List<Dataset> doSearch(String pathPattern, String filter, int status){
+        Response resp = target("/search" + pathPattern)
+                .queryParam( "filter", filter )
                 .request( MediaType.APPLICATION_JSON )
                 .get();
-        datasets = mapper.readValue( resp.readEntity(String.class), new TypeReference<List<FlatDataset>>(){});
-        TestCase.assertEquals("Expected 250 datasets", 250, datasets.size());
-        
-        /*resp = target(URLEncoder.encode("/search/testpath/folder0000[1]", "UTF-8"))
-                .queryParam( "filter", "alpha == 'def'" )
-                .request( MediaType.APPLICATION_JSON )
-                .get();
-        datasets = mapper.readValue( resp.readEntity(String.class), new TypeReference<List<FlatDataset>>(){});
-        TestCase.assertEquals("Expected 25 datasets", 25, datasets.size());*/
-        
+        TestCase.assertEquals( resp.getStatus(), status);
+        return resp.readEntity(new GenericType<List<Dataset>>(){});
     }
     
 }
