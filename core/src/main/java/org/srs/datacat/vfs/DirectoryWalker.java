@@ -121,7 +121,17 @@ public class DirectoryWalker {
          * @param searchGroups
          * @param searchFolders 
          */
-        public ContainerVisitor(DcFileSystem fs, String path, boolean searchGroups, boolean searchFolders){
+        public ContainerVisitor(DcFileSystem fs, String path, Boolean searchGroups, Boolean searchFolders){
+            // TODO: This should do some checks to make sure $ is escaped for a regex
+            if(path.endsWith("$")){
+                searchGroups = false;
+                path = path.substring(0, path.length()-1);
+            } else if(path.endsWith("^")){
+                searchFolders = false;
+                path = path.substring(0, path.length()-1);
+            }
+            searchGroups = searchGroups == null ? true: searchGroups;
+            searchFolders = searchFolders == null ? true: searchFolders;
             // TODO: Glob check?
             String globPath = "glob:" + path;
             filter = new ContainerFilter(fs.getPathMatcher(globPath), searchGroups, searchFolders);
@@ -161,6 +171,11 @@ public class DirectoryWalker {
             }
             return FileVisitResult.CONTINUE;
         }
+
+        @Override
+        public String toString(){
+            return "ContainerVisitor{" + "filter=" + filter + '}';
+        }
     }
     
     static class ContainerFilter implements DirectoryStream.Filter<Path>{
@@ -187,6 +202,12 @@ public class DirectoryWalker {
         public boolean searchFolders(){
             return this.searchFolders;
         }
+
+        @Override
+        public String toString(){
+            return "ContainerFilter{" + "matcher=" + matcher + ", searchGroups=" + searchGroups + ", searchFolders=" + searchFolders + '}';
+        }
+        
     }
     
 }
