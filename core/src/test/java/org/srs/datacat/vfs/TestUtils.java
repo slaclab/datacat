@@ -21,6 +21,8 @@ public class TestUtils {
     
     public static String alphaMdValues[] = {"abc","def","ghi","jkl"};
     public static Number numberMdValues[] = {0, 3.14159f, 4294967296L, -1.0000000001d};
+    public static String alphaName = "alpha";
+    public static String numberName = "num";
     
     public static void generateDatasets(DcPath root, DcFileSystemProvider provider, int folders, int datasets) throws IOException{
         DcPath parent = root.resolve( "/testpath");
@@ -38,8 +40,6 @@ public class TestUtils {
             provider.createDirectory( newPath, new ContainerCreationAttribute(builder.build()) );
         }
         
-        String alphaName = "alpha";
-        String numberName = "num";
         String alphaMdValues[] = {"abc","def","ghi","jkl","xyz"};
         Number numberMdValues[] = {0, 3.14159f, 4294967296L, -1.0000000001d, 1};
 
