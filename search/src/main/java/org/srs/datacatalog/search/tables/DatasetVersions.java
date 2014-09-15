@@ -29,7 +29,7 @@ public class DatasetVersions extends MetajoinedStatement {
     @Override
     public Metatable getMetatableForType(String alias, Class type){
         Metatable ms = null;
-        if(Number.class.isAssignableFrom( type )){
+        if(Number.class.isAssignableFrom( type ) || Boolean.class.isAssignableFrom( type )){
             ms = new DatasetMetanumber().as( alias, Metatable.class );
         }
         else if(String.class.isAssignableFrom( type )){

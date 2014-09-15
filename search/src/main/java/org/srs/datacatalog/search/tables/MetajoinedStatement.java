@@ -57,6 +57,9 @@ public abstract class MetajoinedStatement extends Select {
             }
         }
         
+        if(tRight == null){
+            throw new IllegalArgumentException("Unable to process null queries at this time");
+        }
         Class<?> type = SearchUtils.getParamType(tRight);
 
         Object p = tRight instanceof List ? tRight : new Param<>( tLeft.toString(), tRight );
