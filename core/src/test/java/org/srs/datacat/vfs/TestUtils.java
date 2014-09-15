@@ -40,9 +40,6 @@ public class TestUtils {
             provider.createDirectory( newPath, new ContainerCreationAttribute(builder.build()) );
         }
         
-        String alphaMdValues[] = {"abc","def","ghi","jkl","xyz"};
-        Number numberMdValues[] = {0, 3.14159f, 4294967296L, -1.0000000001d, 1};
-
         List opts = Arrays.asList(DatasetOption.CREATE_NODE, DatasetOption.CREATE_VERSION, DatasetOption.SKIP_NODE_CHECK);
         HashSet<DatasetOption> options = new HashSet<>(opts);
         // Create 20k datasets
