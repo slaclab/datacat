@@ -9,6 +9,10 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlElementRefs;
@@ -33,6 +37,18 @@ public class MetadataEntry {
     public MetadataEntry(String k, MetadataValue v) {
        key = k;
        value = v;
+    }
+    
+    public static List<MetadataEntry> toList(HashMap<String, Object> map){
+        ArrayList<MetadataEntry> list = new ArrayList<>();
+        for(Entry<String, Object> e: map.entrySet()){
+            if(e.getValue() instanceof Number){
+                list.add( new MetadataEntry( e.getKey(), (Number) e.getValue() ) );
+            } else {
+                list.add( new MetadataEntry( e.getKey(), e.getValue().toString() ) );
+            }
+        }
+        return list;
     }
     
     public MetadataEntry(String k, Number v) {
