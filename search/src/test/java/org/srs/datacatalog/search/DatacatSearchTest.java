@@ -218,13 +218,7 @@ public class DatacatSearchTest {
 
         queryString = "alpha == 'def' or num in (0,3.14159f)";
         pathPattern = "/testpath/folder0000*$";
-        expected = 250*10;
-        for(int j = 0; j < 10; j++){
-            Number num = TestUtils.numberMdValues[j%4];
-            if(num.equals( 3.14159f) || num.equals(0)){
-                expected += 750;
-            }
-        }
+        expected = 250*10 + 750*3 + 750*3;
         datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, expected);
         TestCase.assertEquals("First dataset found incorrect", "dataset00000", datasets.get(0).getName());
         conn.commit(); // Remove from parents on commit
