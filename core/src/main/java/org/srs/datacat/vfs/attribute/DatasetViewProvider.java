@@ -78,11 +78,13 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
                         }
                         locations.put( l.getSite(), l );
                     }
+                    if(!locations.isEmpty()){
                         if(dsv.isLatest()){
                             locationCache.put( DatasetView.CURRENT_VER, locations );
                         }
                         locationCache.put( dsv.getVersionId(), locations );
                     }
+                }
             } catch(SQLException ex) {
                 throw new IOException( "Error talking to the database", ex );
             }
