@@ -4,12 +4,16 @@ package org.srs.datacat.shared.dataset;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
@@ -24,37 +28,40 @@ import org.srs.datacat.shared.dataset.VersionWithLocations.Builder;
 @JsonTypeName(value="version#withLocations")
 @JsonDeserialize(builder = Builder.class)
 public class VersionWithLocations extends DatasetVersion {
-    private List<DatasetLocation> dsLocations;
+    private HashMap<String, DatasetLocation> dsLocations = new HashMap<>(3);
     
     private VersionWithLocations(){}
     
     public VersionWithLocations(DatasetVersion version){
         super(version);
         if(version instanceof VersionWithLocations){
-            List<DatasetLocation> locs = ((VersionWithLocations) version).dsLocations;
-            this.dsLocations = new ArrayList<>(locs);
-        } else {
-            this.dsLocations = new ArrayList<>();
+            this.dsLocations = new HashMap<>(dsLocations);
         }
     }
     
     public VersionWithLocations(Builder builder){
         super(builder);
-        this.dsLocations = builder.locations;
+        if(builder.locations != null){
+            initLocations(builder.locations);
+        }
+    }
+    
+    private void initLocations(Collection<DatasetLocation> locations){
+        for(DatasetLocation l: locations){
+            if(l.isMaster()){
+                dsLocations.put( DatasetView.CANONICAL_SITE, l );
+            }
+            dsLocations.put( l.getSite(), l );
+        }
     }
     
     @XmlElement(name="locations", required=false)
-    public List<DatasetLocation> getLocations(){
-        return dsLocations;
+    public Set<DatasetLocation> getLocations(){
+        return new HashSet<>(dsLocations.values());
     }
     
     public DatasetLocation getLocation(String name){
-        for(DatasetLocation loc: dsLocations){
-            if(loc.getSite().equals( name )){
-                return loc;
-            }
-        }
-        return null;
+        return dsLocations.get( name );
     }
 
     /**
@@ -64,7 +71,7 @@ public class VersionWithLocations extends DatasetVersion {
     @XmlTransient 
     public DatasetLocation getPriorityLocation(){
         DatasetLocation maxLocation = null;
-        for(DatasetLocation loc: dsLocations){
+        for(DatasetLocation loc: new HashSet<>(dsLocations.values())){
             if(loc.isMaster() != null && loc.isMaster()){
                 return loc;
             } else if(maxLocation == null){
@@ -78,7 +85,7 @@ public class VersionWithLocations extends DatasetVersion {
 
     @XmlTransient
     public static class Builder extends DatasetVersion.Builder {
-        public List<DatasetLocation> locations = null;
+        public Collection<DatasetLocation> locations = null;
         
         public Builder(){}
         public Builder(Dataset.Builder builder){
