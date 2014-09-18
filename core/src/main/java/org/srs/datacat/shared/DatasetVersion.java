@@ -62,11 +62,11 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
     public Integer getVersionId() { return this.versionId;}
 
     @Override
-    @XmlElement(name="datasetSource")
+    @XmlTransient
     public String getDatasetSource() { return this.datasetSource;}
     
     @Override
-    @XmlTransient 
+    @XmlElement(required=false) 
     public Long getProcessInstance() { return this.processInstance;}
     
     @Override
@@ -150,7 +150,7 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
 
         @JsonIgnore public Builder versionId(Integer val){ this.versionId = val; return this; }
         @JsonSetter public Builder versionId(VersionId val){ this.versionId = val.getId(); return this; }
-        @JsonSetter public Builder datasetSource(String val){ this.datasetSource = val;  return this; }
+        public Builder datasetSource(String val){ this.datasetSource = val;  return this; }
         @JsonSetter public Builder processInstance(Long val){ this.processInstance = val; return this; }
         @JsonSetter public Builder taskName(String val){ this.taskName = val; return this; }
         @JsonSetter public Builder latest(Boolean val){ this.latest = val; return this; }
