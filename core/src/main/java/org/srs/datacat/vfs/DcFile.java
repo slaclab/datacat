@@ -13,6 +13,7 @@ import java.util.Collection;
 import org.srs.vfs.AbstractVirtualFile;
 import org.srs.vfs.ChildrenView;
 import org.srs.datacat.shared.DatacatObject;
+import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 import org.srs.datacat.vfs.attribute.SubdirectoryView;
@@ -34,19 +35,23 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     
     public static class GroupType extends FileType.Directory {}
     
-    private final DatacatObject object;
+    private final DatacatObject _object;
     
     public DcFile(DcPath path, DatacatObject object, DcAclFileAttributeView aclView){
         super(path, fileType(object));
-        this.object = object;
+        if(object instanceof Dataset){
+            this._object = new Dataset(object); // make a copy of base object
+        } else {
+            this._object = object;
+        }
         addAttributeViews(aclView);
-        initViews();
+        initViews(object);
     }
     
-    private void initViews(){
+    private void initViews(DatacatObject orig){
         addAttributeViews(this);
         if(isRegularFile()){
-            addAttributeViews(new DatasetViewProvider(this));
+            addAttributeViews(new DatasetViewProvider(this, (Dataset) orig));
         }
         if(isDirectory()){
             addAttributeViews(new ChildrenView<>(getPath()));
@@ -132,11 +137,11 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
 
     @Override
     public Long fileKey(){
-        return object.getPk();
+        return _object.getPk();
     }
     
     public DatacatObject getObject(){
-        return this.object;
+        return this._object;
     }
 
     @Override
@@ -184,6 +189,6 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
 
     @Override
     public String toString(){
-        return "DcFile{" + "object=" + object.toString() + '}';
+        return "DcFile{" + "object=" + _object.toString() + '}';
     }
 }
