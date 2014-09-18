@@ -5,8 +5,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.sql.DataSource;
 import org.srs.datacat.model.DatasetContainer;
+import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.container.BasicStat.StatType;
@@ -21,22 +25,61 @@ public class ContainerViewProvider implements DcViewProvider<StatType> {
     
     private final DcFile file;
     private final DataSource dataSource;
-    private HashMap<String,BasicStat> stats = new HashMap<>(4);
-
+    private final HashMap<String,BasicStat> stats = new HashMap<>(3);
+    private final HashMap<DatasetView, AtomicInteger> viewCaches = new HashMap<>(3);
+    private final Lock lock = new ReentrantLock();
+    
     public ContainerViewProvider(DcFile file){
         this.file = file;
         this.dataSource = file.getPath().getFileSystem().getDataSource();
     }
-
+    
     @Override
     public String name(){
         return "cstat";
     }
     
     public void clearStats(){
-        synchronized(this){
+        lock.lock();
+        try {
             stats.clear();
+            viewCaches.clear();
+        } finally {
+            lock.unlock();
         }
+    }
+    
+    public void setViewStats(DatasetView view, int cacheCount){
+        lock.lock();
+        try {
+            viewCaches.put( view, new AtomicInteger(cacheCount));
+        } finally {
+            lock.unlock();
+        }
+    }
+    
+    public int decrementViewCount(DatasetView view){
+        lock.lock();
+        try {
+            if(viewCaches.containsKey( view )){
+                AtomicInteger i = viewCaches.get( view );
+                int ret = i.decrementAndGet();
+                if(ret <= 0){
+                    viewCaches.remove(view);
+                }
+                return ret;
+            }
+        } finally {
+            lock.unlock();
+        }
+        return 0;
+    }
+    
+    public int getViewStats(DatasetView view){
+        if(viewCaches.containsKey( view )){
+            return viewCaches.get( view ).get();
+        }
+        return 0;
     }
     
     @Override
@@ -49,7 +92,8 @@ public class ContainerViewProvider implements DcViewProvider<StatType> {
         
         BasicStat basicStat = null;
         BasicStat retStat = null;
-        synchronized(this) {
+        lock.lock();
+        try {
             if(!stats.containsKey( wantName )){
                 try(ContainerDAO dao = new ContainerDAO( dataSource.getConnection() )) {
                     if(!stats.containsKey( basicName )){
@@ -65,6 +109,8 @@ public class ContainerViewProvider implements DcViewProvider<StatType> {
                 }
             }
             retStat = stats.get(wantName);
+        } finally {
+            lock.unlock();
         }
         DatasetContainer.Builder b = DatasetContainer.Builder.create(file.getObject());
         b.stat( retStat );
