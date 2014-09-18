@@ -26,7 +26,7 @@ public class SubdirectoryView extends ChildrenView<DcPath> {
     protected void doRefreshCache() throws IOException{
         DcFileSystemProvider pro = getPath().getFileSystem().provider();
         try(DirectoryStream<DcPath> stream = 
-                pro.unCachedDirectoryStream(getPath(), pro.AcceptAllFilter, false, false)){
+                pro.directSubdirectoryStream(getPath(), pro.AcceptAllFilter)){
             for(DcPath child: stream){
                 children.put( child.getFileName().toString(), child );
             }
