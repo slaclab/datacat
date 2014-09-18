@@ -135,6 +135,11 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
         Objects.requireNonNull( this.fileSystemPath,"Physical file path required");
         Objects.requireNonNull( this.site, "Location site is required");
     }
+    
+    @Override
+    public int hashCode(){
+        return Long.toString(getPk()).hashCode();
+    }
 
     @XmlTransient
     public static class Builder extends DatacatObject.Builder<Builder>{
