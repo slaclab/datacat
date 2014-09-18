@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -149,7 +150,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         public Map<String, Number> versionNumberMetadata;
         public Map<String, String> versionStringMetadata;
         public List<DatasetVersion> versions;
-        public List<DatasetLocation> locations;
+        public Collection<DatasetLocation> locations;
         // mixins
         public Timestamp created;
         public Long versionPk;
@@ -349,7 +350,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
-        public Builder locations(List<DatasetLocation> val){
+        public Builder locations(Collection<DatasetLocation> val){
             this.locations = val;
             dsType |= LOCATIONS;
             return this;
