@@ -36,14 +36,15 @@ public class DatasetView {
             }
         }
     }
-    
+        
     public static final int EMPTY_VER = -3;
     public static final int NEW_VER = -2;
     public static final int CURRENT_VER = -1;
     
-    public static final String EMPTY_SITES = "$";
-    public static final String ALL_SITES = "$A";
-    public static final String CANONICAL_SITE = "$C";
+    public static final String EMPTY_SITES = "$";      // Zero
+    public static final String ANY_SITES = "$*";       // Zero or More
+    public static final String ALL_SITES = "$+";       // One or More
+    public static final String CANONICAL_SITE = "$C";  // One
     
     public static final DatasetView EMPTY = new DatasetView(EMPTY_VER, EMPTY_SITES);
     public static final DatasetView MASTER = new DatasetView(CURRENT_VER, CANONICAL_SITE);
