@@ -34,14 +34,18 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
+import org.srs.datacat.model.DatasetContainer;
+import org.srs.datacat.model.DatasetView;
 
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
+import org.srs.datacat.shared.container.BasicStat;
 
 import org.srs.datacat.sql.ContainerDAO;
 import org.srs.vfs.AbstractFsProvider;
@@ -50,6 +54,7 @@ import org.srs.vfs.ChildrenView;
 import org.srs.datacat.sql.BaseDAO;
 import org.srs.datacat.sql.DatasetDAO;
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
+import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 
 import org.srs.datacat.vfs.attribute.DatasetOption;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
@@ -63,6 +68,12 @@ import org.srs.vfs.FileType;
  */
 public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     
+    private static final long MAX_CHILD_CACHE = 500;
+    private static final int MAX_METADATA_STRING_BYTE_SIZE = 5000;
+    private static final long MAX_DATASET_CACHE_SIZE = 1<<29; // Don't blow more than about 512MB
+    private static final int NO_MAX = -1;
+    private static final int NO_OFFSET = 0;
+    
     private final DcFileSystem fileSystem;
     private final DataSource dataSource;
         
@@ -71,42 +82,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         this.dataSource = dataSource;
         fileSystem = new DcFileSystem(this, dataSource);
     }
-    
-    /* TODO: This isn't working well on HSQLDB
-    public DcFileSystemProvider(DataSource dataSource, boolean warmCache) throws IOException{
-        this(dataSource);
-        if(warmCache){
-            refreshCache();
-        }
-    }
-       
-    private void refreshCache() throws IOException{
-        doRefreshCache();
-    }
-    
-    protected void doRefreshCache() throws IOException{
-        long t0 = System.currentTimeMillis();
-        getCache().clear();
-        DcPath root = fileSystem.getPathProvider().getRoot();
-        try(ContainerDAO dao = new ContainerDAO(dataSource.getConnection())){
-            DcAclFileAttributeView parentAcl;
-            DcPath childPath;
-            DcFile childFile;
-            for(DatacatObject o: dao.getAllContainers( root, 0L )){
-                DcPath parentPath = root.resolve(o.getPath());
-                DcFile pFile = resolveFile(parentPath);
-                parentAcl = pFile.getAttributeView(DcAclFileAttributeView.class);
-                childPath = (DcPath) parentPath.resolve(o.getName()).toAbsolutePath();
-                childFile = new DcFile(childPath, o);
-                childFile.addAttributeViews(parentAcl);
-                getCache().putFile(childFile);
-            }
-        } catch(SQLException ex) {
-            throw new IOException("Unable to refresh cache", ex);
-        }
-        System.out.println("Cache loading took" + (System.currentTimeMillis() - t0));
-    }*/
-    
+        
     @Override
     public String getScheme(){
         return "dc";
@@ -115,6 +91,11 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     @Override
     public DirectoryStream<Path> newDirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
+        return newOptimizedDirectoryStream( dir, filter, NO_OFFSET, NO_MAX, DatasetView.EMPTY );
+    }
+
+    public DirectoryStream<Path> newOptimizedDirectoryStream(Path dir,
+            final DirectoryStream.Filter<? super Path> filter, int offset, int max, DatasetView viewPrefetch) throws IOException{
         final DcPath dcPath = checkPath(dir);
         DcFile dirFile = resolveFile(dcPath);
         checkPermission( dirFile, AclEntryPermission.READ_DATA );
@@ -123,13 +104,15 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         ChildrenView<DcPath> view = dirFile.getAttributeView(ChildrenView.class);
         DirectoryStream<? extends Path> stream;
-        if(view != null){
+        boolean useCache = maybeUseCache(dirFile, viewPrefetch);
+        if(view != null && useCache){
             if(!view.hasCache()){
                 view.refreshCache();
             }
             stream = cachedDirectoryStream(dir, filter);
         } else {
-            stream = unCachedDirectoryStream(dir, filter);
+            boolean fillCache = canFitDatasetsInCache(dirFile, max, viewPrefetch);
+            stream = unCachedDirectoryStream(dir, filter, offset, viewPrefetch, fillCache);
         }
         return (DirectoryStream<Path>) stream;
     }
@@ -137,13 +120,18 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     @Override
     public DirectoryStream<DcPath> unCachedDirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
-        return unCachedDirectoryStream(dir, filter, true, true);
+        return unCachedDirectoryStream(dir, filter, NO_OFFSET, DatasetView.EMPTY, true);
+    }
+        
+    public DirectoryStream<DcPath> directSubdirectoryStream(Path dir,
+            final DirectoryStream.Filter<? super Path> filter) throws IOException{
+        return unCachedDirectoryStream(dir, filter, NO_OFFSET, null, false);
     }
     
-    public DirectoryStream<DcPath> unCachedDirectoryStream(Path dir,
-            final DirectoryStream.Filter<? super Path> filter, boolean includeDatasets, final boolean cacheDatasets) throws IOException{
+    private DirectoryStream<DcPath> unCachedDirectoryStream(Path dir,
+            final DirectoryStream.Filter<? super Path> filter, int offset, final DatasetView viewPrefetch, final boolean cacheDatasets) throws IOException{
         final DcPath dcPath = checkPath( dir );
-        DcFile dirFile = resolveFile( dcPath );
+        final DcFile dirFile = resolveFile( dcPath );
         checkPermission(dirFile, AclEntryPermission.READ_DATA );
         final DcAclFileAttributeView aclView = dirFile.
                 getAttributeView( DcAclFileAttributeView.class );
@@ -154,11 +142,18 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         try {
             // !IMPORTANT!: This object is closed when the stream is closed
             final ContainerDAO dao = new ContainerDAO( dataSource.getConnection() ); 
-            DirectoryStream<DatacatObject> stream = dao.getChildrenStream(fileKey, dcPath.toString(), includeDatasets);
-            final Iterator<DatacatObject> iter = stream.iterator();
+            DirectoryStream<DatacatObject> stream;
+            if(viewPrefetch != null){
+                stream = dao.getChildrenStream(fileKey, dcPath.toString(), offset, viewPrefetch);
+            } else {
+                stream = dao.getSubdirectoryStream(fileKey, dcPath.toString());
+            }
             
+            final Iterator<DatacatObject> iter = stream.iterator();
+            final AtomicInteger dsCount = new AtomicInteger();
             DirectoryStreamWrapper.IteratorAcceptor acceptor = 
                     new DirectoryStreamWrapper.IteratorAcceptor() {
+                
                 @Override
                 public boolean acceptNext() throws IOException{
                     while(iter.hasNext()){
@@ -166,8 +161,12 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                         DcPath maybeNext = dcPath.resolve( child.getName() );
                         DcFile file = new DcFile( maybeNext, child, aclView);
                         
-                        if(file.isDirectory() || cacheDatasets){
+                        if(file.isDirectory()){
                             getCache().putFileIfAbsent(file);
+                        }
+                        if(!file.isDirectory() && cacheDatasets){
+                             getCache().putFileIfAbsent(file);
+                             dsCount.incrementAndGet();
                         }
                         if(filter.accept( maybeNext )){
                             setNext( maybeNext );
@@ -184,6 +183,10 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                 @Override
                 public void close() throws IOException{
                     try {
+                        if(dsCount.get() > 0){
+                            dirFile.getAttributeView( ContainerViewProvider.class)
+                                    .setViewStats( viewPrefetch, dsCount.get());
+                        }
                         super.close();
                         dao.close();  // Make sure to close dao (and underlying connection)
                     } catch(SQLException ex) {
@@ -204,7 +207,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         final DcPath dcPath = checkPath(dir);
         final DcFile dirFile = resolveFile(dcPath);
         checkPermission( dirFile, AclEntryPermission.READ_DATA );
-        final ChildrenView<DcPath> view = dirFile.getAttributeView( ChildrenView.class);
+        final ChildrenView<DcPath> view = dirFile.getAttributeView(ChildrenView.class);
         if(!view.hasCache()){
             throw new IOException("Error attempting to use cached child entries");
         }
@@ -225,6 +228,49 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             }
         });
         return wrapper;
+    }
+    
+    /**
+     * This checks to see if a given view is cached and, if it is, if there is enough items
+     * in the cache to be worthwhile to use the cache.
+     */
+    private boolean maybeUseCache(DcFile dirFile, DatasetView viewPrefetch) throws IOException{
+        //TODO: Fix caching of large results
+        if(viewPrefetch == DatasetView.EMPTY){
+            return true;
+        }
+        ContainerViewProvider cstat = dirFile.getAttributeView( ContainerViewProvider.class);
+        DatasetContainer container = (DatasetContainer) cstat.withView( BasicStat.StatType.BASIC );
+        int count = container.getStat().getChildCount();
+        int cacheCount = cstat.getViewStats( viewPrefetch );
+        if((count - cacheCount) < MAX_CHILD_CACHE){
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * This could tries to decide if we should even try to fit all the datasets in
+     * cache or not.
+     */
+    private boolean canFitDatasetsInCache(DcFile dirFile, int max, DatasetView viewPrefetch) throws IOException{
+        //TODO: Improve logic
+        ContainerViewProvider cstat = dirFile.getAttributeView( ContainerViewProvider.class);
+        DatasetContainer container = (DatasetContainer) cstat.withView( BasicStat.StatType.BASIC );
+        int count = max;
+        if(count <= 0){
+            count = container.getStat().getChildCount();
+        }
+        /* 
+            The average upper bound of metadata size (in bytes) for a given dataset is about 
+            5kB. We want to make sure that we don't cache more than about 
+        */
+        long estimate = count*MAX_METADATA_STRING_BYTE_SIZE;
+        if(estimate < MAX_DATASET_CACHE_SIZE){
+            return true;
+        }
+        // TODO: Check actual return size using the Data Access layer
+        return false;
     }
 
     @Override
@@ -333,7 +379,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         try (DatasetDAO dao = new DatasetDAO(dataSource.getConnection())){
             dao.createDatasetNodeAndView( dsParent.fileKey(), dsParent.getObject().getType(), dsPath, ds, options );
             dao.commit();
-            dao.close();    
+            dao.close();
         } catch (SQLException ex){
             throw new IOException("Unable to connect to database", ex);
         }
@@ -435,7 +481,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     protected void doDeleteDirectory(String path, DcFile file) throws DirectoryNotEmptyException, IOException{
         try(ContainerDAO dao = new ContainerDAO(dataSource.getConnection())) {
             // Verify directory is empty
-            try(DirectoryStream ds = dao.getChildrenStream( file.fileKey(), path, true )) {
+            try(DirectoryStream ds = dao.getChildrenStream( file.fileKey(), path, NO_OFFSET, DatasetView.EMPTY )) {
                 if(ds.iterator().hasNext()){
                     AfsException.DIRECTORY_NOT_EMPTY.throwError( path, "Container not empty" );
                 }

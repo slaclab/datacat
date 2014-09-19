@@ -10,12 +10,15 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import org.srs.datacat.model.DatasetContainer;
+import org.srs.datacat.model.DatasetView;
 import org.srs.vfs.PathUtils;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetGroup;
+import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.vfs.DcPath;
@@ -177,32 +180,28 @@ public class BaseDAO implements AutoCloseable {
             builder.description( rs.getString( "description" ) );
         }
     }
-    
+        
     protected void setVersionMetadata(DatasetVersion.Builder builder) throws SQLException{
+        String sql = 
+                "WITH DSV (dsv) AS ( "
+                + "  SELECT ? FROM DUAL "
+                + ") "
+                + "SELECT type, metaname, metastring, metanumber FROM  "
+                + " ( SELECT 'N' mdtype, mn.metaname, null metastring, mn.metavalue metanumber  "
+                + "     FROM VerDatasetMetaNumber mn where mn.DatasetVersion = (SELECT dsv FROM DSV) "
+                + "   UNION ALL "
+                + "   SELECT 'S' mdtype, ms.metaname, ms.metavalue metastring, null metanumber  "
+                + "     FROM VerDatasetMetaString ms where ms.DatasetVersion = (SELECT dsv FROM DSV) "
+                + "  )";
+        
         HashMap<String, String> smap = new HashMap<>();
         HashMap<String, Number> nmap = new HashMap<>();
-        String tableType = "verdataset";
-        String column = "datasetversion";
         Long pk = builder.pk;
-        String mdBase = "select metaname, metavalue from %smeta%s where %s = ?";
-        String sql = String.format(mdBase, tableType, "string", column);
         try (PreparedStatement stmt = getConnection().prepareStatement( sql )){
             stmt.setLong(1, pk);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                smap.put(rs.getString("metaname"), rs.getString("metavalue"));
-            }
-        }
-
-        sql = String.format(mdBase, tableType, "number", column);
-        try (PreparedStatement stmt = getConnection().prepareStatement( sql )){
-            stmt.setLong(1, pk);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Number n;
-                java.math.BigDecimal v = (java.math.BigDecimal)rs.getObject("metavalue");
-                n = v.scale()==0?v.toBigIntegerExact():v;
-                nmap.put(rs.getString("metaname"), (Number)n);
+                processMetadata( rs, nmap, smap );
             }
         }
         if(!nmap.isEmpty()){
@@ -211,7 +210,7 @@ public class BaseDAO implements AutoCloseable {
         if(!smap.isEmpty()) {
             builder.stringMetadata(smap);
         }
-    }
+    }   
 
     protected void setContainerMetadata(org.srs.datacat.shared.DatacatObject.Builder builder) throws SQLException{
         HashMap<String, String> smap = new HashMap<>();
@@ -356,5 +355,115 @@ public class BaseDAO implements AutoCloseable {
         }
         return o;
     }
+    
+    protected static void processMetadata(ResultSet rs, HashMap<String, Number> nMetadata, 
+        HashMap<String, String> sMetadata /*, */) throws SQLException{
+        switch(rs.getString( "mdtype" )){
+            case "N":
+                Number n;
+                java.math.BigDecimal v = (java.math.BigDecimal) rs.getObject( "metanumber" );
+                n = v.scale() == 0 ? v.toBigIntegerExact() : v;
+                nMetadata.put( rs.getString( "metaname" ), (Number) n );
+                break;
+            case "S":
+                sMetadata.put( rs.getString( "metaname" ), rs.getString( "metastring" ) );
+                break;
+        }
+    }
+    
+    protected static void processLocation(ResultSet rs, Long versionPk, List<DatasetLocation> locations) throws SQLException {
+        DatasetLocation.Builder builder = new DatasetLocation.Builder();
+        builder.pk(rs.getLong("datasetlocation"));
+        builder.parentPk(versionPk);
+        builder.site(rs.getString( "datasetsite"));
+        builder.fileSystemPath(rs.getString( "path"));
+        builder.runMin(rs.getLong( "runmin"));
+        builder.runMax(rs.getLong( "runmax"));
+        builder.eventCount(rs.getLong( "numberevents"));
+        builder.fileSize(rs.getLong( "filesizebytes"));
+        builder.checkSum(rs.getLong( "checksum"));
+        builder.modified(rs.getTimestamp( "lastmodified"));
+        builder.scanned(rs.getTimestamp( "lastscanned"));
+        builder.scanStatus( rs.getString( "scanstatus"));
+        builder.created(rs.getTimestamp( "registered"));
+        builder.master( rs.getBoolean( "isMaster"));
+        locations.add(builder.build());
+    }
+    
+    protected enum VersionParent {
+        DATASET,
+        CONTAINER;
+    }
 
+    protected String getVersionsSql(VersionParent condition, DatasetView view){
+        String queryCondition = "";
+        switch(condition){
+            case DATASET:
+                queryCondition = "vd.dataset = ? ";
+                break;
+            case CONTAINER:
+                queryCondition = "vd.parent = ? ";
+                break;
+        }
+        
+        String datasetSqlWithMetadata = 
+                "WITH Dataset (dataset, parent, name, latestversion) as ("
+                + "  SELECT ds.dataset, CASE WHEN ds.datasetlogicalfolder is not null "
+                + "      THEN ds.datasetlogicalfolder else ds.datasetgroup END parent, "
+                + "      ds.datasetname name, ds.latestversion "
+                + "  FROM VerDataset ds"
+                + "), "
+                + "DatasetVersions (dataset, datasetversion, versionid, datasetsource, islatest) AS ( "
+                + "  select vd.dataset, dsv.datasetversion, dsv.versionid, dsv.datasetsource, "
+                + "        CASE WHEN vd.latestversion = dsv.datasetversion THEN 1 ELSE 0 END isLatest "
+                + "        FROM Dataset vd "
+                + "        JOIN datasetversion dsv on (vd.latestversion = dsv.datasetversion) "
+                + "        WHERE " + queryCondition
+                + "              and dsv.datasetversion = " + (view.isCurrent() ? "vd.latestversion" : "?") 
+                + "       ORDER BY vd.name, dsv.versionid desc "
+                + ") "
+                + "SELECT dsv.dataset, dsv.datasetversion, dsv.versionid, dsv.datasetsource, dsv.islatest,  "
+                + "     md.mdtype, md.metaname, md.metastring, md.metanumber "
+                + "FROM DatasetVersions dsv "
+                + " JOIN "
+                + " ( SELECT mn.datasetversion, 'N' mdtype, mn.metaname, null metastring, mn.metavalue metanumber   "
+                + "     FROM VerDatasetMetaNumber mn "
+                + "   UNION ALL  "
+                + "   SELECT ms.datasetversion, 'S' mdtype, ms.metaname, ms.metavalue metastring, null metanumber   "
+                + "     FROM VerDatasetMetaString ms "
+                + "  ) md on (md.datasetversion = dsv.datasetversion)";
+        return datasetSqlWithMetadata;
+    }
+    
+    protected String getLocationsSql(VersionParent condition, DatasetView view){
+        String queryCondition = "";
+        switch(condition){
+            case DATASET:
+                queryCondition = "vd.dataset = ? ";
+                break;
+            case CONTAINER:
+                queryCondition = "vd.parent = ? ";
+                break;
+        }
+        String datasetSqlLocations = 
+            "WITH Dataset (dataset, parent, name, latestversion) as ("
+                + "  SELECT ds.dataset, CASE WHEN ds.datasetlogicalfolder is not null "
+                + "      THEN ds.datasetlogicalfolder else ds.datasetgroup END parent, "
+                + "      ds.datasetname name, ds.latestversion "
+                + "  FROM VerDataset ds "
+                + ")"
+                + "select vd.dataset, dsv.datasetversion,  "
+                + "    vdl.datasetlocation, vdl.datasetsite, vdl.path, vdl.runmin, vdl.runmax,   "
+                + "    vdl.numberevents, vdl.filesizebytes, vdl.checksum, vdl.lastmodified,   "
+                + "    vdl.lastscanned, vdl.scanstatus, vdl.registered,   "
+                + "    CASE WHEN dsv.masterlocation = vdl.datasetlocation THEN 1 ELSE 0 END isMaster   "
+                + "  FROM Dataset vd   "
+                + "  JOIN DatasetVersion dsv on (vd.latestversion = dsv.datasetversion)   "
+                + "  LEFT OUTER JOIN VerDatasetLocation vdl on (dsv.datasetversion = vdl.datasetversion)  "
+                + "  WHERE " + queryCondition
+                + "     and dsv.datasetversion = " + (view.isCurrent() ? "vd.latestversion" : "?")
+                + "  ORDER BY vd.name, dsv.versionid desc, vdl.registered";
+        return datasetSqlLocations;
+    }
+    
 }

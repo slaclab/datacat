@@ -8,14 +8,23 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.srs.datacat.model.DatasetContainer;
+import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
+import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetGroup;
+import org.srs.datacat.shared.DatasetLocation;
+import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.container.DatasetStat;
+import org.srs.datacat.shared.dataset.VersionWithLocations;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.vfs.PathUtils;
 
@@ -108,47 +117,6 @@ public class ContainerDAO extends BaseDAO {
         delete1( deleteSql, groupPk);
     }
     
-    /* TODO: This doesn't work well on HSQLDB
-    public ArrayList<DatacatObject> getAllContainers(DcPath path, Long pk) throws SQLException{
-        String sql = 
-                " WITH CONTAINERS (type, pk, name, parent, lev, relpath) AS ( "
-                + "     SELECT 'F', datasetlogicalfolder, name, parent, 0, '.' from datasetlogicalfolder where parent = ? "
-                + "   UNION ALL "
-                + "     SELECT   objects.type, objects.pk, objects.name, objects.parent, parent.lev+1,  "
-                + "     CASE WHEN parent.relpath = '.'  "
-                + "        THEN './' || parent.name  "
-                + "        ELSE parent.relpath || '/' || parent.name  "
-                + "        END      "
-                + "      FROM ( "
-                + "        SELECT   'F' type, DatasetLogicalFolder.datasetLogicalFolder pk, "
-                + "          DatasetLogicalFolder.name, DatasetLogicalFolder.parent parent "
-                + "          FROM DatasetLogicalFolder "
-                + "      UNION ALL "
-                + "        SELECT   'G' type, DatasetGroup.datasetGroup pk, DatasetGroup.name, "
-                + "          DatasetGroup.datasetLogicalFolder parent "
-                + "          FROM DatasetGroup  "
-                + "      ) objects  "
-                + "      JOIN CONTAINERS parent on (objects.parent = parent.pk) "
-                + ") "
-                + "SELECT type, pk, name, parent, lev, relpath FROM CONTAINERS "
-                + "ORDER BY relpath";
-        DatacatObject.Builder builder = null;
-        try (PreparedStatement stmt = getConnection().prepareStatement( sql )){
-            stmt.setLong(1, pk);
-            ResultSet rs = stmt.executeQuery();
-            ArrayList<DatacatObject> olist = new ArrayList<>();
-            while(rs.next()){
-                builder = getBuilder( rs );
-                DcPath absPath = (DcPath) path.resolve(rs.getString("relpath")).toAbsolutePath();
-                builder.path( absPath.toString() );
-                completeObject(builder);
-                olist.add( builder.build());
-            }
-            return olist;
-        }
-    }
-    */
-    
     public BasicStat getBasicStat(DatacatObject container) throws SQLException {
         String parent = container instanceof LogicalFolder ? "datasetlogicalfolder" : "datasetgroup";
 
@@ -166,7 +134,7 @@ public class ContainerDAO extends BaseDAO {
             ResultSet rs = stmt.executeQuery();
             BasicStat cs = new BasicStat();
             while(rs.next()){
-                Long count = rs.getLong( "count");
+                Integer count = rs.getInt( "count");
                 switch(getType(rs.getString( "type" ))){
                     case DATASET:
                         cs.setDatasetCount( count );
@@ -208,7 +176,7 @@ public class ContainerDAO extends BaseDAO {
                 throw new SQLException("Unable to determine dataset stat");
             }
             DatasetStat ds = new DatasetStat(stat);
-            ds.setDatasetCount( rs.getLong( "files") );
+            ds.setDatasetCount( rs.getInt("files") );
             ds.setEventCount( rs.getLong( "events") );
             ds.setDiskUsageBytes( rs.getLong( "totalsize") );
             ds.setRunMin( rs.getLong( "minrun") );
@@ -217,15 +185,19 @@ public class ContainerDAO extends BaseDAO {
         }
     }
     
+    public DirectoryStream<DatacatObject> getSubdirectoryStream(Long parentPk, final String parentPath) throws SQLException, IOException{
+        return getChildrenStream( parentPk, parentPath, 0, null);
+    }
+
     public DirectoryStream<DatacatObject> getChildrenStream(Long parentPk, final String parentPath, 
-            boolean includeDatasets) throws SQLException, IOException{
+            int offset, DatasetView viewPrefetch) throws SQLException, IOException{
         String sql = "WITH OBJECTS (type, pk, name, parent) AS ( "
                 + "    SELECT 'F', datasetlogicalfolder, name, parent "
                 + "      FROM datasetlogicalfolder "
                 + "  UNION ALL "
                 + "    SELECT 'G', datasetGroup, name, datasetLogicalFolder "
                 + "      FROM DatasetGroup "
-                + ( includeDatasets ? "  UNION ALL "
+                + ( viewPrefetch != null ? "  UNION ALL "
                 + "    SELECT   'D', dataset, datasetName, "
                 + "      CASE WHEN datasetlogicalfolder is not null THEN datasetlogicalfolder else datasetgroup END "
                 + "      FROM VerDataset " : " " )
@@ -233,70 +205,180 @@ public class ContainerDAO extends BaseDAO {
                 + "SELECT type, pk, name, parent FROM OBJECTS "
                 + "  WHERE parent = ? "
                 + "  ORDER BY name";
-
+        
         final PreparedStatement stmt = getConnection().prepareStatement( sql );
+        final PreparedStatement prefetchVer;
+        final PreparedStatement prefetchLoc;
         stmt.setLong( 1, parentPk);
+        
+        if(viewPrefetch != null){
+            prefetchVer = getConnection()
+                    .prepareStatement(getVersionsSql(VersionParent.CONTAINER, viewPrefetch));
+            prefetchVer.setLong( 1,parentPk);
+            if(!viewPrefetch.isCurrent()){
+                prefetchVer.setInt( 2, viewPrefetch.getVersionId());
+            }
+            if(!DatasetView.EMPTY_SITES.equals(viewPrefetch.getSite())){
+                prefetchLoc = getConnection()
+                        .prepareStatement(getLocationsSql(VersionParent.CONTAINER, viewPrefetch));
+                prefetchLoc.setLong( 1,parentPk);
+                if(!viewPrefetch.isCurrent()){
+                    prefetchLoc.setInt( 2, viewPrefetch.getVersionId());
+                }
+            } else {
+                prefetchLoc = null;
+            }
+        } else {
+            prefetchVer = null;
+            prefetchLoc = null;
+        }
+
         final ResultSet rs = stmt.executeQuery();
-        return new DirectoryStream<DatacatObject>() {
+        final ResultSet rsVer = prefetchVer != null ? prefetchVer.executeQuery() : null;
+        final ResultSet rsLoc = prefetchLoc != null ? prefetchLoc.executeQuery() : null;
+        DirectoryStream<DatacatObject> stream = new DirectoryStream<DatacatObject>() {
+            Iterator<DatacatObject> iter = null;
 
             @Override
             public Iterator<DatacatObject> iterator(){
-                return new Iterator<DatacatObject>() {
-                    DatacatObject next = null;
+                if(iter == null){
+                    iter = new Iterator<DatacatObject>() {
 
-                    @Override
-                    public boolean hasNext(){
-                        try{
-                            return checkNext();
-                        } catch (SQLException | NoSuchElementException ex){
-                            return false;
-                        }
-                    }
-
-                    private boolean checkNext() throws SQLException {
-                        if(next != null){
-                            return true;
-                        }
-                        if(rs.next()){
-                            next = getBuilder(rs, parentPath).build();
-                            return true;
-                        }
-                        throw new NoSuchElementException();
-                    }
-
-                    @Override
-                    public DatacatObject next(){
-                        try {
-                            if(checkNext()){
-                                DatacatObject ret = next;
-                                next = null;
-                                return ret;
+                        boolean beforeStart = true;
+                        boolean wasOkay = false;
+                        boolean consumed = false;
+                        
+                        @Override
+                        public boolean hasNext(){
+                            try{
+                                return checkNext();
+                            } catch (SQLException | NoSuchElementException ex){
+                                return false;
                             }
-                        } catch(SQLException ex) {
-                            System.out.println(ex.toString());
-                            throw new NoSuchElementException(ex.getMessage());
                         }
-                        throw new NoSuchElementException();
-                    }
 
-                    @Override
-                    public void remove(){
-                        throw new UnsupportedOperationException( "Remove not supported" );
-                    }
+                        private boolean checkNext() throws SQLException {
+                            if(beforeStart || (wasOkay && consumed)){
+                                consumed = false;
+                                beforeStart = false;
+                                wasOkay = rs.next();
+                            }
+                            return wasOkay;
+                        }
 
-                };
+                        @Override
+                        public DatacatObject next(){
+                            if(!hasNext()){
+                                throw new NoSuchElementException();
+                            }
+                            try {
+                                DatacatObject.Builder builder = getBuilder(rs, parentPath);
+                                if(builder instanceof Dataset.Builder){
+                                    checkResultSet((Dataset.Builder) builder, rsVer, rsLoc);
+                                }
+                                consumed = true;
+                                return builder.build();
+                            } catch(SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        }
+
+                        @Override
+                        public void remove(){
+                            // This doesn't remove the entry. Rather, it just advances
+                            // the cursor
+                            consumed = true;
+                            try {
+                                checkNext();
+                            } catch(SQLException ex) {
+                                throw new NoSuchElementException();
+                            }
+                        }
+
+                    };
+                }
+                return iter;
             }
 
             @Override
             public void close() throws IOException{
                 try {
                     stmt.close();
+                    if(prefetchVer!=null){
+                        prefetchVer.close();
+                    }
+                    if(prefetchLoc != null){
+                        prefetchLoc.close();
+                    }
                 } catch(SQLException ex) {
                     throw new IOException("Error closing statement", ex);
                 }
             }
         };
-
+        
+        // Consume to the offset
+        Iterator iter = stream.iterator();
+        for(int i = 0; i < offset && iter.hasNext(); i++){
+            iter.remove();
+        }
+        return stream;
+    }
+    
+    private static void checkResultSet(Dataset.Builder dsBuilder, ResultSet dsVer, ResultSet dsLoc) throws SQLException {
+        long dsPk = dsBuilder.pk;
+        if(dsVer== null || dsVer.isClosed()){
+            return;
+        }
+        if(dsVer.getRow() == 0){ 
+            if(!dsVer.next()){
+                dsVer.close();
+                return; 
+            }
+        }
+        if(dsLoc != null && dsLoc.getRow() == 0){
+            if(!dsLoc.next()){
+                dsLoc.close();
+            }
+        }
+        List<DatasetVersion> versions = new ArrayList<>();
+        VersionWithLocations.Builder builder = new VersionWithLocations.Builder();
+        long verPk = dsVer.getLong( "datasetversion");
+        
+        while(!dsVer.isClosed() && dsVer.getLong("dataset") == dsPk && dsVer.getLong( "datasetversion") == verPk){
+            HashMap<String, Number> nmap = new HashMap<>();
+            HashMap<String, String> smap = new HashMap<>();
+            List<DatasetLocation> locations = new ArrayList<>();
+            builder.pk(verPk);
+            builder.parentPk(dsPk);
+            builder.versionId(dsVer.getInt("versionid"));
+            builder.datasetSource(dsVer.getString( "datasetSource"));
+            builder.latest(dsVer.getBoolean( "isLatest"));                
+            while(!dsVer.isClosed() && dsVer.getLong("dataset") == dsPk && dsVer.getLong( "datasetversion" ) == verPk){
+                // Process all metadata entries first, 1 or more rows per version
+                BaseDAO.processMetadata( dsVer, nmap, smap ); 
+                if(!dsVer.next()){
+                    dsVer.close();
+                }
+            }
+            /* After we've processed all result rows for each version, (mostly metadata)
+               process all locations for this version */
+            while(dsLoc != null && !dsLoc.isClosed() && dsLoc.getLong("datasetversion") == verPk){
+                // Assume one location per row. Row could be null (LEFT OUTER JOIN)
+                if(dsLoc.getString( "datasetsite") != null){ 
+                    BaseDAO.processLocation( dsLoc, builder.pk, locations); 
+                }
+                if(!dsLoc.next()){
+                    dsLoc.close();
+                }
+            }
+            builder.locations(locations);
+            versions.add(builder.build());
+        }
+        if(versions.size() == 1){
+            dsBuilder.version(versions.get(0));
+        } else {
+            dsBuilder.versions(versions);
+        }
     }
 
 }

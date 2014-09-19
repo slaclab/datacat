@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import javax.sql.DataSource;
+import junit.framework.TestCase;
 import org.junit.AfterClass;
 
 import org.junit.Before;
@@ -164,6 +165,7 @@ public class DcFileSystemProviderTest {
         // directory not empty
         try {
             provider.delete(path.resolve(folderName));
+            TestCase.fail( "Should have failed deleting directory");
         } catch (DirectoryNotEmptyException ex){}
         
         provider.delete(path.resolve(folderName).resolve(folderName));

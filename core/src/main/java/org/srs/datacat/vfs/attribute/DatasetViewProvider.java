@@ -4,9 +4,9 @@ package org.srs.datacat.vfs.attribute;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import javax.sql.DataSource;
 
 import org.srs.datacat.model.DatasetView;
@@ -14,6 +14,8 @@ import org.srs.datacat.model.RequestView;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
+import org.srs.datacat.shared.dataset.FullDataset;
+import org.srs.datacat.shared.dataset.VersionWithLocations;
 import org.srs.datacat.sql.DatasetDAO;
 import org.srs.datacat.vfs.DcFile;
 
@@ -25,19 +27,27 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
 
     private final DcFile file;
     private final DataSource dataSource;
+    private boolean allVersionsLoaded = false;
     
-    private final HashMap<Integer, DatasetVersion> versionCache = new HashMap<>(4);
-    private final HashMap<Integer, HashMap<String,DatasetLocation>> locationCache = new HashMap<>(4);
+    private final HashMap<Integer, VersionWithLocations> versionCache = new HashMap<>(4);
+    //private final HashMap<Integer, HashMap<String,DatasetLocation>> locationCache = new HashMap<>(4);
 
-    public DatasetViewProvider(DcFile file){
+    public DatasetViewProvider(DcFile file, Dataset object){
         this.file = file;
         this.dataSource = file.getPath().getFileSystem().getDataSource();
+        if(object instanceof FullDataset){
+            VersionWithLocations dsv = (VersionWithLocations) ((FullDataset) object).getVersion();
+            if(dsv.isLatest()){
+                versionCache.put( DatasetView.CURRENT_VER, dsv );
+            }
+            versionCache.put( dsv.getVersionId(), dsv );
+        }
     }
     
     public void clear(){
         synchronized(this){
             versionCache.clear();
-            locationCache.clear();
+            //locationCache.clear();
         }
     }
 
@@ -50,49 +60,32 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
         if(view == DatasetView.EMPTY){
             return (Dataset) file.getObject();
         }
+        VersionWithLocations dsv;
         boolean noSites = DatasetView.EMPTY_SITES.equals(view.getSite());
+        boolean anySites = DatasetView.ANY_SITES.equals(view.getSite());
         DatasetVersion retDsv;
-        HashMap<String, DatasetLocation> retLocations;
+        Set<DatasetLocation> retLocations;
         synchronized(this) {
             try(DatasetDAO dsdao = new DatasetDAO( dataSource.getConnection() )) {
-                DatasetVersion dsv;
-                HashMap<String, DatasetLocation> locations;
-                if(!versionCache.containsKey( view.getVersionId() )){
-                    for(DatasetVersion v: dsdao.getDatasetVersions( file.fileKey() )){
-                        if(v.isLatest()){
-                            versionCache.put( DatasetView.CURRENT_VER, v );
-                        }
-                        versionCache.put( v.getVersionId(), v );
+                if(!versionCache.containsKey(view.getVersionId())){
+                    dsv = dsdao.getVersionWithLocations(file.fileKey(), view );
+                    if(dsv.isLatest()){
+                        versionCache.put( DatasetView.CURRENT_VER, dsv);
                     }
-                }
-                dsv = versionCache.get( view.getVersionId() );
-                if(dsv == null){
-                    String msg = "Invalid View. Version %d not found";
-                    throw new FileNotFoundException( String.format( msg, view.getVersionId() ) );
-                }
-                if(!noSites && !locationCache.containsKey( view.getVersionId() )){
-                    locations = new HashMap<>( 4 );
-                    for(DatasetLocation l: dsdao.getDatasetLocations( dsv.getPk() )){
-                        if(l.isMaster()){
-                            locations.put( DatasetView.CANONICAL_SITE, l );
-                        }
-                        locations.put( l.getSite(), l );
-                    }
-                    if(!locations.isEmpty()){
-                        if(dsv.isLatest()){
-                            locationCache.put( DatasetView.CURRENT_VER, locations );
-                        }
-                        locationCache.put( dsv.getVersionId(), locations );
-                    }
+                    versionCache.put(dsv.getVersionId(), dsv);
                 }
             } catch(SQLException ex) {
                 throw new IOException( "Error talking to the database", ex );
             }
-            retDsv = versionCache.get( view.getVersionId() );
-            retLocations = locationCache.get( view.getVersionId() );
+            dsv = versionCache.get(view.getVersionId());
         }
-        // TODO: Handle the case where no locations exist
-        if(retLocations == null && !DatasetView.EMPTY_SITES.equals(view.getSite())){
+        if(dsv == null){
+            String msg = "Invalid View. Version %d not found";
+            throw new FileNotFoundException( String.format( msg, view.getVersionId() ) );
+        }
+        retDsv = new DatasetVersion(dsv);
+        retLocations = dsv.getLocations();
+        if(retLocations == null && !(noSites || anySites)){
             String msg = "No locations found for dataset version %d";
             throw new FileNotFoundException(String.format( msg, view.getVersionId()));
         }
@@ -103,11 +96,11 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
         b.version(retDsv);
         if(!noSites){
             if(view.isAll()){
-                b.locations(new ArrayList<>(retLocations.values()));
+                b.locations(retLocations);
             } else {
-            if(retLocations.containsKey(view.getSite())){
-                    b.location(retLocations.get(view.getSite()));
-                } else {
+                if(dsv.getLocation(view.getSite()) != null){
+                    b.location(dsv.getLocation( view.getSite()));
+                } else if(!anySites){
                     String msg = "Location %s not found";
                     throw new FileNotFoundException(String.format( msg, view.getSite()));
                 }

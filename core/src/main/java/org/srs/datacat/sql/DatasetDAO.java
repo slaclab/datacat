@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -20,6 +21,7 @@ import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.FlatDataset;
+import org.srs.datacat.shared.dataset.VersionWithLocations;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.attribute.DatasetOption;
@@ -155,10 +157,6 @@ public class DatasetDAO extends BaseDAO {
         return retVer;
     }
     
-    public DatasetLocation createDatasetLocation(DatasetVersion version, DcPath path, DatasetLocation newLoc) throws SQLException, FileSystemException{
-        return createDatasetLocation(version, path.toString(), newLoc, false);
-    }
-    
     public DatasetLocation createDatasetLocation(DatasetVersion version, String path, DatasetLocation newLoc, boolean skipCheck) throws SQLException, FileSystemException{
         if(!skipCheck){
             assertCanCreateLocation(version.getPk(), path, newLoc);
@@ -173,6 +171,48 @@ public class DatasetDAO extends BaseDAO {
             }
         }
         return null;
+    }
+
+    public VersionWithLocations getVersionWithLocations(Long datasetPk, DatasetView view) throws SQLException{
+        String sqlWithMetadata = getVersionsSql( VersionParent.DATASET, view );
+        String sqlLocations = getLocationsSql(VersionParent.DATASET, view );
+        PreparedStatement stmt1 = getConnection().prepareStatement( sqlWithMetadata );
+        PreparedStatement stmt2 = getConnection().prepareStatement( sqlLocations );
+        try {
+            stmt1.setLong( 1, datasetPk);
+            stmt2.setLong( 1, datasetPk);
+            if(!view.isCurrent()){
+                stmt1.setInt( 1, view.getVersionId());
+                stmt2.setInt( 1, view.getVersionId());
+            }
+            ResultSet rs1 = stmt1.executeQuery();
+            ResultSet rs2 = stmt2.executeQuery();
+            
+            HashMap<String, Number> nmap = new HashMap<>();
+            HashMap<String, String> smap = new HashMap<>();
+            VersionWithLocations.Builder builder = new VersionWithLocations.Builder();
+            List<DatasetLocation> locations = new ArrayList<>();
+            if(rs1.next()){
+                builder.pk(rs1.getLong( "datasetversion"));
+                builder.parentPk(datasetPk);
+                builder.versionId(rs1.getInt( "versionid"));
+                builder.datasetSource(rs1.getString( "datasetSource"));
+                builder.latest(rs1.getBoolean( "isLatest"));                
+                processMetadata( rs1, nmap, smap );
+                while(rs1.next()){
+                    processMetadata( rs1, nmap, smap );
+                }
+                while(rs2.next()){
+                    processLocation( rs2, builder.pk, locations);
+                }
+                builder.locations( locations );
+                return builder.build();
+            }
+            return null;
+        } finally {
+            stmt1.close();
+            stmt2.close();
+        }
     }
     
     public List<DatasetVersion> getDatasetVersions(Long datasetPk) throws SQLException{
@@ -515,5 +555,5 @@ public class DatasetDAO extends BaseDAO {
             }
         }
     }
-
+       
 }
