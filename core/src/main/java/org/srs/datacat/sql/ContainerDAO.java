@@ -34,6 +34,9 @@ import org.srs.vfs.PathUtils;
  * @author bvan
  */
 public class ContainerDAO extends BaseDAO {
+    
+    public static final int FETCH_SIZE_CHILDREN = 5000;
+    public static final int FETCH_SIZE_METADATA = 100000;
 
     public ContainerDAO(Connection conn){
         super( conn );
@@ -234,6 +237,7 @@ public class ContainerDAO extends BaseDAO {
         }
 
         final ResultSet rs = stmt.executeQuery();
+        rs.setFetchSize(FETCH_SIZE_CHILDREN);
         final ResultSet rsVer = prefetchVer != null ? prefetchVer.executeQuery() : null;
         final ResultSet rsLoc = prefetchLoc != null ? prefetchLoc.executeQuery() : null;
         DirectoryStream<DatacatObject> stream = new DirectoryStream<DatacatObject>() {
@@ -330,12 +334,14 @@ public class ContainerDAO extends BaseDAO {
             return;
         }
         if(dsVer.getRow() == 0){ 
+            dsVer.setFetchSize(FETCH_SIZE_METADATA);
             if(!dsVer.next()){
                 dsVer.close();
                 return; 
             }
         }
         if(dsLoc != null && dsLoc.getRow() == 0){
+            dsLoc.setFetchSize(FETCH_SIZE_CHILDREN);
             if(!dsLoc.next()){
                 dsLoc.close();
             }
