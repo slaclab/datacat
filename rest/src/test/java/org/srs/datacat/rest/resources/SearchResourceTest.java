@@ -158,6 +158,9 @@ public class SearchResourceTest extends JerseyTest{
         filter = "num == 0 and alpha == 'def'";
         expected = 25 * 3;
         datasets = doSearch(pathPattern, filter, 200);
+        for(Object d: datasets){
+            System.out.println(d.toString());
+        }
         TestCase.assertEquals("Expected 0 datasets, no groups in search path", expected, datasets.size());
 
     }

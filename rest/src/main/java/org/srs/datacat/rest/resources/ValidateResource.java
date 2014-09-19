@@ -23,7 +23,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.dataset.DatasetBuilder;
 import org.srs.datacat.shared.dataset.FlatDataset;
 
 /**

@@ -8,6 +8,7 @@ package org.srs.datacat.rest.resources;
 import java.io.IOException;
 
 import java.nio.file.Files;
+import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -17,7 +18,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.srs.datacat.rest.App;
-import org.srs.datacat.rest.ConnectionResource;
+import org.srs.datacat.rest.BaseResource;
 import org.srs.datacat.model.RequestView;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.container.BasicStat.StatType;
@@ -36,7 +37,7 @@ import org.srs.rest.shared.HumanPath;
  * @author bvan
  */
 @Path("/path")
-public class PathResource extends ConnectionResource {
+public class PathResource extends BaseResource {
     private final String idRegex = "{id: [\\w\\d\\-_\\./]+}";
     private final String idPath = "[/path]*/{id}";
     
@@ -65,10 +66,10 @@ public class PathResource extends ConnectionResource {
     public DatacatObject getBean(@PathParam("id") String path,
             @DefaultValue("basic") @QueryParam("stat") StatTypeWrapper statType) throws IOException{
         path = "/" + path;
-        DcPath dcp = App.fsProvider.getPath(DcUriUtils.toFsUri(path, null, "SRS"));
+        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(path, null, "SRS"));
         DcFile file = Files.readAttributes(dcp, DcFile.class);
         DatacatObject ret;
-        if(file.getDatacatType() == DatacatObject.Type.DATASET){
+        if(file.isRegularFile()){
             ret = file.getAttributeView(DatasetViewProvider.class).withView(new RequestView(DatacatObject.Type.DATASET, null));
         } else {
             ret = file.getAttributeView(ContainerViewProvider.class).withView(statType.getEnum());

@@ -21,18 +21,17 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import org.srs.datacat.rest.App;
-import org.srs.datacat.rest.ConnectionResource;
+import org.srs.datacat.rest.BaseResource;
 import org.srs.datacat.model.RequestView;
 import org.srs.datacat.rest.resources.PathResource.StatTypeWrapper;
 import org.srs.datacat.shared.DatacatObject;
-import org.srs.datacat.shared.DatacatObject.Type;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 import org.srs.rest.shared.RestException;
+import org.srs.vfs.AbstractFsProvider;
 
 
 /**
@@ -41,7 +40,7 @@ import org.srs.rest.shared.RestException;
  * @author bvan
  */
 @Path("/children")
-public class ChildrenResource extends ConnectionResource {
+public class ChildrenResource extends BaseResource {
     
     private final String idRegex = "{id: [\\w\\d\\-_\\./]+}";
     
@@ -55,7 +54,7 @@ public class ChildrenResource extends ConnectionResource {
         @DefaultValue("0") @QueryParam("offset") int offset){
 
         path = "/" + path;
-        DcPath dirPath = App.fsProvider.getPath(DcUriUtils.toFsUri(path, null, "SRS"));
+        DcPath dirPath = getProvider().getPath(DcUriUtils.toFsUri(path, null, "SRS"));
         try {
             Files.readAttributes(dirPath, DcFile.class);
         } catch (FileNotFoundException ex){
@@ -66,25 +65,34 @@ public class ChildrenResource extends ConnectionResource {
             throw new RestException(ex, 500);
         }
         
+        RequestView rv = new RequestView(DatacatObject.Type.DATASET,null);
         ArrayList<DatacatObject> retList = new ArrayList<>();
-        try (DirectoryStream<java.nio.file.Path> stream = Files.newDirectoryStream(dirPath)){
+        try (DirectoryStream<java.nio.file.Path> stream = getProvider()
+                .newOptimizedDirectoryStream(dirPath, AbstractFsProvider.AcceptAllFilter, 
+                    max, rv.getDatasetView())){
             Iterator<java.nio.file.Path> iter = stream.iterator();
-            for(int i = 0; iter.hasNext() && retList.size() < max; i++){
+            int skipped = 0;
+            while(iter.hasNext() && retList.size() < max){
                 java.nio.file.Path p = iter.next();
-                if(i < offset){
-                    continue;
-                }
                 DcFile file = Files.readAttributes(p, DcFile.class);
-                if(!withDs && file.getDatacatObject().isType(Type.DATASET)){
+                if(!withDs && file.isRegularFile()){
                     continue;
                 }
                 DatacatObject ret;
-                if(file.getDatacatType() == DatacatObject.Type.DATASET){
-                    ret = file.getAttributeView(DatasetViewProvider.class).withView(new RequestView(DatacatObject.Type.DATASET,null));
+                if(file.isRegularFile()){
+                    try {
+                        ret = file.getAttributeView(DatasetViewProvider.class).withView(rv);
+                    } catch (FileNotFoundException ex){
+                        continue;
+                    }
                 } else {
                     ret = file.getAttributeView(ContainerViewProvider.class).withView(statType.getEnum());
                 }
-                retList.add(ret);
+                if(skipped >= offset){
+                    retList.add(ret);
+                } else {
+                    skipped++;
+                }
             }
         } catch (NotDirectoryException ex){
             throw new RestException( "File exists, but Path is not a directory", 404);
