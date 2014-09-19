@@ -109,7 +109,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             if(!view.hasCache()){
                 view.refreshCache();
             }
-            stream = cachedDirectoryStream(dir, filter);
+            stream = cachedDirectoryStream(dir, filter, offset);
         } else {
             boolean fillCache = canFitDatasetsInCache(dirFile, max, viewPrefetch);
             stream = unCachedDirectoryStream(dir, filter, offset, viewPrefetch, fillCache);
@@ -178,7 +178,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             };
             
             DirectoryStreamWrapper<DcPath> wrapper = 
-                    new DirectoryStreamWrapper<DcPath>( stream, acceptor){
+                    new DirectoryStreamWrapper<DcPath>(stream, acceptor){
 
                 @Override
                 public void close() throws IOException{
@@ -204,6 +204,11 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     @Override
     public DirectoryStream<DcPath> cachedDirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
+        return cachedDirectoryStream( dir, filter, NO_OFFSET );
+    }
+        
+    public DirectoryStream<DcPath> cachedDirectoryStream(Path dir,
+            final DirectoryStream.Filter<? super Path> filter, int offset) throws IOException{
         final DcPath dcPath = checkPath(dir);
         final DcFile dirFile = resolveFile(dcPath);
         checkPermission( dirFile, AclEntryPermission.READ_DATA );
@@ -213,7 +218,10 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
 
         final Iterator<DcPath> iter = view.getChildrenPaths().iterator();
-        DirectoryStreamWrapper<DcPath> wrapper = new DirectoryStreamWrapper<>(iter, new DirectoryStreamWrapper.IteratorAcceptor() {
+        // Consume to offset
+        for(int i = 0; i <= offset && iter.hasNext();i++, iter.next());
+        DirectoryStreamWrapper<DcPath> wrapper = new DirectoryStreamWrapper<>(iter, 
+                new DirectoryStreamWrapper.IteratorAcceptor() {
 
             @Override
             public boolean acceptNext() throws IOException{
