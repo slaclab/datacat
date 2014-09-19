@@ -189,14 +189,11 @@ public class ContainerDAO extends BaseDAO {
     }
     
     public DirectoryStream<DatacatObject> getSubdirectoryStream(Long parentPk, final String parentPath) throws SQLException, IOException{
-        return getChildrenStream( parentPk, parentPath, 0, null);
+        return getChildrenStream( parentPk, parentPath, null);
     }
-    
-    interface SkipIterator<T> extends Iterator<T>{
-        public boolean skip();
-    }
+       
     public DirectoryStream<DatacatObject> getChildrenStream(Long parentPk, final String parentPath, 
-            int offset, DatasetView viewPrefetch) throws SQLException, IOException{
+            DatasetView viewPrefetch) throws SQLException, IOException{
         String sql = "WITH OBJECTS (type, pk, name, parent) AS ( "
                 + "    SELECT 'F', datasetlogicalfolder, name, parent "
                 + "      FROM datasetlogicalfolder "
@@ -244,12 +241,12 @@ public class ContainerDAO extends BaseDAO {
         final ResultSet rsVer = prefetchVer != null ? prefetchVer.executeQuery() : null;
         final ResultSet rsLoc = prefetchLoc != null ? prefetchLoc.executeQuery() : null;
         DirectoryStream<DatacatObject> stream = new DirectoryStream<DatacatObject>() {
-            SkipIterator<DatacatObject> iter = null;
+            Iterator<DatacatObject> iter = null;
 
             @Override
-            public SkipIterator<DatacatObject> iterator(){
+            public Iterator<DatacatObject> iterator(){
                 if(iter == null){
-                    iter = new SkipIterator<DatacatObject>() {
+                    iter = new Iterator<DatacatObject>() {
 
                         boolean beforeStart = true;
                         boolean wasOkay = false;
@@ -293,15 +290,6 @@ public class ContainerDAO extends BaseDAO {
                         @Override
                         public void remove(){throw new UnsupportedOperationException();}
 
-                        @Override
-                        public boolean skip(){
-                            consumed = true;
-                            try {
-                                return checkNext();
-                            } catch(SQLException ex) {
-                                throw new NoSuchElementException();
-                            }
-                        }
                     };
                 }
                 return iter;
@@ -323,9 +311,6 @@ public class ContainerDAO extends BaseDAO {
             }
         };
         
-        // Consume to the offset
-        SkipIterator iter = (SkipIterator) stream.iterator();
-        for(int i = 0; i <= offset && iter.skip(); i++);
         return stream;
     }
     

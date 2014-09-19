@@ -91,11 +91,11 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     @Override
     public DirectoryStream<Path> newDirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
-        return newOptimizedDirectoryStream( dir, filter, NO_OFFSET, NO_MAX, DatasetView.EMPTY );
+        return newOptimizedDirectoryStream( dir, filter, NO_MAX, DatasetView.EMPTY );
     }
 
     public DirectoryStream<Path> newOptimizedDirectoryStream(Path dir,
-            final DirectoryStream.Filter<? super Path> filter, int offset, int max, DatasetView viewPrefetch) throws IOException{
+            final DirectoryStream.Filter<? super Path> filter, int max, DatasetView viewPrefetch) throws IOException{
         final DcPath dcPath = checkPath(dir);
         DcFile dirFile = resolveFile(dcPath);
         checkPermission( dirFile, AclEntryPermission.READ_DATA );
@@ -109,10 +109,10 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             if(!view.hasCache()){
                 view.refreshCache();
             }
-            stream = cachedDirectoryStream(dir, filter, offset);
+            stream = cachedDirectoryStream(dir, filter);
         } else {
             boolean fillCache = canFitDatasetsInCache(dirFile, max, viewPrefetch);
-            stream = unCachedDirectoryStream(dir, filter, offset, viewPrefetch, fillCache);
+            stream = unCachedDirectoryStream(dir, filter, viewPrefetch, fillCache);
         }
         return (DirectoryStream<Path>) stream;
     }
@@ -120,16 +120,16 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     @Override
     public DirectoryStream<DcPath> unCachedDirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
-        return unCachedDirectoryStream(dir, filter, NO_OFFSET, DatasetView.EMPTY, true);
+        return unCachedDirectoryStream(dir, filter, DatasetView.EMPTY, true);
     }
         
     public DirectoryStream<DcPath> directSubdirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
-        return unCachedDirectoryStream(dir, filter, NO_OFFSET, null, false);
+        return unCachedDirectoryStream(dir, filter, null, false);
     }
     
     private DirectoryStream<DcPath> unCachedDirectoryStream(Path dir,
-            final DirectoryStream.Filter<? super Path> filter, int offset, final DatasetView viewPrefetch, final boolean cacheDatasets) throws IOException{
+            final DirectoryStream.Filter<? super Path> filter, final DatasetView viewPrefetch, final boolean cacheDatasets) throws IOException{
         final DcPath dcPath = checkPath( dir );
         final DcFile dirFile = resolveFile( dcPath );
         checkPermission(dirFile, AclEntryPermission.READ_DATA );
@@ -144,7 +144,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             final ContainerDAO dao = new ContainerDAO( dataSource.getConnection() ); 
             DirectoryStream<DatacatObject> stream;
             if(viewPrefetch != null){
-                stream = dao.getChildrenStream(fileKey, dcPath.toString(), offset, viewPrefetch);
+                stream = dao.getChildrenStream(fileKey, dcPath.toString(), viewPrefetch);
             } else {
                 stream = dao.getSubdirectoryStream(fileKey, dcPath.toString());
             }
@@ -204,11 +204,6 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     @Override
     public DirectoryStream<DcPath> cachedDirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
-        return cachedDirectoryStream( dir, filter, NO_OFFSET );
-    }
-        
-    public DirectoryStream<DcPath> cachedDirectoryStream(Path dir,
-            final DirectoryStream.Filter<? super Path> filter, int offset) throws IOException{
         final DcPath dcPath = checkPath(dir);
         final DcFile dirFile = resolveFile(dcPath);
         checkPermission( dirFile, AclEntryPermission.READ_DATA );
@@ -218,8 +213,6 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
 
         final Iterator<DcPath> iter = view.getChildrenPaths().iterator();
-        // Consume to offset
-        for(int i = 0; i <= offset && iter.hasNext();i++, iter.next());
         DirectoryStreamWrapper<DcPath> wrapper = new DirectoryStreamWrapper<>(iter, 
                 new DirectoryStreamWrapper.IteratorAcceptor() {
 
@@ -489,7 +482,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     protected void doDeleteDirectory(String path, DcFile file) throws DirectoryNotEmptyException, IOException{
         try(ContainerDAO dao = new ContainerDAO(dataSource.getConnection())) {
             // Verify directory is empty
-            try(DirectoryStream ds = dao.getChildrenStream( file.fileKey(), path, NO_OFFSET, DatasetView.EMPTY )) {
+            try(DirectoryStream ds = dao.getChildrenStream( file.fileKey(), path, DatasetView.EMPTY )) {
                 if(ds.iterator().hasNext()){
                     AfsException.DIRECTORY_NOT_EMPTY.throwError( path, "Container not empty" );
                 }
