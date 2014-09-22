@@ -151,16 +151,16 @@ public class SearchUtils {
     
     public static void populateParentTempTable(Connection conn, DirectoryWalker.ContainerVisitor visitor) throws SQLException {
         String sql = "INSERT INTO ContainerSearch (DatasetLogicalFolder, DatasetGroup, ContainerPath) VALUES (?,?,?)";
-        PreparedStatement stmt  = conn.prepareStatement( sql );
-        while(visitor.files.peek() != null){
-            DcFile file = visitor.files.remove();
-            boolean isGroup = file.getType() instanceof DcFile.GroupType;
-            stmt.setNull( isGroup ? 1 : 2, Types.VARCHAR);
-            stmt.setLong( isGroup ? 2 : 1, file.fileKey());
-            stmt.setString( 3, file.getPath().toString());
-            stmt.executeUpdate();
+        try (PreparedStatement stmt  = conn.prepareStatement( sql )){
+            while(visitor.files.peek() != null){
+                DcFile file = visitor.files.remove();
+                boolean isGroup = file.getType() instanceof DcFile.GroupType;
+                stmt.setNull( isGroup ? 1 : 2, Types.VARCHAR);
+                stmt.setLong( isGroup ? 2 : 1, file.fileKey());
+                stmt.setString( 3, file.getPath().toString());
+                stmt.executeUpdate();
+            }
         }
-
         /*try (PreparedStatement stmt2 = conn.prepareStatement( "SELECT ContainerPath FROM ContainerSearch")){
             ResultSet rs = stmt2.executeQuery();
             while(rs.next()){
