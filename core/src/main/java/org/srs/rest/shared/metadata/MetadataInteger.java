@@ -4,9 +4,11 @@ package org.srs.rest.shared.metadata;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlValue;
+import org.srs.rest.shared.LongSerializer;
 import org.srs.rest.shared.metadata.MetadataInteger.Builder;
 
 /**
@@ -39,6 +41,7 @@ public class MetadataInteger implements MetadataValue<Number> {
     @XmlValue
     @JsonValue
     // TODO: Fix this to be BigInteger if https://github.com/FasterXML/jackson-databind/issues/466 gets fixed.
+    @JsonSerialize(using=LongSerializer.class)
     public Long getValue(){return value.longValue(); }
     
     @XmlTransient
@@ -50,5 +53,5 @@ public class MetadataInteger implements MetadataValue<Number> {
         
         public MetadataInteger build(){ return new MetadataInteger( (Number) rawValue); }
     }
-
+    
 }
