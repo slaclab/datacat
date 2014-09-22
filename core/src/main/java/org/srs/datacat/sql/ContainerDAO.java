@@ -363,6 +363,8 @@ public class ContainerDAO extends BaseDAO {
                     dsLoc.close();
                 }
             }
+            builder.numberMetadata( nmap );
+            builder.stringMetadata( smap );
             builder.locations(locations);
             versions.add(builder.build());
         }
