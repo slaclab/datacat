@@ -10,8 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
@@ -28,22 +26,8 @@ public class BaseResource {
     @Context HttpServletResponse response;
     @Inject DcFileSystemProvider provider;
     @Inject DataSource dataSource;
-
-    private void initDatasource(String jndi) throws NamingException {
-        javax.naming.Context ctx = new InitialContext();
-        // relative to standard JNDI root for J2EE app
-        javax.naming.Context envCtx = (javax.naming.Context) ctx.lookup( "java:comp/env" );
-        this.dataSource = (DataSource) envCtx.lookup( jndi );
-    }
     
     public Connection getConnection() throws SQLException {
-        if(dataSource == null){
-            try {
-                initDatasource("jdbc/datacat-prod");
-            } catch(NamingException ex) {
-                throw new SQLException("Unable to initialize datasource", ex);
-            }
-        }
         return dataSource.getConnection();
     }
     
@@ -114,6 +98,10 @@ public class BaseResource {
         }
         link.append( "; rel=" + rel );
         return link.toString();
+    }
+
+    public HttpServletRequest getRequest(){
+        return request;
     }
     
 }
