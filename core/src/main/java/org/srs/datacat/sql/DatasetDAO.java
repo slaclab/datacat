@@ -205,6 +205,8 @@ public class DatasetDAO extends BaseDAO {
                 while(rs2.next()){
                     processLocation( rs2, builder.pk, locations);
                 }
+                builder.numberMetadata( nmap );
+                builder.stringMetadata( smap );
                 builder.locations( locations );
                 return builder.build();
             }

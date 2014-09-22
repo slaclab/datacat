@@ -89,7 +89,7 @@ public class BaseDAO implements AutoCloseable {
     
     protected DatacatObject getDatacatObject(Long parentPk, String path) throws IOException, FileNotFoundException {
         try {
-            return getChild( parentPk, path);
+            return getChild(parentPk, path);
         } catch(SQLException ex) {
             throw new IOException("Unknown exception occurred in the database", ex);
         }
@@ -141,9 +141,8 @@ public class BaseDAO implements AutoCloseable {
     }
     
     protected void completeObject(org.srs.datacat.shared.DatacatObject.Builder builder) throws SQLException{
-
-        if(builder instanceof org.srs.datacat.shared.Dataset.Builder){
-            completeDataset((org.srs.datacat.shared.Dataset.Builder) builder );
+        if(builder instanceof Dataset.Builder){
+            completeDataset((Dataset.Builder) builder );
         } else if(builder instanceof DatasetGroup.Builder){
             completeContainer((DatasetGroup.Builder) builder,
                     "select description from datasetgroup where datasetgroup = ?" );
