@@ -66,16 +66,16 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
         DatasetVersion retDsv;
         Set<DatasetLocation> retLocations;
         synchronized(this) {
-            try(DatasetDAO dsdao = new DatasetDAO( dataSource.getConnection() )) {
-                if(!versionCache.containsKey(view.getVersionId())){
-                    dsv = dsdao.getVersionWithLocations(file.fileKey(), view );
+            if(!versionCache.containsKey(view.getVersionId())){
+                try(DatasetDAO dsdao = new DatasetDAO( dataSource.getConnection() )) {
+                    dsv = dsdao.getVersionWithLocations(file.fileKey(), view);
                     if(dsv.isLatest()){
                         versionCache.put( DatasetView.CURRENT_VER, dsv);
                     }
                     versionCache.put(dsv.getVersionId(), dsv);
+                } catch(SQLException ex) {
+                    throw new IOException( "Error talking to the database", ex );
                 }
-            } catch(SQLException ex) {
-                throw new IOException( "Error talking to the database", ex );
             }
             dsv = versionCache.get(view.getVersionId());
         }
