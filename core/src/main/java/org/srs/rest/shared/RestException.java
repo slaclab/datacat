@@ -1,6 +1,8 @@
 
 package org.srs.rest.shared;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.logging.Logger;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
@@ -19,8 +21,8 @@ public class RestException extends WebApplicationException {
         super(Response.status(status).type(MediaType.APPLICATION_JSON).build());
         JSONObject r = new JSONObject();
         try {
-            r.put("exception", "RestException");
-            r.put("reason", reason);
+            r.put("message", reason);
+            r.put("class", "RestException");
         } catch (JSONException ex) {
             Logger.getLogger(RestException.class.getName()).severe("Unable to create JSON exception");
         }
@@ -30,9 +32,14 @@ public class RestException extends WebApplicationException {
     public RestException(Exception e, int status) {
         super(Response.status(status).type(MediaType.APPLICATION_JSON).build());
         JSONObject r = new JSONObject();
+        
+        StringWriter st = new StringWriter();
+        PrintWriter pw = new PrintWriter(st);
+        e.printStackTrace( pw );
         try {
-            r.put("exception", e.getClass().getSimpleName());
-            r.put("reason", e.getMessage());
+            r.put("message", e.getMessage());
+            r.put("class", e.getClass().getSimpleName());
+            r.put("cause", st.toString());
         } catch (JSONException ex) {
             Logger.getLogger(RestException.class.getName()).severe("Unable to create JSON exception");
         }
