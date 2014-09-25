@@ -3,12 +3,8 @@ package org.srs.rest.shared;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.logging.Logger;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  *
@@ -17,37 +13,47 @@ import org.json.JSONObject;
 public class RestException extends WebApplicationException {
     private Response response;
     
-    public RestException(String reason, int status) {
-        super(Response.status(status).type(MediaType.APPLICATION_JSON).build());
-        JSONObject r = new JSONObject();
-        try {
-            r.put("message", reason);
-            r.put("class", "RestException");
-        } catch (JSONException ex) {
-            Logger.getLogger(RestException.class.getName()).severe("Unable to create JSON exception");
-        }
-        this.response = Response.status(status).entity(r.toString()).type(MediaType.APPLICATION_JSON).build();
+    public RestException(Exception ex, int status) {
+        super(ex, Response.status(status).build());
+        this.response = response(status, ex.getMessage(), getCause(ex), ex.getClass().getSimpleName());
     }
     
-    public RestException(Exception e, int status) {
-        super(Response.status(status).type(MediaType.APPLICATION_JSON).build());
-        JSONObject r = new JSONObject();
-        
-        StringWriter st = new StringWriter();
-        PrintWriter pw = new PrintWriter(st);
-        e.printStackTrace( pw );
-        try {
-            r.put("message", e.getMessage());
-            r.put("class", e.getClass().getSimpleName());
-            r.put("cause", st.toString());
-        } catch (JSONException ex) {
-            Logger.getLogger(RestException.class.getName()).severe("Unable to create JSON exception");
-        }
-        this.response = Response.status(status).entity(r.toString()).type(MediaType.APPLICATION_JSON).build();
+    public RestException(Exception ex, int status, String message) {
+        super(ex, Response.status(status).build());
+        this.response = response(status, message, null, ex.getClass().getSimpleName());
+    }
+    
+    public RestException(Exception ex, int status, String message, String cause) {
+        super(ex, Response.status(status).build());
+        this.response = response(status, message, cause, ex.getClass().getSimpleName());
     }
     
     @Override
     public Response getResponse(){
         return response;
     }
+        
+    public static ErrorResponse getError(String message, String cause, String type){
+        return new ErrorResponse.Builder()
+                .setMessage(message)
+                .setCause(cause)
+                .setType(type)
+                .setCode(null)
+                .build();
+    }
+    
+    private static String getCause(Exception ex){
+        StringWriter st = new StringWriter();
+        PrintWriter pw = new PrintWriter(st);
+        ex.printStackTrace( pw );
+        return st.toString();
+    }
+        
+    private static Response response(int status, String message, String cause, String type){
+        return Response
+                .status(status)
+                .entity(getError(message, cause, type))
+                .build();
+    }
+    
 }
