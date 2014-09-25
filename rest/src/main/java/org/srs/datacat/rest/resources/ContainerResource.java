@@ -88,11 +88,11 @@ public class ContainerResource extends BaseResource {
                 throw new NotDirectoryException(containerPath.toString());
             }
         } catch (FileNotFoundException ex){
-             throw new RestException("File doesn't exist", 404);
+             throw new RestException(ex,404, "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
         } catch (NotDirectoryException ex){
-            throw new RestException( "File exists, but Path is not a container", 404);
+            throw new RestException(ex,404,"File exists, but Path is not a container");
         } catch (IOException ex){
             throw new RestException(ex, 500);
         }
@@ -134,11 +134,11 @@ public class ContainerResource extends BaseResource {
             //System.out.println("req: " + parentPath.resolve(request.value().getName()));
             return Response.created(DcUriUtils.toFsUri(targetPath.toString(), null, "SRS")).entity(builder.build()).build();
         } catch (FileNotFoundException ex){
-             throw new RestException("A parent path doesn't exist", 404);
+             throw new RestException(ex ,404, "Parent file doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
         } catch (NotDirectoryException ex){
-            throw new RestException("File exists, but Path is not a container", 404);
+            throw new RestException(ex, 404, "File exists, but Path is not a container");
         } catch (IOException ex){
             throw new RestException(ex, 500);
         }
@@ -155,9 +155,9 @@ public class ContainerResource extends BaseResource {
             Files.delete(dcPath);
             return Response.noContent().build();
         } catch (DirectoryNotEmptyException ex){
-            throw new RestException("Directory not empty", 409);
+            throw new RestException(ex, 409, "Directory not empty");
         } catch (FileNotFoundException ex){
-             throw new RestException("A parent path doesn't exist", 404);
+             throw new RestException(ex, 404, "Parent file doesn't exit", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
         } catch (IOException ex){

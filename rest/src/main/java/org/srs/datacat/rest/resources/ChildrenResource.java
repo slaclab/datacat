@@ -1,7 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package org.srs.datacat.rest.resources;
 
 import java.io.FileNotFoundException;
@@ -20,7 +17,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import org.srs.datacat.rest.BaseResource;
 import org.srs.datacat.model.RequestView;
 import org.srs.datacat.rest.resources.PathResource.StatTypeWrapper;
@@ -44,21 +44,32 @@ public class ChildrenResource extends BaseResource {
     
     private final String idRegex = "{id: [\\w\\d\\-_\\./]+}";
     
+    /**
+     *
+     * @param path      Target path of children to search
+     * @param withDs    Whether or not to include datasets in results
+     * @param statType  Type of stat of child containers
+     * @param max       max results of _viewable_ children to return
+     * @param offset    offset of first _viewable_ child
+     * @param showCount showCount signals to calculate total _viewable_ children count
+     * @return
+     */
     @GET
     @Path(idRegex)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public List<DatacatObject> getChildren(@PathParam("id") String path, 
+    public Response getChildren(@PathParam("id") String path, 
         @DefaultValue("true") @QueryParam("datasets") boolean withDs,
         @DefaultValue("none") @QueryParam("stat") StatTypeWrapper statType,
         @DefaultValue("100000") @QueryParam("max") int max,
-        @DefaultValue("0") @QueryParam("offset") int offset){
+        @DefaultValue("0") @QueryParam("offset") int offset,
+        @DefaultValue("false") @QueryParam("showCount") boolean showCount){
 
         path = "/" + path;
         DcPath dirPath = getProvider().getPath(DcUriUtils.toFsUri(path, null, "SRS"));
         try {
             Files.readAttributes(dirPath, DcFile.class);
         } catch (FileNotFoundException ex){
-             throw new RestException("File doesn't exist", 404);
+             throw new RestException(ex, 404, "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
         } catch (IOException ex){
@@ -66,40 +77,50 @@ public class ChildrenResource extends BaseResource {
         }
         
         RequestView rv = new RequestView(DatacatObject.Type.DATASET,null);
-        ArrayList<DatacatObject> retList = new ArrayList<>();
+        List<DatacatObject> retList = new ArrayList<>();
+        int count = 0;
         try (DirectoryStream<java.nio.file.Path> stream = getProvider()
                 .newOptimizedDirectoryStream(dirPath, AbstractFsProvider.AcceptAllFilter, 
                     max, rv.getDatasetView())){
             Iterator<java.nio.file.Path> iter = stream.iterator();
-            int skipped = 0;
-            while(iter.hasNext() && retList.size() < max){
+            
+            while(iter.hasNext() && (retList.size() < max || showCount)){
                 java.nio.file.Path p = iter.next();
                 DcFile file = Files.readAttributes(p, DcFile.class);
                 if(!withDs && file.isRegularFile()){
                     continue;
                 }
-                DatacatObject ret;
-                if(file.isRegularFile()){
-                    try {
-                        ret = file.getAttributeView(DatasetViewProvider.class).withView(rv);
-                    } catch (FileNotFoundException ex){
-                        continue;
+                if(count >= offset && retList.size() < max){
+                    DatacatObject ret;
+                    if(file.isRegularFile()){
+                        try {
+                            ret = file.getAttributeView(DatasetViewProvider.class).withView(rv);
+                        } catch (FileNotFoundException ex){
+                            continue;
+                        }
+                    } else {
+                        ret = file.getAttributeView(ContainerViewProvider.class).withView(statType.getEnum());
                     }
-                } else {
-                    ret = file.getAttributeView(ContainerViewProvider.class).withView(statType.getEnum());
-                }
-                if(skipped >= offset){
                     retList.add(ret);
-                } else {
-                    skipped++;
                 }
+                count++;
             }
         } catch (NotDirectoryException ex){
-            throw new RestException( "File exists, but Path is not a directory", 404);
+            return Response.status(Status.NOT_FOUND)
+                    .entity("File exists, but Path is not a directory").build();
         } catch (IOException ex){
-            throw new RestException(ex, 500);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity("Error accessing the file system: " + ex.getMessage()).build();
         }
-        return retList;
+        
+        String start = Integer.toString(offset);
+        String end = Integer.toString(offset+ (retList.size() - 1));
+        String len= showCount ? Integer.toString(count - 1) : "*";
+        Response resp = Response
+                .ok( new GenericEntity<List<DatacatObject>>(retList) {})
+                .header( "Content-Range", String.format("items %s-%s/%s", start, end, len))
+                .build();
+        return resp;
     }
 
 }

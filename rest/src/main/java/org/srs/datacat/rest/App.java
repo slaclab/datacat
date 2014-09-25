@@ -6,6 +6,7 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.Connection;
@@ -20,6 +21,7 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.FeatureContext;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -29,6 +31,8 @@ import org.glassfish.jersey.server.model.Resource;
 import org.glassfish.jersey.server.spi.Container;
 import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
 import org.srs.datacat.vfs.DcFileSystemProvider;
+import org.srs.datacatalog.search.plugins.EXODatacatSearchPlugin;
+import org.srs.rest.shared.ErrorResponse;
 import org.srs.rest.shared.ListPlainTextProvider;
 import org.srs.rest.shared.plugins.ResourcePlugin;
 
@@ -91,6 +95,7 @@ public class App extends ResourceConfig {
         register( JacksonFeature.class );
         register( RequestAcceptFilter.class );
         register( ListPlainTextProvider.class );
+        register( ErrorResponse.ErrorTextProvider.class );
         register( DatacatObjectTextProvider.class );
                 
         try {
@@ -174,7 +179,11 @@ public class App extends ResourceConfig {
 
         if(classesLoaded)
             return;
-        File loc = new File( "/Users/bvan/.m2/repository/exo/exo-datacat-plugins/1.0-SNAPSHOT/exo-datacat-plugins-1.0-SNAPSHOT.jar" );
+        
+        SearchPluginProvider provider = new SearchPluginProvider(new EXODatacatSearchPlugin());
+        register(provider.binder);
+        
+        /*File loc = new File( "/Users/bvan/.m2/repository/exo/exo-datacat-plugins/1.0-SNAPSHOT/exo-datacat-plugins-1.0-SNAPSHOT.jar" );
 
         URL[] urls = { loc.toURI().toURL() };
         URLClassLoader ucl = new URLClassLoader( urls, getClassLoader() );
@@ -189,7 +198,7 @@ public class App extends ResourceConfig {
             System.out.println( r.getPath() );
             this.registerClasses( plugin.getClass() );
 
-        }
+        }*/
         classesLoaded = true;
     }
     
@@ -224,5 +233,4 @@ public class App extends ResourceConfig {
         }
     }
 
-    
 }
