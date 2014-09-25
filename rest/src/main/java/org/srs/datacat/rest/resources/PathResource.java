@@ -5,9 +5,13 @@
 package org.srs.datacat.rest.resources;
 
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 
 import java.nio.file.Files;
+import java.nio.file.NotDirectoryException;
+import java.util.ArrayList;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -15,7 +19,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.srs.datacat.rest.App;
 import org.srs.datacat.rest.BaseResource;
@@ -29,6 +35,7 @@ import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 
 import org.srs.rest.shared.HumanPath;
+import org.srs.rest.shared.RestException;
 
 
 /**
@@ -55,7 +62,7 @@ public class PathResource extends BaseResource {
     
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public DatacatObject getRootBean(@DefaultValue("basic") @QueryParam("stat") StatTypeWrapper statType) throws IOException{
+    public Response getRootBean(@DefaultValue("basic") @QueryParam("stat") StatTypeWrapper statType) throws IOException{
         return getBean("", statType);
     }
     
@@ -63,18 +70,26 @@ public class PathResource extends BaseResource {
     @Path(idRegex)
     @HumanPath(idPath)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public DatacatObject getBean(@PathParam("id") String path,
+    public Response getBean(@PathParam("id") String path,
             @DefaultValue("basic") @QueryParam("stat") StatTypeWrapper statType) throws IOException{
         path = "/" + path;
         DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(path, null, "SRS"));
-        DcFile file = Files.readAttributes(dcp, DcFile.class);
-        DatacatObject ret;
-        if(file.isRegularFile()){
-            ret = file.getAttributeView(DatasetViewProvider.class).withView(new RequestView(DatacatObject.Type.DATASET, null));
-        } else {
-            ret = file.getAttributeView(ContainerViewProvider.class).withView(statType.getEnum());
+        try {
+            DcFile file = Files.readAttributes(dcp, DcFile.class);
+            DatacatObject ret;
+            if(file.isRegularFile()){
+                ret = file.getAttributeView(DatasetViewProvider.class).withView(new RequestView(DatacatObject.Type.DATASET, null));
+            } else {
+                ret = file.getAttributeView(ContainerViewProvider.class).withView(statType.getEnum());
+            }
+            return Response.ok( new GenericEntity<DatacatObject>(ret){} ).build();
+        } catch (FileNotFoundException ex){
+             throw new RestException(ex,404 , "File doesn't exist", ex.getMessage());
+        } catch (AccessDeniedException ex){
+             throw new RestException(ex, 403);
+        } catch (IOException ex){
+            throw new RestException(ex, 500);
         }
-        return ret;
     }
 
 }
