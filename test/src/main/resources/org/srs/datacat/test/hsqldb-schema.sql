@@ -234,7 +234,7 @@ create table DatasetMetaName (
 create table DatasetMetaInfo (
      MetaName      varchar(20),
      ValueType      varchar(1),
-     constraint    UNQ_DatasetMetaName unique (MetaName, ValueType)
+     constraint    UNQ_DatasetMetaInfo unique (MetaName, ValueType)
 );
 
 create table VerDatasetMetaRoot (
