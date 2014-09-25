@@ -181,13 +181,21 @@ public class HSqlDbHarness {
                     int i = line.indexOf( ' ' );
                     line = line.substring( i + 1, line.length() - " */".length() );
                     line = line.trim();
-                }                
+                }
                 
                 if(line.length() > 0){
                     if(line.startsWith( "--" )){
                         continue;
                     }
                     String thisCommand = line.toLowerCase().split(" ")[0];
+                    if(thisCommand.startsWith( "block")){
+                        
+                        line = line.substring("BLOCK ".length());
+                        while(!line.endsWith( "END BLOCK")){
+                            line = line + ";" + scanner.next().trim();
+                        }
+                        line = line.substring(0, line.length() - ";END BLOCK".length());
+                    }
                     try {
                         stmt.execute( line );
                         last = thisCommand;

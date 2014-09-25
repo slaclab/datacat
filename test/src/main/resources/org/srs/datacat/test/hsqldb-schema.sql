@@ -227,6 +227,7 @@ create index IDX_VDSMT_NameValue on VerDatasetMetaTimestamp(MetaName, MetaValue)
 
 create table DatasetMetaName (
      MetaName      varchar(20),
+     MetaType      varchar(1),
      constraint    UNQ_DatasetMetaName unique (MetaName)
 );
 
@@ -370,3 +371,40 @@ create global temporary table ContainerSearch (
     DatasetGroup		number,
     ContainerPath varchar(500)
 ) on commit delete rows;
+
+-- The block keyword should be removed, it's mostly used to tell the scanner
+-- that this is one statement.
+
+BLOCK
+CREATE TRIGGER TRIG_VDSMS_METANAME AFTER INSERT ON VerDatasetMetaString
+   REFERENCING NEW ROW AS newrow
+   FOR EACH ROW 
+   IF NOT EXISTS 
+     (SELECT 1 FROM DatasetMetaName d WHERE d.MetaName = newrow.MetaName and d.MetaType = 'S')
+     THEN 
+     INSERT INTO DatasetMetaname (MetaName, MetaType) VALUES (newrow.MetaName, 'S');
+   END IF;
+END BLOCK;
+
+BLOCK
+CREATE TRIGGER TRIG_VDSMN_METANAME AFTER INSERT ON VerDatasetMetaNumber
+   REFERENCING NEW ROW AS newrow
+   FOR EACH ROW 
+   IF NOT EXISTS 
+     (SELECT 1 FROM DatasetMetaName d WHERE d.MetaName = newrow.MetaName and d.MetaType = 'N')
+     THEN 
+     INSERT INTO DatasetMetaname (MetaName, MetaType) VALUES (newrow.MetaName, 'N');
+   END IF;
+END BLOCK;
+
+BLOCK
+CREATE TRIGGER TRIG_VDSMTS_METANAME AFTER INSERT ON VerDatasetMetaTimeStamp
+   REFERENCING NEW ROW AS newrow
+   FOR EACH ROW 
+   IF NOT EXISTS 
+     (SELECT 1 FROM DatasetMetaName d WHERE d.MetaName = newrow.MetaName and d.MetaType = 'T')
+     THEN 
+     INSERT INTO DatasetMetaname (MetaName, MetaType) VALUES (newrow.MetaName, 'T');
+   END IF;
+END BLOCK;
+
