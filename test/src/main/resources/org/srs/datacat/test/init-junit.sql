@@ -48,7 +48,12 @@ insert into datasetlogicalfolder (name, parent) values ('xyz',(select datasetlog
 insert into datasetgroup (name, datasetlogicalfolder) values ('fed',(select datasetlogicalfolder from datasetlogicalfolder where name = 'abc'));
 insert into datasetgroup (name, datasetlogicalfolder) values ('zyx',(select datasetlogicalfolder from datasetlogicalfolder where name = 'def'));
 
-insert into datasetmetaname (metaname, metatype) VALUES ('nRun', 'N');
-insert into datasetmetaname (metaname, metatype) VALUES ('alpha', 'S');
-insert into datasetmetaname (metaname, metatype) VALUES ('num', 'N');
-insert into datasetmetaname (metaname, metatype) VALUES ('sIntent', 'S');
+insert into datasetmetaname (metaname) VALUES ('nRun');
+insert into datasetmetaname (metaname) VALUES ('alpha');
+insert into datasetmetaname (metaname) VALUES ('num');
+insert into datasetmetaname (metaname) VALUES ('sIntent');
+
+insert into datasetmetainfo (metaname, metatype) VALUES ('nRun', 'N');
+insert into datasetmetainfo (metaname, metatype) VALUES ('alpha', 'S');
+insert into datasetmetainfo (metaname, metatype) VALUES ('num', 'N');
+insert into datasetmetainfo (metaname, metatype) VALUES ('sIntent', 'S');

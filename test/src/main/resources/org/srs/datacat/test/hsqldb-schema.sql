@@ -227,8 +227,14 @@ create index IDX_VDSMT_NameValue on VerDatasetMetaTimestamp(MetaName, MetaValue)
 
 create table DatasetMetaName (
      MetaName      varchar(20),
-     MetaType      varchar(1),
+--      MetaType      varchar(1),
      constraint    UNQ_DatasetMetaName unique (MetaName)
+);
+
+create table DatasetMetaInfo (
+     MetaName      varchar(20),
+     ValueType      varchar(1),
+     constraint    UNQ_DatasetMetaName unique (MetaName, ValueType)
 );
 
 create table VerDatasetMetaRoot (
@@ -380,9 +386,9 @@ CREATE TRIGGER TRIG_VDSMS_METANAME AFTER INSERT ON VerDatasetMetaString
    REFERENCING NEW ROW AS newrow
    FOR EACH ROW 
    IF NOT EXISTS 
-     (SELECT 1 FROM DatasetMetaName d WHERE d.MetaName = newrow.MetaName and d.MetaType = 'S')
+     (SELECT 1 FROM DatasetMetaName d WHERE d.MetaName = newrow.MetaName)
      THEN 
-     INSERT INTO DatasetMetaname (MetaName, MetaType) VALUES (newrow.MetaName, 'S');
+     INSERT INTO DatasetMetaname (MetaName) VALUES (newrow.MetaName);
    END IF;
 END BLOCK;
 
@@ -391,9 +397,9 @@ CREATE TRIGGER TRIG_VDSMN_METANAME AFTER INSERT ON VerDatasetMetaNumber
    REFERENCING NEW ROW AS newrow
    FOR EACH ROW 
    IF NOT EXISTS 
-     (SELECT 1 FROM DatasetMetaName d WHERE d.MetaName = newrow.MetaName and d.MetaType = 'N')
+     (SELECT 1 FROM DatasetMetaName d WHERE d.MetaName = newrow.MetaName )
      THEN 
-     INSERT INTO DatasetMetaname (MetaName, MetaType) VALUES (newrow.MetaName, 'N');
+     INSERT INTO DatasetMetaname (MetaName) VALUES (newrow.MetaName);
    END IF;
 END BLOCK;
 
@@ -402,9 +408,43 @@ CREATE TRIGGER TRIG_VDSMTS_METANAME AFTER INSERT ON VerDatasetMetaTimeStamp
    REFERENCING NEW ROW AS newrow
    FOR EACH ROW 
    IF NOT EXISTS 
-     (SELECT 1 FROM DatasetMetaName d WHERE d.MetaName = newrow.MetaName and d.MetaType = 'T')
+     (SELECT 1 FROM DatasetMetaName d WHERE d.MetaName = newrow.MetaName )
      THEN 
-     INSERT INTO DatasetMetaname (MetaName, MetaType) VALUES (newrow.MetaName, 'T');
+     INSERT INTO DatasetMetaname (MetaName) VALUES (newrow.MetaName);
    END IF;
 END BLOCK;
 
+BLOCK
+CREATE TRIGGER TRIG_VDSMS_METAINFO AFTER INSERT ON VerDatasetMetaString
+   REFERENCING NEW ROW AS newrow
+   FOR EACH ROW 
+   IF NOT EXISTS 
+     (SELECT 1 FROM DatasetMetaInfo d WHERE d.MetaName = newrow.MetaName and d.ValueType = 'S')
+     THEN 
+     INSERT INTO DatasetMetaInfo (MetaName, ValueType) VALUES (newrow.MetaName, 'S');
+   END IF;
+END BLOCK;
+
+BLOCK
+CREATE TRIGGER TRIG_VDSMN_METAINFO AFTER INSERT ON VerDatasetMetaNumber
+   REFERENCING NEW ROW AS newrow
+   FOR EACH ROW 
+   IF NOT EXISTS 
+     (SELECT 1 FROM DatasetMetaInfo d WHERE d.MetaName = newrow.MetaName and d.ValueType = 'N')
+     THEN 
+     INSERT INTO DatasetMetaInfo (MetaName, ValueType) VALUES (newrow.MetaName, 'N');
+   END IF;
+END BLOCK;
+
+BLOCK
+CREATE TRIGGER TRIG_VDSMTS_METAINFO AFTER INSERT ON VerDatasetMetaTimeStamp
+   REFERENCING NEW ROW AS newrow
+   FOR EACH ROW 
+   IF NOT EXISTS 
+     (SELECT 1 FROM DatasetMetaInfo d WHERE d.MetaName = newrow.MetaName and d.ValueType = 'T')
+     THEN 
+     INSERT INTO DatasetMetaInfo (MetaName, ValueType) VALUES (newrow.MetaName, 'T');
+   END IF;
+END BLOCK;
+
+-- Need newline at end
