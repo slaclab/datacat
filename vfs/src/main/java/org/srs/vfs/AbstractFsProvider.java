@@ -179,6 +179,49 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
             return GENERIC;
         }*/
         
+        private static class NotContainerException extends NotDirectoryException {
+            private String reason;
+            private String msg;
+            
+            NotContainerException(String path, String msg, String reason){
+                super(path);
+                this.msg = msg;
+                this.reason = reason;
+            }
+            
+            @Override
+            public String getReason(){
+                return reason;
+            }
+
+            @Override
+            public String getMessage(){
+                return msg;
+            }
+
+        }
+        
+        private static class ContainerNotEmptyException extends DirectoryNotEmptyException {
+            private String reason;
+            private String msg;
+            
+            ContainerNotEmptyException(String path, String msg, String reason){
+                super(path);
+                this.msg = msg;
+                this.reason = reason;
+            }
+            
+            @Override
+            public String getReason(){
+                return reason;
+            }
+
+            @Override
+            public String getMessage(){
+                return msg;
+            }
+        }
+        
         public void throwError(Object target, final String msg) throws FileSystemException{
             String path = target.toString();
             final String reason = toString();
@@ -188,29 +231,9 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
                 case NO_SUCH_FILE:
                     throw new NoSuchFileException(path, msg, reason);
                 case NOT_DIRECTORY:
-                    throw new NotDirectoryException(path){
-                        @Override
-                        public String getReason(){
-                            return reason;
-                        }
-
-                        @Override
-                        public String getMessage(){
-                            return msg;
-                        }
-                    };
+                    throw new NotContainerException(path, msg, reason);
                 case DIRECTORY_NOT_EMPTY:
-                    throw new DirectoryNotEmptyException(path){
-                        @Override
-                        public String getReason(){
-                            return reason;
-                        }
-
-                        @Override
-                        public String getMessage(){
-                            return msg;
-                        }
-                    };
+                    throw new ContainerNotEmptyException(path, msg, reason);
                 case FILE_EXISTS:
                     throw new FileAlreadyExistsException(path, msg, reason);
                 default:
