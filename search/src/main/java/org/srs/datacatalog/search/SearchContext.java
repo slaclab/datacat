@@ -20,6 +20,6 @@ public interface SearchContext {
     public boolean inMetanameScope(String ident);
     public void assertIdentsValid(AST ast);
 
-    public Expr evaluateNode(AST.Node l);
+    //public Expr evaluateNode(AST.Node l);
     public Select getStatement();
 }

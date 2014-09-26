@@ -114,7 +114,7 @@ public class DatacatSearchContext implements SearchContext {
         return dsv;
     }
 
-    @Override
+    /*@Override
     public Expr evaluateNode(AST.Node node){
         Object tLeft = getTokenOrExpression( node.getLeft() );
         Object tRight = getTokenOrExpression( node.getRight() );
@@ -128,7 +128,7 @@ public class DatacatSearchContext implements SearchContext {
             return preEvaluateExpression( (MetajoinedStatement)dsv, node, tLeft, tOper, tRight);
         }
         return null;
-    }
+    }*/
     
     public Expr evaluateNode(AST.Node node, MetajoinedStatement statement){
         Object tLeft = getTokenOrExpression( node.getLeft(), statement );
@@ -154,7 +154,6 @@ public class DatacatSearchContext implements SearchContext {
         }
         
         if(tLeft != null || tOper != null || tRight != null){
-            
             if( tOper == Op.AND || tOper == Op.OR){
                 return tOper.apply( (Expr) tLeft, (Expr) tRight );
             }
@@ -163,40 +162,34 @@ public class DatacatSearchContext implements SearchContext {
         return null;
     }
     
-    private Object getTokenOrExpression(AST.Node node){
+    /*private Object getTokenOrExpression(AST.Node node){
         if(node == null) {
             return null;
         }
         Object ret = null;
         ret = getValueNode(node);
         return ret != null ? ret : evaluateNode(node);
-    }
+    }*/
     
     private Object getTokenOrExpression(AST.Node node, MetajoinedStatement statement){
         if(node == null) {
             return null;
         }
-        Object ret = null;
-        ret = getValueNode(node);
-        return ret != null ? ret : evaluateNode(node, statement);
+        return node.isValueNode() ? getValueNode(node.getValue()) : evaluateNode(node, statement);
     }
     
-    private Object getValueNode(AST.Node node){
-        if(node.getLeft() == null && node.getRight() == null){
-            Object nVal = node.getValue();
-            if(nVal instanceof String){
-                String strVal = (String) nVal;
-                if(inSelectionScope( strVal )){
-                    return getColumnFromSelectionScope( strVal );
-                }
-
-                if(pluginScope.contains( strVal )){
-                    // Optionally, Join plugin/ foreign table here
-                }
+    protected Object getValueNode(Object nodeValue){
+        if(nodeValue instanceof String){
+            String strVal = (String) nodeValue;
+            if(inSelectionScope( strVal )){
+                return getColumnFromSelectionScope( strVal );
             }
-            return nVal;
+
+            if(pluginScope.contains( strVal )){
+                // Optionally, Join plugin/ foreign table here
+            }
         }
-        return null;
+        return nodeValue;
     }
     
     private Expr preEvaluateExpression(MetajoinedStatement statement, AST.Node leftNode, Object tLeft, Op tOper, Object tRight){
