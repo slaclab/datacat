@@ -92,5 +92,5 @@ public class DatasetMetanameContextTest extends TestCase {
             assertTrue("Incorrect state",  context.contains( queryStrings[0] ) == shouldContain);
         }
     }
-
+    
 }

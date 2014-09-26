@@ -5,6 +5,7 @@
 package org.srs.datacatalog.search;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -234,14 +235,12 @@ public class DatacatSearchTest {
         doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 1250);
         conn.commit(); // Remove from parents on commit
         
-        
-        
-        // TODO: Finish More tests
-        queryString = "runMin == 239557414";
-        searchPath = root.resolve("/testpath");
-        visitor = new ContainerVisitor(root.getFileSystem(), "/testpath", searchGroups, searchFolders);
-        statement = datacatSearch.compileStatement( conn, searchPath, visitor, false, 100, queryString, sites, metaFieldsToRetrieve, sortFields,0,-1);
-        System.out.println(statement.formatted());
+        // Test sortFields
+        sortFields = new String[]{"num", "alpha"};
+        queryString = "num == 0 and alpha == 'def'";
+        pathPattern = "/testpath/*";
+        doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, sortFields, 1250);
+        conn.commit(); // Remove from parents on commit
         
         /*datasets = datacatSearch.searchForDatasetsInParent( conn, statement, keepAlive);
         for(Dataset d: datasets){
@@ -249,8 +248,11 @@ public class DatacatSearchTest {
         }*/
         conn.commit(); // Remove from parents on commit
         
+        
+        // TODO: Finish More tests
         queryString = "nRun == 239557414";
         searchPath = root.resolve("/testpath");
+        System.out.println(datacatSearch.dmc.toString());
         visitor = new ContainerVisitor(root.getFileSystem(), "/testpath", searchGroups, searchFolders);
         statement = datacatSearch.compileStatement( conn, searchPath, visitor, false, 100, queryString, sites, metaFieldsToRetrieve, sortFields,0,-1);
         System.out.println(statement.formatted());
@@ -281,10 +283,29 @@ public class DatacatSearchTest {
         DcPath searchPath = root.resolve(searchBase);
         String[] metaFieldsToRetrieve = null;
         String[] sortFields = null;
+        //String[] sortFields = new String[]{"num","alpha"};
         String[] sites = null;
         ContainerVisitor visitor = new ContainerVisitor(root.getFileSystem(), pathPattern, searchGroups, searchFolders);
         System.out.println("With visitor: " + visitor.toString());
         Select statement = datacatSearch.compileStatement( conn, searchPath, visitor, false, 100, queryString, sites, metaFieldsToRetrieve, sortFields,0,-1);
+        List<Dataset> datasets = datacatSearch.searchForDatasetsInParent( conn, statement);
+        int ii = 0;
+        for(Dataset d: datasets){
+            ii++;
+        }
+        TestCase.assertEquals("Should have found "+ expected + " datasets out of 20000",expected, ii);
+        return datasets;
+    }
+    
+    private List<Dataset> doSearch(Connection conn, DcPath root, String pathPattern, Boolean searchFolders, Boolean searchGroups, String queryString, String[] sortFields, int expected) throws SQLException, ParseException, IOException{
+        String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern,"/"));
+        DcPath searchPath = root.resolve(searchBase);
+        String[] metaFieldsToRetrieve = null;
+        String[] sites = null;
+        ContainerVisitor visitor = new ContainerVisitor(root.getFileSystem(), pathPattern, searchGroups, searchFolders);
+        System.out.println("With visitor: " + visitor.toString());
+        Select statement = datacatSearch.compileStatement( conn, searchPath, visitor, false, 100, queryString, sites, metaFieldsToRetrieve, sortFields,0,-1);
+        System.out.println("With statement" + statement.formatted());
         List<Dataset> datasets = datacatSearch.searchForDatasetsInParent( conn, statement);
         int ii = 0;
         for(Dataset d: datasets){
