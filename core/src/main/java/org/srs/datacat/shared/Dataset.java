@@ -225,11 +225,6 @@ public class Dataset extends DatacatObject implements DatasetModel {
             this.created = ds.dateCreated;
         }
 
-        @Override
-        @JsonSetter
-        public Builder metadata(List<MetadataEntry> val){
-            throw new RuntimeException( "metadata not implemented on Dataset objects. Use versionMetadata." );
-        }
 
         @JsonSetter
         public Builder version(DatasetVersion val){
@@ -239,11 +234,6 @@ public class Dataset extends DatacatObject implements DatasetModel {
                 dsType |= LOCATIONS;
             }
             return this;
-        }
-
-        @Override
-        public Builder metadata(Map<String, Object> val){
-            throw new UnsupportedOperationException();
         }
 
         @JsonSetter
