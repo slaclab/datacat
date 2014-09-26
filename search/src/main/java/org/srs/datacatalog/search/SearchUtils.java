@@ -1,13 +1,16 @@
 
 package org.srs.datacatalog.search;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import org.freehep.commons.lang.AST;
@@ -65,7 +68,7 @@ public class SearchUtils {
         return startOfError.toString();
     }
 
-    public static Dataset datasetFactory(ResultSet rs, String[] includedMetadata) throws SQLException{
+    public static Dataset datasetFactory(ResultSet rs, List<String> includedMetadata) throws SQLException{
         FlatDataset.Builder builder = new FlatDataset.Builder();
         DatasetVersion dsv = new DatasetVersion();
         DatasetLocation vdl = new DatasetLocation();
@@ -87,6 +90,18 @@ public class SearchUtils {
         builder.eventCount(rs.getLong("numberevents"));
         builder.fileSize(rs.getLong("filesizebytes"));
         builder.checkSum(rs.getLong("checksum"));
+        HashMap<String, Object> metadata = new HashMap<>();
+        for(String s: includedMetadata){
+            Object o = rs.getObject(s);;
+            if(o != null){
+                if(o instanceof BigDecimal){
+                    BigDecimal v = (BigDecimal) o;
+                    o = v.scale() == 0 ? v.toBigIntegerExact() : v;
+                }
+                metadata.put(s, o);
+            }
+        }
+        builder.metadata( metadata );
         return builder.build();
     }
     
@@ -121,6 +136,59 @@ public class SearchUtils {
                     postfixes.add( metaname );
                 } else {
                         dmc.add( new MetanameContext.Entry( metaname ));
+                }
+            }
+            return dmc;
+        }
+    }
+    
+    public static MetanameContext buildMetaInfoGlobalContext(Connection conn) throws SQLException {
+        
+        String sql = "select metaname, ValueType, prefix " +
+                        "    from datasetmetainfo vx " +
+                        "    left outer join ( " +
+                        "            select substr(v1.metaname,0,4) prefix,  " +
+                        "                    count(v1.metaname) prefixcount " +
+                        "            from  " +
+                        "            datasetmetainfo v1 " +
+                        "            group by substr(v1.metaname,0,4) " +
+                        "            having count(v1.metaname) > 5 " +
+                        "    ) v0 on substr(vx.metaname,0,4) = prefix " +
+                        "    order by prefix asc ";
+        try (PreparedStatement stmt = conn.prepareStatement( sql )) {
+            ResultSet rs = stmt.executeQuery();
+
+            MetanameContext dmc = new MetanameContext();
+            ArrayList<String> postfixes = new ArrayList<>();
+            String lastPrefix = null;
+            while(rs.next()){
+                String maybePrefix = rs.getString( "prefix");
+                String metaname = rs.getString( "metaname");
+                String valueType = rs.getString( "ValueType");
+                Class type = null;
+                switch (valueType){
+                    case "S":
+                        type = String.class;
+                        break;
+                    case "N":
+                        type = Number.class;
+                        break;
+                    case "T":
+                        type = Timestamp.class;
+                        break;
+                    default:
+                        type = String.class;
+                }
+                
+                if(maybePrefix != null){
+                    if (lastPrefix != null && !lastPrefix.equals( maybePrefix) ){
+                        dmc.add( new MetanameContext.Entry(lastPrefix, postfixes, lastPrefix.length(), type ));
+                        postfixes.clear();
+                    }
+                    lastPrefix = maybePrefix;
+                    postfixes.add( metaname );
+                } else {
+                    dmc.add( new MetanameContext.Entry( metaname , type ));
                 }
             }
             return dmc;
@@ -187,12 +255,12 @@ public class SearchUtils {
         }
     }
     
-    public static List<Dataset> getResults(final Connection conn, final Select sel) throws SQLException{
+    public static List<Dataset> getResults(final Connection conn, final Select sel, List<String> metadataNames) throws SQLException{
         ArrayList<Dataset> datasets = new ArrayList<>();        
         try(PreparedStatement stmt = sel.prepareAndBind( conn )){
             ResultSet rs = stmt.executeQuery();
             while(rs.next()){
-                datasets.add(SearchUtils.datasetFactory(rs, null));
+                datasets.add(SearchUtils.datasetFactory(rs, metadataNames));
             }
         }
         return datasets;
