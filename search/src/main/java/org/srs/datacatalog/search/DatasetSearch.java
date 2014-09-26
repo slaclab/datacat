@@ -41,19 +41,20 @@ public class DatasetSearch {
     DcFileSystemProvider provider;
     HashMap<String, DatacatPlugin> pluginMap;
     MetanameContext dmc;
+    ArrayList<String> metadataFields = new ArrayList<>();
     
     public DatasetSearch(DcFileSystemProvider provider, Connection conn, HashMap<String, DatacatPlugin> pluginMap) throws SQLException {
         this.provider = provider;
         this.pluginMap = pluginMap;
-        this.dmc = SearchUtils.buildMetanameGlobalContext( conn );
+        this.dmc = SearchUtils.buildMetaInfoGlobalContext( conn );
     }
     
-    public List<Dataset> searchForDatasetsInParent(Connection conn, Select statement, boolean keepAlive) throws SQLException {
+    /*public List<Dataset> searchForDatasetsInParent(Connection conn, Select statement, boolean keepAlive) throws SQLException {
         return SearchUtils.getResultsDeferredFill( conn, statement, keepAlive );
-    }
+    }*/
     
     public List<Dataset> searchForDatasetsInParent(Connection conn, Select statement) throws SQLException {
-        return SearchUtils.getResults(conn, statement);
+        return SearchUtils.getResults(conn, statement, metadataFields);
     }
     
     public Select compileStatement(Connection conn, DcPath parent, 
@@ -64,7 +65,7 @@ public class DatasetSearch {
         DatacatSearchContext sd = prepareSelection(ast, dsv);
         
         if(ast != null){
-            sd.evaluateNode(  ast.getRoot(), dsv);
+            sd.evaluateNode(ast.getRoot(), dsv);
         }
         
         DirectoryWalker walker = new DirectoryWalker(provider, visitor, maxDepth);
@@ -75,14 +76,7 @@ public class DatasetSearch {
         for(MaybeHasAlias a: dsv.getAvailableSelections()){
             availableSelections.put( a.canonical(), a);
         }
-        if(sortFields != null){
-            for(String s: sortFields){
-                if(availableSelections.containsKey( s )){
-                    dsv.orderBy( getColumnFromSelectionScope( dsv, s ) );
-                }
-            }
-        }
-        
+               
         List<MaybeHasAlias> selList = new ArrayList<>();
         for(MaybeHasAlias a: dsv.getAvailableSelections()){
             selList.add(new Column(a.canonical(), dsv));
@@ -98,7 +92,6 @@ public class DatasetSearch {
         
         Table containerSearch = new Table("ContainerSearch", "cp");
         
-        
         Select selectStatement = containerSearch
                 .select( containerSearch.$("ContainerPath"))
                 .join( dsv, 
@@ -107,6 +100,66 @@ public class DatasetSearch {
                         dsv.getSelection(dsv.ds.datasetGroup).eq(containerSearch.$("DatasetGroup"))
                     )
                 ).selection(dsv.getColumns());
+        
+
+        if(sortFields != null){
+            for(String s: sortFields){
+                boolean asc = !s.startsWith("-");
+                if(!asc || s.startsWith("+")){
+                    s = s.substring(1);
+                }
+
+                Column orderBy = null;
+                if(sd.inSelectionScope( s )){
+                    orderBy = getColumnFromSelectionScope( dsv, s );
+                } else if(sd.inMetanameScope( s )){
+                    if(dmc.getTypes( s ).size() > 1){
+                        throw new IllegalArgumentException("Unable to sort on fields with multiple types");
+                    }
+                    String aliased = "\"" + s + "\"";
+                    orderBy = getColumnFromAllScope( dsv, aliased);
+                    if(orderBy == null){
+                        Class type = dmc.getTypes( s ).toArray( new Class[0])[0];
+                        dsv.setupMetadataJoin( s, type);
+                        orderBy = getColumnFromAllScope( dsv, aliased);
+                    }
+                    metadataFields.add(s);
+                } else {
+                    orderBy = getColumnFromSelectionScope( dsv, s );
+                    metadataFields.add(s);
+                }
+                if(orderBy == null){
+                    throw new IllegalArgumentException("Unable to find sort field: " + s);
+                }
+                selectStatement.selection(orderBy);
+                selectStatement.orderBy(orderBy, asc ? "ASC":"DESC");
+            }
+        }
+        
+        if(metaFieldsToRetrieve != null){
+            for(String s: metaFieldsToRetrieve){
+                Column retrieve = null;
+                if(sd.inSelectionScope( s )){
+                    retrieve = getColumnFromSelectionScope( dsv, s );
+                } else if(sd.inMetanameScope( s )){
+                    String aliased = "\"" + s + "\"";
+                    retrieve = getColumnFromAllScope( dsv, aliased);
+                    if(retrieve == null){
+                        Class type = dmc.getTypes( s ).toArray( new Class[0])[0];
+                        dsv.setupMetadataJoin( s, type);
+                        retrieve = getColumnFromAllScope( dsv, aliased);
+                    }
+                    metadataFields.add( s );
+                } else {
+                    retrieve = getColumnFromSelectionScope( dsv, s );
+                    metadataFields.add( s );
+                }
+                if(retrieve == null){
+                    throw new IllegalArgumentException("Unable to find retrieval field: " + s);
+                }
+                selectStatement.selection(retrieve);
+            }
+        }
         
         if(offset > 0){
             Sql s = new Sql("rownum").as( "rnum");
@@ -174,6 +227,15 @@ public class DatasetSearch {
         for(MaybeHasAlias selection: dsv.getAvailableSelections()){
             if(selection.canonical().equals( ident ) && selection instanceof Column){
                 dsv.selection( selection );
+                return (Column) selection;
+            }
+        }
+        return null;
+    }
+    
+    private Column getColumnFromAllScope(DatasetVersions dsv, String ident){
+        for(MaybeHasAlias selection: dsv.getColumns()){
+            if(selection.canonical().equals( ident ) && selection instanceof Column){
                 return (Column) selection;
             }
         }
