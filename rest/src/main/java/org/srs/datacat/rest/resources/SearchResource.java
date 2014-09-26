@@ -48,6 +48,7 @@ public class SearchResource extends BaseResource {
             @QueryParam("sites") List<String> sites,
             @QueryParam("filter") String filter,
             @QueryParam("sort") List<String> sortParams, 
+            @QueryParam("show") List<String> metadata, 
             /*@DefaultValue("false") @QueryParam("unscanned") boolean unscanned,*/
             /*@DefaultValue("false") @QueryParam("nonOk") boolean nonOk,*/
             @QueryParam("checkFolders") Boolean checkFolders,
@@ -58,7 +59,7 @@ public class SearchResource extends BaseResource {
 
         pathPattern = "/" + pathPattern;
         List<? super Dataset> datasets = new ArrayList<>();
-        String[] metafields= null;
+        String[] metafields= metadata.toArray( new String[0]);
         String[] sortFields = sortParams.toArray(new String[0]);
         
         try(Connection conn = getConnection()){
