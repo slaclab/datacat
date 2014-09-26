@@ -1,6 +1,8 @@
 package org.srs.datacatalog.search;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 import org.srs.datacatalog.search.MetanameContext.Entry;
 
@@ -14,9 +16,15 @@ public class MetanameContext extends TreeSet<Entry> {
         String metaname;
         TreeSet<Entry> postfixes;
         int splitIdx = 3;
-
+        private HashSet<Class> types = new HashSet<Class>();
+        
         public Entry(String metaname){
             this.metaname = metaname;
+        }
+
+        public Entry(String metaname, Class type){
+            this.metaname = metaname;
+            this.types.add( type );
         }
         
         public Entry(String prefix, TreeSet<Entry> postfixes){
@@ -33,6 +41,16 @@ public class MetanameContext extends TreeSet<Entry> {
                 postfixes.add( new Entry(s.substring( splitIdx ) ) );
             }
         }
+        
+        public Entry(String prefix, List<String> fullStrings, int splitIdx, Class type){
+            this.metaname = prefix;
+            this.splitIdx = splitIdx < 1 ? prefix.length() : splitIdx;
+            this.postfixes = new TreeSet<>();
+            for(String s: fullStrings){
+                postfixes.add( new Entry(s.substring( splitIdx ), type ) );
+            }
+            types.add( type );
+        }
 
         @Override
         public int compareTo(Object o){
@@ -43,6 +61,10 @@ public class MetanameContext extends TreeSet<Entry> {
                 return maybe != null ?  maybe.compareTo( cmp ) : -1;
             }
             return metaname.compareTo( o.toString() );
+        }
+        
+        public Set<Class> getTypes(){
+            return types;
         }
         
         @Override
@@ -76,7 +98,25 @@ public class MetanameContext extends TreeSet<Entry> {
                 floor( e ).compareTo( e ) == 0 : 
                 false;
     }
-
+    
+    @Override
+    public boolean add(Entry e){
+        Entry ret = floor(e);
+        if(ret != null && ret.compareTo( e ) == 0){
+            ret.types.addAll(e.getTypes());
+            return true;
+        }
+        return super.add( e );
+    }
+    
+    public Set<Class> getTypes(String name){
+        Entry e = floor( new Entry(name));
+        if(e == null){
+            return new HashSet<>();
+        }
+        return e.getTypes();
+    }
+    
     @Override
     public boolean contains(Object o){
         return contains( new Entry( o.toString() ) );
