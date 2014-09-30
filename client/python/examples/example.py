@@ -3,7 +3,7 @@
 """
 Make sure you have your environment setup!
 1. You need Python requests >= 2.3.0
-2. You need the datacat directory in your path.
+2. You need the datacat module directory in your path.
 """
 
 from datacat import Client, unpack
