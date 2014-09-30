@@ -21,7 +21,7 @@ class Client(object):
         param_list = "query:filter sort:sort show:show offset:offset max_num:max".split(" ")
         param_map = dict([i.split(":") for i in param_list])
         params = {param_map[k]:v for k,v in locals().items() if k in param_map and v is not None}
-        return self._get(self._target(endpoint, path, accept), params)
+        return self._get(self._target(endpoint, target, accept), params)
     
     def _get(self, target, params=None):
         return requests.get(target, params=params)
