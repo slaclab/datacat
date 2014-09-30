@@ -17,13 +17,13 @@ def build_argparser():
     subparsers = parser.add_subparsers(help="Command help")
     
     def add_search(subparsers):
-        parser_search = subparsers.add_parser("search", help="search help")
+        parser_search = subparsers.add_parser("search", help="Search command help", formatter_class=argparse.RawTextHelpFormatter)
         parser_search.add_argument('path', help="Container Search path (or pattern)")
         parser_search.add_argument('-q', '--query', dest="query", help="Query String for datasets")
         parser_search.add_argument('--show', nargs="*", metavar="FIELD", help="List of columns to return")
         parser_search.add_argument('--sort', nargs="*", metavar="FIELD", help=
-        "Fields and metadata to sort by. If sorting in descending order, append a dash to the end of the field. " +
-        "Examples: --sort nRun-, nEvents \n --sort nEvents+ nRun-'")
+        "Fields and metadata to sort by. \nIf sorting in descending order, \nappend a dash to the end of the field. " +
+        "\n\nExamples: \n --sort nRun- nEvents\n --sort nEvents+ nRun-")
         parser_search.set_defaults(command="search")
     
     def add_path(subparsers):
@@ -65,12 +65,13 @@ def main():
     pp = pprint.PrettyPrinter(indent=2)
 
     if(resp.status_code >= 400):
-        if argparse.response:
+        print(args)
+        if args.response:
             print resp.content
 
         if resp.status_code >= 500:
             print("Error processing request: %d" %resp.status_code)
-            if argparse.response:
+            if args.response:
                 print resp.content
             sys.exit(1)
         error = resp.json()
@@ -105,12 +106,12 @@ def main():
     if command == "search":
         def print_search_info(datasets, metanames):
             print("\nListing locations...")
-            print( "Path\tFileSystemPath\t%s" %("\t".join(metanames)))
+            print( "Resource\tPath\t%s" %("\t".join(metanames)))
             for dataset in datasets:
                 extra = ""
                 if hasattr(dataset, "metadata"):
                     extra = "\t".join([str(dataset.metadata.get(i)) for i in metanames])
-                print( "%s\t%s\t%s" %(dataset.path, dataset.fileSystemPath, extra))
+                print( "%s\t%s\t%s" %(dataset.resource, dataset.path, extra))
 
         metanames = []
         if args.show is not None:
