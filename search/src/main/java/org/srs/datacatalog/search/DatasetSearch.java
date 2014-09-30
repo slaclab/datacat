@@ -104,8 +104,11 @@ public class DatasetSearch {
 
         if(sortFields != null){
             for(String s: sortFields){
-                boolean asc = !s.startsWith("-");
-                if(!asc || s.startsWith("+")){
+                boolean desc = s.startsWith("-") || s.endsWith("-");
+                if(s.endsWith("-") || s.endsWith("+")){
+                    s = s.substring( 0, s.length() - 1);
+                }
+                if(s.startsWith("-") || s.startsWith("+")){
                     s = s.substring(1);
                 }
 
@@ -132,7 +135,7 @@ public class DatasetSearch {
                     throw new IllegalArgumentException("Unable to find sort field: " + s);
                 }
                 selectStatement.selection(orderBy);
-                selectStatement.orderBy(orderBy, asc ? "ASC":"DESC");
+                selectStatement.orderBy(orderBy, desc ? "DESC":"ASC");
             }
         }
         

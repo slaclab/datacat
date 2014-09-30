@@ -13,8 +13,8 @@ import org.zerorm.core.interfaces.Schema;
 public class VerDataset extends Table {
     @Schema public Column<Long> dataset;
     @Schema(alias = "name") public Column<String> datasetName;
-    @Schema public Column<String> datasetFileFormat;
-    @Schema public Column<String> datasetDataType;
+    @Schema(alias = "fileFormat") public Column<String> datasetFileFormat;
+    @Schema(alias = "dataType") public Column<String> datasetDataType;
     @Schema public Column<Long> datasetlogicalfolder;
     @Schema public Column<Long> datasetGroup;
     @Schema public Column<Long> latestVersion;

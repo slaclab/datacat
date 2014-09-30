@@ -13,14 +13,14 @@ import org.zerorm.core.interfaces.Schema;
 public class Location extends Table {
     @Schema public Column datasetLocation;
     @Schema public Column datasetVersion;
-    @Schema public Column datasetSite;
-    @Schema public Column path;
+    @Schema(alias = "site") public Column datasetSite;
+    @Schema(alias = "resource") public Column path;
     @Schema public Column runMin;
     @Schema public Column runMax;
-    @Schema public Column numberEvents;
-    @Schema public Column fileSizeBytes;
-    @Schema public Column checkSum;
-    @Schema public Column scanstatus;
+    @Schema(alias = "eventCount") public Column numberEvents;
+    @Schema(alias = "size") public Column fileSizeBytes;
+    @Schema public Column checksum;
+    @Schema public Column scanStatus;
 
     public Location(){
         super();

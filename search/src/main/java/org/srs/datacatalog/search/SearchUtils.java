@@ -77,19 +77,19 @@ public class SearchUtils {
         builder.parentPk(rs.getLong("parent"));
         builder.name(name);
         builder.path(PathUtils.resolve(rs.getString( "containerpath"), name));
-        builder.datasetFileFormat(rs.getString("datasetfileformat"));
-        builder.datasetDataType(rs.getString("datasetdatatype"));
+        builder.fileFormat(rs.getString("fileformat"));
+        builder.dataType(rs.getString("datatype"));
         builder.versionPk(rs.getLong("latestversion"));
         builder.versionId(rs.getInt("versionid"));
         //dsv.setDatasetSource(rs.getString("datasetsource"));
         builder.locationPk(rs.getLong("masterlocation"));
-        builder.site(rs.getString("datasetsite"));
-        builder.fileSystemPath(rs.getString("path"));
+        builder.site(rs.getString("site"));
+        builder.resource(rs.getString("resource"));
         builder.runMin(rs.getLong("runmin"));
         builder.runMax(rs.getLong("runmax"));
-        builder.eventCount(rs.getLong("numberevents"));
-        builder.fileSize(rs.getLong("filesizebytes"));
-        builder.checkSum(rs.getLong("checksum"));
+        builder.eventCount(rs.getLong("eventCount"));
+        builder.size(rs.getLong("size"));
+        builder.checksum(rs.getLong("checksum"));
         HashMap<String, Object> metadata = new HashMap<>();
         for(String s: includedMetadata){
             Object o = rs.getObject(s);;
