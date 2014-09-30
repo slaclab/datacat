@@ -3,7 +3,6 @@ package org.srs.datacat.shared;
 
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.shared.container.BasicStat;
-import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
@@ -23,7 +22,6 @@ import org.srs.datacat.shared.DatasetGroup.Builder;
 public class DatasetGroup extends DatacatObject implements DatasetContainer {
     private BasicStat stat;
     private String description;
-    private List<DatacatObject> children = null;
 
     public DatasetGroup(){
         super();
@@ -53,21 +51,13 @@ public class DatasetGroup extends DatacatObject implements DatasetContainer {
         this.description = builder.description;
     }
     
-    public DatasetGroup(DatacatObject object, List<DatacatObject> children){
-        this(object);
-        this.children = children;
-    }
-    
+   
     @Override
     @XmlElement(required=false)
     public String getDescription() {
         return description;
     }
     
-    public List<DatacatObject> listChildren() {
-        return children;
-    }
-
     @Override
     @XmlElement(required=false)
     public BasicStat getStat(){
