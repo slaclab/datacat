@@ -263,12 +263,12 @@ public class DatasetDAO extends BaseDAO {
                 builder.pk(rs.getLong("datasetlocation"));
                 builder.parentPk(versionPk);
                 builder.site(rs.getString( "datasetsite"));
-                builder.fileSystemPath(rs.getString( "path"));
+                builder.resource(rs.getString( "path"));
                 builder.runMin(rs.getLong( "runmin"));
                 builder.runMax(rs.getLong( "runmax"));
                 builder.eventCount(rs.getLong( "numberevents"));
-                builder.fileSize(rs.getLong( "filesizebytes"));
-                builder.checkSum(rs.getLong( "checksum"));
+                builder.size(rs.getLong( "filesizebytes"));
+                builder.checksum(rs.getLong( "checksum"));
                 builder.modified(rs.getTimestamp( "lastmodified"));
                 builder.scanned(rs.getTimestamp( "lastscanned"));
                 builder.scanStatus( rs.getString( "scanstatus"));
@@ -286,8 +286,8 @@ public class DatasetDAO extends BaseDAO {
                 + "DatasetLogicalFolder, DatasetGroup) values (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = getConnection().prepareStatement( insertSql, new String[]{"DATASET", "REGISTERED"} )) {
             stmt.setString(1, name);
-            stmt.setString(2, request.getDatasetFileFormat() );
-            stmt.setString(3, request.getDatasetDataType().toUpperCase());
+            stmt.setString(2, request.getFileFormat() );
+            stmt.setString(3, request.getDataType().toUpperCase());
             switch(parentType){
                 case FOLDER:
                     stmt.setLong( 4, parentPk);
@@ -458,11 +458,11 @@ public class DatasetDAO extends BaseDAO {
         try(PreparedStatement stmt = getConnection().prepareStatement( insertSql, new String[]{"DATASETLOCATION", "REGISTERED"} )) {
             stmt.setLong( 1, datasetVersionPk );
             stmt.setString( 2, request.getSite() );
-            stmt.setString( 3, request.getFileSystemPath() );
+            stmt.setString( 3, request.getResource() );
             stmt.setLong( 4, request.getRunMin() );
             stmt.setLong( 5, request.getRunMax() );
             stmt.setLong( 6, request.getEventCount() );
-            stmt.setLong( 7, request.getFileSize() );
+            stmt.setLong( 7, request.getSize() );
             stmt.executeUpdate();   // will throw exception if required parameter is empty...
             DatasetLocation.Builder builder = new DatasetLocation.Builder(request);
             // now retrieve the primary key:

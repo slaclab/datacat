@@ -50,9 +50,9 @@ public class TestUtils {
             Dataset.Builder dsBuilder = new Dataset.Builder();
                 name = String.format("dataset%05d", j);
                 dsBuilder.name(name);
-                dsBuilder.datasetDataType(HSqlDbHarness.JUNIT_DATASET_DATATYPE);
+                dsBuilder.dataType(HSqlDbHarness.JUNIT_DATASET_DATATYPE);
                 dsBuilder.datasetSource(HSqlDbHarness.JUNIT_DATASET_DATASOURCE);
-                dsBuilder.datasetFileFormat(HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
+                dsBuilder.fileFormat(HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
                 dsBuilder.versionId( DatasetView.NEW_VER );
                 HashMap<String, Object> metadata = new HashMap<>();
                 metadata.put( numberName, numberMdValues[i % 4]);

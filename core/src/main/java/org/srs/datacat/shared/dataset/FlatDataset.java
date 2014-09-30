@@ -104,33 +104,33 @@ public class FlatDataset extends Dataset implements DatasetVersionModel, Dataset
     @XmlElement(required=false)
     public Integer getVersionId(){ return dsVersion.getVersionId(); }
 
-    @XmlElement(required=false)
+    @XmlElement(name="versionCreated", required=false)
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
     public Timestamp getDateVersionCreated(){ return dsVersion.getDateCreated(); }
 
     // Location info
     @Override 
     @XmlElement(required=false)
-    public String getFileSystemPath(){ return dsLocation.getFileSystemPath(); }
+    public String getResource(){ return dsLocation.getResource(); }
     
     @Override 
     @XmlElement(required=false)
-    public Long getFileSize(){ return dsLocation.getFileSize(); }
+    public Long getSize(){ return dsLocation.getSize(); }
     
     @Override 
     @XmlElement(required=false)
-    public Long getCheckSum(){ return dsLocation.getCheckSum(); }
+    public Long getChecksum(){ return dsLocation.getChecksum(); }
     
-    @XmlElement(required=false)
+    @XmlElement(name="locationModified", required=false)
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
     public Timestamp getDateLocationModified(){ return dsLocation.getDateModified(); }
     
-    @XmlElement(required=false)
+    @XmlElement(name="locationRegistered", required=false)
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
     public Timestamp getDateLocationCreated(){ return dsLocation.getDateCreated(); }
     
     @Override 
-    @XmlElement(required=false)
+    @XmlElement(name="locationScanned", required=false)
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
     public Timestamp getDateScanned(){ return dsLocation.getDateScanned(); }
     

@@ -9,8 +9,8 @@ import java.sql.Timestamp;
  */
 public interface DatasetModel {
 
-    String getDatasetDataType();
-    String getDatasetFileFormat();
+    String getDataType();
+    String getFileFormat();
     Timestamp getDateCreated();
     Timestamp getDateModified();
     

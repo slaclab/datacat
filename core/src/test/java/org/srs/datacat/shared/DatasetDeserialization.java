@@ -36,11 +36,11 @@ public class DatasetDeserialization extends TestCase {
             + "        \"$type\": \"integer\"\n"
             + "    }],\n"
             + "    \"versionId\": 0,\n"
-            + "    \"fileSystemPath\": \"/nfs/farm/g/agis/u01/CTASims/MC/MST61_B100_Z2000/corsika/gamma_E1000_4000_ZN200_AZ000_000007.dat.gz\",\n"
-            + "    \"fileSize\": 4650118345,\n"
+            + "    \"resource\": \"/nfs/farm/g/agis/u01/CTASims/MC/MST61_B100_Z2000/corsika/gamma_E1000_4000_ZN200_AZ000_000007.dat.gz\",\n"
+            + "    \"size\": 4650118345,\n"
             + "    \"site\": \"SLAC\",\n"
-            + "    \"datasetDataType\": \"CTAEVENTIO\",\n"
-            + "    \"datasetFileFormat\": \"dat.gz\"\n"
+            + "    \"dataType\": \"CTAEVENTIO\",\n"
+            + "    \"fileFormat\": \"dat.gz\"\n"
             + "}";
 
     String datasetWithNoType = "{ " + datasetBase;
@@ -57,16 +57,16 @@ public class DatasetDeserialization extends TestCase {
         Dataset fds;
         
         fds = mapper.readValue( datasetWithType, Dataset.class);
-        System.out.println(fds.getDatasetFileFormat());
+        System.out.println(fds.getFileFormat());
         //mapper.enableDefaultTyping();
         fds = mapper.readValue( datasetWithNoType, new TypeReference<FlatDataset>(){});
-                System.out.println(fds.getDatasetFileFormat());
+                System.out.println(fds.getFileFormat());
 
         fds = mapper.readValue( datasetWithNoType, new TypeReference<FlatDataset>(){});
-                System.out.println(fds.getDatasetFileFormat());
+                System.out.println(fds.getFileFormat());
 
         fds = mapper.readValue( datasetWithNoType, FlatDataset.class);
-                System.out.println(fds.getDatasetFileFormat());
+                System.out.println(fds.getFileFormat());
 
     }
 }

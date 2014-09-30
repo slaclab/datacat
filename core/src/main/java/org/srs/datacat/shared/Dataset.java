@@ -38,8 +38,8 @@ import org.srs.rest.shared.metadata.MetadataEntry;
 @JsonDeserialize(builder=Builder.class)
 public class Dataset extends DatacatObject implements DatasetModel {
     
-    private String datasetFileFormat;
-    private String datasetDataType;
+    private String fileFormat;
+    private String dataType;
     private Timestamp dateCreated;
     
     public Dataset(){ super(); }
@@ -52,8 +52,8 @@ public class Dataset extends DatacatObject implements DatasetModel {
      */
     public Dataset(Dataset dataset){
         super(dataset);
-        this.datasetDataType = dataset.datasetDataType;
-        this.datasetFileFormat = dataset.datasetFileFormat;
+        this.dataType = dataset.dataType;
+        this.fileFormat = dataset.fileFormat;
         this.dateCreated = dataset.dateCreated;
     }
     
@@ -63,22 +63,22 @@ public class Dataset extends DatacatObject implements DatasetModel {
     
     public Dataset(Builder builder){
         super(builder);
-        this.datasetDataType = builder.datasetDataType;
-        this.datasetFileFormat = builder.fileFormat;
+        this.dataType = builder.dataType;
+        this.fileFormat = builder.fileFormat;
         this.dateCreated = builder.created;
     }
     
     @Override
     @XmlElement(required=false)
-    public String getDatasetDataType() { return this.datasetDataType;}
+    public String getDataType() { return this.dataType;}
         
     @Override
     @XmlElement(required=false)
-    public String getDatasetFileFormat() { return this.datasetFileFormat;}
+    public String getFileFormat() { return this.fileFormat;}
     
     @Override
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
-    @XmlElement(name="registered", required=false)
+    @XmlElement(name="created", required=false)
     public Timestamp getDateCreated(){ return this.dateCreated; }
     
     @Override
@@ -89,7 +89,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
     
     @Override
     public String toString() {
-        return super.toString() + "\tType: " + datasetDataType + "\tRegistered: " + dateCreated;
+        return super.toString() + "\tType: " + dataType + "\tCreated: " + dateCreated;
     }
 
     @Override
@@ -101,10 +101,10 @@ public class Dataset extends DatacatObject implements DatasetModel {
             return false;
         }
         Dataset other = (Dataset) obj;
-        if(!weakEquivalence( this.datasetFileFormat, other.datasetFileFormat )){
+        if(!weakEquivalence( this.fileFormat, other.fileFormat )){
             return false;
         }
-        if(!weakEquivalence( this.datasetDataType, other.datasetDataType )){
+        if(!weakEquivalence( this.dataType, other.dataType )){
             return false;
         }
         if(!weakEquivalence( this.dateCreated, other.dateCreated )){
@@ -158,20 +158,20 @@ public class Dataset extends DatacatObject implements DatasetModel {
         public Boolean latest;
         public Boolean master;
         public String fileFormat;
-        public String datasetDataType;
+        public String dataType;
         public Integer versionId;
         public String datasetSource;
         public Long processInstance;
         public String taskName;
         public Timestamp versionCreated;
         public Timestamp versionModified;
-        public Long fileSize;
-        public String fileSystemPath;
+        public Long size;
+        public String resource;
         public String site;
         public Long eventCount;
         public Long runMin;
         public Long runMax;
-        public Long checkSum;
+        public Long checksum;
         public Timestamp locationCreated;
         public Timestamp locationModified;
         public Timestamp locationScanned;
@@ -197,7 +197,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
             this.latest = builder.latest;
             this.master = builder.master;
             this.fileFormat = builder.fileFormat;
-            this.datasetDataType = builder.datasetDataType;
+            this.dataType = builder.dataType;
             this.versionId = builder.versionId;
             this.datasetSource = builder.datasetSource;
             this.processInstance = builder.processInstance;
@@ -205,13 +205,13 @@ public class Dataset extends DatacatObject implements DatasetModel {
             this.versionCreated = builder.versionCreated;
             this.versionModified = builder.versionModified;
             this.versionMetadata = builder.versionMetadata;
-            this.fileSize = builder.fileSize;
-            this.fileSystemPath = builder.fileSystemPath;
+            this.size = builder.size;
+            this.resource = builder.resource;
             this.site = builder.site;
             this.eventCount = builder.eventCount;
             this.runMin = builder.runMin;
             this.runMax = builder.runMax;
-            this.checkSum = builder.checkSum;
+            this.checksum = builder.checksum;
             this.locationCreated = builder.locationCreated;
             this.locationModified = builder.locationModified;
             this.locationScanned = builder.locationScanned;
@@ -220,8 +220,8 @@ public class Dataset extends DatacatObject implements DatasetModel {
         
         public Builder(Dataset ds){
             super(ds);
-            this.fileFormat = ds.datasetFileFormat;
-            this.datasetDataType = ds.datasetDataType;
+            this.fileFormat = ds.fileFormat;
+            this.dataType = ds.dataType;
             this.created = ds.dateCreated;
         }
 
@@ -251,15 +251,15 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
-        public Builder datasetFileFormat(String val){
+        public Builder fileFormat(String val){
             this.fileFormat = val;
             dsType |= BASE;
             return this;
         }
 
         @JsonSetter
-        public Builder datasetDataType(String val){
-            this.datasetDataType = val;
+        public Builder dataType(String val){
+            this.dataType = val;
             dsType |= BASE;
             return this;
         }
@@ -378,15 +378,15 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
-        public Builder fileSize(Long val){
-            this.fileSize = val;
+        public Builder size(Long val){
+            this.size = val;
             dsType |= LOCATION;
             return this;
         }
 
         @JsonSetter
-        public Builder fileSystemPath(String val){
-            this.fileSystemPath = val;
+        public Builder resource(String val){
+            this.resource = val;
             dsType |= LOCATION;
             return this;
         }
@@ -420,8 +420,8 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
-        public Builder checkSum(Long val){
-            this.checkSum = val;
+        public Builder checksum(Long val){
+            this.checksum = val;
             dsType |= LOCATION;
             return this;
         }

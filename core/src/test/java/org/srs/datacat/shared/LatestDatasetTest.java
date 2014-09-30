@@ -50,9 +50,9 @@ public class LatestDatasetTest extends TestCase {
     public void testFullDataset() throws JAXBException, IOException{
         FullDataset.Builder db =  new FullDataset.Builder();
         db.name("my-flat-dataset.txt");
-        db.datasetFileFormat("FITS");
-        db.fileSystemPath( "/path/to/somewhere");
-        db.fileSize( 1234L );
+        db.fileFormat("FITS");
+        db.resource( "/path/to/somewhere");
+        db.size( 1234L );
         db.runMin( 0L );
         db.runMax( 10L );
         
@@ -94,9 +94,9 @@ public class LatestDatasetTest extends TestCase {
     public void testFlatDataset() throws JAXBException, IOException{
         Dataset.Builder db =  new Dataset.Builder();
         db.name("my-flat-dataset.txt");
-        db.datasetFileFormat("FITS");
-        db.fileSystemPath( "/path/to/somewhere");
-        db.fileSize( 1234L );
+        db.fileFormat("FITS");
+        db.resource( "/path/to/somewhere");
+        db.size( 1234L );
         db.runMin( 0L );
         db.runMax( 10L );
         
@@ -135,9 +135,9 @@ public class LatestDatasetTest extends TestCase {
     public void testFlatDatasetXML() throws JAXBException, IOException {
         Dataset.Builder db =  new Dataset.Builder();
         db.name("my-flat-dataset.txt");
-        db.datasetFileFormat("FITS");
-        db.fileSystemPath( "/path/to/somewhere");
-        db.fileSize( 1234L );
+        db.fileFormat("FITS");
+        db.resource( "/path/to/somewhere");
+        db.size( 1234L );
         db.runMin( 0L );
         db.runMax( 10L );
         
@@ -156,12 +156,12 @@ public class LatestDatasetTest extends TestCase {
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
                 + "<flatDataset>\n"
                 + "    <name>my-flat-dataset.txt</name>\n"
-                + "    <datasetFileFormat>FITS</datasetFileFormat>\n"
-                + "    <fileSize>1234</fileSize>\n"
-                + "    <fileSystemPath>/path/to/somewhere</fileSystemPath>\n"
+                + "    <fileFormat>FITS</fileFormat>\n"
                 + "    <latest>true</latest>\n"
+                + "    <resource>/path/to/somewhere</resource>\n"
                 + "    <runMax>10</runMax>\n"
                 + "    <runMin>0</runMin>\n"
+                + "    <size>1234</size>\n"
                 + "    <taskName>faketask</taskName>\n"
                 + "    <versionId>123</versionId>\n"
                 + "    <versionMetadata>\n"
@@ -202,9 +202,9 @@ public class LatestDatasetTest extends TestCase {
         
         MultivaluedMap<String, String> mmap = new MultivaluedHashMap<>();        
         mmap.put( "name", Arrays.asList("my-flat-dataset.txt"));
-        mmap.put( "datasetFileFormat",Arrays.asList("FITS"));
-        mmap.put( "fileSystemPath", Arrays.asList("/path/to/somewhere"));
-        mmap.put( "fileSize", Arrays.asList("1234"));
+        mmap.put( "fileFormat",Arrays.asList("FITS"));
+        mmap.put( "resource", Arrays.asList("/path/to/somewhere"));
+        mmap.put( "size", Arrays.asList("1234"));
         mmap.put( "runMin", Arrays.asList("0"));
         mmap.put( "runMax", Arrays.asList("10"));
         mmap.put( "latest", Arrays.asList("true") );

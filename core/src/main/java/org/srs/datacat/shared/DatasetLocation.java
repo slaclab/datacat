@@ -28,13 +28,13 @@ import org.srs.rest.shared.RestDateAdapter;
 @JsonDeserialize(builder = Builder.class)
 public class DatasetLocation extends DatacatObject implements DatasetLocationModel {
    
-    private String fileSystemPath;
-    private Long fileSize;
+    private String resource;
+    private Long size;
     private String site;
     private Long runMin;
     private Long runMax;
     private Long eventCount;
-    private Long checkSum;
+    private Long checksum;
     private Timestamp dateModified;
     private Timestamp dateScanned;
     private Timestamp dateCreated;
@@ -49,12 +49,12 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
      */
     public DatasetLocation(DatasetLocation location){
         super(location);
-        this.fileSystemPath = location.fileSystemPath;
-        this.fileSize = location.fileSize;
+        this.resource = location.resource;
+        this.size = location.size;
         this.site = location.site;
         this.runMin = location.runMin;
         this.runMax = location.runMax;
-        this.checkSum = location.checkSum;
+        this.checksum = location.checksum;
         this.dateModified = location.dateModified;
         this.dateCreated = location.dateCreated;
         this.dateScanned = location.dateScanned;
@@ -64,13 +64,13 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     }
 
     public DatasetLocation(Builder builder){
-        super(builder.pk, builder.parentPk, builder.fileSystemPath);
-        this.fileSystemPath = builder.fileSystemPath;
-        this.fileSize = builder.fileSize;
+        super(builder.pk, builder.parentPk, builder.resource);
+        this.resource = builder.resource;
+        this.size = builder.size;
         this.site = builder.site;
         this.runMin = builder.runMin;
         this.runMax = builder.runMax;
-        this.checkSum = builder.checkSum;
+        this.checksum = builder.checksum;
         this.dateModified = builder.dateModified;
         this.dateCreated = builder.dateCreated;
         this.dateScanned = builder.dateScanned;
@@ -80,13 +80,13 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     }
     
     public DatasetLocation(Dataset.Builder builder){
-        super(builder.locationPk, builder.versionPk, builder.fileSystemPath);
-        this.fileSystemPath = builder.fileSystemPath;
-        this.fileSize = builder.fileSize;
+        super(builder.locationPk, builder.versionPk, builder.resource);
+        this.resource = builder.resource;
+        this.size = builder.size;
         this.site = builder.site;
         this.runMin = builder.runMin;
         this.runMax = builder.runMax;
-        this.checkSum = builder.checkSum;
+        this.checksum = builder.checksum;
         this.dateModified = builder.locationModified;
         this.dateCreated = builder.locationCreated;
         this.dateScanned = builder.locationScanned;
@@ -95,13 +95,13 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
         this.master = builder.master;
     }
    
-    @Override public String getFileSystemPath() { return this.fileSystemPath; }
-    @Override public Long getFileSize() { return this.fileSize; }
-    @Override public String getSite() { return this.site; }
-    @Override public Long getRunMin() { return this.runMin; }
-    @Override public Long getRunMax() { return this.runMax; }
-    @Override public Long getEventCount() { return this.eventCount; }
-    @Override public Long getCheckSum() { return this.checkSum; }
+    @XmlElement(required=false) @Override public String getResource() { return this.resource; }
+    @XmlElement(required=false) @Override public Long getSize() { return this.size; }
+    @XmlElement(required=false) @Override public String getSite() { return this.site; }
+    @XmlElement(required=false) @Override public Long getRunMin() { return this.runMin; }
+    @XmlElement(required=false) @Override public Long getRunMax() { return this.runMax; }
+    @XmlElement(required=false) @Override public Long getEventCount() { return this.eventCount; }
+    @XmlElement(required=false) @Override public Long getChecksum() { return this.checksum; }
    
     @Override 
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
@@ -115,7 +115,7 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
 
     @Override
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
-    @XmlElement(name="locationRegistered", required=false)
+    @XmlElement(name="registered", required=false)
     public Timestamp getDateCreated() { return this.dateCreated;}
 
     @Override public String getScanStatus() { return this.scanStatus; }
@@ -124,15 +124,15 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
 
     @Override
     public String toString(){
-        return "DatasetLocation{" + "fileSystemPath=" + fileSystemPath + ", fileSize=" + fileSize +
+        return "DatasetLocation{" + "resource=" + resource + ", size=" + size +
                 ", site=" + site + ", runMin=" + runMin + ", runMax=" + runMax + ", eventCount=" + 
-                eventCount + ", checkSum=" + checkSum + ", dateModified=" + dateModified + 
-                ", dateScanned=" + dateScanned + ", dateCreated=" + dateCreated + ", scanStatus=" + 
+                eventCount + ", checksum=" + checksum + ", modified=" + dateModified + 
+                ", scanned=" + dateScanned + ", created=" + dateCreated + ", scanStatus=" + 
                 scanStatus + ", master=" + master + '}';
     }
     
     public void validateFields(){
-        Objects.requireNonNull( this.fileSystemPath,"Physical file path required");
+        Objects.requireNonNull( this.resource,"Physical file path required");
         Objects.requireNonNull( this.site, "Location site is required");
     }
     
@@ -143,13 +143,13 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
 
     @XmlTransient
     public static class Builder extends DatacatObject.Builder<Builder>{
-        private String fileSystemPath;
-        private Long fileSize;
+        private String resource;
+        private Long size;
         private String site;
         private Long runMin;
         private Long runMax;
         private Long eventCount;
-        private Long checkSum;
+        private Long checksum;
         private Timestamp dateModified;
         private Timestamp dateScanned;
         private Timestamp dateCreated;
@@ -161,12 +161,12 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
         public Builder(DatasetLocation location){
             super(location);
             this.name = location.site;
-            this.fileSystemPath = location.fileSystemPath;
-            this.fileSize = location.fileSize;
+            this.resource = location.resource;
+            this.size = location.size;
             this.site = location.site;
             this.runMin = location.runMin;
             this.runMax = location.runMax;
-            this.checkSum = location.checkSum;
+            this.checksum = location.checksum;
             this.dateModified = location.dateModified;
             this.dateCreated = location.dateCreated;
             this.dateScanned = location.dateScanned;
@@ -179,12 +179,12 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
             this.pk = builder.locationPk;
             this.parentPk = builder.versionPk;
             this.name = builder.site;
-            this.fileSystemPath = builder.fileSystemPath;
-            this.fileSize = builder.fileSize;
+            this.resource = builder.resource;
+            this.size = builder.size;
             this.site = builder.site;
             this.runMin = builder.runMin;
             this.runMax = builder.runMax;
-            this.checkSum = builder.checkSum;
+            this.checksum = builder.checksum;
             this.dateModified = builder.locationModified;
             this.dateCreated = builder.locationCreated;
             this.dateScanned = builder.locationScanned;
@@ -200,13 +200,13 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
         @Override
         public DatasetLocation build(){ return new DatasetLocation(this); }
         
-        @JsonSetter public Builder fileSize(Long val){ this.fileSize = val; return this; }
-        @JsonSetter public Builder fileSystemPath(String val){ this.fileSystemPath = val; return this; }
+        @JsonSetter public Builder size(Long val){ this.size = val; return this; }
+        @JsonSetter public Builder resource(String val){ this.resource = val; return this; }
         @JsonSetter public Builder eventCount(Long val){ this.eventCount = val; return this; }
         @JsonSetter public Builder site(String val){ this.site = val;  return this; }
         @JsonSetter public Builder runMin(Long val){ this.runMin = val; return this; }
         @JsonSetter public Builder runMax(Long val){ this.runMax = val; return this; }
-        @JsonSetter public Builder checkSum(Long val){ this.checkSum = val; return this; }
+        @JsonSetter public Builder checksum(Long val){ this.checksum = val; return this; }
         @JsonSetter public Builder master(Boolean val){ this.master = val; return this; }
         @JsonSetter public Builder created(Timestamp val) { this.dateCreated = val; return this; }
         @JsonSetter public Builder modified(Timestamp val) { this.dateModified = val; return this; }

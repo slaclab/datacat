@@ -9,9 +9,9 @@ import java.sql.Timestamp;
  */
 public interface DatasetLocationModel {
 
-    String getFileSystemPath();
-    Long getFileSize();
-    Long getCheckSum();
+    String getResource();
+    Long getSize();
+    Long getChecksum();
     Timestamp getDateModified();
     Timestamp getDateCreated();
     Timestamp getDateScanned();

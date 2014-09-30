@@ -129,6 +129,7 @@
                         <include>org/srs/datacat/shared/dataset/*.java</include>
                     </includes>
                     <excludes>
+                        <exclude>org/srs/rest/shared/LongSerializer.java</exclude>
                         <exclude>org/srs/rest/shared/RestException.java</exclude>
                         <exclude>org/srs/rest/shared/DatacatObjectBuilder.java</exclude>
                     </excludes>

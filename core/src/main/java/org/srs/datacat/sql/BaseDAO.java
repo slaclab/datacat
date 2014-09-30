@@ -166,8 +166,8 @@ public class BaseDAO implements AutoCloseable {
             stmt.setLong( 1, builder.pk );
             ResultSet rs = stmt.executeQuery();
             rs.next();
-            builder.datasetFileFormat( rs.getString( "datasetfileformat" ) )
-                .datasetDataType( rs.getString( "datasetdatatype" ) );
+            builder.fileFormat( rs.getString( "datasetfileformat" ) )
+                .dataType( rs.getString( "datasetdatatype" ) );
         }
     }
 
@@ -375,12 +375,12 @@ public class BaseDAO implements AutoCloseable {
         builder.pk(rs.getLong("datasetlocation"));
         builder.parentPk(versionPk);
         builder.site(rs.getString( "datasetsite"));
-        builder.fileSystemPath(rs.getString( "path"));
+        builder.resource(rs.getString( "path"));
         builder.runMin(rs.getLong( "runmin"));
         builder.runMax(rs.getLong( "runmax"));
         builder.eventCount(rs.getLong( "numberevents"));
-        builder.fileSize(rs.getLong( "filesizebytes"));
-        builder.checkSum(rs.getLong( "checksum"));
+        builder.size(rs.getLong( "filesizebytes"));
+        builder.checksum(rs.getLong( "checksum"));
         builder.modified(rs.getTimestamp( "lastmodified"));
         builder.scanned(rs.getTimestamp( "lastscanned"));
         builder.scanStatus( rs.getString( "scanstatus"));

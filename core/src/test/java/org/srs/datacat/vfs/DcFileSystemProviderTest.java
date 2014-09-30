@@ -139,8 +139,8 @@ public class DcFileSystemProviderTest {
         
         Dataset.Builder builder = new Dataset.Builder();
         builder.name("testCaseDataset001");
-        builder.datasetDataType(DatasetDAOTest.TEST_DATATYPE_01);
-        builder.datasetFileFormat(DatasetDAOTest.TEST_FILEFORMAT_01);
+        builder.dataType(DatasetDAOTest.TEST_DATATYPE_01);
+        builder.fileFormat(DatasetDAOTest.TEST_FILEFORMAT_01);
         builder.datasetSource( DatasetDAOTest.TEST_DATASET_SOURCE);
         
         Dataset request = builder.build();

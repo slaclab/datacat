@@ -136,15 +136,15 @@ public class DatasetDAOTest {
     private FlatDataset.Builder getRequest(String dsName) throws SQLException, IOException{
         FlatDataset.Builder builder = new FlatDataset.Builder();
         builder.name(dsName);
-        builder.datasetDataType(TEST_DATATYPE_01);
-        builder.datasetFileFormat(TEST_FILEFORMAT_01);
+        builder.dataType(TEST_DATATYPE_01);
+        builder.fileFormat(TEST_FILEFORMAT_01);
         HashMap m = new HashMap();
         m.put( "fakeMetadata", "fakeString");
         m.put( "fakeMetadataNumber", 24);
         m.put( "fakeMetadataDecimal", 24.242);
         builder.versionMetadata(m);
         builder.versionId(DatasetView.NEW_VER);
-        builder.datasetDataType(TEST_DATATYPE_01);
+        builder.dataType(TEST_DATATYPE_01);
         builder.datasetSource(TEST_DATASET_SOURCE);
         return builder;
     }
