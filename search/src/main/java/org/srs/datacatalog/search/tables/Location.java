@@ -14,11 +14,11 @@ public class Location extends Table {
     @Schema public Column datasetLocation;
     @Schema public Column datasetVersion;
     @Schema(alias = "site") public Column datasetSite;
-    @Schema(alias = "resource") public Column path;
+    @Schema public Column path;
     @Schema public Column runMin;
     @Schema public Column runMax;
     @Schema(alias = "eventCount") public Column numberEvents;
-    @Schema(alias = "size") public Column fileSizeBytes;
+    @Schema public Column fileSizeBytes;
     @Schema public Column checksum;
     @Schema public Column scanStatus;
 

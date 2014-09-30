@@ -84,11 +84,11 @@ public class SearchUtils {
         //dsv.setDatasetSource(rs.getString("datasetsource"));
         builder.locationPk(rs.getLong("masterlocation"));
         builder.site(rs.getString("site"));
-        builder.resource(rs.getString("resource"));
+        builder.resource(rs.getString("path"));
         builder.runMin(rs.getLong("runmin"));
         builder.runMax(rs.getLong("runmax"));
         builder.eventCount(rs.getLong("eventCount"));
-        builder.size(rs.getLong("size"));
+        builder.size(rs.getLong("fileSizeBytes"));
         builder.checksum(rs.getLong("checksum"));
         HashMap<String, Object> metadata = new HashMap<>();
         for(String s: includedMetadata){

@@ -57,6 +57,38 @@ public class DatasetSearch {
         return SearchUtils.getResults(conn, statement, metadataFields);
     }
     
+    public void rewrite(AST.Node node){
+        AST.Visitor visitor = new AST.Visitor() {
+            @Override
+            public boolean visit(AST.Node n){
+                boolean changed = false;
+                if(n.getLeft() != null){
+                    changed |= visit(n.getLeft());
+                }
+                if(n.isValueNode()){
+                    // Rewrite values here
+                    switch (n.getValue().toString()){
+                        case "resource":
+                            n.setValue( "path");
+                            changed = true;
+                            break;
+                        case "size":
+                            n.setValue( "fileSizeBytes");
+                            changed = true;
+                            break;
+                    }
+                }
+                if(n.getRight() != null){
+                    changed |= visit(n.getRight());
+                }
+                return changed;
+            }
+        };
+        if(node.accept( visitor )){
+            System.out.println("rewrote at least once");
+        }
+    }
+    
     public Select compileStatement(Connection conn, DcPath parent, 
             ContainerVisitor visitor, boolean checkParent, int maxDepth,
             String queryString, String[] sites, String[] metaFieldsToRetrieve,  String[] sortFields, int offset, int max) throws ParseException, SQLException, IOException {
@@ -65,6 +97,7 @@ public class DatasetSearch {
         DatacatSearchContext sd = prepareSelection(ast, dsv);
         
         if(ast != null){
+            rewrite(ast.getRoot());
             sd.evaluateNode(ast.getRoot(), dsv);
         }
         
@@ -115,6 +148,19 @@ public class DatasetSearch {
                 Column orderBy = null;
                 if(sd.inSelectionScope( s )){
                     orderBy = getColumnFromSelectionScope( dsv, s );
+                } else if(sd.inPluginScope( s )){
+                    // TODO: This should be cleaner
+                    DatacatPlugin plugin = sd.pluginScope.getPlugin(s);
+                    String fIdent = s.split( "\\.")[1];
+                    for(Object o: plugin.joinToStatement(dsv).getColumns()){
+                        if(o instanceof Column){
+                            Column cc = (Column) o;
+                            if( cc.canonical().equals( fIdent ) ){
+                                orderBy = cc;
+                                break;
+                            }
+                        }
+                    }
                 } else if(sd.inMetanameScope( s )){
                     if(dmc.getTypes( s ).size() > 1){
                         throw new IllegalArgumentException("Unable to sort on fields with multiple types");
@@ -144,6 +190,19 @@ public class DatasetSearch {
                 Column retrieve = null;
                 if(sd.inSelectionScope( s )){
                     retrieve = getColumnFromSelectionScope( dsv, s );
+                } else if(sd.inPluginScope( s )){
+                    // TODO: This should be cleaner
+                    DatacatPlugin plugin = sd.pluginScope.getPlugin(s);
+                    String fIdent = s.split( "\\.")[1];
+                    for(Object o: plugin.joinToStatement(dsv).getColumns()){
+                        if(o instanceof Column){
+                            Column cc = (Column) o;
+                            if( cc.canonical().equals( fIdent ) ){
+                                retrieve = cc;
+                                break;
+                            }
+                        }
+                    }
                 } else if(sd.inMetanameScope( s )){
                     String aliased = "\"" + s + "\"";
                     retrieve = getColumnFromAllScope( dsv, aliased);
