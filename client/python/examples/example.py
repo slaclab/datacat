@@ -21,7 +21,7 @@ resp = client.search(path_pattern, query=query, sort=sort, show=show)
 if resp.status_code == 200:
     for raw_dataset in resp.json():
         dataset = unpack(raw_dataset)
-        print(dataset.fileSystemPath)
+        print(dataset.resource)
         print("\t" + str(dataset.metadata))
 else:
     print("Error processing request:" + str(resp.status_code))
