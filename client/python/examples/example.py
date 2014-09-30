@@ -7,9 +7,9 @@ Make sure you have your environment setup!
 """
 
 from datacat import Client, unpack
-from datacat.config import BASE_URL
+from datacat.config import CONFIG_URL
 
-client = Client(BASE_URL("lsst", mode="dev"))
+client = Client(CONFIG_URL("lsst", mode="dev"))
 
 path_pattern = "/EXO/Data/Raw/*"                     # Search containers under Raw
 query = 'nRun gt 6200 and exo.runQuality =~ "GO%"'   # Filter query

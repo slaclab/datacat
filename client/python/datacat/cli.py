@@ -53,7 +53,7 @@ def main():
     target = args.path
     params = args.__dict__
 
-    base_url = args.base_url if hasattr(args, 'base_url') and args.base_url is not None else BASE_URL("srs")
+    base_url = args.base_url if hasattr(args, 'base_url') and args.base_url is not None else CONFIG_URL("srs")
     client = Client(base_url)
     client_method = getattr(client, command)
 

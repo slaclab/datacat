@@ -11,7 +11,7 @@ DEV_SRS_URL = "http://scalnx-v04.slac.stanford.edu:8180/org-srs-datacat-war-4.1/
 
 SRS_EXPERIMENTS = "srs exo cdms lsst lsst-desc lsst-camera".split(" ")
 
-def BASE_URL(experiment, mode="dev"):
+def CONFIG_URL(experiment, mode="dev"):
     is_srs = experiment.lower() in SRS_EXPERIMENTS
     if mode is "dev" and is_srs:
         return DEV_SRS_URL
