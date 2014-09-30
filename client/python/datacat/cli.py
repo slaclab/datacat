@@ -10,7 +10,7 @@ from config import *
 
 def build_argparser():
     parser = argparse.ArgumentParser(description="Python CLI for Data Catalog RESTful interfaces")
-    parser.add_argument('-U', '--base-url', help="Override base URL for client")
+    parser.add_argument('-U', '--base-url', help="Override base URL for client", action="store")
     parser.add_argument('-D', '--experiment', "--domain", help="Set experiment domain for requests")
     parser.add_argument('-R', '--show-raw-response', action="store_true", dest="response", help="Show raw response", default=False)
     parser.add_argument('-H', '--show-headers', action="store_true", dest="headers", help="Show HTTP headers", default=False)
@@ -19,9 +19,11 @@ def build_argparser():
     def add_search(subparsers):
         parser_search = subparsers.add_parser("search", help="search help")
         parser_search.add_argument('path', help="Container Search path (or pattern)")
-        parser_search.add_argument('-q', '--filter', dest="q", help="Query String for datasets")
+        parser_search.add_argument('-q', '--query', dest="query", help="Query String for datasets")
         parser_search.add_argument('--show', nargs="*", metavar="FIELD", help="List of columns to return")
-        parser_search.add_argument('--sort', nargs="*", metavar="FIELD", help='Fields and metadata to sort by. If sorting in descending order, append a dash to the end of the field. Examples: --sort nRun-, nEvents \n --sort nEvents+ nRun-')
+        parser_search.add_argument('--sort', nargs="*", metavar="FIELD", help=
+        "Fields and metadata to sort by. If sorting in descending order, append a dash to the end of the field. " +
+        "Examples: --sort nRun-, nEvents \n --sort nEvents+ nRun-'")
         parser_search.set_defaults(command="search")
     
     def add_path(subparsers):
@@ -111,11 +113,11 @@ def main():
                 print( "%s\t%s\t%s" %(dataset.path, dataset.fileSystemPath, extra))
 
         metanames = []
-        if "show" in params:
-            metanames.extend(params["show"])
-        if "sort" in params:
+        if args.show is not None:
+            metanames.extend(args.show)
+        if args.sort is not None:
             s = []
-            s.extend(params["sort"])
+            s.extend(args.sort)
         for i in s:
             if i[-1] in ("+", "-"):
                 metanames.append(i[0:-1])
