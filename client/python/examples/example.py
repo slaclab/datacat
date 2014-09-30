@@ -9,7 +9,40 @@ Make sure you have your environment setup!
 from datacat import Client, unpack
 from datacat.config import CONFIG_URL
 
+import pprint
+
 client = Client(CONFIG_URL("exo", mode="dev"))
+
+# Path example
+print("\nPath Example:")
+
+path = '/EXO/Data/Raw/cxd/run00006220-0000.cxd'
+
+resp = client.path(path)
+
+if resp.status_code == 200:
+    dataset = unpack(resp.json())
+    import pprint
+    pprint.pprint(dataset.raw)   # pprint likes raw dictionaries more
+else:
+    print("Error processing request:" + str(resp.status_code))
+
+# Children example
+
+print("\nChildren Example:")
+path = '/EXO/Data/Raw'
+
+resp = client.children(path)
+
+if resp.status_code == 200:
+    children = [unpack(child) for child in resp.json()]
+    pprint.pprint([child.raw for child in children])
+else:
+    print("Error processing request:" + str(resp.status_code))
+
+
+# Search example
+print("\nSearch Example:")
 
 path_pattern = "/EXO/Data/Raw/*"                     # Search containers under Raw
 query = 'nRun gt 6200 and exo.runQuality =~ "GO%"'   # Filter query
@@ -37,4 +70,5 @@ if resp.status_code == 200: # 200 status code ==  success
         print("\t" + str(dataset.metadata))
 else:
     print("Error processing request:" + str(resp.status_code))
+
 
