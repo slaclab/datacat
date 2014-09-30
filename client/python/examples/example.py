@@ -18,10 +18,22 @@ show = ["nVetoEvents"]                               # Retrieve nVetoEvents as w
 
 resp = client.search(path_pattern, query=query, sort=sort, show=show)
 
-if resp.status_code == 200:
-    for raw_dataset in resp.json():
-        dataset = unpack(raw_dataset)
+if resp.status_code == 200: # 200 status code ==  success
+    """
+    The raw json representation of a datacatalog object (Dataset) packs up metadata into a list
+    of objects of the form:
+       [{'key':'nRun', 'type':'integer', 'value':6201}, ...]
+    The unpack method fixes that, but also does a few other things to play nice, like putting
+    the variables into the Dataset.__dict__ object, so you can address them directly
+    """
+    datasets = [unpack(raw_dataset) for raw_dataset in resp.json()]    # unpack the python dictionary. this
+    for dataset in datasets:
         print(dataset.resource)
+
+        """
+        When searching, metadata will be returned to Dataset.metadata. When you are just querying a Dataset,
+        using something like client.path("/path/to/dataset.dst"), the metadata will be in versionMetadata
+        """
         print("\t" + str(dataset.metadata))
 else:
     print("Error processing request:" + str(resp.status_code))
