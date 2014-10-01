@@ -1,4 +1,4 @@
-ENDPOINTS = "children path search datasets containers".split(" ")
+ENDPOINTS = "children path search datasets containers groups folders".split(" ")
 DATATYPES = "json xml txt".split(" ")
 
 __version__ = "0.1-ALPHA"
