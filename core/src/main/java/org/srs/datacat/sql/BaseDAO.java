@@ -418,7 +418,7 @@ public class BaseDAO implements AutoCloseable {
                 + "        FROM Dataset vd "
                 + "        JOIN datasetversion dsv on (vd.latestversion = dsv.datasetversion) "
                 + "        WHERE " + queryCondition
-                + "              and dsv.datasetversion = " + (view.isCurrent() ? "vd.latestversion" : "?") 
+                + "            and " + versionString(view)
                 + "       ORDER BY vd.name, dsv.versionid desc "
                 + ") "
                 + "SELECT dsv.dataset, dsv.datasetversion, dsv.versionid, dsv.datasetsource, dsv.islatest,  "
@@ -460,9 +460,13 @@ public class BaseDAO implements AutoCloseable {
                 + "  JOIN DatasetVersion dsv on (vd.latestversion = dsv.datasetversion)   "
                 + "  LEFT OUTER JOIN VerDatasetLocation vdl on (dsv.datasetversion = vdl.datasetversion)  "
                 + "  WHERE " + queryCondition
-                + "     and dsv.datasetversion = " + (view.isCurrent() ? "vd.latestversion" : "?")
+                + "            and " + versionString(view)
                 + "  ORDER BY vd.name, dsv.versionid desc, vdl.registered";
         return datasetSqlLocations;
+    }
+    
+    private String versionString(DatasetView view){
+        return view.isCurrent() ? " dsv.datasetversion = vd.latestversion " : " dsv.versionid = ? ";
     }
     
 }

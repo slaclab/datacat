@@ -92,9 +92,16 @@ public class VersionWithLocations extends DatasetVersion {
             super(builder);
             this.locations = builder.locations;
         }
+        
+        public Builder(DatasetVersion version){
+            super(version);
+            if(version instanceof VersionWithLocations){
+                this.locations = ((VersionWithLocations) version).getLocations();
+            }
+        }
 
         @JsonSetter 
-        public Builder locations(List<DatasetLocation> val) { this.locations = val; return this; }
+        public Builder locations(Collection<DatasetLocation> val) { this.locations = val; return this; }
 
         @Override
         public VersionWithLocations build(){

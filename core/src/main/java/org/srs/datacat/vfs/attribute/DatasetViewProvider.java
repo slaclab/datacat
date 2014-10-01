@@ -3,11 +3,9 @@ package org.srs.datacat.vfs.attribute;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import javax.sql.DataSource;
 
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RequestView;
@@ -16,8 +14,8 @@ import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.FullDataset;
 import org.srs.datacat.shared.dataset.VersionWithLocations;
-import org.srs.datacat.sql.DatasetDAO;
 import org.srs.datacat.vfs.DcFile;
+import org.srs.datacat.vfs.DcFileSystemProvider;
 
 /**
  *
@@ -26,7 +24,7 @@ import org.srs.datacat.vfs.DcFile;
 public class DatasetViewProvider implements DcViewProvider<RequestView> {
 
     private final DcFile file;
-    private final DataSource dataSource;
+    private final DcFileSystemProvider provider;
     private boolean allVersionsLoaded = false;
     
     private final HashMap<Integer, VersionWithLocations> versionCache = new HashMap<>(4);
@@ -34,7 +32,7 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
 
     public DatasetViewProvider(DcFile file, Dataset object){
         this.file = file;
-        this.dataSource = file.getPath().getFileSystem().getDataSource();
+        this.provider = file.getPath().getFileSystem().provider();
         if(object instanceof FullDataset){
             VersionWithLocations dsv = (VersionWithLocations) ((FullDataset) object).getVersion();
             if(dsv.isLatest()){
@@ -67,15 +65,11 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
         Set<DatasetLocation> retLocations;
         synchronized(this) {
             if(!versionCache.containsKey(view.getVersionId())){
-                try(DatasetDAO dsdao = new DatasetDAO( dataSource.getConnection() )) {
-                    dsv = dsdao.getVersionWithLocations(file.fileKey(), view);
-                    if(dsv.isLatest()){
-                        versionCache.put( DatasetView.CURRENT_VER, dsv);
-                    }
-                    versionCache.put(dsv.getVersionId(), dsv);
-                } catch(SQLException ex) {
-                    throw new IOException( "Error talking to the database", ex );
+                dsv = provider.getVersionWithLocations(file, view);
+                if(dsv.isLatest()){
+                    versionCache.put( DatasetView.CURRENT_VER, dsv);
                 }
+                versionCache.put(dsv.getVersionId(), dsv);
             }
             dsv = versionCache.get(view.getVersionId());
         }

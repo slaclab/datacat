@@ -58,7 +58,6 @@ public class FullDataset extends Dataset {
         return dsVersion;
     }
     
-    
     @XmlTransient
     public static class Builder extends Dataset.Builder{
         
@@ -73,9 +72,13 @@ public class FullDataset extends Dataset {
             if(version == null){
                 VersionWithLocations dv = null;
                 if((dsType & VERSION) > 0){
-                    dv = new VersionWithLocations( new VersionWithLocations.Builder(this));
+                    dv = new VersionWithLocations(new VersionWithLocations.Builder(this));
                 }
                 version( dv );
+            } else if(!(version instanceof VersionWithLocations)){
+                VersionWithLocations.Builder builder = new VersionWithLocations.Builder(version);
+                builder.locations(locations);
+                version(builder.build());
             }
             return new FullDataset( this );
         }

@@ -120,6 +120,15 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
         
         public Builder(){} 
         
+        public Builder(DatasetVersion.Builder builder){
+            super(builder);
+            this.versionId = builder.versionId;
+            this.datasetSource = builder.datasetSource;
+            this.processInstance = builder.processInstance;
+            this.taskName = builder.taskName;
+            this.latest = builder.latest;
+        }
+        
         public Builder(DatasetVersion version){
             super(version);
             this.versionId = version.versionId;

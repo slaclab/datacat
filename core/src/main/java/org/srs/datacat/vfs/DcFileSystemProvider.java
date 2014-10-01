@@ -46,6 +46,7 @@ import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.container.BasicStat;
+import org.srs.datacat.shared.dataset.VersionWithLocations;
 
 import org.srs.datacat.sql.ContainerDAO;
 import org.srs.vfs.AbstractFsProvider;
@@ -386,7 +387,19 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         dsParent.childAdded(dsPath, FileType.FILE);
     }
-        
+    
+    public VersionWithLocations getVersionWithLocations(DcFile file, DatasetView view) throws IOException {
+        try(DatasetDAO dsdao = new DatasetDAO( dataSource.getConnection() )) {
+            VersionWithLocations ret = dsdao.getVersionWithLocations(file.fileKey(), view);
+            if(ret == null){
+                throw new FileNotFoundException(String.format("Invalid View. Version %d not found", view.getVersionId()));
+            }
+            return ret;
+        } catch(SQLException ex) {
+            throw new IOException("Error talking to the database", ex );
+        }
+    }
+    
     public void createDatasetView(Path path, DatasetVersion verRequest, DatasetLocation locRequest, Set<DatasetOption> options) throws IOException{
         DcPath dsPath = checkPath( path );
         DcFile dsFile = resolveFile(dsPath);
