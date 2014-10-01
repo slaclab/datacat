@@ -248,13 +248,13 @@ public class DatacatSearchTest {
         }*/
         conn.commit(); // Remove from parents on commit
         
-        
+        DatasetView dsView = DatasetView.CURRENT_ALL;
         // TODO: Finish More tests
         queryString = "nRun == 239557414";
         searchPath = root.resolve("/testpath");
         System.out.println(datacatSearch.dmc.toString());
         visitor = new ContainerVisitor(root.getFileSystem(), "/testpath", searchGroups, searchFolders);
-        statement = datacatSearch.compileStatement( conn, searchPath, visitor, false, 100, queryString, sites, metaFieldsToRetrieve, sortFields,0,-1);
+        statement = datacatSearch.compileStatement( conn, searchPath, dsView, visitor, false, 100, queryString, metaFieldsToRetrieve, sortFields,0,-1);
         System.out.println(statement.formatted());
         
         /*datasets = datacatSearch.searchForDatasetsInParent( conn, statement, keepAlive);
@@ -266,7 +266,7 @@ public class DatacatSearchTest {
         queryString = "sIntent == 'run'";
         searchPath = root.resolve("/testpath");
         visitor = new ContainerVisitor(root.getFileSystem(), "/testpath", searchGroups, searchFolders);
-        statement = datacatSearch.compileStatement( conn, searchPath, visitor, false, 100, queryString, sites, metaFieldsToRetrieve, sortFields,0,-1);
+        statement = datacatSearch.compileStatement( conn, searchPath, dsView, visitor, false, 100, queryString, metaFieldsToRetrieve, sortFields,0,-1);
         System.out.println(statement.formatted());
         
         /*datasets = datacatSearch.searchForDatasetsInParent( conn, statement, keepAlive);
@@ -287,7 +287,8 @@ public class DatacatSearchTest {
         String[] sites = null;
         ContainerVisitor visitor = new ContainerVisitor(root.getFileSystem(), pathPattern, searchGroups, searchFolders);
         System.out.println("With visitor: " + visitor.toString());
-        Select statement = datacatSearch.compileStatement( conn, searchPath, visitor, false, 100, queryString, sites, metaFieldsToRetrieve, sortFields,0,-1);
+        DatasetView dsView = DatasetView.CURRENT_ALL;
+        Select statement = datacatSearch.compileStatement( conn, searchPath, dsView, visitor, false, 100, queryString, metaFieldsToRetrieve, sortFields,0,-1);
         List<Dataset> datasets = datacatSearch.searchForDatasetsInParent( conn, statement);
         int ii = 0;
         for(Dataset d: datasets){
@@ -304,7 +305,8 @@ public class DatacatSearchTest {
         String[] sites = null;
         ContainerVisitor visitor = new ContainerVisitor(root.getFileSystem(), pathPattern, searchGroups, searchFolders);
         System.out.println("With visitor: " + visitor.toString());
-        Select statement = datacatSearch.compileStatement( conn, searchPath, visitor, false, 100, queryString, sites, metaFieldsToRetrieve, sortFields,0,-1);
+        DatasetView dsView = DatasetView.CURRENT_ALL;
+        Select statement = datacatSearch.compileStatement( conn, searchPath, dsView, visitor, false, 100, queryString, metaFieldsToRetrieve, sortFields,0,-1);
         System.out.println("With statement" + statement.formatted());
         List<Dataset> datasets = datacatSearch.searchForDatasetsInParent( conn, statement);
         int ii = 0;

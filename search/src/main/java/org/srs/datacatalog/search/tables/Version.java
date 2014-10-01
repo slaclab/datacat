@@ -16,7 +16,7 @@ public class Version extends Table {
     @Schema
     Column dataset;
     @Schema
-    Column versionId;
+    Column<Integer> versionId;
     @Schema
     Column masterLocation;
 

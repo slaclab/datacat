@@ -13,7 +13,7 @@ import org.zerorm.core.interfaces.Schema;
 public class Location extends Table {
     @Schema public Column datasetLocation;
     @Schema public Column datasetVersion;
-    @Schema(alias = "site") public Column datasetSite;
+    @Schema(alias = "site") public Column<String> datasetSite;
     @Schema public Column path;
     @Schema public Column runMin;
     @Schema public Column runMax;

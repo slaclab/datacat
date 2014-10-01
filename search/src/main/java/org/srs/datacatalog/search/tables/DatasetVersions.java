@@ -3,8 +3,9 @@ package org.srs.datacatalog.search.tables;
 
 import java.sql.Timestamp;
 import java.util.Map;
+import org.srs.datacat.model.DatasetView;
 import org.zerorm.core.Column;
-import org.zerorm.core.Expr;
+import org.zerorm.core.Param;
 import org.zerorm.core.Select;
 
 /**
@@ -16,14 +17,28 @@ public class DatasetVersions extends MetajoinedStatement {
     public Version v = new Version().as( "v", Version.class );
     public Location l = new Location().as( "l", Location.class );
 
-    private DatasetVersions(){
+    public DatasetVersions(DatasetView dsView){
         ds.dataset.as( "pk");
         from( ds ).selection( ds.getColumns() ).selection( v.getColumns() ).selection( l.getColumns() );
-    }
-
-    public void init(Expr datasetVersionExpr){
-        leftOuterJoin( v, datasetVersionExpr ).
-                leftOuterJoin( l, v.masterLocation.eq( l.datasetLocation ) );
+        
+        if(dsView.isCurrent()){
+            leftOuterJoin( v, ds.latestVersion.eq( v.datasetVersion ) );
+        } else {
+            leftOuterJoin( v, ds.dataset.eq( v.dataset ) );
+            Param<Integer> p = v.versionId.checkedParam( "vid", dsView.getVersionId());
+            where(v.versionId.eq( p ) );
+        }
+        
+        if(dsView.isCanonical()){
+            leftOuterJoin( l, v.masterLocation.eq( l.datasetLocation ) );
+        } else {
+            leftOuterJoin( l, v.datasetVersion.eq( l.datasetVersion ) );
+            if(!dsView.isAll()){
+                Param<String> pl = l.datasetSite.checkedParam();
+                pl.setValue( dsView.getSite() );
+                where( l.datasetSite.eq( pl ) );
+            }
+        }
     }
 
     @Override
@@ -39,32 +54,6 @@ public class DatasetVersions extends MetajoinedStatement {
             ms = new DatasetMetatimestamp().as( alias, Metatable.class );
         }
         return ms;
-    }
-    
-    public static class LatestDatasetVersions extends DatasetVersions {        
-        public LatestDatasetVersions(){
-            super();
-            init(ds.latestVersion.eq( v.datasetVersion ) );
-        }
-    }
-    
-    public static class AllDatasetVersions extends DatasetVersions {
-        
-        public AllDatasetVersions(){
-            super();
-            init( ds.dataset.eq( v.dataset ) );
-        }
-    }
-    
-    public static class SpecificDatasetVersions extends DatasetVersions {
-        
-        public SpecificDatasetVersions(Long version){
-            super();
-            init( ds.dataset.eq( v.dataset ) );
-            if(version != null){
-                where(v.datasetVersion.eq( v ) );
-            }
-        }
     }
     
     @Override

@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import org.freehep.commons.lang.AST;
 import org.freehep.commons.lang.bool.Lexer;
 import org.freehep.commons.lang.bool.Parser;
+import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacat.vfs.DcPath;
@@ -89,11 +90,11 @@ public class DatasetSearch {
         }
     }
     
-    public Select compileStatement(Connection conn, DcPath parent, 
+    public Select compileStatement(Connection conn, DcPath parent, DatasetView dv,
             ContainerVisitor visitor, boolean checkParent, int maxDepth,
-            String queryString, String[] sites, String[] metaFieldsToRetrieve,  String[] sortFields, int offset, int max) throws ParseException, SQLException, IOException {
+            String queryString, String[] metaFieldsToRetrieve, String[] sortFields, int offset, int max) throws ParseException, SQLException, IOException {
         AST ast = parseQueryString(queryString);
-        DatasetVersions dsv = prepareDatasetVersion(sites, null);
+        DatasetVersions dsv = prepareDatasetVersion(dv);
         DatacatSearchContext sd = prepareSelection(ast, dsv);
         
         if(ast != null){
@@ -232,14 +233,8 @@ public class DatasetSearch {
         return selectStatement;
     }
     
-    private DatasetVersions prepareDatasetVersion(String[] sites, Long version){
-        DatasetVersions sel = null;
-        if(version == null){
-            sel = new DatasetVersions.LatestDatasetVersions();
-        } else {
-            sel = new DatasetVersions.SpecificDatasetVersions(version);
-        }
-        
+    private DatasetVersions prepareDatasetVersion(DatasetView dsView){
+        DatasetVersions sel = new DatasetVersions(dsView);        
         sel.as("dsv");
         Case maybeFolder = new Case( sel.ds.datasetlogicalfolder.not_null(), 
                 sel.ds.datasetlogicalfolder, sel.ds.datasetGroup);
