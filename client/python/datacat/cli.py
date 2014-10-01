@@ -119,13 +119,12 @@ def main():
         if args.sort is not None:
             s = []
             s.extend(args.sort)
-        for i in s:
-            if i[-1] in ("+", "-"):
-                metanames.append(i[0:-1])
-            else:
-                metanames.append(i)
-                metanames = set(metanames)
-
+            for i in s:
+                if i[-1] in ("+", "-"):
+                    metanames.append(i[0:-1])
+                else:
+                    metanames.append(i)
+        metanames = set(metanames)
         print_search_info(retObjects, metanames)
 
 
