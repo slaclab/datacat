@@ -50,7 +50,7 @@ def main():
     args = parser.parse_args()
 
     command = args.command
-    target = args.path
+    target = args.__dict__.pop("path")
     params = args.__dict__
 
     base_url = args.base_url if hasattr(args, 'base_url') and args.base_url is not None else CONFIG_URL("srs")
