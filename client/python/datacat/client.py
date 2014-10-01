@@ -3,9 +3,7 @@ from config import ENDPOINTS, DATATYPES
 
 
 class Client(object):
-    """
 
-    """
 
     def __init__(self, base_url, *args, **kwargs):
         self.base_url = base_url
@@ -15,11 +13,11 @@ class Client(object):
         param_list = "offset:offset max_num:max".split(" ")
         param_map = dict([i.split(":") for i in param_list])
         params = {param_map[k]:v for k,v in locals().items() if k in param_map and v is not None}
-        return self._get(self._target(endpoint, path, accept), params)
+        return self._get(self._target(endpoint, path, accept), params, **kwargs)
     
     def path(self, path, accept="json", **kwargs):
         endpoint = "path"
-        return self._get(self._target(endpoint, path, accept))
+        return self._get(self._target(endpoint, path, accept), **kwargs)
     
     def search(self, target, query=None, sort=None, show=None, offset=None, max_num=None, accept="json", **kwargs):
         """Search a target. A target is a Container of some sort. It may also be specified as a glob, as in:
@@ -34,9 +32,8 @@ class Client(object):
         :param sort: Fields and Metadata fields to sort on.
         :param show: Metadata fields to optionally return
         :param offset: Offset at which to start returning objects.
-        :param max_num: Maxmimum number of objects to return.
+        :param max_num: Maximum number of objects to return.
         :param accept: Format of the response object which is returned.
-        :param kwargs: All are ignored.
         :return: A :class`requests.Response` object. A user can use Response.content to get the content, and optionally
         response.json(), if :accept was json, and get a python dictionary back. The object will be a collection.
         """
@@ -44,11 +41,12 @@ class Client(object):
         param_list = "query:filter sort:sort show:show offset:offset max_num:max".split(" ")
         param_map = dict([i.split(":") for i in param_list])
         params = {param_map[k]:v for k,v in locals().items() if k in param_map and v is not None}
-        return self._get(self._target(endpoint, target, accept), params)
+        return self._get(self._target(endpoint, target, accept), params, **kwargs)
     
-    def _get(self, target, params=None):
-        return requests.get(target, params=params)
-        
+    def _get(self, target, params=None, **kwargs):
+        headers = kwargs["headers"] if "headers" in kwargs else None
+        return requests.get(target, params=params, headers=headers)
+
     def _target(self, endpoint, path, accept="json"):
         def rsrc(endpoint, accept="json"):
             if endpoint in ENDPOINTS and accept in DATATYPES:
