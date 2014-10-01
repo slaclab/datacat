@@ -55,7 +55,7 @@ if resp.status_code == 200: # 200 status code ==  success
     """
     The raw json representation of a datacatalog object (Dataset) packs up metadata into a list
     of objects of the form:
-       [{'key':'nRun', 'type':'integer', 'value':6201}, ...]
+       [{'key':'nRun', '$type':'integer', 'value':6201}, ...]
     The unpack method fixes that, but also does a few other things to play nice, like putting
     the variables into the Dataset.__dict__ object, so you can address them directly
     """
