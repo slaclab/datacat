@@ -80,7 +80,7 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     }
     
     public DatasetLocation(Dataset.Builder builder){
-        super(builder.locationPk, builder.versionPk, builder.resource);
+        super(builder.locationPk, builder.versionPk, builder.site);
         this.resource = builder.resource;
         this.size = builder.size;
         this.site = builder.site;
