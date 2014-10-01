@@ -182,8 +182,8 @@ public class DatasetDAO extends BaseDAO {
             stmt1.setLong( 1, datasetPk);
             stmt2.setLong( 1, datasetPk);
             if(!view.isCurrent()){
-                stmt1.setInt( 1, view.getVersionId());
-                stmt2.setInt( 1, view.getVersionId());
+                stmt1.setInt( 2, view.getVersionId());
+                stmt2.setInt( 2, view.getVersionId());
             }
             ResultSet rs1 = stmt1.executeQuery();
             ResultSet rs2 = stmt2.executeQuery();
