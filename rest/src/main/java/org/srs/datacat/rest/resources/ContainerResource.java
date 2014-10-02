@@ -3,14 +3,13 @@ package org.srs.datacat.rest.resources;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.NotDirectoryException;
-import java.nio.file.attribute.AclEntryPermission;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
@@ -29,9 +28,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
-import org.glassfish.jersey.uri.UriComponent;
 import org.srs.datacat.model.DatasetContainer;
-import org.srs.datacat.rest.App;
 import org.srs.datacat.model.RequestView;
 import org.srs.datacat.rest.BaseResource;
 import org.srs.datacat.rest.FormParamConverter;
@@ -44,7 +41,6 @@ import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 import org.srs.rest.shared.RestException;
-import org.srs.vfs.PathUtils;
 
 /**
  *
@@ -53,7 +49,7 @@ import org.srs.vfs.PathUtils;
 @Path("/{containerType: (groups|folders|containers)}")
 public class ContainerResource extends BaseResource {
     
-    private final String idRegex = "{id: [\\w\\d\\-_\\./]+}";
+    private final String idRegex = "{id: [%\\w\\d\\-_\\./]+}";
     
     @Context HttpServletRequest httpRequest;
 
@@ -61,26 +57,29 @@ public class ContainerResource extends BaseResource {
     @Path(idRegex)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response getChildren(@PathParam("containerType") String contType, 
-            @PathParam("id") String path,
+            @PathParam("id") List<PathSegment> pathSegments,
             @DefaultValue("100000") @QueryParam("max") int max,
             @DefaultValue("0") @QueryParam("offset") int offset) throws IOException{
-
-        path = "/" + path;
+        
+        HashMap<String, List<String>> matrixParams = new HashMap<>();
+        String path = "";
+        for(PathSegment s: pathSegments){
+            path = path + "/" + s.getPath();
+            matrixParams.putAll(s.getMatrixParameters());
+        }
+        
         DatacatObject.Type type = DatacatObject.Type.FOLDER; // Folder by default
-        if(contType.equalsIgnoreCase( "groups")){
+        if(contType.equalsIgnoreCase("groups")){
             type = DatacatObject.Type.GROUP;
         }
         
-        MultivaluedMap matrixParams = UriComponent.decodeMatrix( path, true );
-        /*if(!matrixParams.isEmpty()){
-            String p = "/";
-            for(PathSegment ps: UriComponent.decodePath( path, true )){
-                p = PathUtils.resolve( p, ps.getPath());
-            }
-            path = p;            
-        }*/
+        RequestView rv = null;
+        try {
+             rv = new RequestView(type, matrixParams);
+        } catch (IllegalArgumentException ex){
+            throw new RestException(ex, 400, "Unable to validate request view", ex.getMessage());
+        }
         
-        RequestView rv = new RequestView(type, matrixParams);
         DcPath containerPath = getProvider().getPath(DcUriUtils.toFsUri(path, null, "SRS"));
         
         try {
@@ -107,7 +106,6 @@ public class ContainerResource extends BaseResource {
         
         return objectView(containerPath, rv, statType);
     }
-    
     
     @POST
     @Path(idRegex)
@@ -140,6 +138,7 @@ public class ContainerResource extends BaseResource {
         } catch (NotDirectoryException ex){
             throw new RestException(ex, 404, "File exists, but Path is not a container");
         } catch (IOException ex){
+            ex.printStackTrace();
             throw new RestException(ex, 500);
         }
         

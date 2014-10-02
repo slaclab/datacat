@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
@@ -17,7 +18,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
+import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.RequestView;
 import org.srs.datacat.rest.BaseResource;
 import org.srs.datacat.rest.SearchPluginProvider;
 import org.srs.datacat.shared.DatacatObject;
@@ -43,7 +47,7 @@ public class SearchResource extends BaseResource {
     @GET
     @Path(searchRegex)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public Response find(@PathParam("id") String pathPattern,
+    public Response find(@PathParam("id") List<PathSegment> pathSegments,
             @QueryParam("recurse") boolean recurse,
             @QueryParam("sites") List<String> sites,
             @QueryParam("filter") String filter,
@@ -57,10 +61,24 @@ public class SearchResource extends BaseResource {
             @DefaultValue("-1") @QueryParam("max") int max,
             @DefaultValue("0") @QueryParam("offset") int offset) {
 
-        pathPattern = "/" + pathPattern;
+        String pathPattern = "";
+        
+        HashMap<String, List<String>> matrixParams = new HashMap<>();
+        for(PathSegment s: pathSegments){
+            pathPattern = pathPattern + "/" + s.getPath();
+            matrixParams.putAll(s.getMatrixParameters());
+        }
         List<? super Dataset> datasets = new ArrayList<>();
         String[] metafields= metadata.toArray( new String[0]);
         String[] sortFields = sortParams.toArray(new String[0]);
+        
+        DatasetView dv = null;
+        try {
+            RequestView rv = new RequestView(DatacatObject.Type.DATASET, matrixParams);
+            dv = rv.getDatasetView();
+        } catch (IllegalArgumentException ex){
+            throw new RestException(ex, 400, "Unable to process view", ex.getMessage());
+        }
         
         try(Connection conn = getConnection()){
             DatasetSearch datacatSearch = new DatasetSearch(getProvider(), conn, pluginProvider.getPlugins());
@@ -71,10 +89,11 @@ public class SearchResource extends BaseResource {
             DcPath root = getProvider().getPath(DcUriUtils.toFsUri("/", null, "SRS"));
             DcPath searchPath = root.resolve(searchBase);
             ContainerVisitor visitor = new ContainerVisitor(searchPath.getFileSystem(), pathPattern, checkGroups, checkFolders);
-            Select stmt = datacatSearch.compileStatement( conn, searchPath, visitor, 
-                            false, 100, queryString, null, metafields, sortFields,0,-1);
+            Select stmt = datacatSearch.compileStatement( conn, searchPath, dv, visitor, 
+                            false, 100, queryString, metafields, sortFields,0,-1);
             datasets = datacatSearch.searchForDatasetsInParent(conn, stmt);
-            System.out.println(datasets.size());
+        } catch (IllegalArgumentException ex){
+            throw new RestException(ex,400, "Unable to process query, see message", ex.getMessage());
         } catch (FileNotFoundException ex){
              throw new RestException(ex,404, "File doesn't exist", ex.getMessage());
         } catch(SQLException | IOException ex) {

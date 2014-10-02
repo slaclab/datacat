@@ -10,9 +10,8 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 
 import java.nio.file.Files;
-import java.nio.file.NotDirectoryException;
-import java.util.ArrayList;
-import javax.inject.Inject;
+import java.util.HashMap;
+import java.util.List;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -21,9 +20,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 
-import org.srs.datacat.rest.App;
 import org.srs.datacat.rest.BaseResource;
 import org.srs.datacat.model.RequestView;
 import org.srs.datacat.shared.DatacatObject;
@@ -34,7 +33,6 @@ import org.srs.datacat.vfs.DcUriUtils;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 
-import org.srs.rest.shared.HumanPath;
 import org.srs.rest.shared.RestException;
 
 
@@ -45,8 +43,7 @@ import org.srs.rest.shared.RestException;
  */
 @Path("/path")
 public class PathResource extends BaseResource {
-    private final String idRegex = "{id: [\\w\\d\\-_\\./]+}";
-    private final String idPath = "[/path]*/{id}";
+    private final String idRegex = "{id: [%\\w\\d\\-_\\./]+}";
     
     public static class StatTypeWrapper {
         private final StatType value;
@@ -63,26 +60,40 @@ public class PathResource extends BaseResource {
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response getRootBean(@DefaultValue("basic") @QueryParam("stat") StatTypeWrapper statType) throws IOException{
-        return getBean("", statType);
+        return getBean("", null, statType.getEnum());
     }
     
     @GET
     @Path(idRegex)
-    @HumanPath(idPath)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public Response getBean(@PathParam("id") String path,
-            @DefaultValue("basic") @QueryParam("stat") StatTypeWrapper statType) throws IOException{
-        path = "/" + path;
+    public Response getBean(@PathParam("id") List<PathSegment> pathSegments,
+            @DefaultValue("basic") @QueryParam("stat") StatTypeWrapper statTypeWrapper) throws IOException{
+        
+        StatType statType = statTypeWrapper.getEnum();
+        HashMap<String, List<String>> matrixParams = new HashMap<>();
+        String path = "";
+        for(PathSegment s: pathSegments){
+            path = path + "/" + s.getPath();
+            matrixParams.putAll(s.getMatrixParameters());
+        }
+        return getBean(path, matrixParams, statType);
+    }
+    
+    public Response getBean(String path, HashMap<String,List<String>> matrixParams, 
+            StatType statType) throws IOException{
         DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(path, null, "SRS"));
         try {
             DcFile file = Files.readAttributes(dcp, DcFile.class);
             DatacatObject ret;
+            RequestView rv = new RequestView(file.getObject().getType(), matrixParams);
             if(file.isRegularFile()){
-                ret = file.getAttributeView(DatasetViewProvider.class).withView(new RequestView(DatacatObject.Type.DATASET, null));
+                ret = file.getAttributeView(DatasetViewProvider.class).withView(rv);
             } else {
-                ret = file.getAttributeView(ContainerViewProvider.class).withView(statType.getEnum());
+                ret = file.getAttributeView(ContainerViewProvider.class).withView(statType);
             }
             return Response.ok( new GenericEntity<DatacatObject>(ret){} ).build();
+        } catch (IllegalArgumentException ex){
+            throw new RestException(ex, 400 , "Unable to correctly process view", ex.getMessage());
         } catch (FileNotFoundException ex){
              throw new RestException(ex,404 , "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){

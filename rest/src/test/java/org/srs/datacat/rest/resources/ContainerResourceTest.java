@@ -5,14 +5,9 @@ package org.srs.datacat.rest.resources;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Form;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
@@ -22,10 +17,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.model.Resource;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
-import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.rest.App;
-import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.vfs.PathUtils;
 
@@ -78,10 +70,42 @@ public class ContainerResourceTest extends JerseyTest {
                 .get();
         System.out.println(resp.readEntity(String.class));
         
-        resp = target("/folders.txt/testpath;something=hello")
+        // setup more complicated test
+        MultivaluedHashMap<String,String> entity = new MultivaluedHashMap<>();
+        entity.add( "name", "dispatchTest");
+                
+        resp = target("/folders.txt/testpath")
+                .request()
+                .post(Entity.form( entity ));
+        TestCase.assertEquals( Status.CREATED, Status.fromStatusCode(resp.getStatus()));
+        
+        entity = new MultivaluedHashMap<>();
+        entity.add( "name", "dispatchTest2");
+        resp = target("/folders.txt/testpath/dispatchTest")
+                .request()
+                .post(Entity.form( entity ));
+        TestCase.assertEquals( Status.CREATED, Status.fromStatusCode(resp.getStatus()));
+        
+        resp = target("/folders.txt/testpath/dispatchTest/dispatchTest2")
                 .request()
                 .get();
-        System.out.println(resp.readEntity(String.class));
+        TestCase.assertEquals( Status.OK, Status.fromStatusCode(resp.getStatus()));
+        
+        // We have a structure we can test with now       
+        resp = target("/folders.txt/testpath/dispatchTest%2fdispatchTest2%3bv=2")
+                .request()
+                .get();
+        TestCase.assertEquals("Escaped semicolon should fail", Status.NOT_FOUND, Status.fromStatusCode(resp.getStatus()));
+        
+        resp = target("/folders.txt/testpath/dispatchTest%2fdispatchTest2;v=0")
+                .request()
+                .get();
+        TestCase.assertEquals("Should have parsed request", Status.OK, Status.fromStatusCode(resp.getStatus()));
+        
+        resp = target("/folders.txt%2ftestpath%2fdispatchTest%3bdispatchTest2")
+                .request()
+                .get();
+        TestCase.assertEquals("Should have failed to parse resource", Status.NOT_FOUND, Status.fromStatusCode(resp.getStatus()));        
     }
     
     @Test
@@ -149,7 +173,7 @@ public class ContainerResourceTest extends JerseyTest {
             .delete();
         TestCase.assertEquals( Status.NO_CONTENT, Status.fromStatusCode(resp.getStatus()));
                 */
-        
+
     }
     
     @Test
