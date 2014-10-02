@@ -57,7 +57,7 @@ public class RequestView extends HashMap<String,String>{
     }
     
     public int getPrimaryView(){
-        if(containsKey("children")){
+        if(containsKey("children")){ // Highest priority
             return CHILDREN;
         } else if(containsKey("metadata")){
             return METADATA;
@@ -86,7 +86,13 @@ public class RequestView extends HashMap<String,String>{
                 if(params.containsKey("stat")){
                     m.put( "stat", params.get("stat").get(0));
                 }
+                if(params.containsKey( "versionMetadata")){
+                    throw new IllegalArgumentException("versionMetadata not compatible with container");
+                }
                 if(params.containsKey("children")){
+                    if(params.containsKey("metadata")){
+                        throw new IllegalArgumentException("Metadata view not compatible with children");
+                    }
                     m.put( "children", PRESENT);
                 }
             case DATASET:
