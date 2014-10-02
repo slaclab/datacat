@@ -11,13 +11,13 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import org.freehep.commons.lang.AST;
+import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
-import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.FlatDataset;
+import org.srs.datacat.shared.dataset.FullDataset;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DirectoryWalker;
 import org.srs.vfs.PathUtils;
@@ -68,10 +68,14 @@ public class SearchUtils {
         return startOfError.toString();
     }
 
-    public static Dataset datasetFactory(ResultSet rs, List<String> includedMetadata) throws SQLException{
-        FlatDataset.Builder builder = new FlatDataset.Builder();
-        DatasetVersion dsv = new DatasetVersion();
-        DatasetLocation vdl = new DatasetLocation();
+    public static Dataset datasetFactory(ResultSet rs, DatasetView dsView, List<String> includedMetadata) throws SQLException{
+        Dataset.Builder builder;
+        if(dsView.isAll()){
+            builder = new FullDataset.Builder();
+        } else {
+            builder = new FlatDataset.Builder();
+        }
+
         String name = rs.getString("name");
         builder.pk(rs.getLong("pk"));
         builder.parentPk(rs.getLong("parent"));
@@ -79,18 +83,15 @@ public class SearchUtils {
         builder.path(PathUtils.resolve(rs.getString( "containerpath"), name));
         builder.fileFormat(rs.getString("fileformat"));
         builder.dataType(rs.getString("datatype"));
-        builder.versionPk(rs.getLong("latestversion"));
+        
+        long versionPk = rs.getLong("datasetversion");
+        builder.versionPk(versionPk);
         builder.versionId(rs.getInt("versionid"));
-        //dsv.setDatasetSource(rs.getString("datasetsource"));
-        builder.locationPk(rs.getLong("masterlocation"));
-        builder.site(rs.getString("site"));
-        builder.resource(rs.getString("path"));
-        builder.runMin(rs.getLong("runmin"));
-        builder.runMax(rs.getLong("runmax"));
-        builder.eventCount(rs.getLong("eventCount"));
-        builder.size(rs.getLong("fileSizeBytes"));
-        builder.checksum(rs.getLong("checksum"));
+        builder.latest(rs.getBoolean( "latest"));
+        
+        ArrayList<DatasetLocation> locations = new ArrayList<>();
         HashMap<String, Object> metadata = new HashMap<>();
+        
         for(String s: includedMetadata){
             Object o = rs.getObject(s);;
             if(o != null){
@@ -101,7 +102,42 @@ public class SearchUtils {
                 metadata.put(s, o);
             }
         }
+        
+        while(!rs.isClosed() && rs.getInt("datasetversion") == versionPk){
+            DatasetLocation next = processLocation(rs);
+            if(next != null){
+                locations.add(next);
+            }
+            if(!rs.next()){
+                rs.close();
+            }
+        }
+        
+        if(builder instanceof FullDataset.Builder){
+            builder.locations(locations);
+        } else if(!locations.isEmpty()){
+            builder.location(locations.get(0));
+        }
+
         builder.metadata( metadata );
+        return builder.build();
+    }
+    
+    private static DatasetLocation processLocation(ResultSet rs) throws SQLException{
+        DatasetLocation.Builder builder = new DatasetLocation.Builder();
+        Long pk = rs.getLong("datasetlocation");
+        if(rs.wasNull()){
+            return null;
+        }
+        builder.pk(pk);
+        builder.site(rs.getString("site"));
+        builder.resource(rs.getString("path"));
+        builder.runMin(rs.getLong("runmin"));
+        builder.runMax(rs.getLong("runmax"));
+        builder.eventCount(rs.getLong("eventCount"));
+        builder.size(rs.getLong("fileSizeBytes"));
+        builder.checksum(rs.getLong("checksum"));
+        builder.master( rs.getBoolean( "master"));
         return builder.build();
     }
     
@@ -255,17 +291,21 @@ public class SearchUtils {
         }
     }
     
-    public static List<Dataset> getResults(final Connection conn, final Select sel, List<String> metadataNames) throws SQLException{
+    public static List<Dataset> getResults(final Connection conn, final Select sel, DatasetView dsView, List<String> metadataNames) throws SQLException{
         ArrayList<Dataset> datasets = new ArrayList<>();        
         try(PreparedStatement stmt = sel.prepareAndBind( conn )){
             ResultSet rs = stmt.executeQuery();
-            while(rs.next()){
-                datasets.add(SearchUtils.datasetFactory(rs, metadataNames));
+            if(!rs.next()){
+                rs.close();
+            }
+            while(!rs.isClosed()) {
+                datasets.add(SearchUtils.datasetFactory(rs, dsView, metadataNames));
             }
         }
         return datasets;
     }
     
+    /*
     public static List<Dataset> getResultsDeferredFill(final Connection conn, final Select sel, final boolean keepAlive) throws SQLException{
         
         final Iterator<Dataset> iter = new Iterator<Dataset>() {
@@ -343,7 +383,8 @@ public class SearchUtils {
                 initialized = true;
             }
         };
-    }
+    }*/
+    
     public static Class<?> getParamType(Object tRight){
         if(tRight instanceof List){
             List r = ((List) tRight);
@@ -351,6 +392,9 @@ public class SearchUtils {
         }
         if(tRight instanceof Number){
             return Number.class;
+        }
+        if(tRight instanceof Class){
+            return (Class<?>) tRight;
         }
         return tRight.getClass();
     }

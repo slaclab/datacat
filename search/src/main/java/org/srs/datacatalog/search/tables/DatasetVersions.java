@@ -7,6 +7,8 @@ import org.srs.datacat.model.DatasetView;
 import org.zerorm.core.Column;
 import org.zerorm.core.Param;
 import org.zerorm.core.Select;
+import org.zerorm.core.Val;
+import org.zerorm.core.primaries.Case;
 
 /**
  *
@@ -18,8 +20,12 @@ public class DatasetVersions extends MetajoinedStatement {
     public Location l = new Location().as( "l", Location.class );
 
     public DatasetVersions(DatasetView dsView){
-        ds.dataset.as( "pk");
-        from( ds ).selection( ds.getColumns() ).selection( v.getColumns() ).selection( l.getColumns() );
+        ds.dataset.as("pk");
+        from( ds ).selection( ds.getColumns() )
+                .selection( v.getColumns() )
+                .selection( new Case(v.datasetVersion.eq(ds.latestVersion), new Val(1), new Val(0)).as("latest"))
+                .selection( l.getColumns() )
+                .selection( new Case(l.datasetLocation.eq( v.masterLocation), new Val(1), new Val(0)).as("master"));
         
         if(dsView.isCurrent()){
             leftOuterJoin( v, ds.latestVersion.eq( v.datasetVersion ) );

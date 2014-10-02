@@ -43,6 +43,7 @@ public class DatasetSearch {
     HashMap<String, DatacatPlugin> pluginMap;
     MetanameContext dmc;
     ArrayList<String> metadataFields = new ArrayList<>();
+    private DatasetView datasetView;
     
     public DatasetSearch(DcFileSystemProvider provider, Connection conn, HashMap<String, DatacatPlugin> pluginMap) throws SQLException {
         this.provider = provider;
@@ -55,7 +56,7 @@ public class DatasetSearch {
     }*/
     
     public List<Dataset> searchForDatasetsInParent(Connection conn, Select statement) throws SQLException {
-        return SearchUtils.getResults(conn, statement, metadataFields);
+        return SearchUtils.getResults(conn, statement, datasetView, metadataFields);
     }
     
     public void rewrite(AST.Node node){
@@ -90,11 +91,12 @@ public class DatasetSearch {
         }
     }
     
-    public Select compileStatement(Connection conn, DcPath parent, DatasetView dv,
+    public Select compileStatement(Connection conn, DcPath parent, DatasetView datasetView,
             ContainerVisitor visitor, boolean checkParent, int maxDepth,
             String queryString, String[] metaFieldsToRetrieve, String[] sortFields, int offset, int max) throws ParseException, SQLException, IOException {
+        this.datasetView = datasetView;
         AST ast = parseQueryString(queryString);
-        DatasetVersions dsv = prepareDatasetVersion(dv);
+        DatasetVersions dsv = prepareDatasetVersion(datasetView);
         DatacatSearchContext sd = prepareSelection(ast, dsv);
         
         if(ast != null){

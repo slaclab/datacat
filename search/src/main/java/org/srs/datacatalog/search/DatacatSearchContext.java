@@ -224,6 +224,13 @@ public class DatacatSearchContext implements SearchContext {
             }
             return tOper.apply( c, tRight );
         }
+        if(tRight == null){
+            if(tOper == Op.IS_NULL || tOper == Op.NOT_NULL){
+                if(metanameContext.getTypes(tLeft.toString()).size() == 1){
+                    tRight = metanameContext.getTypes(tLeft.toString()).toArray()[0];
+                }
+            }
+        }
         return statement.getMetadataExpression( tLeft, tOper, tRight);
     }
    
