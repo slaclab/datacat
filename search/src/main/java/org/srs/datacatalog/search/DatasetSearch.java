@@ -172,7 +172,7 @@ public class DatasetSearch {
                     orderBy = getColumnFromAllScope( dsv, aliased);
                     if(orderBy == null){
                         Class type = dmc.getTypes( s ).toArray( new Class[0])[0];
-                        dsv.setupMetadataJoin( s, type);
+                        dsv.setupMetadataJoin(s, type);
                         orderBy = getColumnFromAllScope( dsv, aliased);
                     }
                     metadataFields.add(s);
@@ -211,7 +211,7 @@ public class DatasetSearch {
                     retrieve = getColumnFromAllScope( dsv, aliased);
                     if(retrieve == null){
                         Class type = dmc.getTypes( s ).toArray( new Class[0])[0];
-                        dsv.setupMetadataJoin( s, type);
+                        dsv.setupMetadataOuterJoin( s, type);
                         retrieve = getColumnFromAllScope( dsv, aliased);
                     }
                     metadataFields.add( s );

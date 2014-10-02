@@ -28,7 +28,7 @@ public abstract class MetajoinedStatement extends Select {
     
     public abstract String getMetanamePrefix();
     
-    public Column setupMetadataJoin(String metaName,
+    public Column setupMetadataOuterJoin(String metaName,
         Class<?> type){
         Metatable ms = null;
         String sName = getMetanamePrefix() + getMetajoins().size();
@@ -47,6 +47,28 @@ public abstract class MetajoinedStatement extends Select {
         getMetajoins().put( metaName, mSelect );
         selection( new Column( ms.metaValue.getName(), mSelect ).asExact( metaName ) )
                 .leftOuterJoin(mSelect, getMetajoinColumn().eq( ms.datacatKey ) );
+        return ms.metaValue;
+    }
+    
+    public Column setupMetadataJoin(String metaName,
+        Class<?> type){
+        Metatable ms = null;
+        String sName = getMetanamePrefix() + getMetajoins().size();
+
+        // Return the current joined table if we already added it
+        if(getMetajoins().containsKey( metaName )){
+            ms = (Metatable) getMetajoins().get( metaName ).getFrom();
+            return ms.metaValue;
+        }
+        ms = getMetatableForType( sName, type );
+
+        Select mSelect = ms.selectAllColumns()
+                .where( ms.metaName.eq( metaName ) )
+                .as( sName );
+
+        getMetajoins().put( metaName, mSelect );
+        selection( new Column( ms.metaValue.getName(), mSelect ).asExact( metaName ) )
+                .join(mSelect, getMetajoinColumn().eq( ms.datacatKey ) );
         return ms.metaValue;
     }
     
@@ -71,7 +93,7 @@ public abstract class MetajoinedStatement extends Select {
         }
         
         if(getMetajoins().get( tLeft ) == null){  // join not yet set up
-            return tOper.apply( setupMetadataJoin(tLeft.toString(), type), p );
+            return tOper.apply( setupMetadataOuterJoin(tLeft.toString(), type), p );
         }
         
         Metatable ms = (Metatable) getMetajoins().get( tLeft ).getFrom();
