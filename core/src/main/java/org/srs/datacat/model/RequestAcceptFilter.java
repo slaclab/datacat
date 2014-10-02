@@ -64,6 +64,7 @@ public class RequestAcceptFilter implements ContainerRequestFilter {
             final MediaType accept = mediaTypeMappings.get(suffix);
 
             if (accept != null) {
+                rc.getHeaders().remove(HttpHeaders.ACCEPT);
                 rc.getHeaders().putSingle(HttpHeaders.ACCEPT, accept.toString());
 
                 final int index = path.indexOf('.' + suffix);
