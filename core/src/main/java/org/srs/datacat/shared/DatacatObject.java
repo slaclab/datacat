@@ -171,7 +171,7 @@ public class DatacatObject implements Serializable {
 
      /**
      * Metadata to return 
-     * @return The meatadata with values of Number types
+     * @return The meatadata, each value should be the proper type (String,Number,etc..)
      */
     @XmlTransient
     public HashMap<String,Object> getMetadataMap() {
