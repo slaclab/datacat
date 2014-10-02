@@ -193,27 +193,23 @@ public class BaseDAO implements AutoCloseable {
                 + "     FROM VerDatasetMetaString ms where ms.DatasetVersion = (SELECT dsv FROM DSV) "
                 + "  )";
         
-        HashMap<String, String> smap = new HashMap<>();
-        HashMap<String, Number> nmap = new HashMap<>();
+        HashMap<String, Object> metadata = new HashMap<>();
+        //HashMap<String, Number> nmap = new HashMap<>();
         Long pk = builder.pk;
         try (PreparedStatement stmt = getConnection().prepareStatement( sql )){
             stmt.setLong(1, pk);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                processMetadata( rs, nmap, smap );
+                processMetadata( rs, metadata);
             }
         }
-        if(!nmap.isEmpty()){
-            builder.numberMetadata( nmap );
-        }
-        if(!smap.isEmpty()) {
-            builder.stringMetadata(smap);
+        if(!metadata.isEmpty()){
+            builder.metadata( metadata );
         }
     }   
 
     protected void setContainerMetadata(org.srs.datacat.shared.DatacatObject.Builder builder) throws SQLException{
-        HashMap<String, String> smap = new HashMap<>();
-        HashMap<String, Number> nmap = new HashMap<>();
+        HashMap<String, Object> metadata = new HashMap<>();
 
         String tableType = null;
         String column = null;
@@ -230,7 +226,7 @@ public class BaseDAO implements AutoCloseable {
             stmt.setLong( 1, pk );
             ResultSet rs = stmt.executeQuery();
             while(rs.next()){
-                smap.put( rs.getString( "metaname" ), rs.getString( "metavalue" ) );
+                metadata.put( rs.getString( "metaname" ), rs.getString( "metavalue" ) );
             }
         }
 
@@ -242,14 +238,11 @@ public class BaseDAO implements AutoCloseable {
                 Number n;
                 java.math.BigDecimal v = (java.math.BigDecimal) rs.getObject( "metavalue" );
                 n = v.scale() == 0 ? v.toBigIntegerExact() : v;
-                nmap.put( rs.getString( "metaname" ), (Number) n );
+                metadata.put( rs.getString( "metaname" ), (Number) n );
             }
         }
-        if(!nmap.isEmpty()){
-            builder.numberMetadata( nmap );
-        }
-        if(!smap.isEmpty()){
-            builder.stringMetadata( smap );
+        if(!metadata.isEmpty()){
+            builder.metadata(metadata);
         }
     }
     
@@ -355,17 +348,16 @@ public class BaseDAO implements AutoCloseable {
         return o;
     }
     
-    protected static void processMetadata(ResultSet rs, HashMap<String, Number> nMetadata, 
-        HashMap<String, String> sMetadata /*, */) throws SQLException{
+    protected static void processMetadata(ResultSet rs, HashMap<String, Object> metadata ) throws SQLException{
         switch(rs.getString( "mdtype" )){
             case "N":
                 Number n;
                 java.math.BigDecimal v = (java.math.BigDecimal) rs.getObject( "metanumber" );
                 n = v.scale() == 0 ? v.toBigIntegerExact() : v;
-                nMetadata.put( rs.getString( "metaname" ), (Number) n );
+                metadata.put( rs.getString( "metaname" ), (Number) n );
                 break;
             case "S":
-                sMetadata.put( rs.getString( "metaname" ), rs.getString( "metastring" ) );
+                metadata.put( rs.getString( "metaname" ), rs.getString( "metastring" ) );
                 break;
         }
     }

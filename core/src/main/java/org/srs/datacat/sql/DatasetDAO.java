@@ -188,8 +188,8 @@ public class DatasetDAO extends BaseDAO {
             ResultSet rs1 = stmt1.executeQuery();
             ResultSet rs2 = stmt2.executeQuery();
             
-            HashMap<String, Number> nmap = new HashMap<>();
-            HashMap<String, String> smap = new HashMap<>();
+            HashMap<String, Object> metadata = new HashMap<>();
+            
             VersionWithLocations.Builder builder = new VersionWithLocations.Builder();
             List<DatasetLocation> locations = new ArrayList<>();
             if(rs1.next()){
@@ -198,15 +198,14 @@ public class DatasetDAO extends BaseDAO {
                 builder.versionId(rs1.getInt( "versionid"));
                 builder.datasetSource(rs1.getString( "datasetSource"));
                 builder.latest(rs1.getBoolean( "isLatest"));                
-                processMetadata( rs1, nmap, smap );
+                processMetadata( rs1, metadata );
                 while(rs1.next()){
-                    processMetadata( rs1, nmap, smap );
+                    processMetadata( rs1, metadata );
                 }
                 while(rs2.next()){
                     processLocation( rs2, builder.pk, locations);
                 }
-                builder.numberMetadata( nmap );
-                builder.stringMetadata( smap );
+                builder.metadata(metadata);
                 builder.locations( locations );
                 return builder.build();
             }
@@ -407,8 +406,7 @@ public class DatasetDAO extends BaseDAO {
             retVersion = builder.build();
         }
         if(request.getMetadata() != null){
-            addDatasetVersionMetadata(retVersion, request.getNumberMetadata());
-            addDatasetVersionMetadata(retVersion, request.getStringMetadata());
+            addDatasetVersionMetadata(retVersion, request.getMetadataMap());
         }
         // Update isLatest
         if(retVersion.isLatest()){

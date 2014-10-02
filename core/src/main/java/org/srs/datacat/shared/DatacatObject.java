@@ -57,8 +57,7 @@ public class DatacatObject implements Serializable {
     private Long parentPk;
     private String name;
     private String path;
-    private HashMap<String,String> stringMetadata = null;
-    private HashMap<String,Number> numberMetadata = null;
+    private HashMap<String, Object> metadata = null;
 
     @XmlEnum(String.class)
     public enum Type {
@@ -115,22 +114,13 @@ public class DatacatObject implements Serializable {
     public DatacatObject(DatacatObject object){
         this(object.pk, object.parentPk, object.name);
         this.path = object.path;
-        numberMetadata = object.numberMetadata!=null ? 
-                new HashMap<>(object.numberMetadata) : null;
-        stringMetadata = object.stringMetadata!=null ? 
-                new HashMap<>(object.stringMetadata) : null;
+        this.metadata = object.metadata != null ? object.metadata : new HashMap<String,Object>();
     }
     
     public DatacatObject(Builder builder){
         this(builder.pk, builder.parentPk, builder.name);
         this.path = builder.path;
-        numberMetadata = builder.numberMetadata!=null ? 
-                new HashMap<String,Number>(builder.numberMetadata) : null;
-        stringMetadata = builder.stringMetadata!=null ? 
-                new HashMap<String,String>(builder.stringMetadata) : null;
-        if(builder.metadata != null){
-            initMetadata(builder.metadata);
-        }
+        this.metadata = builder.metadata != null ? builder.metadata : new HashMap<String,Object>();
     }
     
     @XmlElement(required=false)
@@ -181,20 +171,19 @@ public class DatacatObject implements Serializable {
      * We store the metadata internally as two seperate maps, one for strings
      * and one for numbers.
      * @return The meatadata with values of String types
-     */
+     
     @XmlTransient
     public HashMap<String,String> getStringMetadata() {
         return stringMetadata;
     }
 
      /**
-     * We store the metadata internally as two seperate maps, one for strings
-     * and one for numbers.
+     * Metadata to return 
      * @return The meatadata with values of Number types
      */
     @XmlTransient
-    public HashMap<String,Number> getNumberMetadata() {
-        return numberMetadata;
+    public HashMap<String,Object> getMetadataMap() {
+        return metadata;
     }
     
     /**
@@ -207,14 +196,11 @@ public class DatacatObject implements Serializable {
     @JsonProperty("metadata")
     public List<MetadataEntry> getMetadata() {
         ArrayList<MetadataEntry> entries = new ArrayList<>();
-        if(numberMetadata != null){
-            for(Entry<String, Number> e: numberMetadata.entrySet()){
-                entries.add( new MetadataEntry( e.getKey(), e.getValue() ) );
-            }
-        }
-        if(stringMetadata != null){
-            for(Entry<String,String> e: stringMetadata.entrySet()){
-                entries.add( new MetadataEntry(e.getKey(), e.getValue()));
+        for(Entry<String, Object> e: metadata.entrySet()){
+            if(e.getValue() instanceof Number){
+                entries.add( new MetadataEntry( e.getKey(), (Number) e.getValue()) );
+            } else if (e.getValue() instanceof String){
+                entries.add( new MetadataEntry(e.getKey(), (String) e.getValue()));
             }
         }
         return entries.size() > 0 ? entries : null;
@@ -235,22 +221,6 @@ public class DatacatObject implements Serializable {
     public String getJsonTypeName(){
         JsonTypeName t = getClass().getAnnotation( JsonTypeName.class );
         return t.value();
-    }
-    
-    private void initMetadata(List<MetadataEntry> metadataMap) {
-        numberMetadata = new HashMap<>();
-        stringMetadata = new HashMap<>();
-        
-        for(MetadataEntry e: metadataMap){
-            if(e.getRawValue() instanceof Number) {
-                numberMetadata.put(e.getKey(), (Number)e.getRawValue());
-            } else {
-                stringMetadata.put(e.getKey(), (String)e.getRawValue());
-            }
-        }
-        // If we didn't set any values, set the map back to null
-        stringMetadata = stringMetadata.isEmpty() ? null : stringMetadata;
-        numberMetadata = numberMetadata.isEmpty() ? null : numberMetadata;
     }
     
     @Override
@@ -308,6 +278,22 @@ public class DatacatObject implements Serializable {
         return false;
     }
     
+    protected static void initMetadata(List<MetadataEntry> metadataMap, HashMap<String, Number> numberMetadata, HashMap<String, String> stringMetadata) {
+        numberMetadata = new HashMap<>();
+        stringMetadata = new HashMap<>();
+        
+        for(MetadataEntry e: metadataMap){
+            if(e.getRawValue() instanceof Number) {
+                numberMetadata.put(e.getKey(), (Number)e.getRawValue());
+            } else {
+                stringMetadata.put(e.getKey(), (String)e.getRawValue());
+            }
+        }
+        // If we didn't set any values, set the map back to null
+        stringMetadata = stringMetadata.isEmpty() ? null : stringMetadata;
+        numberMetadata = numberMetadata.isEmpty() ? null : numberMetadata;
+    }
+    
     /**
      *
      * @author bvan
@@ -320,9 +306,9 @@ public class DatacatObject implements Serializable {
         public Type parentType = null;
         public String path;
         public Type type;
-        public List<MetadataEntry> metadata;
-        public Map<String, Number> numberMetadata;
-        public Map<String, String> stringMetadata;
+        public HashMap<String, Object> metadata;
+        //public Map<String, Number> numberMetadata;
+        //public Map<String, String> stringMetadata;
 
         public Builder(){
             super();
@@ -335,8 +321,9 @@ public class DatacatObject implements Serializable {
             this.parentPk = object.getParentPk();
             this.path = object.getPath();
             this.type = object.getType();
-            this.stringMetadata = object.getStringMetadata();
-            this.numberMetadata = object.getNumberMetadata();
+            this.metadata = object.metadata;
+//            this.stringMetadata = object.getStringMetadata();
+            //this.numberMetadata = object.getNumberMetadata();
         }
 
         public Builder(Builder builder){
@@ -347,8 +334,8 @@ public class DatacatObject implements Serializable {
             this.path = builder.path;
             this.type = builder.type;
             this.metadata = builder.metadata;
-            this.numberMetadata = builder.numberMetadata;
-            this.stringMetadata = builder.stringMetadata;
+            //this.numberMetadata = builder.numberMetadata;
+            //this.stringMetadata = builder.stringMetadata;
         }
 
         public Builder(Type type){
@@ -415,31 +402,23 @@ public class DatacatObject implements Serializable {
 
         @JsonSetter
         public U metadata(List<MetadataEntry> val){
-            this.metadata = val;
-            return (U) this;
-        }
-
-        public U metadata(Map<String, Object> val){
-            this.metadata = new ArrayList<>();
-            for(Map.Entry<String, Object> e: val.entrySet()){
-                if(e.getValue() instanceof Number){
-                    metadata.add( new MetadataEntry( e.getKey(), (Number) e.getValue() ) );
+            this.metadata = new HashMap<>();
+            for(MetadataEntry e: val){
+                if(e.getRawValue() instanceof Number) {
+                    metadata.put(e.getKey(), (Number)e.getRawValue());
                 } else {
-                    metadata.add( new MetadataEntry( e.getKey(), e.getValue().toString() ) );
+                    metadata.put(e.getKey(), (String)e.getRawValue());
                 }
             }
             return (U) this;
         }
 
-        public U numberMetadata(Map<String, Number> val){
-            this.numberMetadata = val;
+        public U metadata(Map<String, Object> val){
+            this.metadata = new HashMap<>();
+            metadata.putAll( val );
             return (U) this;
         }
 
-        public U stringMetadata(Map<String, String> val){
-            this.stringMetadata = val;
-            return (U) this;
-        }
     }
     
     

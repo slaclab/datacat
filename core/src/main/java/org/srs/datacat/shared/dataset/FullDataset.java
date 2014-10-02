@@ -1,15 +1,25 @@
 
 package org.srs.datacat.shared.dataset;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.sql.Timestamp;
+import java.util.Collection;
+import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.shared.Dataset;
+import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.FullDataset.Builder;
+import org.srs.rest.shared.RestDateAdapter;
+import org.srs.rest.shared.metadata.MetadataEntry;
 
 /**
  * Dataset with a Version, which also must contain locations
@@ -19,7 +29,7 @@ import org.srs.datacat.shared.dataset.FullDataset.Builder;
 @XmlType(name="fullDataset")
 @JsonTypeName(value="dataset#full")
 @JsonDeserialize(builder = Builder.class)
-public class FullDataset extends Dataset {
+public class FullDataset extends Dataset implements DatasetVersionModel {
     private DatasetVersion dsVersion;
     
     private FullDataset(){}
@@ -53,11 +63,51 @@ public class FullDataset extends Dataset {
         dsVersion = builder.version;
     }
     
-    @XmlElement(name="version", required=false)
+    @XmlTransient
     public DatasetVersion getVersion(){
         return dsVersion;
     }
     
+    @XmlElement(required=false)
+    public Long getVersionPk(){ return dsVersion.getPk(); }
+    
+    @Override
+    @XmlElement(required=false)
+    public Integer getVersionId(){ return dsVersion.getVersionId(); }
+
+    @Override
+    @XmlElement(required=false)
+    public Boolean isLatest(){ return dsVersion.isLatest(); }
+
+    @XmlElement(name="versionCreated", required=false)
+    @XmlJavaTypeAdapter(RestDateAdapter.class) 
+    public Timestamp getDateVersionCreated(){ return dsVersion.getDateCreated(); }
+    
+    @XmlElement(required=false)
+    public Collection<DatasetLocation> getLocations(){
+        if(dsVersion instanceof VersionWithLocations){
+            return ((VersionWithLocations) dsVersion).getLocations();
+        }
+        return null;
+    }
+
+    @Override
+    @XmlElement(required=false)
+    public String getDatasetSource(){ return dsVersion.getDatasetSource(); }
+    
+    @XmlElementWrapper(name="versionMetadata")
+    @XmlElement(required=false, name="entry")
+    @JsonProperty("versionMetadata")
+    public List<MetadataEntry> getVersionMetadata(){ return dsVersion.getMetadata(); }
+    
+    @Override
+    @XmlElement(required=false)
+    public Long getProcessInstance(){ return dsVersion.getProcessInstance(); }
+
+    @Override
+    @XmlElement(required=false)
+    public String getTaskName(){ return dsVersion.getTaskName(); }
+
     @XmlTransient
     public static class Builder extends Dataset.Builder{
         

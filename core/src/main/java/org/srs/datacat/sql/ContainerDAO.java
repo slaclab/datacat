@@ -88,11 +88,9 @@ public class ContainerDAO extends BaseDAO {
         
         if(request.getMetadata() != null && !request.getMetadata().isEmpty()){
             if(newType == DatacatObject.Type.FOLDER){
-                addFolderMetadata(retObject.getPk(), retObject.getNumberMetadata());
-                addFolderMetadata(retObject.getPk(), retObject.getStringMetadata());
+                addFolderMetadata(retObject.getPk(), retObject.getMetadataMap());
             } else {
-                addGroupMetadata(retObject.getPk(), retObject.getNumberMetadata());
-                addGroupMetadata(retObject.getPk(), retObject.getStringMetadata());
+                addFolderMetadata(retObject.getPk(), retObject.getMetadataMap());
             }
         }
         return retObject;
@@ -337,8 +335,7 @@ public class ContainerDAO extends BaseDAO {
         long verPk = dsVer.getLong( "datasetversion");
         
         while(!dsVer.isClosed() && dsVer.getLong("dataset") == dsPk && dsVer.getLong( "datasetversion") == verPk){
-            HashMap<String, Number> nmap = new HashMap<>();
-            HashMap<String, String> smap = new HashMap<>();
+            HashMap<String, Object> metadata = new HashMap<>();
             List<DatasetLocation> locations = new ArrayList<>();
             builder.pk(verPk);
             builder.parentPk(dsPk);
@@ -347,7 +344,7 @@ public class ContainerDAO extends BaseDAO {
             builder.latest(dsVer.getBoolean( "isLatest"));                
             while(!dsVer.isClosed() && dsVer.getLong("dataset") == dsPk && dsVer.getLong( "datasetversion" ) == verPk){
                 // Process all metadata entries first, 1 or more rows per version
-                BaseDAO.processMetadata( dsVer, nmap, smap ); 
+                BaseDAO.processMetadata( dsVer, metadata ); 
                 if(!dsVer.next()){
                     dsVer.close();
                 }
@@ -363,8 +360,7 @@ public class ContainerDAO extends BaseDAO {
                     dsLoc.close();
                 }
             }
-            builder.numberMetadata( nmap );
-            builder.stringMetadata( smap );
+            builder.metadata( metadata );
             builder.locations(locations);
             versions.add(builder.build());
         }

@@ -2,6 +2,7 @@
 package org.srs.datacat.shared;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.srs.datacat.model.DatasetModel;
@@ -16,8 +17,10 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlTransient;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset.Builder;
@@ -146,9 +149,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         public int dsType = BASE;
         public DatasetVersion version;
         public DatasetLocation location;
-        public List<MetadataEntry> versionMetadata;
-        public Map<String, Number> versionNumberMetadata;
-        public Map<String, String> versionStringMetadata;
+        public HashMap<String, Object> versionMetadata;
         public List<DatasetVersion> versions;
         public Collection<DatasetLocation> locations;
         // mixins
@@ -187,6 +188,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
          */
         public Builder(Builder builder){
             super( builder );
+            this.dsType = builder.dsType;
             this.version = builder.version;
             this.location = builder.location;
             this.versions = builder.versions;
@@ -345,34 +347,28 @@ public class Dataset extends DatacatObject implements DatasetModel {
             dsType |= LOCATIONS;
             return this;
         }
+        
+        public Builder fields(Map<String, Object> val){
+            return super.metadata( val );
+        }
 
         @JsonSetter
         public Builder versionMetadata(List<MetadataEntry> val){
-            this.versionMetadata = val;
+            this.versionMetadata = new HashMap<>();
+            for(MetadataEntry e: val){
+                if(e.getRawValue() instanceof Number) {
+                    versionMetadata.put(e.getKey(), (Number)e.getRawValue());
+                } else {
+                    versionMetadata.put(e.getKey(), (String)e.getRawValue());
+                }
+            }
+            dsType |= VERSION;
             return this;
         }
 
         public Builder versionMetadata(Map<String, Object> val){
-            this.versionMetadata = new ArrayList<>();
-            dsType |= VERSION;
-            for(Map.Entry<String, Object> e: val.entrySet()){
-                if(e.getValue() instanceof Number){
-                    versionMetadata.add( new MetadataEntry( e.getKey(), (Number) e.getValue() ) );
-                } else {
-                    versionMetadata.add( new MetadataEntry( e.getKey(), e.getValue().toString() ) );
-                }
-            }
-            return this;
-        }
-
-        public Builder versionNumberMetadata(Map<String, Number> val){
-            this.numberMetadata = val;
-            dsType |= VERSION;
-            return this;
-        }
-
-        public Builder versionStringMetadata(Map<String, String> val){
-            this.stringMetadata = val;
+            this.versionMetadata = new HashMap<>();
+            this.versionMetadata.putAll( val );
             dsType |= VERSION;
             return this;
         }

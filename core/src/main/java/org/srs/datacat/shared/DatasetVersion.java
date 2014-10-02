@@ -142,8 +142,6 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
             this.pk = builder.versionPk;
             this.parentPk = builder.pk;
             this.metadata = builder.versionMetadata;
-            this.numberMetadata = builder.versionNumberMetadata;
-            this.stringMetadata = builder.versionStringMetadata;
             this.versionId = builder.versionId;
             this.datasetSource = builder.datasetSource;
             this.processInstance = builder.processInstance;
