@@ -94,11 +94,11 @@ public class PathResource extends BaseResource {
             } else {
                 ret = file.getAttributeView(ContainerViewProvider.class).withView(statType);
             }
-            if(rv.getMetadataView() != null){
+            if(rv.getPrimaryView() == RequestView.METADATA){
                 List<MetadataEntry> entries = null;
-                if(rv.getMetadataView().equals( "metadata")){
+                if(rv.containsKey("metadata")){
                     entries = ret.getMetadata();
-                } else if(rv.getMetadataView().equals( "versionMetadata")){
+                } else if(rv.containsKey( "versionMetadata")){
                     if(ret instanceof FullDataset){
                         entries = ((FullDataset) ret).getVersionMetadata();
                     } else if(ret instanceof FlatDataset){
