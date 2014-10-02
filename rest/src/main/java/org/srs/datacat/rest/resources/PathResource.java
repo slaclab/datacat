@@ -27,6 +27,8 @@ import org.srs.datacat.rest.BaseResource;
 import org.srs.datacat.model.RequestView;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.container.BasicStat.StatType;
+import org.srs.datacat.shared.dataset.FlatDataset;
+import org.srs.datacat.shared.dataset.FullDataset;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
@@ -34,6 +36,7 @@ import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 
 import org.srs.rest.shared.RestException;
+import org.srs.rest.shared.metadata.MetadataEntry;
 
 
 /**
@@ -91,7 +94,23 @@ public class PathResource extends BaseResource {
             } else {
                 ret = file.getAttributeView(ContainerViewProvider.class).withView(statType);
             }
-            return Response.ok( new GenericEntity<DatacatObject>(ret){} ).build();
+            if(rv.getMetadataView() != null){
+                List<MetadataEntry> entries = null;
+                if(rv.getMetadataView().equals( "metadata")){
+                    entries = ret.getMetadata();
+                } else if(rv.getMetadataView().equals( "versionMetadata")){
+                    if(ret instanceof FullDataset){
+                        entries = ((FullDataset) ret).getVersionMetadata();
+                    } else if(ret instanceof FlatDataset){
+                        entries = ((FlatDataset) ret).getVersionMetadata();
+                    }
+                }
+                if(entries == null){
+                    return Response.noContent().build();
+                }
+                return Response.ok( new GenericEntity<List<MetadataEntry>>(entries){} ).build();
+            }
+            return Response.ok( new GenericEntity(ret, DatacatObject.class) ).build();
         } catch (IllegalArgumentException ex){
             throw new RestException(ex, 400 , "Unable to correctly process view", ex.getMessage());
         } catch (FileNotFoundException ex){
