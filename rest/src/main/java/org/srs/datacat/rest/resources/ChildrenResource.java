@@ -38,7 +38,7 @@ import org.srs.vfs.AbstractFsProvider;
  * The children resource will return objects that belong to supplied parent
  * path.
  * @author bvan
- */
+
 @Path("/children")
 public class ChildrenResource extends BaseResource {
     
@@ -53,7 +53,7 @@ public class ChildrenResource extends BaseResource {
      * @param offset    offset of first _viewable_ child
      * @param showCount showCount signals to calculate total _viewable_ children count
      * @return
-     */
+
     @GET
     @Path(idRegex)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
@@ -124,3 +124,4 @@ public class ChildrenResource extends BaseResource {
     }
 
 }
+    */

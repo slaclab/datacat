@@ -8,9 +8,13 @@ package org.srs.datacat.rest.resources;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.DirectoryStream;
 
 import java.nio.file.Files;
+import java.nio.file.NotDirectoryException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -18,10 +22,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.srs.datacat.rest.BaseResource;
 import org.srs.datacat.model.RequestView;
@@ -37,6 +43,7 @@ import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 
 import org.srs.rest.shared.RestException;
 import org.srs.rest.shared.metadata.MetadataEntry;
+import org.srs.vfs.AbstractFsProvider;
 
 
 /**
@@ -63,27 +70,29 @@ public class PathResource extends BaseResource {
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response getRootBean(@DefaultValue("basic") @QueryParam("stat") StatTypeWrapper statType) throws IOException{
-        return getBean("", null, statType.getEnum());
+        return getBean("", new HashMap<String, List<String>>(), new HashMap<String, List<String>>());
     }
     
     @GET
     @Path(idRegex)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public Response getBean(@PathParam("id") List<PathSegment> pathSegments,
-            @DefaultValue("basic") @QueryParam("stat") StatTypeWrapper statTypeWrapper) throws IOException{
-        
-        StatType statType = statTypeWrapper.getEnum();
+    public Response getBean(@PathParam("id") List<PathSegment> pathSegments, @Context UriInfo ui) throws IOException{
         HashMap<String, List<String>> matrixParams = new HashMap<>();
+        HashMap<String, List<String>> queryParams = new HashMap<>();
         String path = "";
         for(PathSegment s: pathSegments){
             path = path + "/" + s.getPath();
             matrixParams.putAll(s.getMatrixParameters());
         }
-        return getBean(path, matrixParams, statType);
+        queryParams.putAll(ui.getQueryParameters());
+        return getBean(path, matrixParams, queryParams);
     }
     
     public Response getBean(String path, HashMap<String,List<String>> matrixParams, 
-            StatType statType) throws IOException{
+            HashMap<String, List<String>> extraQueryParams) throws IOException{
+        List<String> stl = matrixParams.get( "stat");
+        String st = stl != null && !stl.isEmpty() ? stl.get(0).toUpperCase() : null;
+        StatType statType = st != null ? StatType.valueOf(st) : StatType.BASIC;
         DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(path, null, "SRS"));
         try {
             DcFile file = Files.readAttributes(dcp, DcFile.class);
@@ -94,23 +103,27 @@ public class PathResource extends BaseResource {
             } else {
                 ret = file.getAttributeView(ContainerViewProvider.class).withView(statType);
             }
-            if(rv.getPrimaryView() == RequestView.METADATA){
-                List<MetadataEntry> entries = null;
-                if(rv.containsKey("metadata")){
-                    entries = ret.getMetadata();
-                } else if(rv.containsKey( "versionMetadata")){
-                    if(ret instanceof FullDataset){
-                        entries = ((FullDataset) ret).getVersionMetadata();
-                    } else if(ret instanceof FlatDataset){
-                        entries = ((FlatDataset) ret).getVersionMetadata();
+            switch(rv.getPrimaryView()){
+                case RequestView.CHILDREN:
+                    return getChildren( file, rv, extraQueryParams );
+                case RequestView.METADATA:
+                    List<MetadataEntry> entries = null;
+                    if(rv.containsKey("metadata")){
+                        entries = ret.getMetadata();
+                    } else if(rv.containsKey( "versionMetadata")){
+                        if(ret instanceof FullDataset){
+                            entries = ((FullDataset) ret).getVersionMetadata();
+                        } else if(ret instanceof FlatDataset){
+                            entries = ((FlatDataset) ret).getVersionMetadata();
+                        }
                     }
-                }
-                if(entries == null){
-                    return Response.noContent().build();
-                }
-                return Response.ok( new GenericEntity<List<MetadataEntry>>(entries){} ).build();
+                    if(entries == null){
+                        return Response.noContent().build();
+                    }
+                    return Response.ok( new GenericEntity<List<MetadataEntry>>(entries){} ).build();
+                default:
+                    return Response.ok( new GenericEntity(ret, DatacatObject.class) ).build();
             }
-            return Response.ok( new GenericEntity(ret, DatacatObject.class) ).build();
         } catch (IllegalArgumentException ex){
             throw new RestException(ex, 400 , "Unable to correctly process view", ex.getMessage());
         } catch (FileNotFoundException ex){
@@ -120,6 +133,59 @@ public class PathResource extends BaseResource {
         } catch (IOException ex){
             throw new RestException(ex, 500);
         }
+    }
+ 
+    public Response getChildren(DcFile dirFile, RequestView requestView, HashMap<String, List<String>> queryParams){
+        boolean withDs = queryParams.containsKey("datasets") ? Boolean.valueOf( queryParams.get("datasets").get(0)) : true;
+        StatType statType = queryParams.containsKey("stat") ? StatType.valueOf( queryParams.get("stat").get(0).toUpperCase()): StatType.NONE;
+        int max = queryParams.containsKey("max") ? Integer.valueOf( queryParams.get("max").get(0)) :100000;
+        int offset = queryParams.containsKey("offset") ? Integer.valueOf( queryParams.get("offset").get(0)) :0;
+        boolean showCount = queryParams.containsKey("showCount") ? Boolean.valueOf( queryParams.get("showCount").get(0)) :false;
+    
+        List<DatacatObject> retList = new ArrayList<>();
+        int count = 0;
+        try (DirectoryStream<java.nio.file.Path> stream = getProvider()
+                .newOptimizedDirectoryStream(dirFile.getPath(), AbstractFsProvider.AcceptAllFilter, 
+                    max, requestView.getDatasetView())){
+            Iterator<java.nio.file.Path> iter = stream.iterator();
+            
+            while(iter.hasNext() && (retList.size() < max || showCount)){
+                java.nio.file.Path p = iter.next();
+                DcFile file = Files.readAttributes(p, DcFile.class);
+                if(!withDs && file.isRegularFile()){
+                    continue;
+                }
+                if(count >= offset && retList.size() < max){
+                    DatacatObject ret;
+                    if(file.isRegularFile()){
+                        try {
+                            ret = file.getAttributeView(DatasetViewProvider.class).withView(requestView);
+                        } catch (FileNotFoundException ex){
+                            continue;
+                        }
+                    } else {
+                        ret = file.getAttributeView(ContainerViewProvider.class).withView(statType);
+                    }
+                    retList.add(ret);
+                }
+                count++;
+            }
+        } catch (NotDirectoryException ex){
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("File exists, but Path is not a directory").build();
+        } catch (IOException ex){
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Error accessing the file system: " + ex.getMessage()).build();
+        }
+        
+        String start = Integer.toString(offset);
+        String end = Integer.toString(offset+ (retList.size() - 1));
+        String len= showCount ? Integer.toString(count - 1) : "*";
+        Response resp = Response
+                .ok( new GenericEntity<List<DatacatObject>>(retList) {})
+                .header( "Content-Range", String.format("items %s-%s/%s", start, end, len))
+                .build();
+        return resp;
     }
 
 }

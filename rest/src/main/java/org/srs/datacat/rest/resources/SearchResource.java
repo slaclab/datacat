@@ -75,6 +75,9 @@ public class SearchResource extends BaseResource {
         DatasetView dv = null;
         try {
             RequestView rv = new RequestView(DatacatObject.Type.DATASET, matrixParams);
+            if(rv.getPrimaryView() == RequestView.CHILDREN || rv.getPrimaryView() == RequestView.METADATA){
+                throw new IllegalArgumentException("Children and Metadata views not available when searching");
+            }
             dv = rv.getDatasetView();
         } catch (IllegalArgumentException ex){
             throw new RestException(ex, 400, "Unable to process view", ex.getMessage());
