@@ -52,6 +52,11 @@ public class RequestView extends HashMap<String,String>{
         return this.datasetView;
     }
     
+    public String getMetadataView(){
+        return get("metadata") != null ? "metadata" : 
+                get("versionMetadata") != null ? "versionMetadata" : null;
+    }
+    
     private void validateView(Map<String,List<String>> params){
         String site = DatasetView.CANONICAL_SITE;
         int vid = DatasetView.CURRENT_VER;
