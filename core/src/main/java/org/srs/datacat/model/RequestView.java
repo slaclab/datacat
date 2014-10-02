@@ -22,6 +22,10 @@ public class RequestView extends HashMap<String,String>{
     DatasetView datasetView;
     boolean includeMetadata = true;
     
+    public static final int OBJECT = 1<<1;
+    public static final int CHILDREN = 1<<2;
+    public static final int METADATA = 1<<3;
+    
     private static final String PRESENT = new String();
     
     private static final HashSet<String> allowableAttributes = new HashSet<String>(){
@@ -52,9 +56,15 @@ public class RequestView extends HashMap<String,String>{
         return this.datasetView;
     }
     
-    public String getMetadataView(){
-        return get("metadata") != null ? "metadata" : 
-                get("versionMetadata") != null ? "versionMetadata" : null;
+    public int getPrimaryView(){
+        if(containsKey("children")){
+            return CHILDREN;
+        } else if(containsKey("metadata")){
+            return METADATA;
+        } else if(containsKey("versionMetadata")){
+            return METADATA;
+        }
+        return OBJECT;
     }
     
     private void validateView(Map<String,List<String>> params){
