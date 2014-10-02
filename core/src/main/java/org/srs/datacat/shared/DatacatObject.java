@@ -1,7 +1,6 @@
 
 package org.srs.datacat.shared;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -17,7 +16,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
@@ -57,7 +55,7 @@ public class DatacatObject implements Serializable {
     private Long parentPk;
     private String name;
     private String path;
-    private HashMap<String, Object> metadata = null;
+    private final HashMap<String, Object> metadata = new HashMap<>();
 
     @XmlEnum(String.class)
     public enum Type {
@@ -114,13 +112,17 @@ public class DatacatObject implements Serializable {
     public DatacatObject(DatacatObject object){
         this(object.pk, object.parentPk, object.name);
         this.path = object.path;
-        this.metadata = object.metadata != null ? object.metadata : new HashMap<String,Object>();
+        if(object.metadata != null){
+            this.metadata.putAll( object.metadata);
+        }
     }
     
     public DatacatObject(Builder builder){
         this(builder.pk, builder.parentPk, builder.name);
         this.path = builder.path;
-        this.metadata = builder.metadata != null ? builder.metadata : new HashMap<String,Object>();
+        if(builder.metadata != null){
+            this.metadata.putAll(builder.metadata);
+        }
     }
     
     @XmlElement(required=false)
@@ -181,9 +183,7 @@ public class DatacatObject implements Serializable {
      * This makes the xml and json output a lot cleaner.
      * @return 
      */
-    @XmlElementWrapper(name="metadata")
-    @XmlElement(required=false, name="entry")
-    @JsonProperty("metadata")
+    @XmlElement(required=false)
     public List<MetadataEntry> getMetadata() {
         ArrayList<MetadataEntry> entries = new ArrayList<>();
         for(Entry<String, Object> e: metadata.entrySet()){
@@ -280,7 +280,7 @@ public class DatacatObject implements Serializable {
         public Type parentType = null;
         public String path;
         public Type type;
-        public HashMap<String, Object> metadata;
+        public HashMap<String, Object> metadata = new HashMap<>();
 
         public Builder(){
             super();
@@ -371,19 +371,23 @@ public class DatacatObject implements Serializable {
         @JsonSetter
         public U metadata(List<MetadataEntry> val){
             this.metadata = new HashMap<>();
-            for(MetadataEntry e: val){
-                if(e.getRawValue() instanceof Number) {
-                    metadata.put(e.getKey(), (Number)e.getRawValue());
-                } else {
-                    metadata.put(e.getKey(), (String)e.getRawValue());
-                }
+            if(val != null){
+                for(MetadataEntry e: val){
+                    if(e.getRawValue() instanceof Number) {
+                        metadata.put(e.getKey(), (Number)e.getRawValue());
+                    } else {
+                        metadata.put(e.getKey(), (String)e.getRawValue());
+                    }
+                }   
             }
             return (U) this;
         }
 
         public U metadata(Map<String, Object> val){
             this.metadata = new HashMap<>();
-            metadata.putAll( val );
+            if(val != null){
+                metadata.putAll( val );
+            }
             return (U) this;
         }
 

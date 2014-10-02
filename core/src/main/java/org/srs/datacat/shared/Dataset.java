@@ -146,7 +146,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         public int dsType = BASE;
         public DatasetVersion version;
         public DatasetLocation location;
-        public HashMap<String, Object> versionMetadata;
+        public HashMap<String, Object> versionMetadata = new HashMap<>();
         public List<DatasetVersion> versions;
         public Collection<DatasetLocation> locations;
         // mixins
@@ -344,20 +344,18 @@ public class Dataset extends DatacatObject implements DatasetModel {
             dsType |= LOCATIONS;
             return this;
         }
-        
-        public Builder fields(Map<String, Object> val){
-            return super.metadata( val );
-        }
 
         @JsonSetter
         public Builder versionMetadata(List<MetadataEntry> val){
             this.versionMetadata = new HashMap<>();
-            for(MetadataEntry e: val){
-                if(e.getRawValue() instanceof Number) {
-                    versionMetadata.put(e.getKey(), (Number)e.getRawValue());
-                } else {
-                    versionMetadata.put(e.getKey(), (String)e.getRawValue());
-                }
+            if(val != null){
+                for(MetadataEntry e: val){
+                    if(e.getRawValue() instanceof Number) {
+                        versionMetadata.put(e.getKey(), (Number)e.getRawValue());
+                    } else {
+                        versionMetadata.put(e.getKey(), (String)e.getRawValue());
+                    }
+                }   
             }
             dsType |= VERSION;
             return this;
@@ -365,7 +363,9 @@ public class Dataset extends DatacatObject implements DatasetModel {
 
         public Builder versionMetadata(Map<String, Object> val){
             this.versionMetadata = new HashMap<>();
-            this.versionMetadata.putAll( val );
+            if(val != null){
+                this.versionMetadata.putAll( val );
+            }
             dsType |= VERSION;
             return this;
         }
