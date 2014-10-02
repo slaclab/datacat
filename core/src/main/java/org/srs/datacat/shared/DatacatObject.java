@@ -166,16 +166,6 @@ public class DatacatObject implements Serializable {
     public String getPath(){
         return path;
     }
-    
-    /**
-     * We store the metadata internally as two seperate maps, one for strings
-     * and one for numbers.
-     * @return The meatadata with values of String types
-     
-    @XmlTransient
-    public HashMap<String,String> getStringMetadata() {
-        return stringMetadata;
-    }
 
      /**
      * Metadata to return 
@@ -278,22 +268,6 @@ public class DatacatObject implements Serializable {
         return false;
     }
     
-    protected static void initMetadata(List<MetadataEntry> metadataMap, HashMap<String, Number> numberMetadata, HashMap<String, String> stringMetadata) {
-        numberMetadata = new HashMap<>();
-        stringMetadata = new HashMap<>();
-        
-        for(MetadataEntry e: metadataMap){
-            if(e.getRawValue() instanceof Number) {
-                numberMetadata.put(e.getKey(), (Number)e.getRawValue());
-            } else {
-                stringMetadata.put(e.getKey(), (String)e.getRawValue());
-            }
-        }
-        // If we didn't set any values, set the map back to null
-        stringMetadata = stringMetadata.isEmpty() ? null : stringMetadata;
-        numberMetadata = numberMetadata.isEmpty() ? null : numberMetadata;
-    }
-    
     /**
      *
      * @author bvan
@@ -307,8 +281,6 @@ public class DatacatObject implements Serializable {
         public String path;
         public Type type;
         public HashMap<String, Object> metadata;
-        //public Map<String, Number> numberMetadata;
-        //public Map<String, String> stringMetadata;
 
         public Builder(){
             super();
@@ -322,8 +294,6 @@ public class DatacatObject implements Serializable {
             this.path = object.getPath();
             this.type = object.getType();
             this.metadata = object.metadata;
-//            this.stringMetadata = object.getStringMetadata();
-            //this.numberMetadata = object.getNumberMetadata();
         }
 
         public Builder(Builder builder){
@@ -334,8 +304,6 @@ public class DatacatObject implements Serializable {
             this.path = builder.path;
             this.type = builder.type;
             this.metadata = builder.metadata;
-            //this.numberMetadata = builder.numberMetadata;
-            //this.stringMetadata = builder.stringMetadata;
         }
 
         public Builder(Type type){
