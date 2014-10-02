@@ -401,7 +401,7 @@ public class DatasetDAO extends BaseDAO {
                 builder.pk(rs.getLong(1));
                 builder.parentPk(datasetPk);
                 builder.created(rs.getTimestamp(2));
-                builder.metadata(request.getMetadata());
+                builder.metadata(request.getMetadataMap());
             }
             retVersion = builder.build();
         }

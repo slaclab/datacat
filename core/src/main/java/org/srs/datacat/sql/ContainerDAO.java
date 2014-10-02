@@ -86,7 +86,7 @@ public class ContainerDAO extends BaseDAO {
             retObject = builder.build();
         }
         
-        if(request.getMetadata() != null && !request.getMetadata().isEmpty()){
+        if(request.getMetadataMap() != null && !request.getMetadataMap().isEmpty()){
             if(newType == DatacatObject.Type.FOLDER){
                 addFolderMetadata(retObject.getPk(), retObject.getMetadataMap());
             } else {
