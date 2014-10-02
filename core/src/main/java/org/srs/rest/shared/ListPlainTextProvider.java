@@ -24,11 +24,12 @@ public class ListPlainTextProvider implements MessageBodyWriter<List> {
     @Override
     public boolean isWriteable(Class<?> type, Type genericType,
                                Annotation[] annotations, MediaType mediaType) {
-        if(List.class.isAssignableFrom( type )){
+        return List.class.isAssignableFrom( type );
+        /*if(List.class.isAssignableFrom( type )){
             Type arrayType = ( (ParameterizedType) genericType).getActualTypeArguments()[0];
             return DatacatObject.class.isAssignableFrom( (Class) arrayType );
         }
-        return false;
+        return false;*/
     }
   
     @Override
