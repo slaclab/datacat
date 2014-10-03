@@ -23,7 +23,7 @@ resp = client.path(path)
 if resp.status_code == 200:
     dataset = unpack(resp.json())
     import pprint
-    pprint.pprint(dataset.raw)   # pprint likes raw dictionaries more
+    pprint.pprint(dataset)
 else:
     print("Error processing request:" + str(resp.status_code))
 
@@ -32,11 +32,11 @@ else:
 print("\nChildren Example:")
 path = '/EXO/Data/Raw'
 
-resp = client.children(path)
+resp = client.children(path, show_request=True)
 
 if resp.status_code == 200:
     children = [unpack(child) for child in resp.json()]
-    pprint.pprint([child.raw for child in children])
+    pprint.pprint([child for child in children])
 else:
     print("Error processing request:" + str(resp.status_code))
 
