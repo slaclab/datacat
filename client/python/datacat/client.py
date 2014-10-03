@@ -4,22 +4,25 @@ from config import ENDPOINTS, DATATYPES
 
 class Client(object):
 
+    ALLOWABLE_VERSIONS = "curr current latest new".split(" ")
+    ALLOWABLE_SITES = "master canonical all".split(" ")
 
     def __init__(self, base_url, *args, **kwargs):
         self.base_url = base_url
     
-    def children(self, path, offset=None, max_num=None, accept="json", **kwargs):
-        endpoint = "children"
+    def children(self, path, version=None, site=None, offset=None, max_num=None, accept="json", **kwargs):
+        endpoint = "path"
         param_list = "offset:offset max_num:max".split(" ")
         param_map = dict([i.split(":") for i in param_list])
         params = {param_map[k]:v for k,v in locals().items() if k in param_map and v is not None}
-        return self._get(self._target(endpoint, path, accept), params, **kwargs)
+        target = self._target(endpoint, path, version, site, accept) + ";children"
+        return self._get(target, params, **kwargs)
     
-    def path(self, path, accept="json", **kwargs):
+    def path(self, path, version=None, site=None, accept="json", **kwargs):
         endpoint = "path"
-        return self._get(self._target(endpoint, path, accept), **kwargs)
+        return self._get(self._target(endpoint, path, version, site, accept), **kwargs)
     
-    def search(self, target, query=None, sort=None, show=None, offset=None, max_num=None, accept="json", **kwargs):
+    def search(self, target, version=None, site=None, query=None, sort=None, show=None, offset=None, max_num=None, accept="json", **kwargs):
         """Search a target. A target is a Container of some sort. It may also be specified as a glob, as in:
          1. /path/to - target /path/to _only_
          2. /path/to/* - target is all containers directly in /path/to/
@@ -41,13 +44,24 @@ class Client(object):
         param_list = "query:filter sort:sort show:show offset:offset max_num:max".split(" ")
         param_map = dict([i.split(":") for i in param_list])
         params = {param_map[k]:v for k,v in locals().items() if k in param_map and v is not None}
-        return self._get(self._target(endpoint, target, accept), params, **kwargs)
+        return self._get(self._target(endpoint, target, version, site, accept), params, **kwargs)
     
     def _get(self, target, params=None, **kwargs):
         headers = kwargs["headers"] if "headers" in kwargs else None
+        if 'show_request' in kwargs:
+            print(target)
         return requests.get(target, params=params, headers=headers)
 
-    def _target(self, endpoint, path, accept="json"):
+    def _target(self, endpoint, path, version=None, site=None, accept="json"):
+        if version is not None:
+            try:
+                version = int(version)
+            except ValueError as e:
+                if version.lower() in self.ALLOWABLE_VERSIONS:
+                    version = version.lower()
+                else:
+                    raise e
+
         def rsrc(endpoint, accept="json"):
             if endpoint in ENDPOINTS and accept in DATATYPES:
                 return "%s.%s" %(endpoint, accept)
@@ -56,5 +70,7 @@ class Client(object):
             part = part if part[0] != '/' else (part[1:] if len(part) > 0 else "")
             return "%s/%s" %(path, part)
         url = rslv(self.base_url, rsrc(endpoint, accept))
-        return rslv(url, path)
+        view = ";v=" + str(version) if version is not None else ""
+        view += ";s=" + site if site is not None else ""
+        return rslv(url, path) + view
 
