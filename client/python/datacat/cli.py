@@ -14,7 +14,7 @@ def build_argparser():
     parser.add_argument('-D', '--experiment', "--domain", help="Set experiment domain for requests")
     parser.add_argument('-f', '--format', dest="accept", default="json", help="Set experiment domain for requests")
     parser.add_argument('-r', '--show-request', action="store_true", dest="show_request",
-                        help="Show raw request", default=False)
+                        help="Show request URL", default=False)
     parser.add_argument('-R', '--show-response', action="store_true", dest="show_response",
                         help="Attempt to show formatted response", default=False)
     parser.add_argument('-Rw', '--show-raw-response', action="store_true", dest="show_raw_response",
