@@ -48,9 +48,23 @@ class Client(object):
     
     def _get(self, target, params=None, **kwargs):
         headers = kwargs["headers"] if "headers" in kwargs else None
-        if 'show_request' in kwargs:
-            print(target)
-        return requests.get(target, params=params, headers=headers)
+        resp = requests.get(target, params=params, headers=headers)
+        if kwargs.get('show_request', False):
+            print("Request")
+            print(resp.request.url)
+        if kwargs.get('request_headers', False):
+            print("Request Headers:")
+            print(resp.request.headers)
+        if kwargs.get('show_response', False):
+            print("Response: %d" %resp.status_code)
+        if kwargs.get('response_headers', False):
+            print("Response Headers:")
+            print(resp.headers)
+        if kwargs.get('show_raw_response', False):
+            print(kwargs["show_raw_response"])
+            print("Response:")
+            print(resp.content)
+        return resp
 
     def _target(self, endpoint, path, version=None, site=None, accept="json"):
         if version is not None:

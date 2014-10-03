@@ -16,6 +16,8 @@ def build_argparser():
     parser.add_argument('-r', '--show-request', action="store_true", dest="show_request",
                         help="Show raw request", default=False)
     parser.add_argument('-R', '--show-response', action="store_true", dest="show_response",
+                        help="Attempt to show formatted response", default=False)
+    parser.add_argument('-Rw', '--show-raw-response', action="store_true", dest="show_raw_response",
                         help="Show raw response", default=False)
     parser.add_argument('-rH', '--show-request-headers', action="store_true", dest="request_headers",
                         help="Show HTTP headers", default=False)
@@ -127,8 +129,6 @@ def main():
         sys.exit(1)
 
     json = resp.json()
-    #if(args.show_response):
-    #    pp.pprint(json)
 
     dcObject = lambda d: '$type' in d and d['$type'].split("#")[0] in 'dataset group folder'.split(" ")
 
@@ -137,10 +137,6 @@ def main():
     elif isinstance(json, list):
         for item in json:
             retObjects.append(unpack(item) if dcObject(item) else item)
-
-    if args.response_headers:
-        print("Headers:")
-        pp.pprint(resp.headers)
 
     if args.show_response:
         print("Object Response:")
@@ -154,7 +150,9 @@ def main():
                 extra = ""
                 if hasattr(dataset, "metadata"):
                     extra = "\t".join([str(dataset.metadata.get(i)) for i in metanames])
-                if hasattr(dataset, "locations"):
+                if hasattr(dataset, "resource"):
+                    print( "%s\t%s\t%s" %(dataset.resource, dataset.path, extra))
+                elif hasattr(dataset, "locations"):
                     for location in dataset.locations:
                         print( "%s\t%s\t%s" %(location.resource, dataset.path, extra))
 
