@@ -346,11 +346,11 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                         .setType( AclEntryType.ALLOW )
                         .build();
                 aclView = new DcAclFileAttributeView(Arrays.asList( e));
-                child = dao.getDatacatObject(null, path);
+                child = dao.getObjectInParent(null, path);
             } else {
                 aclView = parent.getAttributeView(DcAclFileAttributeView.class);
                 DatacatObject par = parent.getObject();
-                child = dao.getDatacatObject( par.getPk(), path);
+                child = dao.getObjectInParent( par.getPk(), path);
             }
             DcFile f = new DcFile(path, child, aclView);
             return f;

@@ -150,7 +150,6 @@ public class ContainerDAO extends BaseDAO {
         }
     }
     
-    
     public DatasetStat getDatasetStat(DatacatObject container, BasicStat stat) throws SQLException {
         String primaryTable;
         if(container instanceof LogicalFolder){

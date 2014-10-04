@@ -45,13 +45,13 @@ public class BaseDAO implements AutoCloseable {
         conn.commit();
     }
     
-    public void rollback() throws SQLException {
+    protected void rollback() throws SQLException {
         if(conn != null){
             conn.rollback();
         }
     }
     
-    public Connection getConnection(){
+    protected Connection getConnection(){
         return this.conn;
     }
     
@@ -60,14 +60,6 @@ public class BaseDAO implements AutoCloseable {
             stmt.setObject( 1, o);
             stmt.executeUpdate();
         }
-    }
-    
-    public DatacatObject getDatacatObject(DcPath path) throws IOException, FileNotFoundException {
-        DatacatObject next = new DatacatObject(null,null,"ROOT");
-        for(int i = 0; i < path.getNameCount(); i++){
-            next = getDatacatObject(next.getPk(), path.subpath(0, i+1).toAbsolutePath().toString());
-        }
-        return next;
     }
     
     public DatacatObject getDatacatObject(String path) throws IOException, FileNotFoundException {
@@ -83,7 +75,7 @@ public class BaseDAO implements AutoCloseable {
         return next;
     }
     
-    public DatacatObject getDatacatObject(Long parentPk, DcPath path) throws IOException, FileNotFoundException {
+    public DatacatObject getObjectInParent(Long parentPk, DcPath path) throws IOException, FileNotFoundException {
         return getDatacatObject( parentPk, path.toString());
     }
     
@@ -310,7 +302,7 @@ public class BaseDAO implements AutoCloseable {
         }
     }
     
-    public static DatacatObject.Type getType(String typeChar){
+    protected static DatacatObject.Type getType(String typeChar){
         switch(typeChar){
             case "F":
                 return DatacatObject.Type.FOLDER;
@@ -322,7 +314,7 @@ public class BaseDAO implements AutoCloseable {
         return null;
     }
     
-    public static DatacatObject.Builder getBuilder(ResultSet rs, String parentPath) throws SQLException {
+    protected static DatacatObject.Builder getBuilder(ResultSet rs, String parentPath) throws SQLException {
         DatacatObject.Type type = getType(rs.getString("type"));
         DatacatObject.Builder o;
         switch (type){

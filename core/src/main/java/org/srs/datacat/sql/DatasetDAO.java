@@ -125,16 +125,6 @@ public class DatasetDAO extends BaseDAO {
         }
         deleteDataset( dataset.getPk());
     }
-
-    /*public DatasetVersion createOrMergeDatasetVersion(Long datasetPk, DcPath path, DatasetVersion newVer,
-            boolean mergeVersion) throws SQLException, FileSystemException {
-        return createOrMergeDatasetVersion(datasetPk, path, getCurrentVersion(datasetPk), newVer, mergeVersion);
-    }
-
-    public DatasetVersion createOrMergeDatasetVersion(Long datasetPk, DcPath path, DatasetVersion currentVersion, 
-            DatasetVersion request, boolean mergeVersion) throws SQLException, FileSystemException{
-         return createOrMergeDatasetVersion( datasetPk, path.toString(), currentVersion, request, mergeVersion );
-    }*/
     
     protected DatasetVersion createOrMergeDatasetVersion(Long datasetPk, String dsPath, DatasetVersion currentVersion, 
             DatasetVersion request, boolean mergeVersion) throws SQLException, FileSystemException{
@@ -216,7 +206,7 @@ public class DatasetDAO extends BaseDAO {
         }
     }
     
-    public List<DatasetVersion> getDatasetVersions(Long datasetPk) throws SQLException{
+    private List<DatasetVersion> getDatasetVersions(Long datasetPk) throws SQLException{
         String sql = 
                 "select dsv.datasetversion, dsv.versionid, dsv.datasetsource, " 
                 + "CASE WHEN vd.latestversion = dsv.datasetversion THEN 1 ELSE 0 END isLatest "
@@ -243,7 +233,7 @@ public class DatasetDAO extends BaseDAO {
         }
     }
     
-    public List<DatasetLocation> getDatasetLocations(Long versionPk) throws SQLException{
+    private List<DatasetLocation> getDatasetLocations(Long versionPk) throws SQLException{
         String sql = 
                 "select vdl.datasetlocation, vdl.datasetsite, vdl.path, vdl.runmin, vdl.runmax, "
                 + "vdl.numberevents, vdl.filesizebytes, vdl.checksum, vdl.lastmodified, "
