@@ -5,15 +5,10 @@
 package org.srs.datacatalog.search;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import javax.sql.DataSource;
 import junit.framework.TestCase;
@@ -23,17 +18,13 @@ import org.srs.datacat.model.DatasetView;
 import org.srs.datacatalog.search.plugins.DatacatPlugin;
 import org.srs.datacatalog.search.plugins.EXODatacatSearchPlugin;
 import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.LogicalFolder;
-import org.srs.datacat.shared.dataset.FlatDataset;
+
 import org.srs.datacat.test.HSqlDbHarness;
-import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
+import org.srs.datacat.vfs.DirectoryWalker;
 import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
-import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
-import org.srs.datacat.vfs.attribute.DatasetOption;
-import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 import org.zerorm.core.Select;
 import org.srs.datacat.vfs.TestUtils;
 import org.srs.vfs.GlobToRegex;
@@ -251,7 +242,9 @@ public class DatacatSearchTest {
         searchPath = root.resolve("/testpath");
         System.out.println(datacatSearch.dmc.toString());
         visitor = new ContainerVisitor(root.getFileSystem(), "/testpath", searchGroups, searchFolders);
-        statement = datacatSearch.compileStatement(searchPath, dsView, visitor, false, 100, queryString, metaFieldsToRetrieve, sortFields,0,-1);
+        DirectoryWalker walker = new DirectoryWalker(provider, visitor, 100);
+        walker.walk(searchPath);
+        statement = datacatSearch.compileStatement(visitor.files, dsView, queryString, metaFieldsToRetrieve, sortFields,0,-1);
         System.out.println(statement.formatted());
         
         /*datasets = datacatSearch.searchForDatasetsInParent( conn, statement, keepAlive);
@@ -263,7 +256,9 @@ public class DatacatSearchTest {
         queryString = "sIntent == 'run'";
         searchPath = root.resolve("/testpath");
         visitor = new ContainerVisitor(root.getFileSystem(), "/testpath", searchGroups, searchFolders);
-        statement = datacatSearch.compileStatement(searchPath, dsView, visitor, false, 100, queryString, metaFieldsToRetrieve, sortFields,0,-1);
+        walker = new DirectoryWalker(provider, visitor, 100);
+        walker.walk(searchPath);
+        statement = datacatSearch.compileStatement(visitor.files, dsView, queryString, metaFieldsToRetrieve, sortFields,0,-1);
         System.out.println(statement.formatted());
         
         /*datasets = datacatSearch.searchForDatasetsInParent( conn, statement, keepAlive);
@@ -285,7 +280,9 @@ public class DatacatSearchTest {
         ContainerVisitor visitor = new ContainerVisitor(root.getFileSystem(), pathPattern, searchGroups, searchFolders);
         System.out.println("With visitor: " + visitor.toString());
         DatasetView dsView = DatasetView.CURRENT_ALL;
-        Select statement = datacatSearch.compileStatement(searchPath, dsView, visitor, false, 100, queryString, metaFieldsToRetrieve, sortFields,0,-1);
+        DirectoryWalker walker = new DirectoryWalker(provider, visitor, 100);
+        walker.walk(searchPath);
+        Select statement = datacatSearch.compileStatement(visitor.files, dsView, queryString, metaFieldsToRetrieve, sortFields,0,-1);
         List<Dataset> datasets = datacatSearch.retrieveDatasets();
         int ii = 0;
         for(Dataset d: datasets){
@@ -303,7 +300,9 @@ public class DatacatSearchTest {
         ContainerVisitor visitor = new ContainerVisitor(root.getFileSystem(), pathPattern, searchGroups, searchFolders);
         System.out.println("With visitor: " + visitor.toString());
         DatasetView dsView = DatasetView.CURRENT_ALL;
-        Select statement = datacatSearch.compileStatement(searchPath, dsView, visitor, false, 100, queryString, metaFieldsToRetrieve, sortFields,0,-1);
+        DirectoryWalker walker = new DirectoryWalker(provider, visitor, 100);
+        walker.walk(searchPath);
+        Select statement = datacatSearch.compileStatement(visitor.files, dsView, queryString, metaFieldsToRetrieve, sortFields,0,-1);
         System.out.println("With statement" + statement.formatted());
         List<Dataset> datasets = datacatSearch.retrieveDatasets();
         int ii = 0;

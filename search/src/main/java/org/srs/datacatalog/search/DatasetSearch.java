@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -17,10 +18,8 @@ import org.freehep.commons.lang.bool.Lexer;
 import org.freehep.commons.lang.bool.Parser;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset;
+import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcFileSystemProvider;
-import org.srs.datacat.vfs.DcPath;
-import org.srs.datacat.vfs.DirectoryWalker;
-import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
 import org.srs.datacatalog.search.plugins.DatacatPlugin;
 import org.srs.datacatalog.search.tables.DatasetVersions;
 import org.zerorm.core.Column;
@@ -39,7 +38,7 @@ import org.zerorm.core.primaries.Case;
  */
 public class DatasetSearch {
     
-    DcFileSystemProvider provider;
+    //DcFileSystemProvider provider;
     HashMap<String, DatacatPlugin> pluginMap;
     MetanameContext dmc;
     ArrayList<String> metadataFields = new ArrayList<>();
@@ -48,7 +47,7 @@ public class DatasetSearch {
     private Select selectStatement;
     
     public DatasetSearch(DcFileSystemProvider provider, Connection conn, HashMap<String, DatacatPlugin> pluginMap) throws SQLException {
-        this.provider = provider;
+        //this.provider = provider;
         this.pluginMap = pluginMap;
         this.dmc = SearchUtils.buildMetaInfoGlobalContext( conn );
         this.conn = conn;
@@ -94,20 +93,16 @@ public class DatasetSearch {
         }
     }
     
-    public void compile(DcPath parent, DatasetView datasetView,
-            ContainerVisitor visitor, boolean checkParent, int maxDepth,
-            String queryString, String[] metaFieldsToRetrieve, String[] sortFields, int offset, int max) throws ParseException, IOException {
+    public void compile(LinkedList<DcFile> containers, DatasetView datasetView, String queryString, String[] metaFieldsToRetrieve, String[] sortFields, int offset, int max) throws ParseException, IOException {
         try {
-            compileStatement( parent, datasetView, visitor, checkParent, maxDepth, queryString, 
+            compileStatement( containers, datasetView, queryString, 
                     metaFieldsToRetrieve, sortFields, offset, max );
         } catch (SQLException ex){
             throw new IOException("Error talking to database", ex);
         }
     }
     
-    public Select compileStatement(DcPath parent, DatasetView datasetView,
-            ContainerVisitor visitor, boolean checkParent, int maxDepth,
-            String queryString, String[] metaFieldsToRetrieve, String[] sortFields, int offset, int max) throws ParseException, SQLException, IOException {
+    public Select compileStatement(LinkedList<DcFile> containers, DatasetView datasetView, String queryString, String[] metaFieldsToRetrieve, String[] sortFields, int offset, int max) throws ParseException, SQLException, IOException {
         this.datasetView = datasetView;
         AST ast = parseQueryString(queryString);
         DatasetVersions dsv = prepareDatasetVersion(datasetView);
@@ -118,9 +113,7 @@ public class DatasetSearch {
             sd.evaluateNode(ast.getRoot(), dsv);
         }
         
-        DirectoryWalker walker = new DirectoryWalker(provider, visitor, maxDepth);
-        walker.walk(parent);
-        SearchUtils.populateParentTempTable(conn, visitor);     
+        SearchUtils.populateParentTempTable(conn, containers);
 
         HashMap<String, MaybeHasAlias> availableSelections = new HashMap<>();
         for(MaybeHasAlias a: dsv.getAvailableSelections()){

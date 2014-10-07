@@ -11,6 +11,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import org.freehep.commons.lang.AST;
 import org.srs.datacat.model.DatasetView;
@@ -253,11 +254,11 @@ public class SearchUtils {
         }
     }
     
-    public static void populateParentTempTable(Connection conn, DirectoryWalker.ContainerVisitor visitor) throws SQLException {
+    public static void populateParentTempTable(Connection conn, LinkedList<DcFile> containers) throws SQLException {
         String sql = "INSERT INTO ContainerSearch (DatasetLogicalFolder, DatasetGroup, ContainerPath) VALUES (?,?,?)";
         try (PreparedStatement stmt  = conn.prepareStatement( sql )){
-            while(visitor.files.peek() != null){
-                DcFile file = visitor.files.remove();
+            while(containers.peek() != null){
+                DcFile file = containers.remove();
                 boolean isGroup = file.getType() instanceof DcFile.GroupType;
                 stmt.setNull( isGroup ? 1 : 2, Types.VARCHAR);
                 stmt.setLong( isGroup ? 2 : 1, file.fileKey());
