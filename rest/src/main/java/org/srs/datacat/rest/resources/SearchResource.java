@@ -33,7 +33,6 @@ import org.srs.datacatalog.search.DatasetSearch;
 import org.srs.rest.shared.RestException;
 import org.srs.vfs.GlobToRegex;
 import org.srs.vfs.PathUtils;
-import org.zerorm.core.Select;
 
 /**
  *
@@ -92,9 +91,9 @@ public class SearchResource extends BaseResource {
             DcPath root = getProvider().getPath(DcUriUtils.toFsUri("/", null, "SRS"));
             DcPath searchPath = root.resolve(searchBase);
             ContainerVisitor visitor = new ContainerVisitor(searchPath.getFileSystem(), pathPattern, checkGroups, checkFolders);
-            Select stmt = datacatSearch.compileStatement( conn, searchPath, dv, visitor, 
+            datacatSearch.compile(searchPath, dv, visitor, 
                             false, 100, queryString, metafields, sortFields,0,-1);
-            datasets = datacatSearch.searchForDatasetsInParent(conn, stmt);
+            datasets = datacatSearch.retrieveDatasets();
         } catch (IllegalArgumentException ex){
             throw new RestException(ex,400, "Unable to process query, see message", ex.getMessage());
         } catch (FileNotFoundException ex){
@@ -109,4 +108,4 @@ public class SearchResource extends BaseResource {
                 .build();
     }
     
-}   
+}
