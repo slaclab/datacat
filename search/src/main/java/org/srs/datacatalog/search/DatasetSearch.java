@@ -44,19 +44,22 @@ public class DatasetSearch {
     MetanameContext dmc;
     ArrayList<String> metadataFields = new ArrayList<>();
     private DatasetView datasetView;
+    private Connection conn;
+    private Select selectStatement;
     
     public DatasetSearch(DcFileSystemProvider provider, Connection conn, HashMap<String, DatacatPlugin> pluginMap) throws SQLException {
         this.provider = provider;
         this.pluginMap = pluginMap;
         this.dmc = SearchUtils.buildMetaInfoGlobalContext( conn );
+        this.conn = conn;
     }
     
-    /*public List<Dataset> searchForDatasetsInParent(Connection conn, Select statement, boolean keepAlive) throws SQLException {
-        return SearchUtils.getResultsDeferredFill( conn, statement, keepAlive );
-    }*/
-    
-    public List<Dataset> searchForDatasetsInParent(Connection conn, Select statement) throws SQLException {
-        return SearchUtils.getResults(conn, statement, datasetView, metadataFields);
+    public List<Dataset> retrieveDatasets() throws IOException {
+        try {
+            return SearchUtils.getResults(conn, selectStatement, datasetView, metadataFields);
+        } catch (SQLException ex) {
+            throw new IOException("Error retrieving results", ex);
+        }
     }
     
     public void rewrite(AST.Node node){
@@ -91,7 +94,18 @@ public class DatasetSearch {
         }
     }
     
-    public Select compileStatement(Connection conn, DcPath parent, DatasetView datasetView,
+    public void compile(DcPath parent, DatasetView datasetView,
+            ContainerVisitor visitor, boolean checkParent, int maxDepth,
+            String queryString, String[] metaFieldsToRetrieve, String[] sortFields, int offset, int max) throws ParseException, IOException {
+        try {
+            compileStatement( parent, datasetView, visitor, checkParent, maxDepth, queryString, 
+                    metaFieldsToRetrieve, sortFields, offset, max );
+        } catch (SQLException ex){
+            throw new IOException("Error talking to database", ex);
+        }
+    }
+    
+    public Select compileStatement(DcPath parent, DatasetView datasetView,
             ContainerVisitor visitor, boolean checkParent, int maxDepth,
             String queryString, String[] metaFieldsToRetrieve, String[] sortFields, int offset, int max) throws ParseException, SQLException, IOException {
         this.datasetView = datasetView;
@@ -128,7 +142,7 @@ public class DatasetSearch {
         
         Table containerSearch = new Table("ContainerSearch", "cp");
         
-        Select selectStatement = containerSearch
+        this.selectStatement = containerSearch
                 .select( containerSearch.$("ContainerPath"))
                 .join( dsv, 
                     Op.or( 
