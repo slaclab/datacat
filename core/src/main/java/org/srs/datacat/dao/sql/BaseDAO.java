@@ -246,15 +246,35 @@ public class BaseDAO implements AutoCloseable {
         }
     }
     
-    public void addDatasetVersionMetadata(DatasetVersion version, Map metaData) throws SQLException{
+    public void addMetadata(DatacatObject object, Map metaData) throws IOException {
+        try {
+            switch(object.getType()){
+                case DATASETVERSION:
+                    addDatasetVersionMetadata((DatasetVersion) object, metaData);
+                    break;
+                case GROUP:
+                    addGroupMetadata( object.getPk(), metaData);
+                    break;
+                case FOLDER:
+                    addFolderMetadata(object.getPk(), metaData);
+                    break;
+                default:
+                    throw new IOException("Unable to add metadata to object type: " + object.getType().toString());
+            }
+        } catch (SQLException ex){
+            throw new IOException("Unable to add metadata to object", ex);
+        }
+    }
+    
+    protected void addDatasetVersionMetadata(DatasetVersion version, Map metaData) throws SQLException{
         addDatacatObjectMetadata( version.getPk(), metaData, "VerDataset", "DatasetVersion" );
     }
 
-    public void addGroupMetadata(long datasetGroupPK, Map metaData) throws SQLException{
+    protected void addGroupMetadata(long datasetGroupPK, Map metaData) throws SQLException{
         addDatacatObjectMetadata( datasetGroupPK, metaData, "DatasetGroup", "DatasetGroup" );
     }
 
-    public void addFolderMetadata(long logicalFolderPK, Map metaData) throws SQLException{
+    protected void addFolderMetadata(long logicalFolderPK, Map metaData) throws SQLException{
         addDatacatObjectMetadata( logicalFolderPK, metaData, "LogicalFolder", "LogicalFolder" );
     }
     
