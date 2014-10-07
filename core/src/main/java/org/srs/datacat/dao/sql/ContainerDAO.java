@@ -23,7 +23,6 @@ import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.container.DatasetStat;
 import org.srs.datacat.shared.dataset.VersionWithLocations;
-import org.srs.datacat.vfs.DcPath;
 import org.srs.vfs.PathUtils;
 
 
@@ -40,7 +39,7 @@ public class ContainerDAO extends BaseDAO {
         super( conn );
     }
     
-    public DatacatObject createContainer(Long parentPk, DcPath targetPath, DatacatObject request) throws SQLException{
+    public DatacatObject createContainer(Long parentPk, String targetPath, DatacatObject request) throws SQLException{
         return insertContainer( parentPk, targetPath.toString(), request );
     }
 

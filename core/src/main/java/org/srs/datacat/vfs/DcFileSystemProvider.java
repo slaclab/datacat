@@ -346,11 +346,11 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                         .setType( AclEntryType.ALLOW )
                         .build();
                 aclView = new DcAclFileAttributeView(Arrays.asList( e));
-                child = dao.getObjectInParent(null, path);
+                child = dao.getObjectInParent(null, path.toString());
             } else {
                 aclView = parent.getAttributeView(DcAclFileAttributeView.class);
                 DatacatObject par = parent.getObject();
-                child = dao.getObjectInParent( par.getPk(), path);
+                child = dao.getObjectInParent( par.getPk(), path.toString());
             }
             DcFile f = new DcFile(path, child, aclView);
             return f;
@@ -379,7 +379,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         //checkPermission(dsParent, DcPermissions.CREATE_CHILD);
         
         try (DatasetDAO dao = new DatasetDAO(dataSource.getConnection())){
-            dao.createDatasetNodeAndView( dsParent.fileKey(), dsParent.getObject().getType(), dsPath, ds, options );
+            dao.createDatasetNodeAndView( dsParent.fileKey(), dsParent.getObject().getType(), dsPath.toString(), ds, options );
             dao.commit();
             dao.close();
         } catch (SQLException ex){
@@ -452,7 +452,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         ContainerCreationAttribute dsAttr = (ContainerCreationAttribute) attrs[0];
         DatacatObject request = dsAttr.value();
         try (ContainerDAO dao = new ContainerDAO(dataSource.getConnection())){
-            DatacatObject ret = dao.createContainer( parent.fileKey(), targetDir, request);
+            DatacatObject ret = dao.createContainer( parent.fileKey(), targetDir.toString(), request);
             dao.commit();
             parent.childAdded(targetDir, FileType.DIRECTORY);
             DcFile f = new DcFile(targetDir, ret, parent.getAttributeView( DcAclFileAttributeView.class ));

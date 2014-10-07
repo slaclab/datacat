@@ -21,7 +21,6 @@ import org.srs.datacat.shared.DatasetGroup;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
-import org.srs.datacat.vfs.DcPath;
 
 /**
  *
@@ -75,8 +74,8 @@ public class BaseDAO implements AutoCloseable {
         return next;
     }
     
-    public DatacatObject getObjectInParent(Long parentPk, DcPath path) throws IOException, FileNotFoundException {
-        return getDatacatObject( parentPk, path.toString());
+    public DatacatObject getObjectInParent(Long parentPk, String path) throws IOException, FileNotFoundException {
+        return getDatacatObject(parentPk, path);
     }
     
     protected DatacatObject getDatacatObject(Long parentPk, String path) throws IOException, FileNotFoundException {

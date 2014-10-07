@@ -22,8 +22,6 @@ import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.shared.dataset.VersionWithLocations;
-import org.srs.datacat.vfs.DcFileSystemProvider;
-import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.attribute.DatasetOption;
 import static org.srs.datacat.vfs.DcFileSystemProvider.DcFsException.*;
 import org.srs.vfs.PathUtils;
@@ -38,7 +36,7 @@ public class DatasetDAO extends BaseDAO {
         super( conn );
     }
     
-    public Dataset createDatasetNodeAndView(Long parentPk, DatacatObject.Type parentType, DcPath targetPath, Dataset dsReq, 
+    public Dataset createDatasetNodeAndView(Long parentPk, DatacatObject.Type parentType, String targetPath, Dataset dsReq, 
             Set<DatasetOption> dsOptions) throws IOException, SQLException{
         dsOptions = new HashSet<>(dsOptions); // make a copy
         
@@ -106,7 +104,7 @@ public class DatasetDAO extends BaseDAO {
         if(createLocation){
             Objects.requireNonNull( requestLocation, "Unable to create a view with a null location");
             if(currentVersion == null){
-                DcFileSystemProvider.DcFsException.NO_SUCH_VERSION.throwError(path, "No version exists which we can add a location to");
+                NO_SUCH_VERSION.throwError(path, "No version exists which we can add a location to");
             }
             if(builder != null){
                 DatasetLocation loc = createDatasetLocation(currentVersion, path, requestLocation, skipLocationCheck);
@@ -115,7 +113,7 @@ public class DatasetDAO extends BaseDAO {
         }
     }
     
-    public Dataset createDatasetNode(Long parentPk, DatacatObject.Type parentType, DcPath path, Dataset request) throws SQLException, FileSystemException{
+    public Dataset createDatasetNode(Long parentPk, DatacatObject.Type parentType, String path, Dataset request) throws SQLException, FileSystemException{
         return insertDataset( parentPk, parentType, path.toString(), request );
     }
     
