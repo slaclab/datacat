@@ -28,6 +28,7 @@ import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
+import org.srs.datacat.vfs.DirectoryWalker;
 import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
 import org.srs.datacatalog.search.DatasetSearch;
 import org.srs.rest.shared.RestException;
@@ -52,11 +53,8 @@ public class SearchResource extends BaseResource {
             @QueryParam("filter") String filter,
             @QueryParam("sort") List<String> sortParams, 
             @QueryParam("show") List<String> metadata, 
-            /*@DefaultValue("false") @QueryParam("unscanned") boolean unscanned,*/
-            /*@DefaultValue("false") @QueryParam("nonOk") boolean nonOk,*/
             @QueryParam("checkFolders") Boolean checkFolders,
             @QueryParam("checkGroups") Boolean checkGroups,
-            /*@DefaultValue("false") @QueryParam("allMetadata") boolean metadata,*/
             @DefaultValue("-1") @QueryParam("max") int max,
             @DefaultValue("0") @QueryParam("offset") int offset) {
 
@@ -91,8 +89,9 @@ public class SearchResource extends BaseResource {
             DcPath root = getProvider().getPath(DcUriUtils.toFsUri("/", null, "SRS"));
             DcPath searchPath = root.resolve(searchBase);
             ContainerVisitor visitor = new ContainerVisitor(searchPath.getFileSystem(), pathPattern, checkGroups, checkFolders);
-            datacatSearch.compile(searchPath, dv, visitor, 
-                            false, 100, queryString, metafields, sortFields,0,-1);
+            DirectoryWalker walker = new DirectoryWalker(getProvider(), visitor, 100 /* max depth */);
+            walker.walk(searchPath);
+            datacatSearch.compile(visitor.files, dv, queryString, metafields, sortFields,0,-1);
             datasets = datacatSearch.retrieveDatasets();
         } catch (IllegalArgumentException ex){
             throw new RestException(ex,400, "Unable to process query, see message", ex.getMessage());
