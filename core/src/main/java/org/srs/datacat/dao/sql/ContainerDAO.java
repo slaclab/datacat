@@ -39,8 +39,12 @@ public class ContainerDAO extends BaseDAO {
         super( conn );
     }
     
-    public DatacatObject createContainer(Long parentPk, String targetPath, DatacatObject request) throws SQLException{
-        return insertContainer( parentPk, targetPath.toString(), request );
+    public DatacatObject createContainer(Long parentPk, String targetPath, DatacatObject request) throws IOException{
+        try {
+            return insertContainer( parentPk, targetPath.toString(), request );
+        } catch (SQLException ex){
+            throw new IOException("Unable to create container", ex);
+        }
     }
 
     protected DatacatObject insertContainer(Long parentPk, String targetPath, DatacatObject request) throws SQLException{
@@ -93,14 +97,18 @@ public class ContainerDAO extends BaseDAO {
         return retObject;
     }
     
-    public void deleteContainer(DatacatObject container) throws SQLException, IOException{
-        switch(container.getType()){
-            case GROUP:
-                deleteGroup(container.getPk());
-                return;
-            case FOLDER:
-                deleteFolder(container.getPk());
-                return;
+    public void deleteContainer(DatacatObject container) throws IOException {
+        try {
+            switch(container.getType()){
+                case GROUP:
+                    deleteGroup(container.getPk());
+                    return;
+                case FOLDER:
+                    deleteFolder(container.getPk());
+                    return;
+            }            
+        } catch (SQLException ex){
+            throw new IOException("Unable to delete object: " +  container.getPath(), ex);
         }
         throw new IOException("Unable to delete object: Not a Group or Folder" + container.getType());
     }
@@ -115,7 +123,7 @@ public class ContainerDAO extends BaseDAO {
         delete1( deleteSql, groupPk);
     }
     
-    public BasicStat getBasicStat(DatacatObject container) throws SQLException {
+    public BasicStat getBasicStat(DatacatObject container) throws IOException {
         String parent = container instanceof LogicalFolder ? "datasetlogicalfolder" : "datasetgroup";
 
         String statSQL = "select 'D' type, count(1) count from verdataset where " + parent + " = ? ";
@@ -146,10 +154,12 @@ public class ContainerDAO extends BaseDAO {
                 }
             }
             return cs;
+        } catch (SQLException ex){
+            throw new IOException("Unable to stat container: " + container.getPath(), ex);
         }
     }
     
-    public DatasetStat getDatasetStat(DatacatObject container, BasicStat stat) throws SQLException {
+    public DatasetStat getDatasetStat(DatacatObject container, BasicStat stat) throws IOException {
         String primaryTable;
         if(container instanceof LogicalFolder){
             primaryTable = "datasetlogicalfolder";
@@ -179,14 +189,25 @@ public class ContainerDAO extends BaseDAO {
             ds.setRunMin( rs.getLong( "minrun") );
             ds.setRunMax( rs.getLong( "maxrun") );
             return ds;
+        } catch (SQLException ex){
+            throw new IOException("Unable to stat container: " + container.getPath(), ex);
         }
     }
     
-    public DirectoryStream<DatacatObject> getSubdirectoryStream(Long parentPk, final String parentPath) throws SQLException, IOException{
+    public DirectoryStream<DatacatObject> getSubdirectoryStream(Long parentPk, final String parentPath) throws IOException {
         return getChildrenStream( parentPk, parentPath, null);
     }
        
     public DirectoryStream<DatacatObject> getChildrenStream(Long parentPk, final String parentPath, 
+            DatasetView viewPrefetch) throws IOException{
+        try {
+            return getChildrenStreamInternal( parentPk, parentPath, viewPrefetch );
+        } catch (SQLException ex) {
+            throw new IOException(ex);
+        }
+    }
+        
+    private DirectoryStream<DatacatObject> getChildrenStreamInternal(Long parentPk, final String parentPath, 
             DatasetView viewPrefetch) throws SQLException, IOException{
         String sql = "WITH OBJECTS (type, pk, name, parent) AS ( "
                 + "    SELECT 'F', datasetlogicalfolder, name, parent "

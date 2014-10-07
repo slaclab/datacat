@@ -113,15 +113,23 @@ public class DatasetDAO extends BaseDAO {
         }
     }
     
-    public Dataset createDatasetNode(Long parentPk, DatacatObject.Type parentType, String path, Dataset request) throws SQLException, FileSystemException{
-        return insertDataset( parentPk, parentType, path.toString(), request );
+    public Dataset createDatasetNode(Long parentPk, DatacatObject.Type parentType, String path, Dataset request) throws IOException, FileSystemException{
+        try {
+            return insertDataset( parentPk, parentType, path.toString(), request );
+        } catch (SQLException ex){
+            throw new IOException("Unable to insert node: " + path, ex);
+        }
     }
     
-    public void deleteDataset(DatacatObject dataset) throws IOException, SQLException{
+    public void deleteDataset(DatacatObject dataset) throws IOException {
         if( !(dataset instanceof Dataset)){
             throw new IOException("Can only delete Datacat objects");
         }
-        deleteDataset( dataset.getPk());
+        try {
+            deleteDataset( dataset.getPk());
+        } catch (SQLException ex){
+            throw new IOException("Error deleting dataset: " + dataset.getPath(), ex);
+        }
     }
     
     protected DatasetVersion createOrMergeDatasetVersion(Long datasetPk, String dsPath, DatasetVersion currentVersion, 
@@ -161,7 +169,15 @@ public class DatasetDAO extends BaseDAO {
         return null;
     }
 
-    public VersionWithLocations getVersionWithLocations(Long datasetPk, DatasetView view) throws SQLException{
+    public VersionWithLocations getVersionWithLocations(Long datasetPk, DatasetView view) throws IOException{
+        try {
+            return getVersionWithLocationsInternal( datasetPk, view );
+        } catch (SQLException ex){
+            throw new IOException("Failed to retrieve version", ex);
+        }
+    }
+
+    private VersionWithLocations getVersionWithLocationsInternal(Long datasetPk, DatasetView view) throws SQLException{
         String sqlWithMetadata = getVersionsSql( VersionParent.DATASET, view );
         String sqlLocations = getLocationsSql(VersionParent.DATASET, view );
         PreparedStatement stmt1 = getConnection().prepareStatement( sqlWithMetadata );
