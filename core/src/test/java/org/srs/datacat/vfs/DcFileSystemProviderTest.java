@@ -31,7 +31,7 @@ import org.srs.datacat.shared.DatacatObject;
 
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.LogicalFolder;
-import org.srs.datacat.sql.DatasetDAOTest;
+import org.srs.datacat.dao.sql.DatasetDAOTest;
 import org.srs.datacat.test.HSqlDbHarness;
 
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;

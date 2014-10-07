@@ -14,7 +14,7 @@ import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.container.BasicStat.StatType;
-import org.srs.datacat.sql.ContainerDAO;
+import org.srs.datacat.dao.sql.ContainerDAO;
 import org.srs.datacat.vfs.DcFile;
 
 /**

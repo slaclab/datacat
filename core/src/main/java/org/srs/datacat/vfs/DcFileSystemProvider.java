@@ -48,12 +48,12 @@ import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.dataset.VersionWithLocations;
 
-import org.srs.datacat.sql.ContainerDAO;
+import org.srs.datacat.dao.sql.ContainerDAO;
 import org.srs.vfs.AbstractFsProvider;
 import org.srs.vfs.AbstractPath;
 import org.srs.vfs.ChildrenView;
-import org.srs.datacat.sql.BaseDAO;
-import org.srs.datacat.sql.DatasetDAO;
+import org.srs.datacat.dao.sql.BaseDAO;
+import org.srs.datacat.dao.sql.DatasetDAO;
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 
