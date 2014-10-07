@@ -15,6 +15,7 @@ import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.container.BasicStat.StatType;
 import org.srs.datacat.dao.sql.ContainerDAO;
+import org.srs.datacat.dao.sql.DAOFactory;
 import org.srs.datacat.vfs.DcFile;
 
 /**
@@ -24,14 +25,14 @@ import org.srs.datacat.vfs.DcFile;
 public class ContainerViewProvider implements DcViewProvider<StatType> {
     
     private final DcFile file;
-    private final DataSource dataSource;
+    private final DAOFactory daoFactory;
     private final HashMap<String,BasicStat> stats = new HashMap<>(3);
     private final HashMap<DatasetView, AtomicInteger> viewCaches = new HashMap<>(3);
     private final Lock lock = new ReentrantLock();
     
     public ContainerViewProvider(DcFile file){
         this.file = file;
-        this.dataSource = file.getPath().getFileSystem().getDataSource();
+        this.daoFactory = file.getPath().getFileSystem().provider().getDaoFactory();
     }
     
     @Override
@@ -95,7 +96,7 @@ public class ContainerViewProvider implements DcViewProvider<StatType> {
         lock.lock();
         try {
             if(!stats.containsKey( wantName )){
-                try(ContainerDAO dao = new ContainerDAO( dataSource.getConnection() )) {
+                try(ContainerDAO dao = daoFactory.newContainerDAO()) {
                     if(!stats.containsKey( basicName )){
                         stats.put( basicName, dao.getBasicStat( file.getObject() ) );
                     }
@@ -104,8 +105,6 @@ public class ContainerViewProvider implements DcViewProvider<StatType> {
                         BasicStat s = dao.getDatasetStat( file.getObject(), basicStat );
                         stats.put( statType.toString(), s );
                     }
-                } catch(SQLException ex) {
-                    throw new IOException( "unknown SQL error", ex );
                 }
             }
             retStat = stats.get(wantName);

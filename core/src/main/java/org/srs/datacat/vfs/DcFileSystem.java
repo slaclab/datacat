@@ -6,7 +6,6 @@ import java.net.URI;
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.UserPrincipal;
 import java.nio.file.attribute.UserPrincipalLookupService;
-import javax.sql.DataSource;
 import org.srs.vfs.AbstractFs;
 import org.srs.vfs.PathProvider;
 import org.srs.datacat.vfs.security.DcGroup;
@@ -16,7 +15,6 @@ import org.srs.datacat.vfs.security.DcGroup;
  * @author bvan
  */
 public class DcFileSystem extends AbstractFs<DcPath> {
-    private final DataSource dataSource;
         
     private final PathProvider<DcPath> pathProvider = new PathProvider<DcPath>(){
 
@@ -36,13 +34,8 @@ public class DcFileSystem extends AbstractFs<DcPath> {
         }
     };
 
-    public DcFileSystem(DcFileSystemProvider provider, DataSource dataSource){
+    public DcFileSystem(DcFileSystemProvider provider){
         super(provider);
-        this.dataSource = dataSource;
-    }
-
-    public DataSource getDataSource(){
-        return dataSource;
     }
 
     @Override

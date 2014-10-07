@@ -28,7 +28,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
@@ -53,6 +52,7 @@ import org.srs.vfs.AbstractFsProvider;
 import org.srs.vfs.AbstractPath;
 import org.srs.vfs.ChildrenView;
 import org.srs.datacat.dao.sql.BaseDAO;
+import org.srs.datacat.dao.sql.DAOFactory;
 import org.srs.datacat.dao.sql.DatasetDAO;
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
@@ -76,17 +76,21 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     private static final int NO_OFFSET = 0;
     
     private final DcFileSystem fileSystem;
-    private final DataSource dataSource;
+    private final DAOFactory daoFactory;
         
     public DcFileSystemProvider(DataSource dataSource) throws IOException{
         super();
-        this.dataSource = dataSource;
-        fileSystem = new DcFileSystem(this, dataSource);
+        this.daoFactory = new DAOFactory(dataSource);
+        fileSystem = new DcFileSystem(this);
     }
         
     @Override
     public String getScheme(){
         return "dc";
+    }
+    
+    public DAOFactory getDaoFactory(){
+        return daoFactory;
     }
 
     @Override
@@ -140,66 +144,58 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             throw new NotDirectoryException( dirFile.toString() );
         }
         Long fileKey = dirFile.fileKey();
-        try {
-            // !IMPORTANT!: This object is closed when the stream is closed
-            final ContainerDAO dao = new ContainerDAO( dataSource.getConnection() ); 
-            DirectoryStream<DatacatObject> stream;
-            if(viewPrefetch != null){
-                stream = dao.getChildrenStream(fileKey, dcPath.toString(), viewPrefetch);
-            } else {
-                stream = dao.getSubdirectoryStream(fileKey, dcPath.toString());
-            }
-            
-            final Iterator<DatacatObject> iter = stream.iterator();
-            final AtomicInteger dsCount = new AtomicInteger();
-            DirectoryStreamWrapper.IteratorAcceptor acceptor = 
-                    new DirectoryStreamWrapper.IteratorAcceptor() {
-                
-                @Override
-                public boolean acceptNext() throws IOException{
-                    while(iter.hasNext()){
-                        DatacatObject child = iter.next();
-                        DcPath maybeNext = dcPath.resolve( child.getName() );
-                        DcFile file = new DcFile( maybeNext, child, aclView);
-                        
-                        if(file.isDirectory()){
-                            getCache().putFileIfAbsent(file);
-                        }
-                        if(!file.isDirectory() && cacheDatasets){
-                             getCache().putFileIfAbsent(file);
-                             dsCount.incrementAndGet();
-                        }
-                        if(filter.accept( maybeNext )){
-                            setNext( maybeNext );
-                            return true;
-                        }
-                    }
-                    throw new NoSuchElementException();
-                }
-            };
-            
-            DirectoryStreamWrapper<DcPath> wrapper = 
-                    new DirectoryStreamWrapper<DcPath>(stream, acceptor){
-
-                @Override
-                public void close() throws IOException{
-                    try {
-                        if(dsCount.get() > 0){
-                            dirFile.getAttributeView( ContainerViewProvider.class)
-                                    .setViewStats( viewPrefetch, dsCount.get());
-                        }
-                        super.close();
-                        dao.close();  // Make sure to close dao (and underlying connection)
-                    } catch(SQLException ex) {
-                        throw new IOException(ex);
-                    }
-                }
-
-            };
-            return wrapper;
-        } catch(SQLException ex) {
-            throw new IOException( "Unable to list children", ex );
+        // !IMPORTANT!: This object is closed when the stream is closed
+        final ContainerDAO dao = daoFactory.newContainerDAO(); 
+        DirectoryStream<DatacatObject> stream;
+        if(viewPrefetch != null){
+            stream = dao.getChildrenStream(fileKey, dcPath.toString(), viewPrefetch);
+        } else {
+            stream = dao.getSubdirectoryStream(fileKey, dcPath.toString());
         }
+
+        final Iterator<DatacatObject> iter = stream.iterator();
+        final AtomicInteger dsCount = new AtomicInteger();
+        DirectoryStreamWrapper.IteratorAcceptor acceptor = 
+                new DirectoryStreamWrapper.IteratorAcceptor() {
+
+            @Override
+            public boolean acceptNext() throws IOException{
+                while(iter.hasNext()){
+                    DatacatObject child = iter.next();
+                    DcPath maybeNext = dcPath.resolve( child.getName() );
+                    DcFile file = new DcFile( maybeNext, child, aclView);
+
+                    if(file.isDirectory()){
+                        getCache().putFileIfAbsent(file);
+                    }
+                    if(!file.isDirectory() && cacheDatasets){
+                         getCache().putFileIfAbsent(file);
+                         dsCount.incrementAndGet();
+                    }
+                    if(filter.accept( maybeNext )){
+                        setNext( maybeNext );
+                        return true;
+                    }
+                }
+                throw new NoSuchElementException();
+            }
+        };
+
+        DirectoryStreamWrapper<DcPath> wrapper = 
+                new DirectoryStreamWrapper<DcPath>(stream, acceptor){
+
+            @Override
+            public void close() throws IOException{
+                if(dsCount.get() > 0){
+                    dirFile.getAttributeView( ContainerViewProvider.class)
+                            .setViewStats( viewPrefetch, dsCount.get());
+                }
+                super.close();
+                dao.close();  // Make sure to close dao (and underlying connection)
+            }
+
+        };
+        return wrapper;
     }
 
     @Override
@@ -335,7 +331,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     @Override
     public DcFile retrieveFileAttributes(DcPath path, DcFile parent) throws IOException {
         // LOG: Checking database
-        try (BaseDAO dao = new BaseDAO(dataSource.getConnection())){
+        try (BaseDAO dao = daoFactory.newBaseDAO()){
             DcAclFileAttributeView aclView;
             DatacatObject child;
             if(path.equals(path.getRoot())){
@@ -354,8 +350,6 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             }
             DcFile f = new DcFile(path, child, aclView);
             return f;
-        } catch(SQLException ex) {
-            throw new IOException(ex);
         }
     }
     
@@ -378,25 +372,21 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         DcFile dsParent = resolveFile(dsPath.getParent());
         //checkPermission(dsParent, DcPermissions.CREATE_CHILD);
         
-        try (DatasetDAO dao = new DatasetDAO(dataSource.getConnection())){
+        try (DatasetDAO dao = daoFactory.newDatasetDAO()){
             dao.createDatasetNodeAndView( dsParent.fileKey(), dsParent.getObject().getType(), dsPath.toString(), ds, options );
             dao.commit();
             dao.close();
-        } catch (SQLException ex){
-            throw new IOException("Unable to connect to database", ex);
         }
         dsParent.childAdded(dsPath, FileType.FILE);
     }
     
     public VersionWithLocations getVersionWithLocations(DcFile file, DatasetView view) throws IOException {
-        try(DatasetDAO dsdao = new DatasetDAO( dataSource.getConnection() )) {
+        try(DatasetDAO dsdao = daoFactory.newDatasetDAO()) {
             VersionWithLocations ret = dsdao.getVersionWithLocations(file.fileKey(), view);
             if(ret == null){
                 throw new FileNotFoundException(String.format("Invalid View. Version %d not found", view.getVersionId()));
             }
             return ret;
-        } catch(SQLException ex) {
-            throw new IOException("Error talking to the database", ex );
         }
     }
     
@@ -415,12 +405,10 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         
         //checkPermission(dsFile, DcPermissions.MODIFY);
         Dataset.Builder builder = new Dataset.Builder(ds);
-        try (DatasetDAO dao = new DatasetDAO(dataSource.getConnection())){
+        try (DatasetDAO dao = daoFactory.newDatasetDAO()){
             dao.createDatasetView(ds, builder, verRequest, locRequest, options);
             dao.commit();
             dao.close();    
-        } catch (SQLException ex){
-            throw new IOException("Unable to connect to database", ex);
         }
         dsFile.getAttributeView(DatasetViewProvider.class).clear();
         resolveFile(dsPath.getParent()).childModified(dsPath);
@@ -451,14 +439,12 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         ContainerCreationAttribute dsAttr = (ContainerCreationAttribute) attrs[0];
         DatacatObject request = dsAttr.value();
-        try (ContainerDAO dao = new ContainerDAO(dataSource.getConnection())){
+        try (ContainerDAO dao = daoFactory.newContainerDAO()){
             DatacatObject ret = dao.createContainer( parent.fileKey(), targetDir.toString(), request);
             dao.commit();
             parent.childAdded(targetDir, FileType.DIRECTORY);
             DcFile f = new DcFile(targetDir, ret, parent.getAttributeView( DcAclFileAttributeView.class ));
             getCache().putFile(f);
-        } catch(SQLException ex) {
-            throw new IOException("Unable to create container", ex);
         }
     }
 
@@ -493,7 +479,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     }
     
     protected void doDeleteDirectory(String path, DcFile file) throws DirectoryNotEmptyException, IOException{
-        try(ContainerDAO dao = new ContainerDAO(dataSource.getConnection())) {
+        try(ContainerDAO dao = daoFactory.newContainerDAO()) {
             // Verify directory is empty
             try(DirectoryStream ds = dao.getChildrenStream( file.fileKey(), path, DatasetView.EMPTY )) {
                 if(ds.iterator().hasNext()){
@@ -502,16 +488,12 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             }
             dao.deleteContainer( file.getObject() );
             dao.commit();
-        } catch(SQLException ex) {
-            throw new IOException( "Unable to delete object: " + path, ex );
         }
     }
     
     protected void doDeleteDataset(String path, DcFile file) throws IOException {
-        try(DatasetDAO dao = new DatasetDAO(dataSource.getConnection())){
+        try(DatasetDAO dao = daoFactory.newDatasetDAO()){
             dao.deleteDataset(file.getObject());
-        } catch(SQLException ex) {
-            throw new IOException("Unable to delete dataset: " + path, ex);
         }
     }
     

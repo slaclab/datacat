@@ -37,7 +37,7 @@ public class DatasetDAO extends BaseDAO {
     }
     
     public Dataset createDatasetNodeAndView(Long parentPk, DatacatObject.Type parentType, String targetPath, Dataset dsReq, 
-            Set<DatasetOption> dsOptions) throws IOException, SQLException{
+            Set<DatasetOption> dsOptions) throws IOException {
         dsOptions = new HashSet<>(dsOptions); // make a copy
         
         String pathString = targetPath.toString();
@@ -81,7 +81,16 @@ public class DatasetDAO extends BaseDAO {
     }
     
     public void createDatasetView(Dataset ds, Dataset.Builder builder, DatasetVersion requestVersion, DatasetLocation requestLocation, 
-            Set<DatasetOption> dsOptions) throws IOException, SQLException{        
+            Set<DatasetOption> dsOptions) throws IOException {        
+        try{
+            createDatasetViewInternal( ds, builder, requestVersion, requestLocation, dsOptions );
+        } catch (SQLException ex){
+            throw new IOException("Unable to create view", ex);
+        }
+    }
+    
+    private void createDatasetViewInternal(Dataset ds, Dataset.Builder builder, DatasetVersion requestVersion, DatasetLocation requestLocation, 
+            Set<DatasetOption> dsOptions) throws IOException, SQLException {        
         dsOptions = new HashSet<>(dsOptions); // make a copy
         boolean mergeVersion = dsOptions.remove(DatasetOption.MERGE_VERSION);
         boolean createVersion = dsOptions.remove(DatasetOption.CREATE_VERSION);

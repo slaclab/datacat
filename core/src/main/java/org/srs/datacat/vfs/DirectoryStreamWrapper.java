@@ -2,12 +2,8 @@ package org.srs.datacat.vfs;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
-import java.nio.file.DirectoryStream.Filter;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import org.srs.vfs.AbstractPath;
 
 /**
  *
@@ -41,36 +37,7 @@ public class DirectoryStreamWrapper<T> implements DirectoryStream<T> {
         this.acceptor = acceptor;
         this.acceptor.thisWrapper = this;
     }
-    
-    public DirectoryStreamWrapper(final ResultSet rs, IteratorAcceptor acceptor){
-        this.closeable = rs;
-        this.acceptor = acceptor;
-        this.acceptor.thisWrapper = this;
-    }
-    
-    public <T extends AbstractPath> DirectoryStreamWrapper(AutoCloseable closeable, final ResultSet rs, final Filter filter, final T parentPath, final String nameField){
-        this.closeable = closeable;
-        this.acceptor = new IteratorAcceptor(){
-
-            @Override
-            public boolean acceptNext() throws IOException{
-                try {
-                    while(rs.next()){
-                        T maybeNext = (T) parentPath.resolve(rs.getString(nameField));
-                        if(filter.accept(maybeNext)){
-                            setNext(maybeNext);
-                            return true;
-                        }
-                    }
-                    throw new NoSuchElementException();
-                } catch(SQLException ex) {
-                    throw new IOException(ex);
-                }
-            }  
-        };
-        acceptor.thisWrapper = this;
-    }
-
+        
     @Override
     public Iterator<T> iterator(){
         return new Iterator<T>() {           

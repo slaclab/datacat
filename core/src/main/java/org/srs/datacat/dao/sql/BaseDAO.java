@@ -34,14 +34,23 @@ public class BaseDAO implements AutoCloseable {
     }
     
     @Override
-    public void close() throws SQLException {
-        if(conn != null){
-            conn.close();
+    public void close() throws IOException {
+        try {
+            if(conn != null){
+                conn.close();
+            }
+        } catch(SQLException ex){
+            throw new IOException("Error closing data source", ex);
         }
+
     }
     
-    public void commit() throws SQLException {
-        conn.commit();
+    public void commit() throws IOException {
+        try {
+            conn.commit();
+        } catch(SQLException ex){
+            throw new IOException("Error committing changes", ex);
+        }
     }
     
     protected void rollback() throws SQLException {
