@@ -5,8 +5,6 @@
 package org.srs.datacatalog.search;
 
 import org.freehep.commons.lang.AST;
-import org.zerorm.core.Expr;
-import org.zerorm.core.Select;
 
 /**
  *
@@ -19,7 +17,6 @@ public interface SearchContext {
     public boolean inPluginScope(String ident);
     public boolean inMetanameScope(String ident);
     public void assertIdentsValid(AST ast);
+    public void evaluate(AST.Node ast);
 
-    //public Expr evaluateNode(AST.Node l);
-    public Select getStatement();
 }

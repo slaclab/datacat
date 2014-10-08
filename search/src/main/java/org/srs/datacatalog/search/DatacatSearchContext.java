@@ -1,7 +1,7 @@
 
 package org.srs.datacatalog.search;
 
-import com.google.common.collect.Multiset;
+import java.util.Collection;
 import java.util.HashMap;
 import org.freehep.commons.lang.AST;
 import org.freehep.commons.lang.bool.sym;
@@ -65,6 +65,7 @@ public class DatacatSearchContext implements SearchContext {
     final MetajoinedStatement dsv;
     final PluginScope pluginScope;
     final MetanameContext metanameContext;
+    private Expr evaluatedExpr;
     
     public DatacatSearchContext(MetajoinedStatement dsv, HashMap<String, DatacatPlugin> pluginMap, 
             MetanameContext context){
@@ -85,8 +86,8 @@ public class DatacatSearchContext implements SearchContext {
     
     @Override
     public void assertIdentsValid(AST ast){
-        Multiset<String> exprIdents = (Multiset<String>) ast.getRoot().getMetadata( "idents" );
-        for(String s: exprIdents.elementSet()){
+        Collection<String> exprIdents = (Collection<String>) ast.getRoot().getMetadata( "idents" );
+        for(String s: exprIdents){
             if(!inScope( s )){
                 throw new IllegalArgumentException(
                         "Unable to resolve '" + s + "' in '" + SearchUtils.getErrorString( ast, s ) + "'" );
@@ -109,28 +110,19 @@ public class DatacatSearchContext implements SearchContext {
         return inSelectionScope(ident) || inPluginScope(ident) || inMetanameScope(ident);
     }
     
-    @Override
     public Select getStatement(){
         return dsv;
     }
-
-    /*@Override
-    public Expr evaluateNode(AST.Node node){
-        Object tLeft = getTokenOrExpression( node.getLeft() );
-        Object tRight = getTokenOrExpression( node.getRight() );
-        Op tOper = node.getValue() != null ? Op.valueOf( node.getValue().toString() ) : null;
-        
-        if(tLeft != null || tOper != null || tRight != null){
-            
-            if( tOper == Op.AND || tOper == Op.OR){
-                return tOper.apply( (Expr) tLeft, (Expr) tRight );
-            }
-            return preEvaluateExpression( (MetajoinedStatement)dsv, node, tLeft, tOper, tRight);
-        }
-        return null;
-    }*/
     
-    public Expr evaluateNode(AST.Node node, MetajoinedStatement statement){
+    public Expr getEvaluatedExpr(){
+        return evaluatedExpr;
+    }
+    
+    public void evaluate(AST.Node node){
+        this.evaluatedExpr = evaluateNode(node, dsv);
+    }
+    
+    private Expr evaluateNode(AST.Node node, MetajoinedStatement statement){
         Object tLeft = getTokenOrExpression( node.getLeft(), statement );
         Object tRight = getTokenOrExpression( node.getRight(), statement );
         Op tOper = null;
@@ -161,15 +153,6 @@ public class DatacatSearchContext implements SearchContext {
         }
         return null;
     }
-    
-    /*private Object getTokenOrExpression(AST.Node node){
-        if(node == null) {
-            return null;
-        }
-        Object ret = null;
-        ret = getValueNode(node);
-        return ret != null ? ret : evaluateNode(node);
-    }*/
     
     private Object getTokenOrExpression(AST.Node node, MetajoinedStatement statement){
         if(node == null) {

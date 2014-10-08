@@ -7,10 +7,13 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.freehep.commons.lang.AST;
@@ -61,7 +64,23 @@ public class DatasetSearch {
         }
     }
     
-    public void rewrite(AST.Node node){
+    public String doRewriteIdent(String ident){
+        switch(ident){
+            case "resource":
+                return "path";
+            case "size":
+                return "fileSizeBytes";
+        }
+        return ident;
+    }
+    
+    public void doRewrite(AST ast){
+        AST.Node root = ast.getRoot();
+        Set<String> idents = new HashSet<String>();
+        for(String ident: (Collection<String>) root.getMetadata( "idents")){
+            idents.add(doRewriteIdent(ident));
+        }
+        root.setMetadata("idents", idents);
         AST.Visitor visitor = new AST.Visitor() {
             @Override
             public boolean visit(AST.Node n){
@@ -70,16 +89,12 @@ public class DatasetSearch {
                     changed |= visit(n.getLeft());
                 }
                 if(n.isValueNode()){
+                    String oldIdent = n.getValue().toString();
                     // Rewrite values here
-                    switch (n.getValue().toString()){
-                        case "resource":
-                            n.setValue( "path");
-                            changed = true;
-                            break;
-                        case "size":
-                            n.setValue( "fileSizeBytes");
-                            changed = true;
-                            break;
+                    String newIdent = doRewriteIdent(oldIdent);
+                    if(!oldIdent.equals( newIdent)){
+                        n.setValue(newIdent);
+                        changed = true;
                     }
                 }
                 if(n.getRight() != null){
@@ -88,7 +103,7 @@ public class DatasetSearch {
                 return changed;
             }
         };
-        if(node.accept( visitor )){
+        if(root.accept( visitor )){
             System.out.println("rewrote at least once");
         }
     }
@@ -105,12 +120,25 @@ public class DatasetSearch {
     public Select compileStatement(LinkedList<DcFile> containers, DatasetView datasetView, String queryString, String[] metaFieldsToRetrieve, String[] sortFields, int offset, int max) throws ParseException, SQLException, IOException {
         this.datasetView = datasetView;
         AST ast = parseQueryString(queryString);
+        // Prepare DatasetVersions Selection 
         DatasetVersions dsv = prepareDatasetVersion(datasetView);
-        DatacatSearchContext sd = prepareSelection(ast, dsv);
         
+        // Reset any plugins
+        for(DatacatPlugin p: pluginMap.values()){
+            p.reset();
+        }
+        
+        // Prepare Search Context
+        DatacatSearchContext sd = new DatacatSearchContext(dsv, pluginMap, dmc);
+        
+        // Process AST
         if(ast != null){
-            rewrite(ast.getRoot());
-            sd.evaluateNode(ast.getRoot(), dsv);
+            // Allows us to do any last minute translation
+            doRewrite(ast);
+            sd.assertIdentsValid(ast);
+            sd.evaluate(ast.getRoot());
+            // In case we want to do something else, go ahead here
+            dsv.where(sd.getEvaluatedExpr());
         }
         
         SearchUtils.populateParentTempTable(conn, containers);
@@ -273,22 +301,7 @@ public class DatasetSearch {
             throw new RuntimeException(ex);
         }
     }
-    
-    private DatacatSearchContext prepareSelection(AST ast, DatasetVersions stmt) {
-        for(DatacatPlugin p: pluginMap.values()){
-            p.reset();
-        }
-        DatacatSearchContext sd = new DatacatSearchContext(stmt, pluginMap, dmc);
-        if(ast != null){
-            sd.assertIdentsValid( ast );
-            Expr e = sd.evaluateNode(ast.getRoot(),stmt);
-            // In case we want to do something else, go ahead here
-            stmt.where( e );
-            return sd;
-        }
-        return null;
-    }
-    
+        
     private Column getColumnFromSelectionScope(DatasetVersions dsv, String ident){
         for(MaybeHasAlias selection: dsv.getAvailableSelections()){
             if(selection.canonical().equals( ident ) && selection instanceof Column){
