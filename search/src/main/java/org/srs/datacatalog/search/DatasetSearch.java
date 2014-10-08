@@ -22,7 +22,6 @@ import org.freehep.commons.lang.bool.Parser;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.vfs.DcFile;
-import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacatalog.search.plugins.DatacatPlugin;
 import org.srs.datacatalog.search.tables.DatasetVersions;
 import org.zerorm.core.Column;
@@ -41,10 +40,9 @@ import org.zerorm.core.primaries.Case;
  */
 public class DatasetSearch {
     
-    //DcFileSystemProvider provider;
-    HashMap<String, DatacatPlugin> pluginMap;
-    MetanameContext dmc;
-    ArrayList<String> metadataFields = new ArrayList<>();
+    private HashMap<String, DatacatPlugin> pluginMap;
+    protected MetanameContext dmc;
+    private ArrayList<String> metadataFields = new ArrayList<>();
     private DatasetView datasetView;
     private Connection conn;
     private Select selectStatement;
@@ -54,8 +52,10 @@ public class DatasetSearch {
         this.dmc = SearchUtils.buildMetaInfoGlobalContext( conn );
         this.conn = conn;
     }
-        
-    public void compile(LinkedList<DcFile> containers, DatasetView datasetView, String queryString, String[] metaFieldsToRetrieve, String[] sortFields, int offset, int max) throws ParseException, IOException {
+    
+    public void compile(LinkedList<DcFile> containers, DatasetView datasetView, 
+            String queryString, String[] metaFieldsToRetrieve, String[] sortFields, 
+            int offset, int max) throws ParseException, IOException {
         try {
             compileStatement( containers, datasetView, queryString, 
                     metaFieldsToRetrieve, sortFields, offset, max );
@@ -72,7 +72,9 @@ public class DatasetSearch {
         }
     }
     
-    public Select compileStatement(LinkedList<DcFile> containers, DatasetView datasetView, String queryString, String[] metaFieldsToRetrieve, String[] sortFields, int offset, int max) throws ParseException, SQLException, IOException {
+    protected Select compileStatement(LinkedList<DcFile> containers, DatasetView datasetView, 
+            String queryString, String[] metaFieldsToRetrieve, String[] sortFields, 
+            int offset, int max) throws ParseException, SQLException, IOException {
         this.datasetView = datasetView;
         AST ast = parseQueryString(queryString);
         // Prepare DatasetVersions Selection 
