@@ -104,11 +104,6 @@ public class DatasetSearch {
         for(MaybeHasAlias a: dsv.getAvailableSelections()){
             availableSelections.put( a.canonical(), a);
         }
-               
-        List<MaybeHasAlias> selList = new ArrayList<>();
-        for(MaybeHasAlias a: dsv.getAvailableSelections()){
-            selList.add(new Column(a.canonical(), dsv));
-        }
         
         Expr paging = null;
         if(max > 0){
