@@ -79,7 +79,7 @@ public class DatacatSearchTest {
                         + "and ADO15 in (d'2012-03-23', d'2012-12-23T12:10Z')";
         query = "exo.runId > 5490 and exo.runQuality = 'GOLDEN' and nSegment = 1";
         
-        datacatSearch = new DatasetSearch(provider, conn, pluginMap);
+        datacatSearch = new DatasetSearch(conn, pluginMap);
         /*datacatSearch.prepareSelection( query );
         
         DatasetVersions select = datacatSearch.getSelectStatement();
@@ -117,7 +117,7 @@ public class DatacatSearchTest {
         DcPath searchPath;
         String pathPattern;
         
-        datacatSearch = new DatasetSearch(provider, conn, pluginMap);
+        datacatSearch = new DatasetSearch(conn, pluginMap);
         
         searchFolders = true;
         searchGroups = true;

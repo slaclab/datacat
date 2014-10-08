@@ -49,11 +49,19 @@ public class DatasetSearch {
     private Connection conn;
     private Select selectStatement;
     
-    public DatasetSearch(DcFileSystemProvider provider, Connection conn, HashMap<String, DatacatPlugin> pluginMap) throws SQLException {
-        //this.provider = provider;
+    public DatasetSearch(Connection conn, HashMap<String, DatacatPlugin> pluginMap) throws SQLException {
         this.pluginMap = pluginMap;
         this.dmc = SearchUtils.buildMetaInfoGlobalContext( conn );
         this.conn = conn;
+    }
+        
+    public void compile(LinkedList<DcFile> containers, DatasetView datasetView, String queryString, String[] metaFieldsToRetrieve, String[] sortFields, int offset, int max) throws ParseException, IOException {
+        try {
+            compileStatement( containers, datasetView, queryString, 
+                    metaFieldsToRetrieve, sortFields, offset, max );
+        } catch (SQLException ex){
+            throw new IOException("Error talking to database", ex);
+        }
     }
     
     public List<Dataset> retrieveDatasets() throws IOException {
@@ -61,59 +69,6 @@ public class DatasetSearch {
             return SearchUtils.getResults(conn, selectStatement, datasetView, metadataFields);
         } catch (SQLException ex) {
             throw new IOException("Error retrieving results", ex);
-        }
-    }
-    
-    public String doRewriteIdent(String ident){
-        switch(ident){
-            case "resource":
-                return "path";
-            case "size":
-                return "fileSizeBytes";
-        }
-        return ident;
-    }
-    
-    public void doRewrite(AST ast){
-        AST.Node root = ast.getRoot();
-        Set<String> idents = new HashSet<String>();
-        for(String ident: (Collection<String>) root.getMetadata( "idents")){
-            idents.add(doRewriteIdent(ident));
-        }
-        root.setMetadata("idents", idents);
-        AST.Visitor visitor = new AST.Visitor() {
-            @Override
-            public boolean visit(AST.Node n){
-                boolean changed = false;
-                if(n.getLeft() != null){
-                    changed |= visit(n.getLeft());
-                }
-                if(n.isValueNode()){
-                    String oldIdent = n.getValue().toString();
-                    // Rewrite values here
-                    String newIdent = doRewriteIdent(oldIdent);
-                    if(!oldIdent.equals( newIdent)){
-                        n.setValue(newIdent);
-                        changed = true;
-                    }
-                }
-                if(n.getRight() != null){
-                    changed |= visit(n.getRight());
-                }
-                return changed;
-            }
-        };
-        if(root.accept( visitor )){
-            System.out.println("rewrote at least once");
-        }
-    }
-    
-    public void compile(LinkedList<DcFile> containers, DatasetView datasetView, String queryString, String[] metaFieldsToRetrieve, String[] sortFields, int offset, int max) throws ParseException, IOException {
-        try {
-            compileStatement( containers, datasetView, queryString, 
-                    metaFieldsToRetrieve, sortFields, offset, max );
-        } catch (SQLException ex){
-            throw new IOException("Error talking to database", ex);
         }
     }
     
@@ -268,6 +223,50 @@ public class DatasetSearch {
                     .where( Op.gt( new Sql(s.alias()), offset) );
         }
         return selectStatement;
+    }
+    
+    protected String doRewriteIdent(String ident){
+        switch(ident){
+            case "resource":
+                return "path";
+            case "size":
+                return "fileSizeBytes";
+        }
+        return ident;
+    }
+    
+    protected void doRewrite(AST ast){
+        AST.Node root = ast.getRoot();
+        Set<String> idents = new HashSet<>();
+        for(String ident: (Collection<String>) root.getMetadata( "idents")){
+            idents.add(doRewriteIdent(ident));
+        }
+        root.setMetadata("idents", idents);
+        AST.Visitor visitor = new AST.Visitor() {
+            @Override
+            public boolean visit(AST.Node n){
+                boolean changed = false;
+                if(n.getLeft() != null){
+                    changed |= visit(n.getLeft());
+                }
+                if(n.isValueNode()){
+                    String oldIdent = n.getValue().toString();
+                    // Rewrite values here
+                    String newIdent = doRewriteIdent(oldIdent);
+                    if(!oldIdent.equals( newIdent)){
+                        n.setValue(newIdent);
+                        changed = true;
+                    }
+                }
+                if(n.getRight() != null){
+                    changed |= visit(n.getRight());
+                }
+                return changed;
+            }
+        };
+        if(root.accept( visitor )){
+            System.out.println("rewrote at least once");
+        }
     }
     
     private DatasetVersions prepareDatasetVersion(DatasetView dsView){
