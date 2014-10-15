@@ -30,7 +30,7 @@ import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;  
 import org.srs.rest.shared.HumanPath;
-import org.srs.rest.shared.RestException;
+import org.srs.datacat.rest.RestException;
 
 /**
  * The datasets resource will return all datasets under a given path.

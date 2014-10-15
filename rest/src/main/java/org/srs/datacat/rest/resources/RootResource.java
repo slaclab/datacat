@@ -17,7 +17,7 @@ import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
-import org.srs.rest.shared.RestException;
+import org.srs.datacat.rest.RestException;
 import static org.srs.vfs.AbstractFsProvider.AcceptAllFilter;
 
 /**

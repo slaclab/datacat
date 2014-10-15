@@ -1,5 +1,5 @@
 
-package org.srs.rest.shared;
+package org.srs.datacat.rest;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;

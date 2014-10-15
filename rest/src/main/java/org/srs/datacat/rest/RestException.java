@@ -1,5 +1,5 @@
 
-package org.srs.rest.shared;
+package org.srs.datacat.rest;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

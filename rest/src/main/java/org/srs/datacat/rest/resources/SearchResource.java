@@ -32,7 +32,7 @@ import org.srs.datacat.vfs.DcUriUtils;
 import org.srs.datacat.vfs.DirectoryWalker;
 import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
 import org.srs.datacatalog.search.DatasetSearch;
-import org.srs.rest.shared.RestException;
+import org.srs.datacat.rest.RestException;
 import org.srs.vfs.GlobToRegex;
 import org.srs.vfs.PathUtils;
 

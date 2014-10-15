@@ -40,7 +40,7 @@ import org.srs.datacat.vfs.DcUriUtils;
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
-import org.srs.rest.shared.RestException;
+import org.srs.datacat.rest.RestException;
 
 /**
  *
