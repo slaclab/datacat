@@ -16,25 +16,15 @@ insert into datasetgroup (name, datasetlogicalfolder) values ('testgroup',(selec
 
 insert into VerDataset (DatasetName, DataSetFileFormat, DataSetDataType, DatasetLogicalFolder, DatasetGroup) 
         values ('testds1', 'junit.test', 'JUNIT_TEST', null, (select datasetgroup from datasetgroup where name = 'testgroup'));
-
-insert into DatasetVersion (Dataset, VersionID, DataSetSource, ProcessInstance, TaskName) 
-        values ((select dataset from verdataset where datasetname = 'testds1'), -4, 'JUNIT_SOURCE', null, null);
-               
+              
 insert into DatasetVersion (Dataset, DataSetSource, ProcessInstance, TaskName) 
         values ((select dataset from verdataset where datasetname = 'testds1'), 'JUNIT_SOURCE', null, null);
         
-insert into DatasetVersion (Dataset, DataSetSource, ProcessInstance, TaskName) 
-        values ((select dataset from verdataset where datasetname = 'testds1'), 'JUNIT_SOURCE', null, null);        
-
-insert into DatasetVersion (Dataset, DataSetSource, ProcessInstance, TaskName) 
-        values ((select dataset from verdataset where datasetname = 'testds1'), 'JUNIT_SOURCE', null, null);
+insert into DatasetVersion (Dataset, VersionID, DataSetSource, ProcessInstance, TaskName) 
+        values ((select dataset from verdataset where datasetname = 'testds1'), 1, 'JUNIT_SOURCE', null, null);
 
 insert into DatasetVersion (Dataset, VersionID, DataSetSource, ProcessInstance, TaskName) 
-        values ((select dataset from verdataset where datasetname = 'testds1'), 24, 'JUNIT_SOURCE', null, null);
-      
-insert into DatasetVersion (Dataset, VersionID, DataSetSource, ProcessInstance, TaskName) 
-        values ((select dataset from verdataset where datasetname = 'testds1'), 0, 'JUNIT_SOURCE', null, null);
-        
+        values ((select dataset from verdataset where datasetname = 'testds1'), 24, 'JUNIT_SOURCE', null, null);      
 
 
 insert into datasetlogicalfolder (name, parent) values ('a',(select datasetlogicalfolder from datasetlogicalfolder where name = 'testpath'));
@@ -48,12 +38,27 @@ insert into datasetlogicalfolder (name, parent) values ('xyz',(select datasetlog
 insert into datasetgroup (name, datasetlogicalfolder) values ('fed',(select datasetlogicalfolder from datasetlogicalfolder where name = 'abc'));
 insert into datasetgroup (name, datasetlogicalfolder) values ('zyx',(select datasetlogicalfolder from datasetlogicalfolder where name = 'def'));
 
-insert into datasetmetaname (metaname) VALUES ('nRun');
-insert into datasetmetaname (metaname) VALUES ('alpha');
-insert into datasetmetaname (metaname) VALUES ('num');
-insert into datasetmetaname (metaname) VALUES ('sIntent');
+insert into datasetmetaname (MetaName) VALUES ('nRun');
+insert into datasetmetaname (MetaName) VALUES ('alpha');
+insert into datasetmetaname (MetaName) VALUES ('num');
+insert into datasetmetaname (MetaName) VALUES ('sIntent');
 
-insert into datasetmetainfo (metaname, metatype) VALUES ('nRun', 'N');
-insert into datasetmetainfo (metaname, metatype) VALUES ('alpha', 'S');
-insert into datasetmetainfo (metaname, metatype) VALUES ('num', 'N');
-insert into datasetmetainfo (metaname, metatype) VALUES ('sIntent', 'S');
+insert into datasetmetainfo (MetaName, ValueType) VALUES ('nRun', 'N');
+insert into datasetmetainfo (MetaName, ValueType) VALUES ('alpha', 'S');
+insert into datasetmetainfo (MetaName, ValueType) VALUES ('num', 'N');
+insert into datasetmetainfo (MetaName, ValueType) VALUES ('sIntent', 'S');
+
+-- Initialize DatasetMetaInfo
+--
+-- insert into DatasetMetaInfo (MetaName, ValueType)
+--    (
+--    select AllNames.MetaName, AllNames.ValueType from
+--        (select distinct MetaName MetaName, 'S' ValueType from VerDatasetMetaString
+--           UNION
+--         select distinct MetaName MetaName, 'N' ValueType from VerDatasetMetaNumber
+--           UNION
+--         select distinct MetaName MetaName, 'T' ValueType from VerDatasetMetaTimestamp) AllNames
+--         LEFT OUTER JOIN DatasetMetaInfo CachedNames 
+--           on (CachedNames.MetaName = AllNames.MetaName and CachedNames.ValueType = AllNames.ValueType)
+--         WHERE CachedNames.MetaName is null
+--     );
