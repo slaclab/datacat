@@ -4,12 +4,12 @@
 
     <parent>
         <groupId>srs</groupId>
-        <artifactId>org-srs-datacatalog</artifactId>
+        <artifactId>org-srs-datacat</artifactId>
         <version>0.1-SNAPSHOT</version>
     </parent>
 
     <groupId>srs</groupId>
-    <artifactId>org-srs-datacatalog-search</artifactId>
+    <artifactId>org-srs-datacat-search</artifactId>
     <packaging>jar</packaging>
 
     <name>SRS DataCatalog Foreign Data and Search Utils</name>
@@ -56,23 +56,11 @@
             <version>0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>srs</groupId>
-            <artifactId>org-srs-datahandling-common</artifactId>
-            <version>1.6.5</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.11</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>14.0.1</version>
             <type>jar</type>
         </dependency>
-        
         <dependency>
             <groupId>oracle</groupId>
             <artifactId>ojdbc6</artifactId>
@@ -81,8 +69,22 @@
         </dependency>
         <dependency>
             <groupId>srs</groupId>
-            <artifactId>org-srs-rest-base</artifactId>
-            <version>0.9-SNAPSHOT</version>
+            <artifactId>org-srs-datacat-core</artifactId>
+            <version>0.1-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>srs</groupId>
+            <artifactId>org-srs-datacat-core</artifactId>
+            <version>0.1-SNAPSHOT</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>srs</groupId>
+            <artifactId>org-srs-datacat-test</artifactId>
+            <version>0.1-SNAPSHOT</version>
+            <scope>test</scope>
             <type>jar</type>
         </dependency>
     </dependencies>
@@ -98,6 +100,8 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
+                            <forkMode>pertest</forkMode>
+                            <argLine>-Xms2048m -Xmx2048m</argLine>
                             <systemProperties>
                                 <property>
                                     <name>db.glastgen.prod.url</name>
