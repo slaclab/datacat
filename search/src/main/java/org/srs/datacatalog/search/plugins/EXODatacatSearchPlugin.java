@@ -17,7 +17,7 @@ public class EXODatacatSearchPlugin implements DatacatPlugin {
     @Schema(name="EXORunIndex", alias="eri")
     class EXORunIndex extends Table {
         boolean joined = false;
-        
+            
         @Schema(name="runIndex", alias="runId") 
         public Column<Long> runId;
         @Schema(name="fullTypeName", alias="runType") 
@@ -57,7 +57,7 @@ public class EXODatacatSearchPlugin implements DatacatPlugin {
         }
         String metadataPivot = "nRun";
         DatasetVersions dsv = (DatasetVersions) statement;
-        Column vecColumn = dsv.setupMetadataJoin( metadataPivot,  Number.class );
+        Column vecColumn = dsv.setupMetadataOuterJoin( metadataPivot,  Number.class );
 
         dsv.selection( eri.getColumns() ).leftOuterJoin( eri, vecColumn.eq( eri.runId )  );
         joined = true;
