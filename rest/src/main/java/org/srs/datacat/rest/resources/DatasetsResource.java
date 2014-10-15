@@ -29,7 +29,7 @@ import org.srs.datacat.shared.dataset.FlatDataset;
 //import org.srs.datacat.sql.DatacatDAO;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;  
-import org.srs.rest.shared.HumanPath;
+import org.srs.datacat.rest.HumanPath;
 import org.srs.datacat.rest.RestException;
 
 /**

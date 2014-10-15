@@ -16,9 +16,9 @@ import org.glassfish.jersey.server.model.Invocable;
 import org.glassfish.jersey.server.model.Parameter;
 import org.glassfish.jersey.server.model.Resource;
 import org.glassfish.jersey.server.model.ResourceMethod;
-import org.srs.rest.shared.HumanPath;
-import org.srs.rest.shared.RestMethod;
-import org.srs.rest.shared.RestResource;
+import org.srs.datacat.rest.HumanPath;
+import org.srs.datacat.rest.RestMethod;
+import org.srs.datacat.rest.RestResource;
 
 /**
  * A Resource that displays info about the resources
