@@ -1,7 +1,6 @@
 package org.srs.datacat.rest;
 
 
-import org.srs.datacat.model.RequestAcceptFilter;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import java.io.File;
 import java.io.IOException;
@@ -32,8 +31,6 @@ import org.glassfish.jersey.server.spi.Container;
 import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacatalog.search.plugins.EXODatacatSearchPlugin;
-import org.srs.rest.shared.ListPlainTextProvider;
-import org.srs.rest.shared.plugins.ResourcePlugin;
 
 /**
  *
