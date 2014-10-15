@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
+//import javax.ws.rs.core.MultivaluedHashMap;
+//import javax.ws.rs.core.MultivaluedMap;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -200,7 +200,7 @@ public class LatestDatasetTest extends TestCase {
     
     public void testMultivaluedMap() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException{
         
-        MultivaluedMap<String, String> mmap = new MultivaluedHashMap<>();        
+        HashMap<String, List<String>> mmap = new HashMap<>();        
         mmap.put( "name", Arrays.asList("my-flat-dataset.txt"));
         mmap.put( "fileFormat",Arrays.asList("FITS"));
         mmap.put( "resource", Arrays.asList("/path/to/somewhere"));
