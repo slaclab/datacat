@@ -176,29 +176,14 @@ public class App extends ResourceConfig {
         fsProvider = new DcFileSystemProvider(dataSource);
         register(new DataSourceBinder(dataSource));
         register(new FsBinder(fsProvider));
-
-        if(classesLoaded)
-            return;
         
         SearchPluginProvider provider = new SearchPluginProvider(new EXODatacatSearchPlugin());
         register(provider.binder);
         
-        /*File loc = new File( "/Users/bvan/.m2/repository/exo/exo-datacat-plugins/1.0-SNAPSHOT/exo-datacat-plugins-1.0-SNAPSHOT.jar" );
-
-        URL[] urls = { loc.toURI().toURL() };
-        URLClassLoader ucl = new URLClassLoader( urls, getClassLoader() );
-
-        ServiceLoader<ResourcePlugin> sl = ServiceLoader.load( ResourcePlugin.class, ucl );
-        Iterator<ResourcePlugin> apit = sl.iterator();
+        if(classesLoaded)
+            return;
+        // Classloader block
         
-        while(apit.hasNext()){
-            ResourcePlugin plugin = apit.next();
-            System.out.println( plugin.getPath() );
-            Resource r = Resource.builder( plugin.getClass(), true).build();
-            System.out.println( r.getPath() );
-            this.registerClasses( plugin.getClass() );
-
-        }*/
         classesLoaded = true;
     }
     
