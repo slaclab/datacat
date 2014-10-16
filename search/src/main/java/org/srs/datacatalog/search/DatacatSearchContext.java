@@ -207,11 +207,23 @@ public class DatacatSearchContext implements SearchContext {
             }
             return tOper.apply( c, tRight );
         }
-        if(tRight == null){
-            if(tOper == Op.IS_NULL || tOper == Op.NOT_NULL){
-                if(metanameContext.getTypes(tLeft.toString()).size() == 1){
-                    tRight = metanameContext.getTypes(tLeft.toString()).toArray()[0];
-                }
+
+        /* When tRight is null (denoted by Void.TYPE in freehep-lang),
+           translate EQ/NOT_EQ null to IS_NULL/NOT_NULL
+        */
+        if(tRight == Void.TYPE){ 
+            switch (tOper){
+                case EQ:
+                    tOper = Op.IS_NULL;
+                    break;
+                case NOT_EQ:
+                    tOper = Op.NOT_NULL;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Fatal Error while parsing null");
+            }
+            if(metanameContext.getTypes(tLeft.toString()).size() == 1){
+                tRight = metanameContext.getTypes(tLeft.toString()).toArray()[0];
             }
         }
         return statement.getMetadataExpression( tLeft, tOper, tRight);

@@ -151,6 +151,17 @@ public class DatacatSearchTest {
         TestCase.assertEquals("First dataset found incorrect", "dataset00000", datasets.get(0).getName());
         conn.commit(); // Remove from parents on commit
         
+        queryString = "num is null";
+        pathPattern = "/testpath/folder00000";
+        datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 0);
+        conn.commit(); // Remove from parents on commit
+        
+        queryString = "num is not null";
+        pathPattern = "/testpath/folder00000";
+        datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 1000);
+        TestCase.assertEquals("First dataset found incorrect", "dataset00000", datasets.get(0).getName());
+        conn.commit(); // Remove from parents on commit
+        
         queryString = "num == true";
         pathPattern = "/testpath/folder00001";
         datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 0);
