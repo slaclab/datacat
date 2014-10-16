@@ -12,7 +12,7 @@ def build_argparser():
     parser = argparse.ArgumentParser(description="Python CLI for Data Catalog RESTful interfaces")
     parser.add_argument('-U', '--base-url', help="Override base URL for client", action="store")
     parser.add_argument('-D', '--experiment', "--domain", help="Set experiment domain for requests")
-    parser.add_argument('-f', '--format', dest="accept", default="json", help="Set experiment domain for requests")
+    parser.add_argument('-f', '--format', dest="accept", default="json", help="Default format is JSON. JSON will attempted to be processed further")
     parser.add_argument('-r', '--show-request', action="store_true", dest="show_request",
                         help="Show request URL", default=False)
     parser.add_argument('-R', '--show-response', action="store_true", dest="show_response",
