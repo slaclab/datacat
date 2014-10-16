@@ -1,4 +1,5 @@
 import ply.lex as lex
+import ply.yacc as yacc
 
 __author__ = 'bvan'
 
@@ -175,9 +176,6 @@ for i in range(0,len(sq2)):
 
 for i in range(0,len(sq3)):
     print sq3[i] + " -- " + sq4[i]
-
-
-import ply.yacc as yacc
 
 def p_ast(p):
     'ast : expr'
