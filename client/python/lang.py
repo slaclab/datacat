@@ -33,6 +33,15 @@ class Node:
             s += str(self.right)
         return s if self.left is None and self.right is None else "( " + s + " )"
 
+    def __repr__(self):
+        t = "<%s>" %(str(self.type)) if self.type else ""
+        s = " %s%s " %(str(self.val), t)
+        if self.left is not None:
+            s = repr(self.left) + s
+        if self.right is not None:
+            s += repr(self.right)
+        return s if self.left is None and self.right is None else "( " + s + " )"
+
 class BoolOp:
     EOF  = 1
     ERROR = 2
@@ -59,6 +68,7 @@ def t_BOOLEAN(t):
 
 def t_NULL(t):
     r'null|none'
+    t.value = type(None)
     return t
 
 def t_NOT_EQ(t):
@@ -290,4 +300,4 @@ def p_error(p):
 parser = yacc.yacc()
 
 result = parser.parse(squer2)
-print result
+print repr(result)
