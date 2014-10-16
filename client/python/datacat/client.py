@@ -22,7 +22,8 @@ class Client(object):
         endpoint = "path"
         return self._get(self._target(endpoint, path, version, site, accept), **kwargs)
     
-    def search(self, target, version=None, site=None, query=None, sort=None, show=None, offset=None, max_num=None, accept="json", **kwargs):
+    def search(self, target, version=None, site=None, query=None, sort=None, show=None, offset=None, max_num=None,
+               accept="json", **kwargs):
         """Search a target. A target is a Container of some sort. It may also be specified as a glob, as in:
          1. /path/to - target /path/to _only_
          2. /path/to/* - target is all containers directly in /path/to/

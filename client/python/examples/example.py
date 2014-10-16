@@ -22,7 +22,6 @@ resp = client.path(path)
 
 if resp.status_code == 200:
     dataset = unpack(resp.json())
-    import pprint
     pprint.pprint(dataset)
 else:
     print("Error processing request:" + str(resp.status_code))
@@ -46,7 +45,7 @@ print("\nSearch Example:")
 
 path_pattern = "/EXO/Data/Raw/*"                     # Search containers under Raw
 query = 'nRun gt 6200 and exo.runQuality =~ "GO%"'   # Filter query
-sort = ["nRun-", "nEvents"]                          # Sort nRun desc, nEvents asc (asc default). These are also retrieved.
+sort = ["nRun-", "nEvents"]                          # Sort nRun desc, nEvents asc (asc default). These are retrieved.
 show = ["nVetoEvents"]                               # Retrieve nVetoEvents as well.
 
 resp = client.search(path_pattern, query=query, sort=sort, show=show)
