@@ -133,6 +133,9 @@ public class DatacatSearchContext implements SearchContext {
                 case "MATCHES":
                     opName = "LIKE";
                     break;
+                case "NOT_MATCHES":
+                    opName = "NOT_LIKE";
+                    break;
                 case "IN":
                     switch (node.getRight().getType()){
                         case sym.NUMRANGE:
@@ -141,6 +144,7 @@ public class DatacatSearchContext implements SearchContext {
                             opName = "BETWEEN";
                     }
                     break;
+                
             }
             tOper = Op.valueOf(opName);
         }
