@@ -48,7 +48,7 @@
         <dependency>
             <groupId>org.freehep.commons</groupId>
             <artifactId>freehep-lang</artifactId>
-            <version>0.3-SNAPSHOT</version>
+            <version>0.4</version>
         </dependency>
         <dependency>    
             <groupId>org.zerorm</groupId>
