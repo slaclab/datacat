@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 import org.freehep.commons.lang.AST;
 import org.freehep.commons.lang.bool.Lexer;
 import org.freehep.commons.lang.bool.Parser;
+import org.freehep.commons.lang.bool.sym;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.vfs.DcFile;
@@ -256,6 +257,10 @@ public class DatasetSearch {
                     }
                 }
                 if(n.getRight() != null){
+                    if(n.getType() == sym.NOT_MATCHES || n.getType() == sym.MATCHES){
+                        AST.Node r = n.getRight();
+                        r.setValue(sqlEscape((String) r.getValue()));
+                    }
                     changed |= visit(n.getRight());
                 }
                 return changed;
@@ -264,6 +269,43 @@ public class DatasetSearch {
         if(root.accept( visitor )){
             System.out.println("rewrote at least once");
         }
+    }
+    
+    public static String sqlEscape(String query){
+        StringBuilder rewrite = new StringBuilder();
+        boolean escape = false;
+        for(int i = 0; i < query.length(); i++){
+            int ch = query.codePointAt( i );
+            switch(ch){
+                case '%':
+                case '_':
+                    rewrite.appendCodePoint( '\\' );
+                    rewrite.appendCodePoint( ch );
+                    break;
+                case '*':
+                    rewrite.appendCodePoint( escape ? '*' : '%' );
+                    escape = false;
+                    break;
+                case '?':
+                    rewrite.appendCodePoint( escape ? '?' : '_' );
+                    escape = false;
+                    break;
+                case '\\': // TODO: Should maybe handle escape sequences
+                    if(escape){
+                        rewrite.appendCodePoint(ch);
+                        rewrite.appendCodePoint(ch);
+                    }
+                    escape = !escape;
+                    break;
+                default:
+                    escape = false; // Swallow escapes
+                    rewrite.appendCodePoint( ch );
+            }
+        }
+        if(escape){
+            throw new IllegalArgumentException("Dangling escape at end of query string");
+        }
+        return rewrite.toString();
     }
     
     private DatasetVersions prepareDatasetVersion(DatasetView dsView){

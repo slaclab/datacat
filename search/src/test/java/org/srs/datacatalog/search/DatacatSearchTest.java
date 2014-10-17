@@ -194,13 +194,24 @@ public class DatacatSearchTest {
         searchFolders = true;
         searchGroups = true;
         
-        queryString = "alpha =~ 'de%'";
+        queryString = "alpha =~ 'de?'";
         pathPattern ="/testpath/folder00001";
         datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 250);
         TestCase.assertEquals("First dataset found incorrect", "dataset00001", datasets.get(0).getName());
         conn.commit(); // Remove from parents on commit
         
-        queryString = "alpha !~ 'de%'";
+        queryString = "alpha =~ 'de\\?'";
+        pathPattern ="/testpath/folder00001";
+        datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 0);
+        conn.commit(); // Remove from parents on commit
+        
+        queryString = "alpha !~ 'd*'";
+        pathPattern ="/testpath/folder00001";
+        datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 750);
+        TestCase.assertEquals("First dataset found incorrect", "dataset00002", datasets.get(1).getName());
+        conn.commit(); // Remove from parents on commit
+        
+        queryString = "alpha !~ 'de?'";
         pathPattern ="/testpath/folder00001";
         datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 750);
         TestCase.assertEquals("First dataset found incorrect", "dataset00002", datasets.get(1).getName());
@@ -208,8 +219,7 @@ public class DatacatSearchTest {
         
         queryString = "alpha =~ 'de_'";
         pathPattern ="/testpath/folder00001";
-        datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 250);
-        TestCase.assertEquals("First dataset found incorrect", "dataset00001", datasets.get(0).getName());
+        datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 0);
         conn.commit(); // Remove from parents on commit
         
         int expected;
