@@ -10,15 +10,23 @@
 
     <groupId>srs</groupId>
     <artifactId>org-srs-datacat</artifactId>
-    <version>0.1.1</version>
+    <version>0.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>SRS DataCatalog Main Project</name>
 
     <scm>
-        <connection>scm:svn:file:///nfs/slac/g/srs/subversion/org-srs-datacat/tags/org-srs-datacat-0.1.1</connection>
-        <url>http://java.freehep.org/svn/repos/srs/list/org-srs-datacat/tags/org-srs-datacat-0.1.1</url>
+        <connection>scm:svn:file:///nfs/slac/g/srs/subversion/org-srs-datacat/tags/org-srs-datacat-0.2-SNAPSHOT</connection>
+        <url>http://java.freehep.org/svn/repos/srs/list/org-srs-datacat/tags/org-srs-datacat-0.2-SNAPSHOT</url>
     </scm>
+    
+    <distributionManagement>
+        <site>
+            <id>srs-site</id>
+            <name>SRS Maven2 centreal site repository</name>
+            <url>dav:http://srs.slac.stanford.edu/nexus/content/sites/srs-site/${project.artifactId}</url>
+        </site>
+    </distributionManagement>
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
