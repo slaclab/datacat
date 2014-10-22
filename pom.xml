@@ -5,7 +5,7 @@
     <parent>
         <groupId>srs</groupId>
         <artifactId>org-srs-maven-project-jar</artifactId>
-        <version>4.1</version>
+        <version>4.2</version>
     </parent>
 
     <groupId>srs</groupId>
