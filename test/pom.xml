@@ -4,12 +4,11 @@
     <parent>
         <groupId>srs</groupId>
         <artifactId>org-srs-datacat</artifactId>
-        <version>0.1</version>
+        <version>0.2-SNAPSHOT</version>
     </parent>
     <groupId>srs</groupId>
     <artifactId>org-srs-datacat-test</artifactId>
   
-    <version>0.1</version>
     <name>SRS DataCatalog Test Packages</name>
   
     <url>http://maven.apache.org</url>
