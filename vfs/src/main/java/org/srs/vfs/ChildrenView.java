@@ -49,7 +49,7 @@ public class ChildrenView<P extends AbstractPath> implements FileAttributeView {
     
     /**
      * Return true if we were able to link the file to the current list of children
-     * @param filename
+     * @param path
      * @return 
      */
     public boolean link(P path){

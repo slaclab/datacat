@@ -3,7 +3,7 @@ package org.srs.vfs;
 
 /**
  *
- * @author Brian Van Klaveren<bvan@slac.stanford.edu>
+ * @author bvan
  */
 public interface FileType {
        
