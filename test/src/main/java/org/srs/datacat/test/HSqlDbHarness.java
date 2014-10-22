@@ -21,16 +21,8 @@ import org.apache.commons.dbcp2.PoolableConnectionFactory;
 import org.apache.commons.dbcp2.DriverManagerConnectionFactory;
 
 
-import org.hsqldb.jdbc.JDBCPool;
-
 /**
- * Hello world!
- <bean class="org.apache.commons.dbcp2.BasicDataSource" id="dataSource">
-    <property name="driverClassName" value="org.hsqldb.jdbcDriver" />
-    <property name="url" value="jdbc:hsqldb:file:#{systemProperties['user.home']}/db/data" />
-    <property name="username" value="sa" />
-    <property name="password" value="" />
-</bean>
+ * HSQL DB Test Harness
  */
 public class HSqlDbHarness {
    
