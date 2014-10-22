@@ -100,7 +100,7 @@ public class SearchResourceTest extends JerseyTest{
         TestCase.assertEquals("Expected 250 datasets", 250, datasets.size());
         
         pathPattern = "/testpath/folder0000*";
-        filter = "alpha =~ 'de%'";
+        filter = "alpha =~ 'de*'";
         expected = 250;
         datasets = doSearch( pathPattern, filter, 200 );
         TestCase.assertEquals( "Expected 250 datasets", 250, datasets.size() );
