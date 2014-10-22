@@ -10,7 +10,7 @@
 
     <groupId>srs</groupId>
     <artifactId>org-srs-datacat</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
     <packaging>pom</packaging>
 
     <name>SRS DataCatalog Main Project</name>
@@ -75,4 +75,9 @@
             </plugin>
         </plugins>
     </build>
+
+  <scm>
+    <connection>scm:svn:file:///nfs/slac/g/srs/subversion/org-srs-maven-project/tags/org-srs-datacat-0.1</connection>
+    <url>http://java.freehep.org/svn/repos/srs/list/org-srs-maven-project/tags/org-srs-datacat-0.1</url>
+  </scm>
 </project>
