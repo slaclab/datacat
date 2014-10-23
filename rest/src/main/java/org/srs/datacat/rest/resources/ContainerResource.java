@@ -194,7 +194,7 @@ public class ContainerResource extends BaseResource {
                 if(i < offset){
                     continue;
                 }
-                DcFile file = getProvider().readAttributes(p, DcFile.class);
+                DcFile file = getProvider().getFile(p);
                 if(!withDs && file.isRegularFile()){
                     continue;
                 }

@@ -99,7 +99,7 @@ public class PathResource extends BaseResource {
             if(refresh){
                 getProvider().getCache().removeFile(dcp);
             }
-            DcFile file = getProvider().readAttributes(dcp, DcFile.class);
+            DcFile file = getProvider().getFile(dcp);
             DatacatObject ret;
             RequestView rv = new RequestView(file.getObject().getType(), matrixParams);
             if(file.isRegularFile()){
@@ -155,7 +155,7 @@ public class PathResource extends BaseResource {
             
             while(iter.hasNext() && (retList.size() < max || showCount)){
                 java.nio.file.Path p = iter.next();
-                DcFile file = getProvider().readAttributes(p, DcFile.class);
+                DcFile file = getProvider().getFile(p);
                 if(!withDs && file.isRegularFile()){
                     continue;
                 }

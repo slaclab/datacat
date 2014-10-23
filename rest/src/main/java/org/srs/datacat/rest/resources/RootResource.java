@@ -48,7 +48,7 @@ public class RootResource extends BaseResource {
         try (DirectoryStream<java.nio.file.Path> ds = getProvider().newDirectoryStream(dcpath, filter)){
             ArrayList<DatacatObject> retList = new ArrayList<>();
             for(java.nio.file.Path path : ds){
-                retList.add(getProvider().readAttributes(path, DcFile.class).getObject());
+                retList.add(getProvider().getFile(path).getObject());
             }
             return retList;
         } catch (IOException e){
