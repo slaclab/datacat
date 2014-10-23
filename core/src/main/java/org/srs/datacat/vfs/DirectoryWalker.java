@@ -46,7 +46,7 @@ public class DirectoryWalker {
 
         DcFile target = null;
         try {
-            target = provider.readAttributes(file, DcFile.class);
+            target = provider.getFile(file);
         } catch (AccessDeniedException ex) {
             // Fail if this was the first directory, otherwise skip.
             if (depth == 0){

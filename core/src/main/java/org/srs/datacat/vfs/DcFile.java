@@ -36,6 +36,7 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     public static class GroupType extends FileType.Directory {}
     
     private final DatacatObject _object;
+    private long _objectCreation = System.currentTimeMillis();
     
     public DcFile(DcPath path, DatacatObject object, DcAclFileAttributeView aclView){
         super(path, fileType(object));
@@ -95,19 +96,19 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     @Override
     public FileTime lastModifiedTime(){
         // TODO: Fix Times
-        return FileTime.fromMillis( System.currentTimeMillis() );
+        return FileTime.fromMillis( _objectCreation );
     }
 
     @Override
     public FileTime lastAccessTime(){
         // TODO: Fix Times
-        return FileTime.fromMillis( System.currentTimeMillis() );
+        return FileTime.fromMillis( _objectCreation );
     }
 
     @Override
     public FileTime creationTime(){
         // TODO: Fix Times
-        return FileTime.fromMillis( System.currentTimeMillis() );
+        return FileTime.fromMillis( _objectCreation );
     }
 
     @Override

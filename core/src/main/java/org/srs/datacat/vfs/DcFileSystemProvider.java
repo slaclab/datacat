@@ -73,7 +73,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     private static final int MAX_METADATA_STRING_BYTE_SIZE = 5000;
     private static final long MAX_DATASET_CACHE_SIZE = 1<<29; // Don't blow more than about 512MB
     private static final int NO_MAX = -1;
-    private static final int NO_OFFSET = 0;
+    private static final long MAX_CACHE_TIME = 60000L; // 60 seconds TODO: Get rid of this
     
     private final DcFileSystem fileSystem;
     private final DAOFactory daoFactory;
@@ -299,7 +299,29 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         AfsException.NO_SUCH_FILE.throwError( dcPath,"Unable to resolve file");
         return null; // Keep compiler happy
     }
-
+    
+    /**
+     * Gets a file
+     * @param path
+     * @return
+     * @throws IOException 
+     */
+    public DcFile getFile(Path path) throws IOException{
+        DcPath dcPath = checkPath( path );
+        /*
+        TODO: When we have control over file creation, remove this and replace it with
+              some sort of distributed consensus stuff potentially.
+        */
+        DcFile f = resolveFile(dcPath);
+        if((f.lastModifiedTime().toMillis() - System.currentTimeMillis()) > MAX_CACHE_TIME){
+            getCache().removeFile(dcPath);
+            f = resolveFile(dcPath);
+        }
+        checkPermission( f, AclEntryPermission.READ_DATA );
+        AfsException.NO_SUCH_FILE.throwError( dcPath,"Unable to resolve file");
+        return null; // Keep compiler happy
+    }
+    
     @Override
     public DcPath getPath(URI uri){
         return fileSystem.getPathProvider().getPath(uri);
@@ -327,7 +349,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         return fileSystem.getPathProvider().getPath(null, path.toString());
     }
-
+    
     @Override
     public DcFile retrieveFileAttributes(DcPath path, DcFile parent) throws IOException {
         // LOG: Checking database
@@ -371,7 +393,6 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         
         DcFile dsParent = resolveFile(dsPath.getParent());
         //checkPermission(dsParent, DcPermissions.CREATE_CHILD);
-        
         try (DatasetDAO dao = daoFactory.newDatasetDAO()){
             dao.createDatasetNodeAndView( dsParent.fileKey(), dsParent.getObject().getType(), dsPath.toString(), ds, options );
             dao.commit();
