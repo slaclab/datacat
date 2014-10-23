@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryStream;
 
-import java.nio.file.Files;
 import java.nio.file.NotDirectoryException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,14 +68,16 @@ public class PathResource extends BaseResource {
     
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public Response getRootBean(@DefaultValue("basic") @QueryParam("stat") StatTypeWrapper statType) throws IOException{
-        return getBean("", new HashMap<String, List<String>>(), new HashMap<String, List<String>>());
+    public Response getRootBean(@DefaultValue("basic") @QueryParam("stat") StatTypeWrapper statType, 
+            @DefaultValue("false") @QueryParam("refresh") boolean refresh) throws IOException{
+        return getBean("", new HashMap<String, List<String>>(), new HashMap<String, List<String>>(), refresh);
     }
     
     @GET
     @Path(idRegex)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public Response getBean(@PathParam("id") List<PathSegment> pathSegments, @Context UriInfo ui) throws IOException{
+    public Response getBean(@PathParam("id") List<PathSegment> pathSegments, 
+            @DefaultValue("false") @QueryParam("refresh") boolean refresh, @Context UriInfo ui) throws IOException{
         HashMap<String, List<String>> matrixParams = new HashMap<>();
         HashMap<String, List<String>> queryParams = new HashMap<>();
         String path = "";
@@ -85,17 +86,20 @@ public class PathResource extends BaseResource {
             matrixParams.putAll(s.getMatrixParameters());
         }
         queryParams.putAll(ui.getQueryParameters());
-        return getBean(path, matrixParams, queryParams);
+        return getBean(path, matrixParams, queryParams, refresh);
     }
     
     public Response getBean(String path, HashMap<String,List<String>> matrixParams, 
-            HashMap<String, List<String>> extraQueryParams) throws IOException{
+            HashMap<String, List<String>> extraQueryParams, boolean refresh) throws IOException{
         List<String> stl = matrixParams.get( "stat");
         String st = stl != null && !stl.isEmpty() ? stl.get(0).toUpperCase() : null;
         StatType statType = st != null ? StatType.valueOf(st) : StatType.BASIC;
         DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(path, null, "SRS"));
         try {
-            DcFile file = Files.readAttributes(dcp, DcFile.class);
+            if(refresh){
+                getProvider().getCache().removeFile(dcp);
+            }
+            DcFile file = getProvider().readAttributes(dcp, DcFile.class);
             DatacatObject ret;
             RequestView rv = new RequestView(file.getObject().getType(), matrixParams);
             if(file.isRegularFile()){
@@ -151,7 +155,7 @@ public class PathResource extends BaseResource {
             
             while(iter.hasNext() && (retList.size() < max || showCount)){
                 java.nio.file.Path p = iter.next();
-                DcFile file = Files.readAttributes(p, DcFile.class);
+                DcFile file = getProvider().readAttributes(p, DcFile.class);
                 if(!withDs && file.isRegularFile()){
                     continue;
                 }
