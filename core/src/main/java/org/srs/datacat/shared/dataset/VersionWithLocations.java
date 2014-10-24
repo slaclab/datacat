@@ -5,8 +5,9 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -27,14 +28,14 @@ import org.srs.datacat.shared.dataset.VersionWithLocations.Builder;
 @JsonTypeName(value="version#withLocations")
 @JsonDeserialize(builder = Builder.class)
 public class VersionWithLocations extends DatasetVersion {
-    private HashMap<String, DatasetLocation> dsLocations = new HashMap<>(3);
+    private LinkedHashMap<String, DatasetLocation> dsLocations = new LinkedHashMap<>(3);
     
     private VersionWithLocations(){}
     
     public VersionWithLocations(DatasetVersion version){
         super(version);
         if(version instanceof VersionWithLocations){
-            this.dsLocations = new HashMap<>(dsLocations);
+            this.dsLocations = ((VersionWithLocations) version).dsLocations;
         }
     }
     
@@ -56,7 +57,7 @@ public class VersionWithLocations extends DatasetVersion {
     
     @XmlElement(name="locations", required=false)
     public Set<DatasetLocation> getLocations(){
-        return new HashSet<>(dsLocations.values());
+        return new LinkedHashSet<>(dsLocations.values());
     }
     
     public DatasetLocation getLocation(String name){

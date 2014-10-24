@@ -456,14 +456,6 @@ public class Dataset extends DatacatObject implements DatasetModel {
 
         @Override
         public Dataset build(){
-            return buildDataset();
-        }
-
-        public boolean isType(int type){
-            return (dsType & type) == type;
-        }
-
-        public Dataset buildDataset(){
             if(isType( FLAT )){
                 return new FlatDataset.Builder( this ).build();
             }
@@ -474,6 +466,10 @@ public class Dataset extends DatacatObject implements DatasetModel {
                 return new FlatDataset.Builder( this ).build();
             }
             return new Dataset( this );
+        }
+
+        public boolean isType(int type){
+            return (dsType & type) == type;
         }
     }
 }

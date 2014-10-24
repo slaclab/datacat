@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.sql.Timestamp;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -84,7 +84,7 @@ public class FullDataset extends Dataset implements DatasetVersionModel {
     public Timestamp getDateVersionCreated(){ return dsVersion.getDateCreated(); }
     
     @XmlElement(required=false)
-    public Collection<DatasetLocation> getLocations(){
+    public Set<DatasetLocation> getLocations(){
         if(dsVersion instanceof VersionWithLocations){
             return ((VersionWithLocations) dsVersion).getLocations();
         }

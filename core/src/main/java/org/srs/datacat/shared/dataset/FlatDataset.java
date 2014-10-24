@@ -152,7 +152,6 @@ public class FlatDataset extends Dataset implements DatasetVersionModel, Dataset
     
     @Override 
     @XmlElement(required=false)
-
     public Long getRunMax(){ return dsLocation.getRunMax(); }
     
     @Override
