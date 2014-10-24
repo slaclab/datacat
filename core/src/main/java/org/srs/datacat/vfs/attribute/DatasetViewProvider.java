@@ -100,7 +100,7 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
                 }
             }
         }
-        return b.buildDataset();
+        return b.build();
     }
 
     @Override

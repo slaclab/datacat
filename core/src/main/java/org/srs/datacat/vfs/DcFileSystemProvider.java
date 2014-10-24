@@ -317,7 +317,10 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             getCache().removeFile(dcPath);
             f = resolveFile(dcPath);
         }
-        checkPermission( f, AclEntryPermission.READ_DATA );
+        if(f!= null){
+            checkPermission( f, AclEntryPermission.READ_DATA );
+            return f;
+        }
         AfsException.NO_SUCH_FILE.throwError( dcPath,"Unable to resolve file");
         return null; // Keep compiler happy
     }
@@ -522,7 +525,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             NOT IMPLEMENTED
     */
     
-    @Override
+    @Override   
     public SeekableByteChannel newByteChannel(Path path,
             Set<? extends OpenOption> options,
             FileAttribute<?>... attrs) throws IOException{
