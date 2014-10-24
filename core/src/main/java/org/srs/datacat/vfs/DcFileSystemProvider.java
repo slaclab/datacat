@@ -13,7 +13,6 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemException;
-import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
@@ -342,7 +341,18 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         checkPermission(file, perm);
     }
-        
+    
+    public boolean exists(Path path, LinkOption... options) {
+        try {
+            readAttributes(path, BasicFileAttributes.class);
+            // file exists
+            return true;
+        } catch (IOException x) {
+            // does not exist or unable to determine if file exists
+            return false;
+        }
+    }
+    
     private DcPath checkPath(Path path){
         if(path instanceof DcPath){
             return (DcPath) path;
@@ -388,9 +398,9 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     public void createDataset(Path path, Dataset ds, Set<DatasetOption> options) throws IOException{
         DcPath dsPath = checkPath( path );
         
-        if(!options.contains(DatasetOption.SKIP_NODE_CHECK)     // Fail fast
+        if(!options.contains(DatasetOption.SKIP_NODE_CHECK)    // Fail fast
                 && options.contains(DatasetOption.CREATE_NODE) // Fail fast
-                && Files.exists(dsPath)){                      // -> Can be Expensive
+                && exists(dsPath)){                            // -> Can be Expensive
             AfsException.FILE_EXISTS.throwError( dsPath, "A dataset node already exists at this location");
         }
         

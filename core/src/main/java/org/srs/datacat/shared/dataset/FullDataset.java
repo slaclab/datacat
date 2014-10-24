@@ -16,7 +16,6 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
-import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.FullDataset.Builder;
 import org.srs.rest.shared.RestDateAdapter;
 import org.srs.rest.shared.metadata.MetadataEntry;
@@ -30,7 +29,7 @@ import org.srs.rest.shared.metadata.MetadataEntry;
 @JsonTypeName(value="dataset#full")
 @JsonDeserialize(builder = Builder.class)
 public class FullDataset extends Dataset implements DatasetVersionModel {
-    private DatasetVersion dsVersion;
+    private VersionWithLocations dsVersion;
     
     private FullDataset(){}
     
@@ -42,29 +41,24 @@ public class FullDataset extends Dataset implements DatasetVersionModel {
         super(dataset);
         if(dataset instanceof FullDataset){
             FullDataset ds = ((FullDataset) dataset);
-            if(ds.dsVersion instanceof VersionWithLocations){
+            if(ds.getVersion() != null){
                 this.dsVersion = new VersionWithLocations(ds.dsVersion);
-            } else {
-                this.dsVersion = new DatasetVersion(ds.dsVersion);
             }
-        }
-        else if(dataset instanceof FlatDataset){
+        } else if(dataset instanceof FlatDataset){
             FlatDataset ds = ((FlatDataset) dataset);
-            if(ds.getVersion() instanceof VersionWithLocations){
+            if(ds.getVersion() != null){
                 this.dsVersion = new VersionWithLocations(ds.getVersion());
-            } else {
-                this.dsVersion = new DatasetVersion(ds.getVersion());
             }
         }
     }
 
     public FullDataset(Dataset.Builder builder){
         super(builder);
-        dsVersion = builder.version;
+        dsVersion = new VersionWithLocations(builder.version);
     }
     
     @XmlTransient
-    public DatasetVersion getVersion(){
+    public VersionWithLocations getVersion(){
         return dsVersion;
     }
     

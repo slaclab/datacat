@@ -21,6 +21,7 @@ import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.FlatDataset;
+import org.srs.datacat.shared.dataset.FullDataset;
 import org.srs.datacat.shared.dataset.VersionWithLocations;
 import org.srs.datacat.vfs.attribute.DatasetOption;
 import static org.srs.datacat.vfs.DcFileSystemProvider.DcFsException.*;
@@ -73,6 +74,11 @@ public class DatasetDAO extends BaseDAO {
                 DatasetVersion requestVersion = ((FlatDataset) dsReq).getVersion();
                 DatasetLocation requestLocation = ((FlatDataset) dsReq).getLocation();
                 createDatasetView(ds, builder, requestVersion, requestLocation, dsOptions);
+            } else if (dsReq instanceof FullDataset) {
+                VersionWithLocations requestVersion = ((FullDataset) dsReq).getVersion();
+                for(DatasetLocation requestLocation: requestVersion.getLocations()){
+                    createDatasetView(ds, builder, requestVersion, requestLocation, dsOptions);
+                }
             } else {
                 throw new IOException("Unable to create dataset, not enough information");
             }
