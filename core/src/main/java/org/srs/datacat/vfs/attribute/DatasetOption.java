@@ -11,7 +11,7 @@ public enum DatasetOption implements OpenOption {
     
     CREATE_NODE,
     CREATE_VERSION,
-    CREATE_LOCATION,
+    CREATE_LOCATIONS,
     MERGE_VERSION,
     // These are for optimizations
     SKIP_NODE_CHECK,

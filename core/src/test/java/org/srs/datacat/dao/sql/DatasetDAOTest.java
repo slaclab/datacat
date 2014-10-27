@@ -121,8 +121,7 @@ public class DatasetDAOTest {
                 .build();
         Dataset ds = create(TEST_BASE_PATH, req);
         
-        
-        DatasetVersion newVer = dao.createOrMergeDatasetVersion(ds.getPk(), req.getPath(), null, req.getVersion(), false );
+        DatasetVersion newVer = dao.createOrMergeDatasetVersion(ds.getPk(), req.getPath(), null, req.getVersion(), false, true);
         System.out.println("Registered: " + newVer.toString());
         System.out.println(new Dataset.Builder(ds).version(newVer).build().toString());
         dao.deleteDatasetVersion(ds.getParentPk(), newVer);
