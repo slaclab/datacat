@@ -35,8 +35,14 @@ public class FormParamConverter {
     final static HashMap<String, Method> containerSetters = new HashMap<>();
     final static HashMap<String, Method> datasetSetters = new HashMap<>();
     final static HashMap<String, Method> locationSetters = new HashMap<>();
+    final static ObjectMapper mdMapper = new ObjectMapper();
 
     static {
+        
+        AnnotationIntrospector primary = new JacksonAnnotationIntrospector();
+        AnnotationIntrospector secondary = new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());
+        AnnotationIntrospector pair = new AnnotationIntrospectorPair(primary, secondary);
+        mdMapper.setAnnotationIntrospector( pair );
         
         Dataset.Builder dsBuilder = new Dataset.Builder();
         for(Method m: dsBuilder.getClass().getMethods()){
@@ -125,14 +131,15 @@ public class FormParamConverter {
                 }
                 List<String> lValue = formParams.get( key );
                 Object value = null;
-                if(key.equals( "metadata")){
+                if(key.equals("metadata")){
                     value = processMetadata(lValue);
                 } else {
                     if(lValue.size() != 1){
                         throw new RuntimeException( "Only one value per parameter is supported" );
                     }
                     Class<?> targetValueType = m.getParameterTypes()[0]; // Should only be one
-                    value = mapper.convertValue( lValue.get( 0 ), targetValueType );
+                    value = targetValueType == String.class ? lValue.get(0) : 
+                            mapper.convertValue(lValue.get(0), targetValueType);
                 }
                 m.invoke( builder, value );
             }
@@ -142,11 +149,6 @@ public class FormParamConverter {
     }
     
     private static List<MetadataEntry> processMetadata(List<String> mdEntries) throws RuntimeException{
-        ObjectMapper mdMapper = new ObjectMapper();
-        AnnotationIntrospector primary = new JacksonAnnotationIntrospector();
-        AnnotationIntrospector secondary = new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());
-        AnnotationIntrospector pair = new AnnotationIntrospectorPair(primary, secondary);
-        mdMapper.setAnnotationIntrospector( pair );
         TypeReference<List<MetadataEntry>> compoundRef = new TypeReference<List<MetadataEntry>>(){};
         try {
             ArrayList<MetadataEntry> metadata = new ArrayList<>();
