@@ -137,7 +137,7 @@ public class DatasetDAO extends BaseDAO {
                     processLocation( rs2, builder.pk, locations);
                 }
                 builder.metadata(metadata);
-                builder.locations( locations );
+                builder.locations(locations);
                 return builder.build();
             }
             return null;

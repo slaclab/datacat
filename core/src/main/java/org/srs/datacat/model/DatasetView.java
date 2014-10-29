@@ -43,7 +43,7 @@ public class DatasetView {
     
     public static final String EMPTY_SITES = "$";      // Zero
     public static final String ANY_SITES = "$*";       // Zero or More
-    public static final String ALL_SITES = "$+";       // One or More
+    public static final String ALL_SITES = "$+";       // All (Zero or More)
     public static final String CANONICAL_SITE = "$C";  // One
     
     public static final DatasetView EMPTY = new DatasetView(EMPTY_VER, EMPTY_SITES);
@@ -70,11 +70,11 @@ public class DatasetView {
         return site;
     }
     
-    public boolean hasNoSites(){
+    public boolean zeroSites(){
         return EMPTY_SITES.equals(site);
     }
     
-    public boolean hasAnySites(){
+    public boolean zeroOrMoreSites(){
         return ANY_SITES.equals(site);
     }
     
@@ -90,7 +90,7 @@ public class DatasetView {
         return vid == CURRENT_VER;
     }
     
-    public boolean isAll(){
+    public boolean allSites(){
         return ALL_SITES.equals(site);
     }
 

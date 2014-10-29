@@ -77,7 +77,7 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
         }
         retDsv = new DatasetVersion(dsv);
         retLocations = dsv.getLocations();
-        if(retLocations == null && !(view.hasNoSites() || view.hasAnySites())){
+        if(retLocations == null && !(view.zeroSites() || view.zeroOrMoreSites())){
             String msg = "No locations found for dataset version %d";
             throw new FileNotFoundException(String.format( msg, view.getVersionId()));
         }
@@ -86,13 +86,14 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
             retDsv = new DatasetVersion.Builder(retDsv).metadata((List)null).build();
         }
         b.version(retDsv);
-        if(!view.hasNoSites()){
-            if(view.isAll()){
-                b.locations(retLocations);
+        
+        if(!view.zeroSites()){                                 // Don't bother if zeroSites is true
+            if(view.allSites() && !retLocations.isEmpty()){      // We want all sites 
+                b.locations(retLocations);                         // retLocations is not null/empty
             } else {
-                if(dsv.getLocation(view.getSite()) != null){
-                    b.location(dsv.getLocation( view.getSite()));
-                } else if(!view.hasAnySites()){
+                if(dsv.getLocation(view.getSite()) != null){     // If we find a site, use it
+                    b.location(dsv.getLocation(view.getSite()));
+                } else if(!view.zeroOrMoreSites()){              // No site, is zero acceptable?
                     String msg = "Location %s not found";
                     throw new FileNotFoundException(String.format(msg, view.getSite()));
                 }

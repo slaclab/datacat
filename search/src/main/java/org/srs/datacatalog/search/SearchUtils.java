@@ -71,7 +71,7 @@ public class SearchUtils {
 
     public static Dataset datasetFactory(ResultSet rs, DatasetView dsView, List<String> includedMetadata) throws SQLException{
         Dataset.Builder builder;
-        if(dsView.isAll()){
+        if(dsView.allSites()){
             builder = new FullDataset.Builder();
         } else {
             builder = new FlatDataset.Builder();
