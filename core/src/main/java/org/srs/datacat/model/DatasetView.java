@@ -70,6 +70,14 @@ public class DatasetView {
         return site;
     }
     
+    public boolean hasNoSites(){
+        return EMPTY_SITES.equals(site);
+    }
+    
+    public boolean hasAnySites(){
+        return ANY_SITES.equals(site);
+    }
+    
     public int getVersionId(){
         return vid;
     }

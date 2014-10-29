@@ -236,7 +236,7 @@ public class ContainerDAO extends BaseDAO {
             if(!viewPrefetch.isCurrent()){
                 prefetchVer.setInt( 2, viewPrefetch.getVersionId());
             }
-            if(!DatasetView.EMPTY_SITES.equals(viewPrefetch.getSite())){
+            if(!viewPrefetch.hasNoSites()){
                 prefetchLoc = getConnection()
                         .prepareStatement(getLocationsSql(VersionParent.CONTAINER, viewPrefetch));
                 prefetchLoc.setLong( 1,parentPk);

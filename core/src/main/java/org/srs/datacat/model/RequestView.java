@@ -56,6 +56,18 @@ public class RequestView extends HashMap<String,String>{
         return this.datasetView;
     }
     
+    /**
+     * Gets a DatasetView. If no version ID specified, use defaultView instead.
+     * @param defaultView 
+     * @return 
+     */
+    public DatasetView getDatasetView(DatasetView defaultView){
+        if(datasetView.getVersionId() != DatasetView.EMPTY_VER){
+            return datasetView;
+        }
+        return defaultView;
+    }
+    
     public int getPrimaryView(){
         if(containsKey("children")){ // Highest priority
             return CHILDREN;
@@ -69,7 +81,7 @@ public class RequestView extends HashMap<String,String>{
     
     private void validateView(Map<String,List<String>> params){
         String site = DatasetView.CANONICAL_SITE;
-        int vid = DatasetView.CURRENT_VER;
+        int vid = DatasetView.EMPTY_VER;
         HashMap<String,String> m = new HashMap<>();
         if(type == null){
             type = DatacatObject.Type.FOLDER; // Assume to be folder in this case.

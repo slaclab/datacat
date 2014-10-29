@@ -51,16 +51,14 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
 
     @Override
     public Dataset withView(RequestView requestView) throws FileNotFoundException, IOException {
-        return withView(requestView.getDatasetView(), requestView.includeMetadata());
+        return withView(requestView.getDatasetView(DatasetView.MASTER), requestView.includeMetadata());
     }
-        
+    
     public Dataset withView(DatasetView view, boolean withMetadata) throws FileNotFoundException, IOException {
         if(view == DatasetView.EMPTY){
             return (Dataset) file.getObject();
         }
         VersionWithLocations dsv;
-        boolean noSites = DatasetView.EMPTY_SITES.equals(view.getSite());
-        boolean anySites = DatasetView.ANY_SITES.equals(view.getSite());
         DatasetVersion retDsv;
         Set<DatasetLocation> retLocations;
         synchronized(this) {
@@ -74,12 +72,12 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
             dsv = versionCache.get(view.getVersionId());
         }
         if(dsv == null){
-            String msg = "Invalid View. Version %d not found";
+            String msg = "Unable to process view. Version %d not found";
             throw new FileNotFoundException( String.format( msg, view.getVersionId() ) );
         }
         retDsv = new DatasetVersion(dsv);
         retLocations = dsv.getLocations();
-        if(retLocations == null && !(noSites || anySites)){
+        if(retLocations == null && !(view.hasNoSites() || view.hasAnySites())){
             String msg = "No locations found for dataset version %d";
             throw new FileNotFoundException(String.format( msg, view.getVersionId()));
         }
@@ -88,15 +86,15 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
             retDsv = new DatasetVersion.Builder(retDsv).metadata((List)null).build();
         }
         b.version(retDsv);
-        if(!noSites){
+        if(!view.hasNoSites()){
             if(view.isAll()){
                 b.locations(retLocations);
             } else {
                 if(dsv.getLocation(view.getSite()) != null){
                     b.location(dsv.getLocation( view.getSite()));
-                } else if(!anySites){
+                } else if(!view.hasAnySites()){
                     String msg = "Location %s not found";
-                    throw new FileNotFoundException(String.format( msg, view.getSite()));
+                    throw new FileNotFoundException(String.format(msg, view.getSite()));
                 }
             }
         }
