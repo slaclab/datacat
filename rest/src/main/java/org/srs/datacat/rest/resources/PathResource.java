@@ -1,7 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package org.srs.datacat.rest.resources;
 
 
@@ -27,6 +24,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import org.srs.datacat.model.DatasetView;
 
 import org.srs.datacat.rest.BaseResource;
 import org.srs.datacat.model.RequestView;
@@ -66,6 +64,26 @@ public class PathResource extends BaseResource {
         }
     }
     
+    private UriInfo ui;
+    private List<PathSegment> pathSegments;
+    private String requestPath;
+    private HashMap<String, List<String>> requestMatrixParams = new HashMap<>();
+    private HashMap<String, List<String>> requestQueryParams = new HashMap<>();
+    
+    public PathResource(@PathParam("id") List<PathSegment> pathSegments, @Context UriInfo ui){
+        this.pathSegments = pathSegments;
+        this.ui = ui;
+        String path = "";
+        if(pathSegments != null){
+            for(PathSegment s: pathSegments){
+                path = path + "/" + s.getPath();
+                requestMatrixParams.putAll(s.getMatrixParameters());
+            }   
+        }
+        requestPath = path;
+        requestQueryParams.putAll(ui.getQueryParameters());
+    }
+    
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response getRootBean(@DefaultValue("basic") @QueryParam("stat") StatTypeWrapper statType, 
@@ -76,17 +94,8 @@ public class PathResource extends BaseResource {
     @GET
     @Path(idRegex)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public Response getBean(@PathParam("id") List<PathSegment> pathSegments, 
-            @DefaultValue("false") @QueryParam("refresh") boolean refresh, @Context UriInfo ui) throws IOException{
-        HashMap<String, List<String>> matrixParams = new HashMap<>();
-        HashMap<String, List<String>> queryParams = new HashMap<>();
-        String path = "";
-        for(PathSegment s: pathSegments){
-            path = path + "/" + s.getPath();
-            matrixParams.putAll(s.getMatrixParameters());
-        }
-        queryParams.putAll(ui.getQueryParameters());
-        return getBean(path, matrixParams, queryParams, refresh);
+    public Response getBean(@DefaultValue("false") @QueryParam("refresh") boolean refresh) throws IOException{
+        return getBean(requestPath, requestMatrixParams, requestQueryParams, refresh);
     }
     
     public Response getBean(String path, HashMap<String,List<String>> matrixParams, 
@@ -150,7 +159,7 @@ public class PathResource extends BaseResource {
         int count = 0;
         try (DirectoryStream<java.nio.file.Path> stream = getProvider()
                 .newOptimizedDirectoryStream(dirFile.getPath(), AbstractFsProvider.AcceptAllFilter, 
-                    max, requestView.getDatasetView())){
+                    max, requestView.getDatasetView(DatasetView.CURRENT_ALL))){
             Iterator<java.nio.file.Path> iter = stream.iterator();
             
             while(iter.hasNext() && (retList.size() < max || showCount)){
