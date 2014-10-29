@@ -170,7 +170,7 @@ public class SearchResourceTest extends JerseyTest{
                 .queryParam( "filter", filter )
                 .request( MediaType.APPLICATION_JSON )
                 .get();
-        TestCase.assertEquals( resp.getStatus(), status);
+        TestCase.assertEquals(status, resp.getStatus());
         return resp.readEntity(new GenericType<List<Dataset>>(){});
     }
     
