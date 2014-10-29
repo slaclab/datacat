@@ -11,6 +11,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import org.srs.datacat.model.DatasetView.VersionId;
@@ -101,9 +102,7 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
     }
     
     public void validateFields(){
-        if(versionId == null){
-            versionId = -1;
-        }
+        Objects.requireNonNull(versionId, "Version ID required");
     }
     
     @XmlTransient
