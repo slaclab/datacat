@@ -44,7 +44,7 @@ import org.srs.vfs.PathUtils;
 
 /**
  *
- * @author Brian Van Klaveren<bvan@slac.stanford.edu>
+ * @author bvan
  */
 public class DatasetsResourceTest extends JerseyTest {
     
@@ -61,7 +61,7 @@ public class DatasetsResourceTest extends JerseyTest {
 
         }
 
-        ResourceConfig app = new App(harness.getDataSource()).register(ContainerResource.class).register( PathResource.class);
+        ResourceConfig app = new App(harness.getDataSource()).register(ContainerResource.class).register( PathResource.class).register(DatasetsResource.class);
         for(Resource r: app.getResources()){
             System.out.println(r.getPath());
         }
@@ -71,7 +71,7 @@ public class DatasetsResourceTest extends JerseyTest {
 
     @Test
     public void testCreateDatasetsAndViews() throws IOException{
-        //generateFoldersAndDatasetsAndVersions(this, 10, 1000);
+        generateFoldersAndDatasetsAndVersions(this, 10, 100);
     }
     
     public static void generateFoldersAndDatasetsNodes(JerseyTest testCase, int folderCount, int datasetCount) throws IOException{
@@ -108,21 +108,19 @@ public class DatasetsResourceTest extends JerseyTest {
                 String name = String.format("dataset%05d", j);
                 MultivaluedHashMap<String,String> entity = new MultivaluedHashMap<>();
                 entity.add( "name", name);
-                entity.add( "datasetDataType",HSqlDbHarness.JUNIT_DATASET_DATATYPE);
+                entity.add( "dataType",HSqlDbHarness.JUNIT_DATASET_DATATYPE);
                 entity.add( "datasetSource", HSqlDbHarness.JUNIT_DATASET_DATASOURCE);
-                entity.add( "datasetFileFormat", HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
+                entity.add( "fileFormat", HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
                 entity.add( "versionId", Integer.toString(DatasetView.NEW_VER) );
                 HashMap<String, Object> metadata = new HashMap<>();
                 metadata.put( numberName, numberMdValues[i % 4]);
                 metadata.put( alphaName, alphaMdValues[j % 4]);
-                System.out.println(mdMapper.writeValueAsString(MetadataEntry.toList( metadata )));
 
                 entity.add("versionMetadata",mdMapper.writeValueAsString(MetadataEntry.toList( metadata )));
-                System.out.println("/datasets" + parent);
-                Response resp = testCase.target("/datasets" + parent)
+                Response resp = testCase.target("/datasets.txt" + parent)
                     .request()
-                    .post( Entity.form(entity));
-                TestCase.assertEquals( "201",resp.getStatus());
+                    .post(Entity.form(entity));
+                TestCase.assertEquals(201, resp.getStatus());
             }
         }
     }
@@ -142,9 +140,9 @@ public class DatasetsResourceTest extends JerseyTest {
                 String name = String.format("dataset%05d", j);
                 MultivaluedHashMap<String,String> entity = new MultivaluedHashMap<>();
                 entity.add( "name", name);
-                entity.add( "datasetDataType",HSqlDbHarness.JUNIT_DATASET_DATATYPE);
+                entity.add( "dataType",HSqlDbHarness.JUNIT_DATASET_DATATYPE);
                 entity.add( "datasetSource", HSqlDbHarness.JUNIT_DATASET_DATASOURCE);
-                entity.add( "datasetFileFormat", HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
+                entity.add( "fileFormat", HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
                 entity.add( "versionId", Integer.toString(DatasetView.NEW_VER) );
                 HashMap<String, Object> metadata = new HashMap<>();
                 metadata.put( numberName, numberMdValues[i % 4]);
