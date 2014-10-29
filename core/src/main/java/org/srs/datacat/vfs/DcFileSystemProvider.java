@@ -412,7 +412,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         if(!options.contains(DatasetOption.SKIP_NODE_CHECK)    // Fail fast
                 && options.contains(DatasetOption.CREATE_NODE) // Fail fast
                 && exists(dsPath)){                            // -> Can be Expensive
-            AfsException.FILE_EXISTS.throwError(dsPath, "A dataset node already exists at this location");
+            DcFsException.DATASET_EXISTS.throwError(dsPath.toString(), "A dataset node already exists at this location");
         }
         
         //checkPermission(dsParent, DcPermissions.CREATE_CHILD);
@@ -687,15 +687,15 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException{
         throw new UnsupportedOperationException(); 
     }
-    
+        
     /*
             / NOT IMPLEMENTED
     */    
     public static enum DcFsException {
         
-        
         NO_SUCH_VERSION,
         NO_SUCH_LOCATION,
+        DATASET_EXISTS,
         VERSION_EXISTS,
         LOCATION_EXISTS,
         VERSION_CONFLICT,
@@ -712,6 +712,5 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                     throw new FileAlreadyExistsException(path, msg, reason);
             }
         }
-        
     }
 }
