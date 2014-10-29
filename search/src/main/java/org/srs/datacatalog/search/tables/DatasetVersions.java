@@ -39,9 +39,9 @@ public class DatasetVersions extends MetajoinedStatement {
             leftOuterJoin( l, v.masterLocation.eq( l.datasetLocation ) );
         } else {
             leftOuterJoin( l, v.datasetVersion.eq( l.datasetVersion ) );
-            if(!dsView.isAll()){
+            if(!dsView.allSites()){
                 Param<String> pl = l.datasetSite.checkedParam();
-                pl.setValue( dsView.getSite() );
+                pl.setValue(dsView.getSite());
                 where( l.datasetSite.eq( pl ) );
             }
         }
