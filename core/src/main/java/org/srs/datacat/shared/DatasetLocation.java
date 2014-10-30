@@ -138,7 +138,7 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     
     @Override
     public int hashCode(){
-        return Long.toString(getPk()).hashCode();
+        return String.format("%s_%s", this.site, this.resource).hashCode();
     }
 
     @XmlTransient
