@@ -24,7 +24,6 @@ import javax.xml.bind.annotation.XmlType;
 import org.srs.datacat.shared.DatacatObject.Builder;
 import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.shared.dataset.FullDataset;
-import org.srs.datacat.shared.dataset.VersionWithLocations;
 import org.srs.rest.shared.metadata.MetadataEntry;
 
 /**
@@ -34,7 +33,7 @@ import org.srs.rest.shared.metadata.MetadataEntry;
 @XmlRootElement
 @XmlSeeAlso({LogicalFolder.class, DatasetGroup.class, 
     Dataset.class, FlatDataset.class, FullDataset.class,
-    DatasetVersion.class, VersionWithLocations.class, DatasetLocation.class})
+    DatasetVersion.class, DatasetLocation.class})
 @XmlType(propOrder={"name","path","pk","parentPk","metadata"})
 @JsonPropertyOrder({"name","path","pk","parentPk","metadata"})
 // Use default implementation of DatacatObject
@@ -45,7 +44,6 @@ import org.srs.rest.shared.metadata.MetadataEntry;
     @JsonSubTypes.Type(FlatDataset.class),
     @JsonSubTypes.Type(FullDataset.class),
     @JsonSubTypes.Type(DatasetVersion.class),
-    @JsonSubTypes.Type(VersionWithLocations.class),
     @JsonSubTypes.Type(DatasetLocation.class)
 })
 @JsonDeserialize(builder=Builder.class)
@@ -390,7 +388,6 @@ public class DatacatObject implements Serializable {
             }
             return (U) this;
         }
-
     }
     
     

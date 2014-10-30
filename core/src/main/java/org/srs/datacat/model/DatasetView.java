@@ -49,6 +49,7 @@ public class DatasetView {
     public static final DatasetView EMPTY = new DatasetView(EMPTY_VER, EMPTY_SITES);
     public static final DatasetView MASTER = new DatasetView(CURRENT_VER, CANONICAL_SITE);
     public static final DatasetView CURRENT_ALL = new DatasetView(CURRENT_VER, ALL_SITES);
+    public static final DatasetView CURRENT_ANY = new DatasetView(CURRENT_VER, ANY_SITES);
     
     private int vid = CURRENT_VER;
     private String site = CANONICAL_SITE;

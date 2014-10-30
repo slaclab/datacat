@@ -12,7 +12,6 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,9 +20,9 @@ import java.util.Map;
 import javax.xml.bind.annotation.XmlTransient;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset.Builder;
+import org.srs.datacat.shared.dataset.DatasetViewInfo;
 import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.shared.dataset.FullDataset;
-import org.srs.datacat.shared.dataset.VersionWithLocations;
 import org.srs.rest.shared.RestDateAdapter;
 import org.srs.rest.shared.metadata.MetadataEntry;
 
@@ -124,25 +123,16 @@ public class Dataset extends DatacatObject implements DatasetModel {
      */
     @XmlTransient
     public static class Builder extends DatacatObject.Builder<Builder> {
-        /**
-         * This only exists because we need to use another method for creation
-         */
-        @XmlTransient
-        @JsonPOJOBuilder(buildMethodName = "buildVersionWithLocations")
-        public static class VersionWithLocationsProxy extends Builder {
-            public VersionWithLocationsProxy(){
-                super();
-            }
-        }
+
         public static final int NONE = 0;
         public static final int BASE = 1 << 1;
         public static final int VERSION = 1 << 2;
-        public static final int VERSIONS = 1 << 3;
+        //public static final int VERSIONS = 1 << 3;
         public static final int LOCATION = 1 << 4;
         public static final int LOCATIONS = 1 << 5;
         public static final int FLAT = BASE | VERSION | LOCATION;
         public static final int FULL = BASE | VERSION | LOCATIONS;
-        public static final int MULTI = BASE | VERSIONS | LOCATIONS;
+        //public static final int MULTI = BASE | VERSIONS | LOCATIONS;
         public int dsType = BASE;
         public DatasetVersion version;
         public DatasetLocation location;
@@ -223,15 +213,23 @@ public class Dataset extends DatacatObject implements DatasetModel {
             this.dataType = ds.dataType;
             this.created = ds.dateCreated;
         }
-
+        
+        public Builder view(DatasetViewInfo view){
+            if(view.versionOpt().isPresent()){
+                version(view.getVersion());
+            }
+            if(view.singularLocationOpt().isPresent()){
+                location(view.singularLocationOpt().get());
+            } else if (view.locationsOpt().isPresent()){
+                locations(view.getLocations());
+            }
+            return this;
+        }
 
         @JsonSetter
         public Builder version(DatasetVersion val){
             this.version = val;
             dsType |= VERSION;
-            if(val instanceof VersionWithLocations){
-                dsType |= LOCATIONS;
-            }
             return this;
         }
 
@@ -331,12 +329,12 @@ public class Dataset extends DatacatObject implements DatasetModel {
             return this;
         }
 
-        @JsonSetter
+        /*@JsonSetter
         public Builder versions(List<DatasetVersion> val){
             this.versions = val;
             dsType |= VERSIONS;
             return this;
-        }
+        }*/
 
         @JsonSetter
         public Builder locations(Collection<DatasetLocation> val){

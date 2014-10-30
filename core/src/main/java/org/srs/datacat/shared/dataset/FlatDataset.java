@@ -17,6 +17,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.HasDatasetViewInfo;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
@@ -33,10 +34,9 @@ import org.srs.rest.shared.metadata.MetadataEntry;
 @JsonTypeName(value="dataset#flat")
 @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="$type", defaultImpl=DatasetVersion.class)
 @JsonDeserialize(builder = Builder.class)
-public class FlatDataset extends Dataset implements DatasetVersionModel, DatasetLocationModel {
-    private DatasetVersion dsVersion = DatasetVersion.Builder.create().build();
-    private DatasetLocation dsLocation = new DatasetLocation();
+public class FlatDataset extends Dataset implements DatasetVersionModel, DatasetLocationModel, HasDatasetViewInfo {
     
+    private DatasetViewInfo viewInfo;    
     private FlatDataset(){}
     
     /**
@@ -45,123 +45,224 @@ public class FlatDataset extends Dataset implements DatasetVersionModel, Dataset
      */
     public FlatDataset(Dataset dataset){
         super(dataset);
-        if(dataset instanceof FlatDataset){
-            dsVersion = ((FlatDataset) dataset).dsVersion;
-            dsLocation = ((FlatDataset) dataset).dsLocation;
-        } 
-        else if(dataset instanceof FullDataset){
-            FullDataset ds = (FullDataset) dataset;
-            dsVersion = new DatasetVersion(ds.getVersion());
-            if(ds.getVersion() instanceof VersionWithLocations){
-                VersionWithLocations loc = (VersionWithLocations) ds.getVersion();
-                dsLocation = new DatasetLocation(loc.getPriorityLocation());
+        DatasetVersion dsVersion = null;
+        DatasetLocation dsLocation = null;
+        if(dataset instanceof HasDatasetViewInfo){
+            DatasetViewInfo info = ((HasDatasetViewInfo) dataset).getDatasetViewInfo();
+            dsVersion = info.getVersion();
+            if(dataset instanceof FullDataset){
+                dsLocation = info.canonicalLocationOpt().orNull();
             } else {
-                dsLocation = new DatasetLocation();
+                dsLocation = info.singularLocationOpt().orNull();
             }
         }
+        this.viewInfo = new DatasetViewInfo(dsVersion, dsLocation);
     }
     
     protected FlatDataset(Dataset.Builder builder){
         super(builder);
-        dsVersion = builder.version;
-        dsLocation = builder.location;
+        this.viewInfo = new DatasetViewInfo(builder.version, builder.location);
+    }
+    
+    @Override
+    @XmlTransient
+    public DatasetViewInfo getDatasetViewInfo(){
+        return this.viewInfo;
     }
     
     @XmlElement(required=false)
-    public Long getVersionPk(){ return dsVersion.getPk(); }
+    public Long getVersionPk(){
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().getPk(); 
+        }
+        return null;
+    }
     
     @XmlElement(required=false)
-    public Long getLocationPk(){ return dsLocation.getPk(); }
+    public Long getLocationPk(){ 
+        
+        if(viewInfo.singularLocationOpt().isPresent()){
+            return viewInfo.singularLocationOpt().get().getPk();
+        }
+        return null; 
+    }
     
     @XmlTransient
-    public DatasetVersion getVersion(){ return dsVersion; }
+    public DatasetVersion getVersion(){ 
+        return viewInfo.getVersion();
+    }
     
     @XmlTransient
-    public DatasetLocation getLocation(){ return dsLocation; }
+    public DatasetLocation getLocation(){ 
+        return viewInfo.singularLocationOpt().orNull();
+    }
     
     @XmlElementWrapper(name="versionMetadata")
     @XmlElement(required=false, name="entry")
     @JsonProperty("versionMetadata")
-    public List<MetadataEntry> getVersionMetadata(){ return dsVersion.getMetadata(); }
+    public List<MetadataEntry> getVersionMetadata(){ 
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().getMetadata();
+        }
+        return null; 
+    }
     
     @Override
     @XmlElement(required=false)
-    public String getDatasetSource(){ return dsVersion.getDatasetSource(); }
+    public String getDatasetSource(){ 
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().getDatasetSource();
+        }
+        return null; 
+    }
 
     @Override
     @XmlElement(required=false)
-    public Boolean isLatest(){ return dsVersion.isLatest(); }
+    public Boolean isLatest(){ 
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().isLatest(); 
+        }
+        return null;
+    }
 
     @Override
     @XmlElement(required=false)
-    public Long getProcessInstance(){ return dsVersion.getProcessInstance(); }
+    public Long getProcessInstance(){ 
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().getProcessInstance();
+        }
+        return null; }
 
     @Override
     @XmlElement(required=false)
-    public String getTaskName(){ return dsVersion.getTaskName(); }
+    public String getTaskName(){ 
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().getTaskName();
+        }
+        return null; }
 
     @Override
     @XmlElement(required=false)
-    public Integer getVersionId(){ return dsVersion.getVersionId(); }
+    public Integer getVersionId(){ 
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().getVersionId();
+        }
+        return null; }
 
     @XmlElement(name="versionCreated", required=false)
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
-    public Timestamp getDateVersionCreated(){ return dsVersion.getDateCreated(); }
+    public Timestamp getDateVersionCreated(){ 
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().getDateCreated();
+        }
+        return null; }
 
     // Location info
     @Override 
     @XmlElement(required=false)
-    public String getResource(){ return dsLocation.getResource(); }
+    public String getResource(){ 
+        if(viewInfo.singularLocationOpt().isPresent()){
+            return viewInfo.singularLocationOpt().get().getResource();
+        }
+        return null; }
     
     @Override 
     @XmlElement(required=false)
-    public Long getSize(){ return dsLocation.getSize(); }
+    public Long getSize(){ 
+        if(viewInfo.singularLocationOpt().isPresent()){
+            return viewInfo.singularLocationOpt().get().getSize();
+        }
+        return null; }
     
     @Override 
     @XmlElement(required=false)
-    public Long getChecksum(){ return dsLocation.getChecksum(); }
+    public Long getChecksum(){ 
+        if(viewInfo.singularLocationOpt().isPresent()){
+            return viewInfo.singularLocationOpt().get().getChecksum();
+        }
+        return null; }
     
     @XmlElement(name="locationModified", required=false)
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
-    public Timestamp getDateLocationModified(){ return dsLocation.getDateModified(); }
+    public Timestamp getDateLocationModified(){ 
+        if(viewInfo.singularLocationOpt().isPresent()){
+            return viewInfo.singularLocationOpt().get().getDateModified();
+        }
+        return null; }
     
     @XmlElement(name="locationRegistered", required=false)
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
-    public Timestamp getDateLocationCreated(){ return dsLocation.getDateCreated(); }
+    public Timestamp getDateLocationCreated(){ 
+        if(viewInfo.singularLocationOpt().isPresent()){
+            return viewInfo.singularLocationOpt().get().getDateCreated();
+        }
+        return null; }
     
     @Override 
     @XmlElement(name="locationScanned", required=false)
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
-    public Timestamp getDateScanned(){ return dsLocation.getDateScanned(); }
+    public Timestamp getDateScanned(){ 
+        if(viewInfo.singularLocationOpt().isPresent()){
+            return viewInfo.singularLocationOpt().get().getDateScanned();
+        }
+        return null; }
     
     @Override 
     @XmlElement(required=false)
-    public String getSite(){ return dsLocation.getSite(); }
+    public String getSite(){ 
+        if(viewInfo.singularLocationOpt().isPresent()){
+            return viewInfo.singularLocationOpt().get().getSite();
+        }
+        return null; }
     
     @Override 
     @XmlElement(required=false)
-    public String getScanStatus(){ return dsLocation.getScanStatus(); }
+    public String getScanStatus(){ 
+        if(viewInfo.singularLocationOpt().isPresent()){
+            return viewInfo.singularLocationOpt().get().getScanStatus();
+        }
+        return null; }
     
     @Override 
     @XmlElement(required=false)
-    public Long getEventCount(){ return dsLocation.getEventCount(); }
+    public Long getEventCount(){ 
+        if(viewInfo.singularLocationOpt().isPresent()){
+            return viewInfo.singularLocationOpt().get().getEventCount();
+        }
+        return null; }
     
     @Override 
     @XmlElement(required=false)
-    public Long getRunMin(){ return dsLocation.getRunMin(); }
+    public Long getRunMin(){ 
+        if(viewInfo.singularLocationOpt().isPresent()){
+            return viewInfo.singularLocationOpt().get().getRunMin();
+        }
+        return null; }
     
     @Override 
     @XmlElement(required=false)
-    public Long getRunMax(){ return dsLocation.getRunMax(); }
+    public Long getRunMax(){ 
+        if(viewInfo.singularLocationOpt().isPresent()){
+            return viewInfo.singularLocationOpt().get().getRunMax();
+        }
+        return null; 
+    }
     
     @Override
     @XmlElement(required=false)
-    public Boolean isMaster(){ return dsLocation.isMaster(); }
+    public Boolean isMaster(){ 
+        if(viewInfo.singularLocationOpt().isPresent()){
+            return viewInfo.singularLocationOpt().get().isMaster();
+        }
+        return null; 
+    }
 
     @Override
     public String toString(){
-        String verInfo = dsVersion != null ? " Version:" + dsVersion.toString() : "";
-        String locInfo = dsLocation != null ? " Location:" + dsLocation.toString() : "";
+        String verInfo = viewInfo.versionOpt().isPresent() ? 
+                " Version:" + viewInfo.getVersion().toString() : "";
+        String locInfo = viewInfo.singularLocationOpt().isPresent() ? 
+                " Location:" + viewInfo.singularLocationOpt().get().toString() : "";
         return "FlatDataset{" + super.toString() + verInfo + locInfo + '}';
     }
     

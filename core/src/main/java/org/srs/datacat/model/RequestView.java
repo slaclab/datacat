@@ -80,7 +80,7 @@ public class RequestView extends HashMap<String,String>{
     }
     
     private void validateView(Map<String,List<String>> params){
-        String site = DatasetView.CANONICAL_SITE;
+        String site = DatasetView.ANY_SITES;
         int vid = DatasetView.EMPTY_VER;
         HashMap<String,String> m = new HashMap<>();
         if(type == null){

@@ -14,8 +14,10 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.srs.datacat.model.DatasetVersionModel;
+import org.srs.datacat.model.HasDatasetViewInfo;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
+import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.FullDataset.Builder;
 import org.srs.rest.shared.RestDateAdapter;
 import org.srs.rest.shared.metadata.MetadataEntry;
@@ -28,8 +30,8 @@ import org.srs.rest.shared.metadata.MetadataEntry;
 @XmlType(name="fullDataset")
 @JsonTypeName(value="dataset#full")
 @JsonDeserialize(builder = Builder.class)
-public class FullDataset extends Dataset implements DatasetVersionModel {
-    private VersionWithLocations dsVersion;
+public class FullDataset extends Dataset implements DatasetVersionModel, HasDatasetViewInfo {
+    private DatasetViewInfo viewInfo;
     
     private FullDataset(){}
     
@@ -39,68 +41,104 @@ public class FullDataset extends Dataset implements DatasetVersionModel {
      */
     public FullDataset(Dataset dataset){
         super(dataset);
-        if(dataset instanceof FullDataset){
-            FullDataset ds = ((FullDataset) dataset);
-            if(ds.getVersion() != null){
-                this.dsVersion = new VersionWithLocations(ds.dsVersion);
-            }
-        } else if(dataset instanceof FlatDataset){
-            FlatDataset ds = ((FlatDataset) dataset);
-            if(ds.getVersion() != null){
-                this.dsVersion = new VersionWithLocations(ds.getVersion());
-            }
+        if(dataset instanceof HasDatasetViewInfo){
+            this.viewInfo = ((HasDatasetViewInfo) dataset).getDatasetViewInfo();
+        } else {
+            this.viewInfo = null;
         }
     }
 
     public FullDataset(Dataset.Builder builder){
         super(builder);
-        dsVersion = new VersionWithLocations(builder.version);
+        this.viewInfo = new DatasetViewInfo(builder.version, builder.locations);
     }
     
     @XmlTransient
-    public VersionWithLocations getVersion(){
-        return dsVersion;
+    public DatasetVersion getVersion(){
+        return viewInfo.getVersion();
+    }
+    
+    @Override
+    @XmlTransient
+    public DatasetViewInfo getDatasetViewInfo(){
+        return this.viewInfo;
     }
     
     @XmlElement(required=false)
-    public Long getVersionPk(){ return dsVersion.getPk(); }
+    public Long getVersionPk(){
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().getPk(); 
+        }
+        return null;
+    }
+    
+    @XmlElementWrapper(name="versionMetadata")
+    @XmlElement(required=false, name="entry")
+    @JsonProperty("versionMetadata")
+    public List<MetadataEntry> getVersionMetadata(){ 
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().getMetadata();
+        }
+        return null; 
+    }
     
     @Override
     @XmlElement(required=false)
-    public Integer getVersionId(){ return dsVersion.getVersionId(); }
+    public String getDatasetSource(){ 
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().getDatasetSource();
+        }
+        return null; 
+    }
 
     @Override
     @XmlElement(required=false)
-    public Boolean isLatest(){ return dsVersion.isLatest(); }
-
-    @XmlElement(name="versionCreated", required=false)
-    @XmlJavaTypeAdapter(RestDateAdapter.class) 
-    public Timestamp getDateVersionCreated(){ return dsVersion.getDateCreated(); }
-    
-    @XmlElement(required=false)
-    public Set<DatasetLocation> getLocations(){
-        if(dsVersion instanceof VersionWithLocations){
-            return ((VersionWithLocations) dsVersion).getLocations();
+    public Boolean isLatest(){ 
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().isLatest(); 
         }
         return null;
     }
 
     @Override
     @XmlElement(required=false)
-    public String getDatasetSource(){ return dsVersion.getDatasetSource(); }
-    
-    @XmlElementWrapper(name="versionMetadata")
-    @XmlElement(required=false, name="entry")
-    @JsonProperty("versionMetadata")
-    public List<MetadataEntry> getVersionMetadata(){ return dsVersion.getMetadata(); }
-    
-    @Override
-    @XmlElement(required=false)
-    public Long getProcessInstance(){ return dsVersion.getProcessInstance(); }
+    public Long getProcessInstance(){ 
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().getProcessInstance();
+        }
+        return null; }
 
     @Override
     @XmlElement(required=false)
-    public String getTaskName(){ return dsVersion.getTaskName(); }
+    public String getTaskName(){ 
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().getTaskName();
+        }
+        return null; 
+    }
+
+    @Override
+    @XmlElement(required=false)
+    public Integer getVersionId(){ 
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().getVersionId();
+        }
+        return null; 
+    }
+
+    @XmlElement(name="versionCreated", required=false)
+    @XmlJavaTypeAdapter(RestDateAdapter.class) 
+    public Timestamp getDateVersionCreated(){ 
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().getDateCreated();
+        }
+        return null; 
+    }
+    
+    @XmlElement(required=false)
+    public Set<DatasetLocation> getLocations(){
+        return viewInfo.getLocations();
+    }
 
     @XmlTransient
     public static class Builder extends Dataset.Builder{
@@ -113,17 +151,6 @@ public class FullDataset extends Dataset implements DatasetVersionModel {
         
         @Override
         public FullDataset build(){
-            if(version == null){
-                VersionWithLocations dv = null;
-                if((dsType & VERSION) > 0){
-                    dv = new VersionWithLocations(new VersionWithLocations.Builder(this));
-                }
-                version( dv );
-            } else if(!(version instanceof VersionWithLocations)){
-                VersionWithLocations.Builder builder = new VersionWithLocations.Builder(version);
-                builder.locations(locations);
-                version(builder.build());
-            }
             return new FullDataset( this );
         }
     }

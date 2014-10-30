@@ -22,7 +22,7 @@ import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.container.DatasetStat;
-import org.srs.datacat.shared.dataset.VersionWithLocations;
+import org.srs.datacat.shared.dataset.DatasetViewInfo;
 import org.srs.vfs.PathUtils;
 
 
@@ -347,8 +347,9 @@ public class ContainerDAO extends BaseDAO {
                 dsLoc.close();
             }
         }
-        List<DatasetVersion> versions = new ArrayList<>();
-        VersionWithLocations.Builder builder = new VersionWithLocations.Builder();
+        List<DatasetViewInfo> views = new ArrayList<>();
+        DatasetVersion.Builder builder = new DatasetVersion.Builder();
+
         long verPk = dsVer.getLong( "datasetversion");
         
         while(!dsVer.isClosed() && dsVer.getLong("dataset") == dsPk && dsVer.getLong( "datasetversion") == verPk){
@@ -378,13 +379,13 @@ public class ContainerDAO extends BaseDAO {
                 }
             }
             builder.metadata( metadata );
-            builder.locations(locations);
-            versions.add(builder.build());
+            views.add( new DatasetViewInfo(builder.build(), locations));
         }
-        if(versions.size() == 1){
-            dsBuilder.version(versions.get(0));
+        if(views.size() == 1){
+            dsBuilder.view(views.get(0));
         } else {
-            dsBuilder.versions(versions);
+            // TODO: Support this?
+            //dsBuilder.versions(versions);
         }
     }
 

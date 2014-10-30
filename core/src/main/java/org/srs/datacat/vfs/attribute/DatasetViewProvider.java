@@ -8,12 +8,13 @@ import java.util.List;
 import java.util.Set;
 
 import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.HasDatasetViewInfo;
 import org.srs.datacat.model.RequestView;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
+import org.srs.datacat.shared.dataset.DatasetViewInfo;
 import org.srs.datacat.shared.dataset.FullDataset;
-import org.srs.datacat.shared.dataset.VersionWithLocations;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 
@@ -27,18 +28,18 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
     private final DcFileSystemProvider provider;
     private boolean allVersionsLoaded = false;
     
-    private final HashMap<Integer, VersionWithLocations> versionCache = new HashMap<>(4);
-    //private final HashMap<Integer, HashMap<String,DatasetLocation>> locationCache = new HashMap<>(4);
-
+    private final HashMap<Integer, DatasetViewInfo> versionCache = new HashMap<>(4);
+    
     public DatasetViewProvider(DcFile file, Dataset object){
         this.file = file;
         this.provider = file.getPath().getFileSystem().provider();
         if(object instanceof FullDataset){
-            VersionWithLocations dsv = (VersionWithLocations) ((FullDataset) object).getVersion();
-            if(dsv.isLatest()){
-                versionCache.put( DatasetView.CURRENT_VER, dsv );
+            DatasetViewInfo viewInfo = ((HasDatasetViewInfo) object).getDatasetViewInfo();
+            
+            if(viewInfo.getVersion().isLatest()){
+                versionCache.put( DatasetView.CURRENT_VER, viewInfo);
             }
-            versionCache.put( dsv.getVersionId(), dsv );
+            versionCache.put( viewInfo.getVersion().getVersionId(), viewInfo);
         }
     }
     
@@ -58,16 +59,16 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
         if(view == DatasetView.EMPTY){
             return (Dataset) file.getObject();
         }
-        VersionWithLocations dsv;
+        DatasetViewInfo dsv;
         DatasetVersion retDsv;
         Set<DatasetLocation> retLocations;
         synchronized(this) {
             if(!versionCache.containsKey(view.getVersionId())){
-                dsv = provider.getVersionWithLocations(file, view);
-                if(dsv.isLatest()){
-                    versionCache.put( DatasetView.CURRENT_VER, dsv);
+                dsv = provider.getDatasetViewInfo(file, view);
+                if(dsv.getVersion().isLatest()){
+                    versionCache.put(DatasetView.CURRENT_VER, dsv);
                 }
-                versionCache.put(dsv.getVersionId(), dsv);
+                versionCache.put(dsv.getVersion().getVersionId(), dsv);
             }
             dsv = versionCache.get(view.getVersionId());
         }
@@ -75,7 +76,7 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
             String msg = "Unable to process view. Version %d not found";
             throw new FileNotFoundException( String.format( msg, view.getVersionId() ) );
         }
-        retDsv = new DatasetVersion(dsv);
+        retDsv = dsv.getVersion();
         retLocations = dsv.getLocations();
         if(retLocations == null && !(view.zeroSites() || view.zeroOrMoreSites())){
             String msg = "No locations found for dataset version %d";

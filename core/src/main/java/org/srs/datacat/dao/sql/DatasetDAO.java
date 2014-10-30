@@ -15,7 +15,7 @@ import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
-import org.srs.datacat.shared.dataset.VersionWithLocations;
+import org.srs.datacat.shared.dataset.DatasetViewInfo;
 import static org.srs.datacat.vfs.DcFileSystemProvider.DcFsException.*;
 import org.srs.vfs.PathUtils;
 
@@ -96,15 +96,15 @@ public class DatasetDAO extends BaseDAO {
         }
     }
 
-    public VersionWithLocations getVersionWithLocations(Long datasetPk, DatasetView view) throws IOException{
+    public DatasetViewInfo getDatasetViewInfo(Long datasetPk, DatasetView view) throws IOException{
         try {
-            return getVersionWithLocationsInternal( datasetPk, view );
+            return getDatasetViewInfoInternal( datasetPk, view );
         } catch (SQLException ex){
             throw new IOException("Failed to retrieve version", ex);
         }
     }
 
-    private VersionWithLocations getVersionWithLocationsInternal(Long datasetPk, DatasetView view) throws SQLException{
+    private DatasetViewInfo getDatasetViewInfoInternal(Long datasetPk, DatasetView view) throws SQLException{
         String sqlWithMetadata = getVersionsSql( VersionParent.DATASET, view );
         String sqlLocations = getLocationsSql(VersionParent.DATASET, view );
         PreparedStatement stmt1 = getConnection().prepareStatement( sqlWithMetadata );
@@ -121,7 +121,7 @@ public class DatasetDAO extends BaseDAO {
             
             HashMap<String, Object> metadata = new HashMap<>();
             
-            VersionWithLocations.Builder builder = new VersionWithLocations.Builder();
+            DatasetVersion.Builder builder = new DatasetVersion.Builder();
             List<DatasetLocation> locations = new ArrayList<>();
             if(rs1.next()){
                 builder.pk(rs1.getLong( "datasetversion"));
@@ -137,8 +137,7 @@ public class DatasetDAO extends BaseDAO {
                     processLocation( rs2, builder.pk, locations);
                 }
                 builder.metadata(metadata);
-                builder.locations(locations);
-                return builder.build();
+                return new DatasetViewInfo(builder.build(), locations);
             }
             return null;
         } finally {
