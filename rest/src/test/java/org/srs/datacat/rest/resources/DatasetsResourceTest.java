@@ -15,7 +15,9 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import javax.ws.rs.client.Entity;
@@ -26,6 +28,7 @@ import javax.ws.rs.core.Response;
 import junit.framework.TestCase;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.server.model.Resource;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
@@ -73,6 +76,7 @@ public class DatasetsResourceTest extends JerseyTest {
         }
 
         ResourceConfig app = new App(harness.getDataSource()).register(ContainerResource.class).register( PathResource.class).register(DatasetsResource.class);
+        app.property( ServerProperties.TRACING, "ALL");
         for(Resource r: app.getResources()){
             System.out.println(r.getPath());
         }
@@ -119,11 +123,11 @@ public class DatasetsResourceTest extends JerseyTest {
         metadata.put( alphaName, alphaMdValues[0]);
 
         entity.add("versionMetadata",mdMapper.writeValueAsString(MetadataEntry.toList( metadata )));
-        System.out.println("datasets" + parent + "/" + name);
         Response resp = target("/datasets.json" + parent)
+                .property( ClientProperties.FOLLOW_REDIRECTS, "false")
                 .request()
                 .post(Entity.form(entity));
-                
+        
         return resp;
     }
     
@@ -140,8 +144,26 @@ public class DatasetsResourceTest extends JerseyTest {
         Response resp = createOne();
         TestCase.assertEquals(201, resp.getStatus());
         resp = createOne();
-        System.out.println(resp.readEntity( String.class));
+        TestCase.assertEquals(303, resp.getStatus());
+        resp.getLocation().getPath();
+        printTrace(resp);
+        resp = target(resp.getLocation().getPath())
+            .property( ClientProperties.FOLLOW_REDIRECTS, "false")
+            .request()
+            .get();
+        printTrace(resp);
         TestCase.assertEquals(200, resp.getStatus());
+    }
+    
+    private void printTrace(Response resp){
+        ArrayList<String> headerNames = new ArrayList<>( resp.getHeaders().keySet() );
+        Collections.sort( headerNames );
+        for(String headerName: headerNames){
+            System.out.println( headerName + ":" );
+            for(Object trace: resp.getHeaders().get( headerName )){
+                System.out.println( "\t" + trace );
+            }
+        }
     }
     
     public static void generateFoldersAndDatasetsAndVersions(JerseyTest testCase, int folderCount, int datasetCount) throws IOException{

@@ -32,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RequestView;
@@ -269,26 +270,20 @@ public class DatasetsResource extends BaseResource  {
         DatasetViewInfo currentViewInfo = existing instanceof DatasetWithView
                 ? ((DatasetWithView) existing).getViewInfo() : null;
 
+        UriBuilder newUriBuilder = ui.getAbsolutePathBuilder();
         switch(exc){
             case DATASET_EXISTS:
-                if(options.removeAll( DatasetOption.VIEW_WORK )){
-                    URI newUri = ui.getAbsolutePathBuilder().path( existing.getName() ).build();
-                    return Response.seeOther( newUri ).entity( existing ).build();
-                }
-                return Response.status( Response.Status.FOUND ).entity( existing ).build();
+                newUriBuilder.path(existing.getName()).build();
+                return Response.seeOther(newUriBuilder.build()).build();
             case VERSION_EXISTS:
                 /* By definition, currentVer is non-null */
                 DatasetVersion currentVer = currentViewInfo.getVersion();
-                if(options.contains( DatasetOption.CREATE_LOCATIONS )){
-                    URI newUri = ui.getAbsolutePathBuilder().matrixParam( "v", "{v}" )
-                            .build( currentVer.getVersionId() );
-                    return Response.seeOther( newUri ).entity( existing ).build();
-                }
-                return Response.status( Response.Status.FOUND ).entity( existing ).build();
+                newUriBuilder.matrixParam("v", currentVer.getVersionId());
+                return Response.seeOther(newUriBuilder.build()).build();
             case LOCATION_EXISTS:
-                return Response.status( Response.Status.FOUND ).entity( existing ).build();
+                newUriBuilder.matrixParam("l", "all");
         }
-        throw new RestException(ex, 500, "Shouldn't reach here", ex.getMessage());
+        return Response.seeOther(newUriBuilder.build()).build();
     }
 
 }
