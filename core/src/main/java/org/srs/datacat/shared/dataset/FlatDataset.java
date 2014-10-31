@@ -71,7 +71,8 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getResource();
         }
-        return null; }
+        return null; 
+    }
     
     @Override 
     @XmlElement(required=false)
@@ -79,7 +80,8 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getSize();
         }
-        return null; }
+        return null; 
+    }
     
     @Override 
     @XmlElement(required=false)
@@ -87,7 +89,8 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getChecksum();
         }
-        return null; }
+        return null; 
+    }
     
     @XmlElement(name="locationModified", required=false)
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
@@ -95,7 +98,8 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getDateModified();
         }
-        return null; }
+        return null; 
+    }
     
     @XmlElement(name="locationRegistered", required=false)
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
@@ -103,7 +107,8 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getDateCreated();
         }
-        return null; }
+        return null; 
+    }
     
     @Override 
     @XmlElement(name="locationScanned", required=false)
@@ -112,7 +117,8 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getDateScanned();
         }
-        return null; }
+        return null; 
+    }
     
     @Override 
     @XmlElement(required=false)
@@ -120,7 +126,8 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getSite();
         }
-        return null; }
+        return null; 
+    }
     
     @Override 
     @XmlElement(required=false)
@@ -128,7 +135,8 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getScanStatus();
         }
-        return null; }
+        return null; 
+    }
     
     @Override 
     @XmlElement(required=false)
@@ -136,7 +144,8 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getEventCount();
         }
-        return null; }
+        return null; 
+    }
     
     @Override 
     @XmlElement(required=false)
@@ -144,7 +153,8 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getRunMin();
         }
-        return null; }
+        return null; 
+    }
     
     @Override 
     @XmlElement(required=false)
