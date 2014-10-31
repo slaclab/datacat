@@ -25,6 +25,8 @@ import org.srs.vfs.PathUtils;
  */
 public class DatasetDAO extends BaseDAO {
     
+    private static final String DEFAULT_DATA_SOURCE = "RESTFUL_API_v0.2";
+    
     public DatasetDAO(Connection conn){
         super( conn );
     }
@@ -127,7 +129,7 @@ public class DatasetDAO extends BaseDAO {
                 builder.pk(rs1.getLong( "datasetversion"));
                 builder.parentPk(datasetPk);
                 builder.versionId(rs1.getInt( "versionid"));
-                builder.datasetSource(rs1.getString( "datasetSource"));
+                builder.datasetSource(rs1.getString("datasetSource"));
                 builder.latest(rs1.getBoolean( "isLatest"));                
                 processMetadata( rs1, metadata );
                 while(rs1.next()){
@@ -308,12 +310,12 @@ public class DatasetDAO extends BaseDAO {
                 "insert into DatasetVersion "
                 + "(Dataset, VersionID, DataSetSource, ProcessInstance, TaskName) "
                 + "values (?, ?, ?, ?, ?)";
-      
+        String datasetSource = request.getDatasetSource() != null ? request.getDatasetSource() : DEFAULT_DATA_SOURCE;
         DatasetVersion retVersion = null;
         try(PreparedStatement stmt = getConnection().prepareStatement( sql, new String[]{"DATASETVERSION", "REGISTERED"} )) {
             stmt.setLong(1, datasetPk );
             stmt.setInt(2, newVersionId );
-            stmt.setString(3, request.getDatasetSource() );
+            stmt.setString(3, datasetSource);
             if(request.getProcessInstance() != null){
                 stmt.setLong(4, request.getProcessInstance() );
             } else {
