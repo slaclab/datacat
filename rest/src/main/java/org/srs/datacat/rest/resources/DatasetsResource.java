@@ -127,13 +127,20 @@ public class DatasetsResource extends BaseResource  {
     @Path(idRegex)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public Response createDataset(MultivaluedMap<String, String> formParams) throws IOException{
-        
+    public Response createDatasetFromForm(MultivaluedMap<String, String> formParams) throws IOException{
         Dataset.Builder builder = FormParamConverter.getDatasetBuilder(formParams);
-        DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, null, "SRS"));
-        DatacatObject.Type targetType = null;
         Dataset dsReq = builder.build();
+        return createDataset(dsReq);
+    }
+    
+    @POST
+    @Path(idRegex)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
+    public Response createDataset(Dataset dsReq) throws IOException{
+        DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, null, "SRS"));
         DcFile parentFile = null;
+        DatacatObject.Type targetType = null;
         RequestView rv = null;
         try {
             parentFile = getProvider().getFile(targetPath);
@@ -178,7 +185,7 @@ public class DatasetsResource extends BaseResource  {
         dsReq = new Dataset(dsReq);
         return createDataset(targetPath, dsReq, viewRequestOpt, rv, options);
     }
-        
+            
     public Response createDataset(DcPath datasetPath, Dataset reqDs, 
             Optional<DatasetViewInfo> viewRequestOpt, RequestView rv, Set<DatasetOption> options){
         Dataset.Builder requestBuilder = new Dataset.Builder(reqDs);

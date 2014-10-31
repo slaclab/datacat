@@ -23,6 +23,7 @@ import java.util.HashSet;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Form;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import junit.framework.TestCase;
@@ -36,6 +37,8 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.rest.App;
+import org.srs.datacat.rest.App.JacksonFeature;
+import org.srs.datacat.rest.FormParamConverter;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.DcPath;
@@ -139,6 +142,36 @@ public class DatasetsResourceTest extends JerseyTest {
     }
     
     @Test
+    public void testCreationJson() throws JsonProcessingException, IOException {
+        ContainerResourceTest.generateFolders(this, 1);
+        String parent = "/testpath/folder00000";
+        String name = "dataset0001";
+        
+        MultivaluedHashMap<String,String> entity = new MultivaluedHashMap<>();
+        entity.add( "name", name);
+        entity.add( "dataType",HSqlDbHarness.JUNIT_DATASET_DATATYPE);
+        entity.add( "fileFormat", HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
+        entity.add( "versionId", Integer.toString(DatasetView.NEW_VER) );
+        HashMap<String, Object> metadata = new HashMap<>();
+        metadata.put( numberName, numberMdValues[0]);
+        metadata.put( alphaName, alphaMdValues[0]);
+
+        entity.add("versionMetadata",mdMapper.writeValueAsString(MetadataEntry.toList( metadata )));
+        Dataset req = FormParamConverter.getDatasetBuilder(entity).build();
+        System.out.println(req.toString());
+        
+        Response resp = target("/datasets.json" + parent)
+                .register(JacksonFeature.class)
+                .property(ClientProperties.FOLLOW_REDIRECTS, "false")
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(req, MediaType.APPLICATION_JSON));
+
+        printTrace( resp );
+        TestCase.assertEquals(201, resp.getStatus());
+        System.out.println(resp.readEntity(String.class));
+    }
+    
+    @Test
     public void testCreationTwice() throws JsonProcessingException, IOException{
         ContainerResourceTest.generateFolders(this, 1);
         Response resp = createOne();
@@ -176,7 +209,6 @@ public class DatasetsResourceTest extends JerseyTest {
                 MultivaluedHashMap<String,String> entity = new MultivaluedHashMap<>();
                 entity.add( "name", name);
                 entity.add( "dataType",HSqlDbHarness.JUNIT_DATASET_DATATYPE);
-                entity.add( "datasetSource", HSqlDbHarness.JUNIT_DATASET_DATASOURCE);
                 entity.add( "fileFormat", HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
                 entity.add( "versionId", Integer.toString(DatasetView.NEW_VER) );
                 HashMap<String, Object> metadata = new HashMap<>();
