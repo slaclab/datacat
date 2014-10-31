@@ -22,11 +22,13 @@ import org.srs.datacat.vfs.DcFileSystemProvider;
  */
 public class BaseResource {
     
+    public static final String OPTIONAL_EXTENSIONS = "{ext: (\\.txt|\\.json|\\.xml)?}";
+    
     @Context HttpServletRequest request;
     @Context HttpServletResponse response;
     @Inject DcFileSystemProvider provider;
     @Inject DataSource dataSource;
-    
+
     public Connection getConnection() throws SQLException {
         return dataSource.getConnection();
     }
@@ -103,5 +105,5 @@ public class BaseResource {
     public HttpServletRequest getRequest(){
         return request;
     }
-    
+        
 }

@@ -6,6 +6,7 @@
 
 package org.srs.datacat.rest.resources;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.AnnotationIntrospectorPair;
@@ -23,6 +24,7 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import junit.framework.TestCase;
+import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.model.Resource;
 import org.glassfish.jersey.test.JerseyTest;
@@ -47,6 +49,15 @@ import org.srs.vfs.PathUtils;
  * @author bvan
  */
 public class DatasetsResourceTest extends JerseyTest {
+    
+    static final ObjectMapper mdMapper = new ObjectMapper();
+
+    static {
+        AnnotationIntrospector primary = new JacksonAnnotationIntrospector();
+        AnnotationIntrospector secondary = new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());
+        AnnotationIntrospector pair = new AnnotationIntrospectorPair(primary, secondary);
+        mdMapper.setAnnotationIntrospector( pair );
+    }
     
     public DatasetsResourceTest(){
     }
@@ -74,7 +85,7 @@ public class DatasetsResourceTest extends JerseyTest {
         generateFoldersAndDatasetsAndVersions(this, 10, 100);
     }
     
-    public static void generateFoldersAndDatasetsNodes(JerseyTest testCase, int folderCount, int datasetCount) throws IOException{
+    /*public static void generateFoldersAndDatasetsNodes(JerseyTest testCase, int folderCount, int datasetCount) throws IOException{
         ContainerResourceTest.generateFolders(testCase, folderCount);
         for(int i = 0; i < folderCount; i++){
             String parent =PathUtils.resolve( "/testpath",String.format("folder%05d", i));
@@ -88,18 +99,52 @@ public class DatasetsResourceTest extends JerseyTest {
                 Response resp = testCase.target("/datasets" + parent)
                     .request()
                     .post( Entity.form(entity));
-                TestCase.assertEquals( "201",resp.getStatus());
+                TestCase.assertEquals("201",resp.getStatus());
             }
         }
+    }*/
+    
+    public Response createOne() throws JsonProcessingException{
+        String parent = "/testpath/folder00000";
+        String name = "dataset0001";
+        
+        MultivaluedHashMap<String,String> entity = new MultivaluedHashMap<>();
+        entity.add( "name", name);
+        entity.add( "dataType",HSqlDbHarness.JUNIT_DATASET_DATATYPE);
+        entity.add( "datasetSource", HSqlDbHarness.JUNIT_DATASET_DATASOURCE);
+        entity.add( "fileFormat", HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
+        entity.add( "versionId", Integer.toString(DatasetView.NEW_VER) );
+        HashMap<String, Object> metadata = new HashMap<>();
+        metadata.put( numberName, numberMdValues[0]);
+        metadata.put( alphaName, alphaMdValues[0]);
+
+        entity.add("versionMetadata",mdMapper.writeValueAsString(MetadataEntry.toList( metadata )));
+        System.out.println("datasets" + parent + "/" + name);
+        Response resp = target("/datasets.json" + parent)
+                .request()
+                .post(Entity.form(entity));
+                
+        return resp;
+    }
+    
+    @Test
+    public void testCreation() throws JsonProcessingException, IOException {
+        ContainerResourceTest.generateFolders(this, 1);
+        Response resp = createOne();
+        TestCase.assertEquals(201, resp.getStatus());
+    }
+    
+    @Test
+    public void testCreationTwice() throws JsonProcessingException, IOException{
+        ContainerResourceTest.generateFolders(this, 1);
+        Response resp = createOne();
+        TestCase.assertEquals(201, resp.getStatus());
+        resp = createOne();
+        System.out.println(resp.readEntity( String.class));
+        TestCase.assertEquals(200, resp.getStatus());
     }
     
     public static void generateFoldersAndDatasetsAndVersions(JerseyTest testCase, int folderCount, int datasetCount) throws IOException{
-        ObjectMapper mdMapper = new ObjectMapper();
-        AnnotationIntrospector primary = new JacksonAnnotationIntrospector();
-        AnnotationIntrospector secondary = new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());
-        AnnotationIntrospector pair = new AnnotationIntrospectorPair(primary, secondary);
-        mdMapper.setAnnotationIntrospector( pair );
-
         ContainerResourceTest.generateFolders(testCase, folderCount);
         
         for(int i = 0; i < folderCount; i++){
@@ -120,17 +165,18 @@ public class DatasetsResourceTest extends JerseyTest {
                 Response resp = testCase.target("/datasets.txt" + parent)
                     .request()
                     .post(Entity.form(entity));
-                TestCase.assertEquals(201, resp.getStatus());
+                if(resp.getStatus() == 200){
+                    System.out.println("duplicate: datasets" + parent + "/" + name);
+                    System.out.println(resp.readEntity(String.class));
+                } else {
+                    TestCase.assertEquals(201, resp.getStatus());
+                }
             }
         }
     }
     
+    /*
     public static void generateFoldersAndDatasetsAndVersionsAndLocations(JerseyTest testCase, int folderCount, int datasetCount) throws IOException{
-        ObjectMapper mdMapper = new ObjectMapper();
-        AnnotationIntrospector primary = new JacksonAnnotationIntrospector();
-        AnnotationIntrospector secondary = new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());
-        AnnotationIntrospector pair = new AnnotationIntrospectorPair(primary, secondary);
-        mdMapper.setAnnotationIntrospector( pair );
         ContainerResourceTest.generateFolders(testCase, folderCount);
 
         // Create 20k datasets
@@ -157,7 +203,7 @@ public class DatasetsResourceTest extends JerseyTest {
             }
         }
     }
-
+    */
     
     
 }

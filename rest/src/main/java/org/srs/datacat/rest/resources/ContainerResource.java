@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.RequestView;
 import org.srs.datacat.rest.BaseResource;
+import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.rest.FormParamConverter;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.container.BasicStat.StatType;
@@ -46,7 +47,7 @@ import org.srs.datacat.rest.RestException;
  *
  * @author bvan
  */
-@Path("/{containerType: (groups|folders|containers)}")
+@Path("/{containerType: (groups|folders|containers)}" +  OPTIONAL_EXTENSIONS)
 public class ContainerResource extends BaseResource {
     
     private final String idRegex = "{id: [%\\w\\d\\-_\\./]+}";

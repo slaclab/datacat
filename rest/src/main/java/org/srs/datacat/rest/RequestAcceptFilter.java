@@ -50,8 +50,6 @@ public class RequestAcceptFilter implements ContainerRequestFilter {
             return;
         }
 
-        final int length = path.length();
-
         // Get the suffixes
         final String[] suffixes = segment.getPath().split("\\.");
 
@@ -66,17 +64,7 @@ public class RequestAcceptFilter implements ContainerRequestFilter {
             if (accept != null) {
                 rc.getHeaders().remove(HttpHeaders.ACCEPT);
                 rc.getHeaders().putSingle(HttpHeaders.ACCEPT, accept.toString());
-
-                final int index = path.indexOf('.' + suffix);
-                path = new StringBuilder(path).delete(index, index + suffix.length() + 1).toString();
-                suffixes[i] = "";
-                break;
             }
-        }
-
-
-        if (length != path.length()) {
-            rc.setRequestUri(uriInfo.getRequestUriBuilder().replacePath(path).build());
         }
     }
 

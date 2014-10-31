@@ -28,6 +28,7 @@ import org.srs.datacat.model.DatasetView;
 
 import org.srs.datacat.rest.BaseResource;
 import org.srs.datacat.model.RequestView;
+import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.container.BasicStat.StatType;
 import org.srs.datacat.shared.dataset.FlatDataset;
@@ -48,7 +49,7 @@ import org.srs.vfs.AbstractFsProvider;
  * return it.
  * @author bvan
  */
-@Path("/path")
+@Path("/path" +  OPTIONAL_EXTENSIONS)
 public class PathResource extends BaseResource {
     private final String idRegex = "{id: [%\\w\\d\\-_\\./]+}";
     

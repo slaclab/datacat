@@ -1,11 +1,13 @@
 
 package org.srs.datacat.rest.resources;
 
+import com.google.common.base.Optional;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +27,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
@@ -33,14 +36,15 @@ import javax.ws.rs.core.UriInfo;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RequestView;
 import org.srs.datacat.rest.BaseResource;
+import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.rest.FormParamConverter;
 import org.srs.datacat.rest.RestException;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
-import org.srs.datacat.shared.dataset.FlatDataset;
-import org.srs.datacat.shared.dataset.FullDataset;
+import org.srs.datacat.shared.dataset.DatasetViewInfo;
+import org.srs.datacat.shared.dataset.DatasetWithView;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcFileSystemProvider.DcFsException;
 import org.srs.datacat.vfs.DcPath;
@@ -54,7 +58,7 @@ import org.srs.datacat.vfs.attribute.DatasetViewProvider;
  * path.
  * @author bvan
  */
-@Path("/datasets")
+@Path("/datasets" +  OPTIONAL_EXTENSIONS)
 public class DatasetsResource extends BaseResource  { 
     private final String idRegex = "{id: [%\\w\\d\\-_\\./]+}";
     
@@ -82,14 +86,33 @@ public class DatasetsResource extends BaseResource  {
     @GET
     @Path(idRegex)
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public String createDataset(@PathParam("id") String path, 
+    public Response getDataset(@PathParam("id") String path, 
             @MatrixParam("v") List<String> versions,
-            @MatrixParam("l") List<String> locations){
-        System.out.println("hi");
-        System.out.println(path);
-        System.out.println(versions.toString());
-        System.out.println(locations.toString());
-        return versions + " " + locations;
+            @MatrixParam("l") List<String> locations) throws IOException{
+        System.out.println(ui.getAbsolutePath());
+        DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, null, "SRS"));
+        DatacatObject.Type targetType = null;
+        try {
+            DcFile file = getProvider().getFile(targetPath);
+            DatacatObject ret;
+            RequestView rv = new RequestView(DatacatObject.Type.DATASET, requestMatrixParams);
+            System.out.println(rv.getDatasetView().toString());
+            if(file.isRegularFile()){
+                ret = file.getAttributeView(DatasetViewProvider.class).withView(rv.getDatasetView(DatasetView.CURRENT_ALL), true);
+                return Response.ok( new GenericEntity(ret, Dataset.class) ).build();
+            }
+            throw new NoSuchFileException(path, "Path is not a dataset","NO_SUCH_FILE");
+        } catch (IllegalArgumentException ex){
+            throw new RestException(ex, 400 , "Unable to correctly process view", ex.getMessage());
+        } catch (NoSuchFileException ex){
+            throw new RestException(ex, 400 , "The target is not a dataset", ex.getMessage());
+        } catch (FileNotFoundException ex){
+             throw new RestException(ex,404 , "File doesn't exist", ex.getMessage());
+        } catch (AccessDeniedException ex){
+             throw new RestException(ex, 403);
+        } catch (IOException ex){
+            throw new RestException(ex, 500);
+        }
     }
     
     /**
@@ -121,101 +144,53 @@ public class DatasetsResource extends BaseResource  {
             throw new RestException(ex, 400, "Unable to validate request view", ex.getMessage());
         }
                         
-        ArrayList<DatasetLocation> requestLocations = new ArrayList<>();
-        DatasetVersion requestVersion = decomposeDataset(dsReq, requestLocations, true);
+        Optional<DatasetViewInfo> viewRequestOpt;
+        if(dsReq instanceof DatasetWithView){
+            viewRequestOpt = Optional.of(((DatasetWithView) dsReq).getViewInfo());
+        } else {
+            viewRequestOpt = Optional.absent();
+        }
         
         Set<DatasetOption> options = new HashSet<>();
-        boolean useDefaultVersion = false;
         switch(targetType){
             case GROUP:
             case FOLDER:
                 targetPath = targetPath.resolve(dsReq.getName());
                 options.add(DatasetOption.CREATE_NODE);
+                if(viewRequestOpt.isPresent() 
+                        && !viewRequestOpt.get().versionOpt().isPresent() 
+                        && viewRequestOpt.get().locationsOpt().isPresent()){
+                    // The user omitted versionId, but included locations
+                    viewRequestOpt = Optional.of(new DatasetViewInfo(DatasetVersion.NEW_VERSION, 
+                            viewRequestOpt.get().getLocations()));
+                }
             case DATASET:
-                if(requestVersion != null){
+                if(viewRequestOpt.isPresent() && viewRequestOpt.get().versionOpt().isPresent()){
                     options.add(DatasetOption.CREATE_VERSION);
                 }
-                useDefaultVersion = true;
             case DATASETVERSION:
-                if(!requestLocations.isEmpty()){
-                    // Implied new version, if no version exists
-                    if(requestVersion == null && useDefaultVersion){
-                        requestVersion = new DatasetVersion.Builder().versionId(DatasetView.NEW_VER).build();
-                        options.add(DatasetOption.CREATE_VERSION);
-                    }
+                if(!viewRequestOpt.isPresent() && viewRequestOpt.get().locationsOpt().isPresent()){
                     options.add(DatasetOption.CREATE_LOCATIONS);
                 }
             break;
         }
         dsReq = new Dataset(dsReq);
-        Response ret = createDataset(targetPath, dsReq, requestVersion, requestLocations, rv, options);
-        return ret;
+        return createDataset(targetPath, dsReq, viewRequestOpt, rv, options);
     }
-    
-    private DatacatObject.Type getTargetType(DcFile parentFile, RequestView rv){
-        if(parentFile.isDirectory()){
-            return parentFile.getObject().getType();
-        } else {
-            if(rv.getDatasetView().getVersionId() != DatasetView.EMPTY_VER){
-                return DatacatObject.Type.DATASETVERSION;
-            } else {
-                return DatacatObject.Type.DATASET;
-            }
-        }
-    }
-    
-    public Response createDataset(DcPath datasetPath, Dataset reqDs, DatasetVersion version, 
-            List<DatasetLocation> datasetLocations, RequestView rv, Set<DatasetOption> options){
+        
+    public Response createDataset(DcPath datasetPath, Dataset reqDs, 
+            Optional<DatasetViewInfo> viewRequestOpt, RequestView rv, Set<DatasetOption> options){
         Dataset.Builder requestBuilder = new Dataset.Builder(reqDs);
-        if(version != null){
-            requestBuilder.version(version);
-        }
-        if(!datasetLocations.isEmpty()){
-            if(datasetLocations.size() == 1){
-                requestBuilder.location(datasetLocations.get(0));
-            } else {
-                requestBuilder.locations(datasetLocations);
-            }
+        if(viewRequestOpt.isPresent()){
+            requestBuilder.view(viewRequestOpt.get());
         }
         reqDs = requestBuilder.build();
         try {
             Dataset ret = getProvider().createDataset(datasetPath, reqDs, options);
-            return Response.created(DcUriUtils.toFsUri(datasetPath.toString(), null, "SRS")).entity(ret).build();
-        
+            return Response.created(DcUriUtils.toFsUri(datasetPath.toString(), null, "SRS"))
+                    .entity(ret).build();
         } catch (FileAlreadyExistsException ex) {
-            DcFsException exc = DcFsException.valueOf(ex.getReason());
-            int vid = version.getVersionId();
-            if(vid == DatasetView.NEW_VER || vid == DatasetView.EMPTY_VER){
-                vid = DatasetView.CURRENT_VER;
-            }
-            DatasetView existingView = new DatasetView(vid, DatasetView.ALL_SITES);
-            Dataset existing;
-            try {
-                 existing = getProvider().getFile(datasetPath)
-                         .getAttributeView(DatasetViewProvider.class).withView(existingView, true);
-            } catch (IOException ex2){
-                throw new RestException(ex2, 500, "Unable to check current dataset", ex2.getMessage());
-            }
-
-            DatasetVersion existingVersion = decomposeDataset(existing, null, false);
-            switch(exc){
-                case DATASET_EXISTS:
-                    if(options.removeAll(DatasetOption.VIEW_WORK)){
-                        URI newUri = ui.getAbsolutePathBuilder().path(existing.getName()).build();
-                        return Response.seeOther(newUri).entity(existing).build();
-                    }
-                    return Response.status(Response.Status.FOUND).entity(existing).build();
-                case VERSION_EXISTS:
-                    if(options.contains(DatasetOption.CREATE_LOCATIONS)){
-                        URI newUri = ui.getAbsolutePathBuilder().matrixParam("v","{v}")
-                                .build(existingVersion.getVersionId());
-                        return Response.seeOther(newUri).entity(existing).build();
-                    }
-                    return Response.status(Response.Status.FOUND).entity(existing).build();
-                case LOCATION_EXISTS:
-                    return Response.status(Response.Status.FOUND).entity(existing).build();
-            }
-            throw new RestException(ex, 500, "Shouldn't reach here", ex.getMessage());
+            return handleFileAlreadyExists(ex, datasetPath, viewRequestOpt, options);
         } catch (FileNotFoundException ex){
              throw new RestException(ex, 404, "Parent file doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
@@ -227,61 +202,6 @@ public class DatasetsResource extends BaseResource  {
             throw new RestException(ex, 500);
         }
     }
-       
-    private DatasetVersion decomposeDataset(Dataset ds, List<DatasetLocation> returnLocations, boolean validate){
-        DatasetVersion retVersion = null;
-        if(ds instanceof FullDataset){
-            FullDataset fd = (FullDataset) ds;
-            
-            if(validate){
-                try {
-                    fd.getVersion().validateFields();
-                    retVersion = fd.getVersion();
-                } catch(NullPointerException ex) {
-                    // This is okay
-                }
-            } else {
-                retVersion = new DatasetVersion(fd.getVersion());
-            }
-            
-            DatasetLocation dsl = null;    
-            Iterator<DatasetLocation> iter = fd.getLocations().iterator();
-            while(iter.hasNext()){   // Verify all locations
-                dsl = iter.next();
-                if(validate){
-                    try {
-                        dsl.validateFields();
-                    } catch(NullPointerException ex) {
-                        throw new RestException(new IllegalArgumentException(ex.getMessage()), 400, 
-                                "Unable to validate location: " + dsl.toString());
-                    }
-                }
-                if(returnLocations != null){
-                    returnLocations.add(dsl);
-                }
-            }
-            return retVersion;
-        }
-        
-        if(ds instanceof FlatDataset){
-            FlatDataset fd = (FlatDataset) ds;
-            try {
-                fd.getVersion().validateFields();
-                retVersion = fd.getVersion();
-            } catch (NullPointerException ex){
-                // This is okay
-            }
-            try {
-                fd.getLocation().validateFields();
-                returnLocations.add(fd.getLocation());
-            } catch (NullPointerException ex){
-                // this is okay too
-            }
-            return retVersion;
-        }
-        return null;
-    }
-
     
     /**
      * Checks the request for validity and returns the options for createDataset.
@@ -311,4 +231,64 @@ public class DatasetsResource extends BaseResource  {
            c. If a location exists, and the representations in the data store and request 
                are equivalent, and there is no new information, send a 302 - Found
     */
+    
+    private DatacatObject.Type getTargetType(DcFile parentFile, RequestView rv){
+        if(parentFile.isDirectory()){
+            return parentFile.getObject().getType();
+        } else {
+            if(rv.getDatasetView().getVersionId() != DatasetView.EMPTY_VER){
+                return DatacatObject.Type.DATASETVERSION;
+            } else {
+                return DatacatObject.Type.DATASET;
+            }
+        }
+    }
+    
+    /**
+      Return an appropriate response in the case where a file alredy exists
+     */
+    private Response handleFileAlreadyExists(FileAlreadyExistsException ex, DcPath datasetPath, 
+            Optional<DatasetViewInfo> viewOpt, Set<DatasetOption> options){
+
+        DcFsException exc = DcFsException.valueOf( ex.getReason() );
+        DatasetView existingView = new DatasetView(DatasetView.CURRENT_VER, DatasetView.ALL_SITES);
+        if(viewOpt.isPresent() && viewOpt.get().versionOpt().isPresent()){
+            int vid = viewOpt.get().getVersion().getVersionId();
+            if(vid >= 0){
+                 existingView = new DatasetView(vid, DatasetView.ALL_SITES );
+            }
+        }
+        
+        Dataset existing;
+        try {
+            existing = getProvider().getFile( datasetPath )
+                    .getAttributeView(DatasetViewProvider.class).withView(existingView, true);
+        } catch(IOException ex2) {
+            throw new RestException(ex2, 500, "Unable to check current dataset", ex2.getMessage());
+        }
+        DatasetViewInfo currentViewInfo = existing instanceof DatasetWithView
+                ? ((DatasetWithView) existing).getViewInfo() : null;
+
+        switch(exc){
+            case DATASET_EXISTS:
+                if(options.removeAll( DatasetOption.VIEW_WORK )){
+                    URI newUri = ui.getAbsolutePathBuilder().path( existing.getName() ).build();
+                    return Response.seeOther( newUri ).entity( existing ).build();
+                }
+                return Response.status( Response.Status.FOUND ).entity( existing ).build();
+            case VERSION_EXISTS:
+                /* By definition, currentVer is non-null */
+                DatasetVersion currentVer = currentViewInfo.getVersion();
+                if(options.contains( DatasetOption.CREATE_LOCATIONS )){
+                    URI newUri = ui.getAbsolutePathBuilder().matrixParam( "v", "{v}" )
+                            .build( currentVer.getVersionId() );
+                    return Response.seeOther( newUri ).entity( existing ).build();
+                }
+                return Response.status( Response.Status.FOUND ).entity( existing ).build();
+            case LOCATION_EXISTS:
+                return Response.status( Response.Status.FOUND ).entity( existing ).build();
+        }
+        throw new RestException(ex, 500, "Shouldn't reach here", ex.getMessage());
+    }
+
 }

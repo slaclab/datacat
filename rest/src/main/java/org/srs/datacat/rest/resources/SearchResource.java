@@ -26,6 +26,7 @@ import javax.ws.rs.core.UriInfo;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RequestView;
 import org.srs.datacat.rest.BaseResource;
+import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.rest.SearchPluginProvider;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
@@ -42,7 +43,7 @@ import org.srs.vfs.PathUtils;
  *
  * @author bvan
  */
-@Path("/search")
+@Path("/search" +  OPTIONAL_EXTENSIONS)
 public class SearchResource extends BaseResource {
     private final String searchRegex = "{id: [^\\?]+}";
     @Inject SearchPluginProvider pluginProvider;
