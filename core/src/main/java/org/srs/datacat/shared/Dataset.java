@@ -329,13 +329,6 @@ public class Dataset extends DatacatObject implements DatasetModel {
             return this;
         }
 
-        /*@JsonSetter
-        public Builder versions(List<DatasetVersion> val){
-            this.versions = val;
-            dsType |= VERSIONS;
-            return this;
-        }*/
-
         @JsonSetter
         public Builder locations(Collection<DatasetLocation> val){
             this.locations = val;
@@ -468,6 +461,10 @@ public class Dataset extends DatacatObject implements DatasetModel {
 
         public boolean isType(int type){
             return (dsType & type) == type;
+        }
+        
+        public boolean checkType(int type){
+            return (dsType & type) != 0;
         }
     }
 }

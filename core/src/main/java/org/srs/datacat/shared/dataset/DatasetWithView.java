@@ -48,10 +48,18 @@ public class DatasetWithView extends Dataset implements DatasetVersionModel {
     
     protected DatasetWithView(Dataset.Builder builder, boolean flatten){
         super(builder);
+        DatasetVersion viewVer = builder.version;
+        if(viewVer == null && builder.checkType(Dataset.Builder.VERSION)){
+            viewVer = new DatasetVersion.Builder(builder).build();
+        }
         if(flatten){
-            this.viewInfo = new DatasetViewInfo(builder.version, builder.location);
+            DatasetLocation viewLoc = builder.location;
+            if(viewLoc == null && builder.checkType(Dataset.Builder.LOCATION)){
+                viewLoc = new DatasetLocation(builder);
+            }
+            this.viewInfo = new DatasetViewInfo(viewVer, viewLoc);
         } else {
-            this.viewInfo = new DatasetViewInfo(builder.version, builder.locations);
+            this.viewInfo = new DatasetViewInfo(viewVer, builder.locations);
         }
     }
     

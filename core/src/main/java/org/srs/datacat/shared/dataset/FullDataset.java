@@ -35,7 +35,6 @@ public class FullDataset extends DatasetWithView {
 
     public FullDataset(Dataset.Builder builder){
         super(builder, false);
-
     }
     
     @XmlTransient
@@ -59,8 +58,8 @@ public class FullDataset extends DatasetWithView {
         
         @Override
         public FullDataset build(){
-            return new FullDataset( this );
+            return new FullDataset(this);
         }
     }
-    
+
 }

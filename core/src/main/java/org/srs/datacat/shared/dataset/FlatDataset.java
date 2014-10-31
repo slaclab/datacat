@@ -197,12 +197,6 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         
         @Override
         public FlatDataset build(){
-            if(location == null){
-                location(new DatasetLocation( this ));
-            }
-            if(version == null){
-                version(new DatasetVersion.Builder(this).build());
-            }
             return new FlatDataset(this);
         }
     }
