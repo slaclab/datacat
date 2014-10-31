@@ -57,8 +57,8 @@ import org.srs.vfs.ChildrenView;
 import org.srs.datacat.dao.sql.BaseDAO;
 import org.srs.datacat.dao.sql.DAOFactory;
 import org.srs.datacat.dao.sql.DatasetDAO;
-import org.srs.datacat.model.HasDatasetViewInfo;
 import org.srs.datacat.shared.dataset.DatasetViewInfo;
+import org.srs.datacat.shared.dataset.DatasetWithView;
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 
@@ -445,8 +445,8 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             viewWork.retainAll(dsOptions);
             if(!viewWork.isEmpty()){
                 // We had a flag that denoting we should create a view, so we continue on
-                if(dsReq instanceof HasDatasetViewInfo){
-                    DatasetViewInfo info = ((HasDatasetViewInfo) dsReq).getDatasetViewInfo();
+                if(dsReq instanceof DatasetWithView){
+                    DatasetViewInfo info = ((DatasetWithView) dsReq).getViewInfo();
                     DatasetViewInfo retView = createDatasetViewInternal(dao, ds, info, options);
                     builder.version(retView.getVersion());
                     if(retView.locationsOpt().isPresent()){

@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.xml.bind.annotation.XmlTransient;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.model.HasDatasetViewInfo;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 

@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.Set;
 
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.model.HasDatasetViewInfo;
 import org.srs.datacat.model.RequestView;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.DatasetViewInfo;
+import org.srs.datacat.shared.dataset.DatasetWithView;
 import org.srs.datacat.shared.dataset.FullDataset;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcFileSystemProvider;
@@ -34,8 +34,7 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
         this.file = file;
         this.provider = file.getPath().getFileSystem().provider();
         if(object instanceof FullDataset){
-            DatasetViewInfo viewInfo = ((HasDatasetViewInfo) object).getDatasetViewInfo();
-            
+            DatasetViewInfo viewInfo = ((DatasetWithView) object).getViewInfo();
             if(viewInfo.getVersion().isLatest()){
                 versionCache.put( DatasetView.CURRENT_VER, viewInfo);
             }

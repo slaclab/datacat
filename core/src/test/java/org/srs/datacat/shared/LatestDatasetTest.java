@@ -156,10 +156,6 @@ public class LatestDatasetTest extends TestCase {
                 + "    <name>my-flat-dataset.txt</name>\n"
                 + "    <fileFormat>FITS</fileFormat>\n"
                 + "    <latest>true</latest>\n"
-                + "    <resource>/path/to/somewhere</resource>\n"
-                + "    <runMax>10</runMax>\n"
-                + "    <runMin>0</runMin>\n"
-                + "    <size>1234</size>\n"
                 + "    <taskName>faketask</taskName>\n"
                 + "    <versionId>123</versionId>\n"
                 + "    <versionMetadata>\n"
@@ -176,6 +172,10 @@ public class LatestDatasetTest extends TestCase {
                 + "            <integer>1234</integer>\n"
                 + "        </entry>\n"
                 + "    </versionMetadata>\n"
+                + "    <resource>/path/to/somewhere</resource>\n"
+                + "    <runMax>10</runMax>\n"
+                + "    <runMin>0</runMin>\n"
+                + "    <size>1234</size>\n"
                 + "</flatDataset>\n";
         
         JAXBContext jaxbContext = JAXBContext.newInstance( FlatDataset.class );
