@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.DatasetView.VersionId;
 import org.srs.datacat.shared.DatasetVersion.Builder;
 import org.srs.rest.shared.RestDateAdapter;
@@ -34,6 +35,11 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
     private String taskName;
     private Boolean isLatest;
     private Timestamp versionRegistrationDate;
+    
+    public static final DatasetVersion NEW_VERSION = 
+            new DatasetVersion.Builder().versionId( DatasetView.NEW_VER).build();
+    public static final DatasetVersion CURRENT_VERSION = 
+            new DatasetVersion.Builder().versionId( DatasetView.CURRENT_VER).build();
     
     public DatasetVersion(){ super(); }
     
