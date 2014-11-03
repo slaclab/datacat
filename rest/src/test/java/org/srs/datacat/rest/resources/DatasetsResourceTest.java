@@ -223,6 +223,10 @@ public class DatasetsResourceTest extends JerseyTest {
                     System.out.println("duplicate: datasets" + parent + "/" + name);
                     System.out.println(resp.readEntity(String.class));
                 } else {
+                    if(resp.getStatus() != 201){
+                        System.out.println("Found error:");
+                        System.out.println(resp.readEntity(String.class));
+                    }
                     TestCase.assertEquals(201, resp.getStatus());
                 }
             }
