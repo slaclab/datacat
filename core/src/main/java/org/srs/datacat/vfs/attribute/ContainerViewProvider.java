@@ -1,14 +1,12 @@
 
 package org.srs.datacat.vfs.attribute;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.sql.SQLException;
+import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import javax.sql.DataSource;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
@@ -84,7 +82,7 @@ public class ContainerViewProvider implements DcViewProvider<StatType> {
     }
     
     @Override
-    public DatacatObject withView(StatType statType) throws FileNotFoundException, IOException {
+    public DatacatObject withView(StatType statType) throws NoSuchFileException, IOException {
         if(statType == StatType.NONE){
             return file.getObject();
         }

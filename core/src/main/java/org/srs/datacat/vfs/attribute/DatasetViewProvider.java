@@ -1,8 +1,8 @@
 
 package org.srs.datacat.vfs.attribute;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -50,11 +50,11 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
     }
 
     @Override
-    public Dataset withView(RequestView requestView) throws FileNotFoundException, IOException {
+    public Dataset withView(RequestView requestView) throws NoSuchFileException, IOException {
         return withView(requestView.getDatasetView(DatasetView.MASTER), requestView.includeMetadata());
     }
     
-    public Dataset withView(DatasetView view, boolean withMetadata) throws FileNotFoundException, IOException {
+    public Dataset withView(DatasetView view, boolean withMetadata) throws NoSuchFileException, IOException {
         if(view == DatasetView.EMPTY){
             return (Dataset) file.getObject();
         }
@@ -73,13 +73,13 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
         }
         if(dsv == null){
             String msg = "Unable to process view. Version %d not found";
-            throw new FileNotFoundException( String.format( msg, view.getVersionId() ) );
+            throw new NoSuchFileException( String.format( msg, view.getVersionId() ) );
         }
         retDsv = dsv.getVersion();
         retLocations = dsv.getLocations();
         if(retLocations == null && !(view.zeroSites() || view.zeroOrMoreSites())){
             String msg = "No locations found for dataset version %d";
-            throw new FileNotFoundException(String.format( msg, view.getVersionId()));
+            throw new NoSuchFileException(String.format( msg, view.getVersionId()));
         }
         Dataset.Builder b = new Dataset.Builder((Dataset) file.getObject());
         if(!withMetadata){ // mask metadata
@@ -95,7 +95,7 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
                     b.location(dsv.getLocation(view.getSite()));
                 } else if(!view.zeroOrMoreSites()){              // No site, is zero acceptable?
                     String msg = "Location %s not found";
-                    throw new FileNotFoundException(String.format(msg, view.getSite()));
+                    throw new NoSuchFileException(String.format(msg, view.getSite()));
                 }
             }
         }

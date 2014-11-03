@@ -1,12 +1,12 @@
 
 package org.srs.datacat.rest.resources;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -87,7 +87,7 @@ public class ContainerResource extends BaseResource {
             if(!Files.readAttributes(containerPath, DcFile.class).isDirectory()){
                 throw new NotDirectoryException(containerPath.toString());
             }
-        } catch (FileNotFoundException ex){
+        } catch (NoSuchFileException ex){
              throw new RestException(ex,404, "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
@@ -132,7 +132,7 @@ public class ContainerResource extends BaseResource {
             getProvider().createDirectory(targetPath, request);
             //System.out.println("req: " + parentPath.resolve(request.value().getName()));
             return Response.created(DcUriUtils.toFsUri(targetPath.toString(), null, "SRS")).entity(builder.build()).build();
-        } catch (FileNotFoundException ex){
+        } catch (NoSuchFileException ex){
              throw new RestException(ex ,404, "Parent file doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
@@ -156,7 +156,7 @@ public class ContainerResource extends BaseResource {
             return Response.noContent().build();
         } catch (DirectoryNotEmptyException ex){
             throw new RestException(ex, 409, "Directory not empty");
-        } catch (FileNotFoundException ex){
+        } catch (NoSuchFileException ex){
              throw new RestException(ex, 404, "Parent file doesn't exit", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);

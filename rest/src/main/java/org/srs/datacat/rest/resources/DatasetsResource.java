@@ -2,7 +2,6 @@
 package org.srs.datacat.rest.resources;
 
 import com.google.common.base.Optional;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.AccessDeniedException;
@@ -106,9 +105,8 @@ public class DatasetsResource extends BaseResource  {
         } catch (IllegalArgumentException ex){
             throw new RestException(ex, 400 , "Unable to correctly process view", ex.getMessage());
         } catch (NoSuchFileException ex){
+            // TODO: Check exception
             throw new RestException(ex, 400 , "The target is not a dataset", ex.getMessage());
-        } catch (FileNotFoundException ex){
-             throw new RestException(ex,404 , "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
         } catch (IOException ex){
@@ -146,7 +144,7 @@ public class DatasetsResource extends BaseResource  {
             parentFile = getProvider().getFile(targetPath);
             rv = new RequestView(parentFile.getObject().getType(), requestMatrixParams);
             targetType = getTargetType(parentFile, rv);
-        } catch (FileNotFoundException ex) {
+        } catch (NoSuchFileException ex) {
             throw new RestException(ex ,404, "File doesn't exist", ex.getMessage());
         } catch (IllegalArgumentException ex){
             throw new RestException(ex, 400, "Unable to validate request view", ex.getMessage());
@@ -199,7 +197,7 @@ public class DatasetsResource extends BaseResource  {
                     .entity(ret).build();
         } catch (FileAlreadyExistsException ex) {
             return handleFileAlreadyExists(ex, datasetPath, viewRequestOpt, options);
-        } catch (FileNotFoundException ex){
+        } catch (NoSuchFileException ex){
              throw new RestException(ex, 404, "Parent file doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);

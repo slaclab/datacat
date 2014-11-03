@@ -1,7 +1,6 @@
 
 package org.srs.vfs;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 
@@ -62,9 +61,9 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
     @Override
     public abstract P getPath(URI uri);
     
-    public abstract V retrieveFileAttributes(P path, V parent) throws FileNotFoundException, IOException;
+    public abstract V retrieveFileAttributes(P path, V parent) throws NoSuchFileException, IOException;
 
-    public V resolveFile(P path) throws FileNotFoundException, IOException {
+    public V resolveFile(P path) throws NoSuchFileException, IOException {
         // Find this file in the cache. If it's not in the cache, resolve it's parents
         // (thereby putting them in the cache), and eventually this file.
         V file = getCache().getFile(path);

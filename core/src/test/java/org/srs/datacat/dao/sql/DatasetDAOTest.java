@@ -3,8 +3,8 @@ package org.srs.datacat.dao.sql;
 
 import org.srs.datacat.dao.sql.DatasetDAO;
 import org.srs.datacat.dao.sql.ContainerDAO;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -61,7 +61,7 @@ public class DatasetDAOTest {
             dao.getDatacatObject(TEST_BASE_PATH);
             c.close();
             return;
-        } catch (FileNotFoundException x){ }
+        } catch (NoSuchFileException x){ }
         
         DatacatObject container = new LogicalFolder.Builder().name( TEST_BASE_NAME ).build();
         dao.insertContainer( 0L, PathUtils.resolve("/",TEST_BASE_NAME), container );

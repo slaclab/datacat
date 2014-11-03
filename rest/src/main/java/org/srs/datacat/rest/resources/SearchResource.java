@@ -1,8 +1,8 @@
 
 package org.srs.datacat.rest.resources;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -113,7 +113,7 @@ public class SearchResource extends BaseResource {
             datasets = datacatSearch.retrieveDatasets();
         } catch (IllegalArgumentException ex){
             throw new RestException(ex,400, "Unable to process query, see message", ex.getMessage());
-        } catch (FileNotFoundException ex){
+        } catch (NoSuchFileException ex){
              throw new RestException(ex,404, "File doesn't exist", ex.getMessage());
         } catch(SQLException | IOException ex) {
             throw new RestException(ex, 500);

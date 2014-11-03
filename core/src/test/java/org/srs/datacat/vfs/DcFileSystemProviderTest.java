@@ -1,7 +1,6 @@
  
 package org.srs.datacat.vfs;
 
-import java.io.FileNotFoundException;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacat.vfs.DcUriUtils;
@@ -12,10 +11,10 @@ import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -174,7 +173,7 @@ public class DcFileSystemProviderTest {
         try {
             // File should already be deleted
             provider.delete(path.resolve(folderName));
-        } catch (FileNotFoundException ex){}
+        } catch (NoSuchFileException ex){}
     }
 
     

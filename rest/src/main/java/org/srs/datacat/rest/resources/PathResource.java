@@ -2,10 +2,10 @@
 package org.srs.datacat.rest.resources;
 
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryStream;
+import java.nio.file.NoSuchFileException;
 
 import java.nio.file.NotDirectoryException;
 import java.util.ArrayList;
@@ -140,7 +140,7 @@ public class PathResource extends BaseResource {
             }
         } catch (IllegalArgumentException ex){
             throw new RestException(ex, 400 , "Unable to correctly process view", ex.getMessage());
-        } catch (FileNotFoundException ex){
+        } catch (NoSuchFileException ex){
              throw new RestException(ex,404 , "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
@@ -174,7 +174,7 @@ public class PathResource extends BaseResource {
                     if(file.isRegularFile()){
                         try {
                             ret = file.getAttributeView(DatasetViewProvider.class).withView(requestView);
-                        } catch (FileNotFoundException ex){
+                        } catch (NoSuchFileException ex){
                             continue;
                         }
                     } else {

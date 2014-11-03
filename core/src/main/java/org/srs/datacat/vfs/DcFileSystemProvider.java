@@ -1,7 +1,6 @@
 
 package org.srs.datacat.vfs;
 
-import java.io.FileNotFoundException;
 import org.srs.datacat.vfs.security.DcPermissions;
 import java.io.IOException;
 import java.net.URI;
@@ -465,11 +464,11 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         return builder.build();
     }
     
-    public DatasetViewInfo getDatasetViewInfo(DcFile file, DatasetView view) throws IOException, FileNotFoundException {
+    public DatasetViewInfo getDatasetViewInfo(DcFile file, DatasetView view) throws IOException, NoSuchFileException {
         try(DatasetDAO dsdao = daoFactory.newDatasetDAO()) {
             DatasetViewInfo ret = dsdao.getDatasetViewInfo(file.fileKey(), view);
             if(ret == null){
-                throw new FileNotFoundException(String.format("Invalid View. Version %d not found", view.getVersionId()));
+                throw new NoSuchFileException(String.format("Invalid View. Version %d not found", view.getVersionId()));
             }
             return ret;
         }
@@ -564,7 +563,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         try {
             resolveFile(targetDir);
             AfsException.FILE_EXISTS.throwError(targetDir, "A group or folder already exists at this location");
-        } catch (FileNotFoundException ex){
+        } catch (NoSuchFileException ex){
             // Do nothing.
         }
         DcFile parent = resolveFile(targetDir.getParent());

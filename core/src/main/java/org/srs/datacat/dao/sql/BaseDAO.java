@@ -1,8 +1,8 @@
 
 package org.srs.datacat.dao.sql;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -70,7 +70,7 @@ public class BaseDAO implements AutoCloseable {
         }
     }
     
-    public DatacatObject getDatacatObject(String path) throws IOException, FileNotFoundException {
+    public DatacatObject getDatacatObject(String path) throws IOException, NoSuchFileException {
         if(!PathUtils.isAbsolute( path )){
             path = "/" + path;
         }
@@ -83,11 +83,11 @@ public class BaseDAO implements AutoCloseable {
         return next;
     }
     
-    public DatacatObject getObjectInParent(Long parentPk, String path) throws IOException, FileNotFoundException {
+    public DatacatObject getObjectInParent(Long parentPk, String path) throws IOException, NoSuchFileException {
         return getDatacatObject(parentPk, path);
     }
     
-    protected DatacatObject getDatacatObject(Long parentPk, String path) throws IOException, FileNotFoundException {
+    protected DatacatObject getDatacatObject(Long parentPk, String path) throws IOException, NoSuchFileException {
         try {
             return getChild(parentPk, path);
         } catch(SQLException ex) {
@@ -95,7 +95,7 @@ public class BaseDAO implements AutoCloseable {
         }
     }
 
-    private DatacatObject getChild(Long parentPk, String path) throws SQLException, FileNotFoundException{
+    private DatacatObject getChild(Long parentPk, String path) throws SQLException, NoSuchFileException{
         int[] offsets = PathUtils.offsets(path);
         String fileName = PathUtils.getFileName(path, offsets);
         String parentPath = PathUtils.getParentPath(path, offsets);
@@ -132,7 +132,7 @@ public class BaseDAO implements AutoCloseable {
             }
             ResultSet rs = stmt.executeQuery();
             if(!rs.next()){
-                throw (new FileNotFoundException( "Unable to resolve objects: " + path ));
+                throw (new NoSuchFileException( "Unable to resolve objects: " + path ));
             }
             builder = getBuilder(rs, parentPath);
         }
