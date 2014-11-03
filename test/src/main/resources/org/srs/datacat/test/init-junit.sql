@@ -9,6 +9,7 @@ delete from datasetlogicalfolder where name = 'testpath';
 insert into datasetdatatype (datasetdatatype) values ('JUNIT_TEST');
 insert into datasetfileformat (datasetfileformat) values ('junit.test');
 insert into datasetsource (datasetsource) values ('JUNIT_SOURCE');
+insert into datasetsource (datasetsource) values ('RESTFUL_API_v0.2');
 
 insert into datasetlogicalfolder (name, parent) values  ('testpath',0);
 insert into datasetlogicalfolder (name, parent) values ('testfolder',(select datasetlogicalfolder from datasetlogicalfolder where name = 'testpath'));
