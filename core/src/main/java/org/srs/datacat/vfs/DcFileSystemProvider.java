@@ -404,23 +404,21 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         DcPath dsPath = checkPath(path);
         DcFile dsParent = resolveFile(dsPath.getParent());
-        Dataset.Builder builder = null;
-        
-        if(!options.contains(DatasetOption.SKIP_NODE_CHECK)    // Fail fast
-                && options.contains(DatasetOption.CREATE_NODE) // Fail fast
-                && exists(dsPath)){                            // -> Can be Expensive
-            DcFsException.DATASET_EXISTS.throwError(dsPath.toString(), "A dataset node already exists at this location");
-        }
+        long parentPk = dsParent.fileKey();
+        String pathString = dsPath.toString();
         
         //checkPermission(dsParent, DcPermissions.CREATE_CHILD);
-        try (DatasetDAO dao = daoFactory.newDatasetDAO()){
+        try (DatasetDAO dao = daoFactory.newDatasetDAO(pathString)){
+            
             Dataset ds = null;
             Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
             boolean createNode = dsOptions.remove(DatasetOption.CREATE_NODE);
-            long parentPk = dsParent.fileKey();
-            String pathString = dsPath.toString();
             
             if(createNode){
+                // Fail fast
+                if(!options.contains(DatasetOption.SKIP_NODE_CHECK) && exists(dsPath)){ 
+                    DcFsException.DATASET_EXISTS.throwError(dsPath.toString(), "A dataset node already exists at this location");
+                }
                 ds = dao.createDatasetNode(parentPk, dsParent.getObject().getType(), pathString, dsReq);
                 dsOptions.add(DatasetOption.SKIP_VERSION_CHECK); // If we added a node, skip version check
             }
@@ -433,7 +431,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                 ds = (Dataset) o;
             }
             
-            builder = new Dataset.Builder(ds);
+            Dataset.Builder builder = new Dataset.Builder(ds);
             // One of these conditions must be present to continue on and create a view
             HashSet<DatasetOption> viewWork = new HashSet<>( Arrays.asList( 
                                                 DatasetOption.CREATE_VERSION, 
@@ -459,9 +457,9 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             }
             dao.commit();
             dao.close();
+            dsParent.childAdded(dsPath, FileType.FILE);
+            return builder.build();
         }
-        dsParent.childAdded(dsPath, FileType.FILE);
-        return builder.build();
     }
     
     public DatasetViewInfo getDatasetViewInfo(DcFile file, DatasetView view) throws IOException, NoSuchFileException {

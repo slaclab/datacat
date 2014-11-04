@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetView;
 import org.srs.vfs.PathUtils;
@@ -29,8 +31,16 @@ import org.srs.datacat.shared.LogicalFolder;
 public class BaseDAO implements AutoCloseable {
 
     private Connection conn;    
+    private final ReentrantLock lock;
+    
     public BaseDAO(Connection conn){
         this.conn = conn;
+        this.lock = null;
+    }
+    
+    public BaseDAO(Connection conn, ReentrantLock lock){
+        this.conn = conn;
+        this.lock = lock;
     }
     
     @Override
@@ -38,6 +48,9 @@ public class BaseDAO implements AutoCloseable {
         try {
             if(conn != null){
                 conn.close();
+            }
+            if(lock != null && lock.isHeldByCurrentThread()){
+                lock.unlock();
             }
         } catch(SQLException ex){
             throw new IOException("Error closing data source", ex);
@@ -48,6 +61,9 @@ public class BaseDAO implements AutoCloseable {
     public void commit() throws IOException {
         try {
             conn.commit();
+            if(lock != null && lock.isHeldByCurrentThread()){
+                lock.unlock();
+            }
         } catch(SQLException ex){
             throw new IOException("Error committing changes", ex);
         }
@@ -56,6 +72,9 @@ public class BaseDAO implements AutoCloseable {
     protected void rollback() throws SQLException {
         if(conn != null){
             conn.rollback();
+        }
+        if(lock != null && lock.isHeldByCurrentThread()){
+            lock.unlock();
         }
     }
     

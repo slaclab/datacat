@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
@@ -26,9 +27,13 @@ import org.srs.vfs.PathUtils;
 public class DatasetDAO extends BaseDAO {
     
     private static final String DEFAULT_DATA_SOURCE = "RESTFUL_API_v0.2";
-    
+
     public DatasetDAO(Connection conn){
         super( conn );
+    }
+
+    public DatasetDAO(Connection conn, ReentrantLock lock){
+        super(conn, lock);
     }
     
     public Dataset createDatasetNode(Long parentPk, DatacatObject.Type parentType, String path, Dataset request) throws IOException, FileSystemException{
