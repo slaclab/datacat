@@ -104,7 +104,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             final DirectoryStream.Filter<? super Path> filter, int max, DatasetView viewPrefetch) throws IOException{
         final DcPath dcPath = checkPath(dir);
         DcFile dirFile = resolveFile(dcPath);
-        checkPermission( dirFile, AclEntryPermission.READ_DATA );
+        checkPermission( dirFile, DcPermissions.READ);
         if(!dirFile.isDirectory()){
             throw new NotDirectoryException(dirFile.toString());
         }
@@ -138,7 +138,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             final DirectoryStream.Filter<? super Path> filter, final DatasetView viewPrefetch, final boolean cacheDatasets) throws IOException{
         final DcPath dcPath = checkPath( dir );
         final DcFile dirFile = resolveFile( dcPath );
-        checkPermission(dirFile, AclEntryPermission.READ_DATA );
+        checkPermission(dirFile, DcPermissions.READ);
         final DcAclFileAttributeView aclView = dirFile.
                 getAttributeView( DcAclFileAttributeView.class );
         if(!dirFile.isDirectory()){
@@ -204,7 +204,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
         final DcPath dcPath = checkPath(dir);
         final DcFile dirFile = resolveFile(dcPath);
-        checkPermission( dirFile, AclEntryPermission.READ_DATA );
+        checkPermission( dirFile, DcPermissions.READ);
         final ChildrenView<DcPath> view = dirFile.getAttributeView(ChildrenView.class);
         if(!view.hasCache()){
             throw new IOException("Error attempting to use cached child entries");
@@ -278,7 +278,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         DcPath dcPath = checkPath( path );
         try {
             DcFile f = resolveFile(dcPath);
-            checkPermission( f, AclEntryPermission.READ_DATA );
+            checkPermission( f, DcPermissions.READ);
             return f.getAttributeView( type );
         } catch(IOException ex) { 
             // Do nothing, just return null;].
@@ -291,7 +291,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             LinkOption... options) throws IOException{
         DcPath dcPath = checkPath( path );
         DcFile f = resolveFile(dcPath);
-        checkPermission( f, AclEntryPermission.READ_DATA );
+        checkPermission( f, DcPermissions.READ);
         if(f!=null){
             if(type == BasicFileAttributes.class || type == DcFile.class){
                 return (A) f;
@@ -319,7 +319,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             f = resolveFile(dcPath);
         }
         if(f!= null){
-            checkPermission( f, AclEntryPermission.READ_DATA );
+            checkPermission( f, DcPermissions.READ);
             return f;
         }
         AfsException.NO_SUCH_FILE.throwError( dcPath,"Unable to resolve file");
@@ -408,7 +408,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         String pathString = dsPath.toString();
         
         //checkPermission(dsParent, DcPermissions.CREATE_CHILD);
-        try (DatasetDAO dao = daoFactory.newDatasetDAO(pathString)){
+        try (DatasetDAO dao = daoFactory.newDatasetDAO(dsPath)){
             
             Dataset ds = null;
             Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
