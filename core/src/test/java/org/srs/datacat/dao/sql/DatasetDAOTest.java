@@ -54,11 +54,24 @@ public class DatasetDAOTest {
         DataSource d = harness.getDataSource();
         removeRecords(d.getConnection());
     }
+    
+    public static DatacatObject getDatacatObject(BaseDAO dao, String path) throws IOException, NoSuchFileException {
+        if(!PathUtils.isAbsolute( path )){
+            path = "/" + path;
+        }
+        path = PathUtils.normalize( path );
+        DatacatObject next = dao.getDatacatObject(null, "/");
+        int offsets[] = PathUtils.offsets(path);
+        for(int i = 1; i <= offsets.length; i++){
+            next = dao.getDatacatObject( next.getPk(), PathUtils.absoluteSubpath(path, i, offsets));
+        }
+        return next;
+    }
 
     public static void addRecords(Connection c) throws SQLException, IOException{
         ContainerDAO dao = new ContainerDAO(c);
         try {
-            dao.getDatacatObject(TEST_BASE_PATH);
+            getDatacatObject(dao, TEST_BASE_PATH);
             c.close();
             return;
         } catch (NoSuchFileException x){ }
@@ -82,7 +95,7 @@ public class DatasetDAOTest {
         
     public static void removeRecords(Connection conn) throws Exception {
         ContainerDAO dao = new ContainerDAO(conn);
-        DatacatObject folder = dao.getDatacatObject(TEST_BASE_PATH);
+        DatacatObject folder = getDatacatObject(dao, TEST_BASE_PATH);
         dao.deleteFolder(folder.getPk());
         DatasetDAO dsDao = new DatasetDAO(conn);
         dsDao.deleteDatasetDataType(TEST_DATATYPE_01);
@@ -130,7 +143,7 @@ public class DatasetDAOTest {
     private Dataset create(String path, Dataset ds) throws SQLException, IOException {
         DatasetDAO dao = new DatasetDAO(conn);
         System.out.println(path);
-        DatacatObject folder = dao.getDatacatObject(path);
+        DatacatObject folder = getDatacatObject(dao, path);
         return dao.insertDataset(folder.getPk(), DatacatObject.Type.FOLDER, PathUtils.resolve(path, ds.getName()), ds);
     }
     

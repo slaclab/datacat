@@ -88,20 +88,7 @@ public class BaseDAO implements AutoCloseable {
             stmt.executeUpdate();
         }
     }
-    
-    public DatacatObject getDatacatObject(String path) throws IOException, NoSuchFileException {
-        if(!PathUtils.isAbsolute( path )){
-            path = "/" + path;
-        }
-        path = PathUtils.normalize( path );
-        DatacatObject next = getDatacatObject(null, "/");
-        int offsets[] = PathUtils.offsets(path);
-        for(int i = 1; i <= offsets.length; i++){
-            next = getDatacatObject( next.getPk(), PathUtils.absoluteSubpath(path, i, offsets));
-        }
-        return next;
-    }
-    
+        
     public DatacatObject getObjectInParent(Long parentPk, String path) throws IOException, NoSuchFileException {
         return getDatacatObject(parentPk, path);
     }
