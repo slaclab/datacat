@@ -10,6 +10,7 @@ import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import org.srs.datacat.model.DatacatRecord;
 import org.srs.vfs.AbstractVirtualFile;
 import org.srs.vfs.ChildrenView;
 import org.srs.datacat.shared.DatacatObject;
@@ -37,7 +38,7 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     
     private final DatacatObject _object;
     private long _objectCreation = System.currentTimeMillis();
-    private DcRecord _record = null;
+    private DatacatRecord _record = null;
     
     public DcFile(DcPath path, DatacatObject object, DcAclFileAttributeView aclView){
         super(path, fileType(object));
@@ -146,11 +147,8 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
         return this._object;
     }
     
-    public DcRecord asRecord(){
-        if(this._record == null){
-            return new DcRecord(this._object);
-        }
-        return this._record;
+    public DatacatRecord asRecord(){
+        return this._object;
     }
 
     @Override

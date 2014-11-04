@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.locks.ReentrantLock;
+import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
@@ -24,7 +25,6 @@ import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.container.DatasetStat;
 import org.srs.datacat.shared.dataset.DatasetViewInfo;
-import org.srs.datacat.vfs.DcRecord;
 import org.srs.vfs.PathUtils;
 
 
@@ -45,7 +45,7 @@ public class ContainerDAO extends BaseDAO {
         super(conn, lock);
     }
     
-    public DatacatObject createContainer(DcRecord parent, String targetPath, DatacatObject request) throws IOException{
+    public DatacatObject createContainer(DatacatRecord parent, String targetPath, DatacatObject request) throws IOException{
         try {
             return insertContainer(parent.getPk(), targetPath.toString(), request);
         } catch (SQLException ex){
@@ -103,7 +103,7 @@ public class ContainerDAO extends BaseDAO {
         return retObject;
     }
     
-    public void deleteContainer(DcRecord container) throws IOException {
+    public void deleteContainer(DatacatRecord container) throws IOException {
         try {
             switch(container.getType()){
                 case GROUP:
@@ -128,7 +128,7 @@ public class ContainerDAO extends BaseDAO {
         delete1( deleteSql, groupPk);
     }
     
-    public BasicStat getBasicStat(DcRecord container) throws IOException {
+    public BasicStat getBasicStat(DatacatRecord container) throws IOException {
         boolean isFolder = container.getType() == DatacatObject.Type.FOLDER;
         String parent = isFolder ? "datasetlogicalfolder" : "datasetgroup";
 
@@ -165,7 +165,7 @@ public class ContainerDAO extends BaseDAO {
         }
     }
     
-    public DatasetStat getDatasetStat(DcRecord container) throws IOException {
+    public DatasetStat getDatasetStat(DatacatRecord container) throws IOException {
         String primaryTable;
         boolean isFolder = container.getType() == DatacatObject.Type.FOLDER;
         if(isFolder){
@@ -201,11 +201,11 @@ public class ContainerDAO extends BaseDAO {
         }
     }
     
-    public DirectoryStream<DatacatObject> getSubdirectoryStream(DcRecord parent) throws IOException {
+    public DirectoryStream<DatacatObject> getSubdirectoryStream(DatacatRecord parent) throws IOException {
         return getChildrenStream(parent, null);
     }
     
-    public DirectoryStream<DatacatObject> getChildrenStream(DcRecord parent, DatasetView viewPrefetch) throws IOException{
+    public DirectoryStream<DatacatObject> getChildrenStream(DatacatRecord parent, DatasetView viewPrefetch) throws IOException{
         try {
             return getChildrenStreamInternal(parent.getPk(), parent.getPath(), viewPrefetch );
         } catch (SQLException ex) {

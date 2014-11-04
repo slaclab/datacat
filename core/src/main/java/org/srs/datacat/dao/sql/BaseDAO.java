@@ -2,6 +2,8 @@
 package org.srs.datacat.dao.sql;
 
 import java.io.IOException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.NoSuchFileException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
+import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetView;
 import org.srs.vfs.PathUtils;
@@ -22,7 +25,7 @@ import org.srs.datacat.shared.DatasetGroup;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
-import org.srs.datacat.vfs.DcRecord;
+import org.srs.vfs.AbstractFsProvider.AfsException;
 
 /**
  *
@@ -89,11 +92,11 @@ public class BaseDAO implements AutoCloseable {
         }
     }
         
-    public DatacatObject getObjectInParent(DcRecord parent, String path) throws IOException, NoSuchFileException {
+    public DatacatObject getObjectInParent(DatacatRecord parent, String path) throws IOException, NoSuchFileException {
         return getDatacatObject(parent, path);
     }
     
-    protected DatacatObject getDatacatObject(DcRecord parent, String path) throws IOException, NoSuchFileException {
+    protected DatacatObject getDatacatObject(DatacatRecord parent, String path) throws IOException, NoSuchFileException {
         try {
             return getChild(parent, path);
         } catch(SQLException ex) {
@@ -101,7 +104,7 @@ public class BaseDAO implements AutoCloseable {
         }
     }
 
-    private DatacatObject getChild(DcRecord parent, String path) throws SQLException, NoSuchFileException{
+    private DatacatObject getChild(DatacatRecord parent, String path) throws SQLException, NoSuchFileException{
         int[] offsets = PathUtils.offsets(path);
         String fileName = PathUtils.getFileName(path, offsets);
         String parentPath = PathUtils.getParentPath(path, offsets);
@@ -252,7 +255,37 @@ public class BaseDAO implements AutoCloseable {
         }
     }
     
-    public void addMetadata(DcRecord record, Map metaData) throws IOException {
+    public void delete(DatacatRecord record) throws IOException{
+        if(record.getType().isContainer()){
+            doDeleteDirectory(record);
+        } else {
+            doDeleteDataset(record);
+        }
+    }
+    
+    protected void doDeleteDirectory(DatacatRecord record) throws DirectoryNotEmptyException, IOException{
+        if(!record.getType().isContainer()){
+            throw new IOException("Unable to delete object: Not a Group or Folder" + record.getType());
+        }
+        ContainerDAO dao = new ContainerDAO(getConnection());
+        // Verify directory is empty
+        try(DirectoryStream ds = dao.getChildrenStream(record, DatasetView.EMPTY)) {
+            if(ds.iterator().hasNext()){
+                AfsException.DIRECTORY_NOT_EMPTY.throwError(record.getPath(), "Container not empty" );
+            }
+        }
+        dao.deleteContainer(record);
+    }
+    
+    protected void doDeleteDataset(DatacatRecord record) throws IOException {
+        if(!(record.getType() == DatacatObject.Type.DATASET)){
+            throw new IOException("Can only delete Datacat objects");
+        }
+        DatasetDAO dao = new DatasetDAO(getConnection());
+        dao.deleteDataset(record);
+    }
+    
+    public void addMetadata(DatacatRecord record, Map metaData) throws IOException {
         try {
             switch(record.getType()){
                 case DATASETVERSION:

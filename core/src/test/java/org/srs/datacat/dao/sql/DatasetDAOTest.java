@@ -23,7 +23,6 @@ import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.test.HSqlDbHarness;
-import org.srs.datacat.vfs.DcRecord;
 import org.srs.vfs.PathUtils;
 
 /**
@@ -65,7 +64,7 @@ public class DatasetDAOTest {
         DatacatObject next = dao.getDatacatObject(null, "/");
         int offsets[] = PathUtils.offsets(path);
         for(int i = 1; i <= offsets.length; i++){
-            next = dao.getDatacatObject(new DcRecord(next), PathUtils.absoluteSubpath(path, i, offsets));
+            next = dao.getDatacatObject(next, PathUtils.absoluteSubpath(path, i, offsets));
         }
         return next;
     }
@@ -136,7 +135,7 @@ public class DatasetDAOTest {
                 .build();
         Dataset ds = create(TEST_BASE_PATH, req);
         Optional<DatasetVersion> versionOpt = Optional.absent();
-        DatasetVersion newVer = dao.createOrMergeDatasetVersion(new DcRecord(ds), req.getVersion(), versionOpt, false);
+        DatasetVersion newVer = dao.createOrMergeDatasetVersion(ds, req.getVersion(), versionOpt, false);
         System.out.println("Registered: " + newVer.toString());
         System.out.println(new Dataset.Builder(ds).version(newVer).build().toString());
         dao.deleteDatasetVersion(ds.getParentPk(), newVer);

@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,6 +20,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.shared.DatacatObject.Builder;
 import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.shared.dataset.FullDataset;
@@ -47,7 +47,7 @@ import org.srs.rest.shared.metadata.MetadataEntry;
     @JsonSubTypes.Type(DatasetLocation.class)
 })
 @JsonDeserialize(builder=Builder.class)
-public class DatacatObject implements Serializable {
+public class DatacatObject implements DatacatRecord {
 
     private Long pk;
     private Long parentPk;
@@ -335,7 +335,7 @@ public class DatacatObject implements Serializable {
             this.type = type;
             return (U) this;
         }
-
+        
         @JsonSetter(value = "type")
         public U jsonType(String val){
             this.type = Type.fromJsonType( val );

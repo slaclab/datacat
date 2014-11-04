@@ -55,6 +55,7 @@ import org.srs.vfs.ChildrenView;
 import org.srs.datacat.dao.sql.BaseDAO;
 import org.srs.datacat.dao.sql.DAOFactory;
 import org.srs.datacat.dao.sql.DatasetDAO;
+import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.shared.dataset.DatasetViewInfo;
 import org.srs.datacat.shared.dataset.DatasetWithView;
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
@@ -373,20 +374,20 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             DcAclFileAttributeView aclView;
             DatacatObject child;
             if(path.equals(path.getRoot())){
+                // Pseudo permissions applied to root
                 AclEntry e = AclEntry.newBuilder()
                         .setPrincipal(DcGroup.PUBLIC_GROUP)
                         .setPermissions(DcPermissions.READ)
                         .setFlags(AclEntryFlag.FILE_INHERIT, AclEntryFlag.DIRECTORY_INHERIT)
-                        .setType( AclEntryType.ALLOW )
+                        .setType(AclEntryType.ALLOW)
                         .build();
-                aclView = new DcAclFileAttributeView(Arrays.asList( e));
+                aclView = new DcAclFileAttributeView(Arrays.asList(e));
                 child = dao.getObjectInParent(null, path.toString());
             } else {
                 aclView = parent.getAttributeView(DcAclFileAttributeView.class);
                 child = dao.getObjectInParent(parent.asRecord(), path.toString());
             }
-            DcFile f = new DcFile(path, child, aclView);
-            return f;
+            return new DcFile(path, child, aclView);
         }
     }
     
@@ -403,12 +404,12 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             throw new IOException( "Not enough information to create create a Dataset node or view" );
         }
         DcPath dsPath = checkPath(path);
-        DcFile dsParent = resolveFile(dsPath.getParent());
-        String pathString = dsPath.toString();
-        
-        //checkPermission(dsParent, DcPermissions.CREATE_CHILD);
+
         try (DatasetDAO dao = daoFactory.newDatasetDAO(dsPath)){
+            DcFile dsParent = resolveFile(dsPath.getParent());
+            //checkPermission(dsParent, DcPermissions.CREATE_CHILD);
             
+            String pathString = dsPath.toString();
             Dataset ds = null;
             Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
             boolean createNode = dsOptions.remove(DatasetOption.CREATE_NODE);
@@ -522,7 +523,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         boolean skipVersionCheck = dsOptions.remove(DatasetOption.SKIP_VERSION_CHECK);
         boolean skipLocationCheck = dsOptions.remove(DatasetOption.SKIP_LOCATION_CHECK);
         List<DatasetLocation> retLocations = new ArrayList<>();
-        DcRecord dsRecord = new DcRecord(ds);
+        DatacatRecord dsRecord = ds;
         DatasetVersion curVersion = null;
         
         if(createVersion || mergeVersion) {
@@ -604,42 +605,16 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     @Override
     public void delete(Path path) throws IOException{
         DcPath dcPath = checkPath(path);
-        DcFile file = resolveFile( dcPath );
-        DcFile parentFile = resolveFile(dcPath.getParent());
-        // TODO: Delete permissions
-        // checkPermission( file, DcPermissions.DELETE );
-        if(file.isDirectory()){
-            doDeleteDirectory(file.asRecord());
-        } else if (file.isRegularFile()){
-            doDeleteDataset(file.asRecord());
-        }
-        getCache().removeFile(dcPath);
-        parentFile.childRemoved(dcPath);
-    }
-    
-    protected void doDeleteDirectory(DcRecord record) throws DirectoryNotEmptyException, IOException{
-        if(!record.getType().isContainer()){
-            throw new IOException("Unable to delete object: Not a Group or Folder" + record.getType());
-        }
-        try(ContainerDAO dao = daoFactory.newContainerDAO()){
-            // Verify directory is empty
-            try(DirectoryStream ds = dao.getChildrenStream(record, DatasetView.EMPTY)) {
-                if(ds.iterator().hasNext()){
-                    AfsException.DIRECTORY_NOT_EMPTY.throwError(record.getPath(), "Container not empty" );
-                }
-            }
-            dao.deleteContainer(record);
+        try(BaseDAO dao = daoFactory.newBaseDAO()){
+            DcFile file = resolveFile(dcPath);
+            // TODO: Delete permissions
+            // checkPermission( file, DcPermissions.DELETE );
+            dao.delete(file.asRecord());
             dao.commit();
         }
-    }
-    
-    protected void doDeleteDataset(DcRecord record) throws IOException {
-        if(!(record.getType() == DatacatObject.Type.DATASET)){
-            throw new IOException("Can only delete Datacat objects");
-        }
-        try(DatasetDAO dao = daoFactory.newDatasetDAO()){
-            dao.deleteDataset(record);
-        }
+        DcFile parentFile = resolveFile(dcPath.getParent());
+        getCache().removeFile(dcPath);
+        parentFile.childRemoved(dcPath);
     }
     
     /*

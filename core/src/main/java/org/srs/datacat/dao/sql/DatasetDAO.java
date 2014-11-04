@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
+import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
@@ -19,7 +20,6 @@ import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.DatasetViewInfo;
 import static org.srs.datacat.vfs.DcFileSystemProvider.DcFsException.*;
-import org.srs.datacat.vfs.DcRecord;
 import org.srs.vfs.PathUtils;
 
 /**
@@ -38,7 +38,7 @@ public class DatasetDAO extends BaseDAO {
         super(conn, lock);
     }
     
-    public Dataset createDatasetNode(DcRecord parent, String path, Dataset request) throws IOException, FileSystemException{
+    public Dataset createDatasetNode(DatacatRecord parent, String path, Dataset request) throws IOException, FileSystemException{
         try {
             return insertDataset(parent.getPk(), parent.getType(), path.toString(), request);
         } catch (SQLException ex){
@@ -46,7 +46,7 @@ public class DatasetDAO extends BaseDAO {
         }
     }
     
-    public void deleteDataset(DcRecord dataset) throws IOException {
+    public void deleteDataset(DatacatRecord dataset) throws IOException {
         try {
             deleteDataset(dataset.getPk());
         } catch (SQLException ex){
@@ -54,7 +54,7 @@ public class DatasetDAO extends BaseDAO {
         }
     }
     
-    public DatasetVersion createOrMergeDatasetVersion(DcRecord dsRecord, DatasetVersion request, Optional<DatasetVersion> curVersionOpt, boolean mergeVersion) throws IOException, FileSystemException{
+    public DatasetVersion createOrMergeDatasetVersion(DatacatRecord dsRecord, DatasetVersion request, Optional<DatasetVersion> curVersionOpt, boolean mergeVersion) throws IOException, FileSystemException{
         try {
             int newId = request.getVersionId();
             boolean isCurrent = true;
@@ -89,7 +89,7 @@ public class DatasetDAO extends BaseDAO {
         }
     }
     
-    public DatasetVersion getCurrentVersion(DcRecord dsRecord) throws IOException {
+    public DatasetVersion getCurrentVersion(DatacatRecord dsRecord) throws IOException {
         try {
             for(DatasetVersion v: getDatasetVersions(dsRecord.getPk())){
                 if(v.isLatest()){
@@ -102,7 +102,7 @@ public class DatasetDAO extends BaseDAO {
         }
     }
 
-    public DatasetViewInfo getDatasetViewInfo(DcRecord dsRecord, DatasetView view) throws IOException{
+    public DatasetViewInfo getDatasetViewInfo(DatacatRecord dsRecord, DatasetView view) throws IOException{
         try {
             return getDatasetViewInfoInternal(dsRecord.getPk(), view );
         } catch (SQLException ex){
