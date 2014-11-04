@@ -579,8 +579,8 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         ContainerCreationAttribute dsAttr = (ContainerCreationAttribute) attrs[0];
         DatacatObject request = dsAttr.value();
-        try (ContainerDAO dao = daoFactory.newContainerDAO()){
-            DatacatObject ret = dao.createContainer( parent.fileKey(), targetDir.toString(), request);
+        try (ContainerDAO dao = daoFactory.newContainerDAO(targetDir)){
+            DatacatObject ret = dao.createContainer(parent.fileKey(), targetDir.toString(), request);
             dao.commit();
             parent.childAdded(targetDir, FileType.DIRECTORY);
             DcFile f = new DcFile(targetDir, ret, parent.getAttributeView( DcAclFileAttributeView.class ));

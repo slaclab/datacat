@@ -93,6 +93,16 @@ public class DAOFactory {
         }
     }
     
+    public ContainerDAO newContainerDAO(DcPath lockPath) throws IOException{
+        try {
+            ReentrantLock lock = locker.prepareLease(lockPath);
+            lock.lock();
+            return new ContainerDAO(dataSource.getConnection(), lock);
+        } catch(SQLException ex) {
+            throw new IOException("Error connecting to data source", ex);
+        }
+    }
+    
     public ContainerDAO newContainerDAO() throws IOException{
         try {
             return new ContainerDAO(dataSource.getConnection());

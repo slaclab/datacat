@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
@@ -37,6 +38,10 @@ public class ContainerDAO extends BaseDAO {
 
     public ContainerDAO(Connection conn){
         super( conn );
+    }
+    
+    public ContainerDAO(Connection conn, ReentrantLock lock){
+        super(conn, lock);
     }
     
     public DatacatObject createContainer(Long parentPk, String targetPath, DatacatObject request) throws IOException{
