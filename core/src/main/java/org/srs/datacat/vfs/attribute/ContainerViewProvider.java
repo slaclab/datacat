@@ -96,12 +96,12 @@ public class ContainerViewProvider implements DcViewProvider<StatType> {
             if(!stats.containsKey( wantName )){
                 try(ContainerDAO dao = daoFactory.newContainerDAO()) {
                     if(!stats.containsKey( basicName )){
-                        stats.put( basicName, dao.getBasicStat( file.getObject() ) );
+                        stats.put(basicName, dao.getBasicStat(file.asRecord()));
                     }
                     basicStat = stats.get( basicName );
                     if(statType == StatType.DATASET){
-                        BasicStat s = dao.getDatasetStat( file.getObject(), basicStat );
-                        stats.put( statType.toString(), s );
+                        BasicStat s = dao.getDatasetStat(file.asRecord());
+                        stats.put(statType.toString(), s);
                     }
                 }
             }
