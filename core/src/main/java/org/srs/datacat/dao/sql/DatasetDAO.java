@@ -1,6 +1,7 @@
 
 package org.srs.datacat.dao.sql;
 
+import com.google.common.base.Optional;
 import java.io.IOException;
 import java.nio.file.FileSystemException;
 import java.sql.Connection;
@@ -18,6 +19,7 @@ import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.DatasetViewInfo;
 import static org.srs.datacat.vfs.DcFileSystemProvider.DcFsException.*;
+import org.srs.datacat.vfs.DcRecord;
 import org.srs.vfs.PathUtils;
 
 /**
@@ -36,63 +38,60 @@ public class DatasetDAO extends BaseDAO {
         super(conn, lock);
     }
     
-    public Dataset createDatasetNode(Long parentPk, DatacatObject.Type parentType, String path, Dataset request) throws IOException, FileSystemException{
+    public Dataset createDatasetNode(DcRecord parent, String path, Dataset request) throws IOException, FileSystemException{
         try {
-            return insertDataset( parentPk, parentType, path.toString(), request );
+            return insertDataset(parent.getPk(), parent.getType(), path.toString(), request);
         } catch (SQLException ex){
             throw new IOException("Unable to insert node: " + path, ex);
         }
     }
     
-    public void deleteDataset(DatacatObject dataset) throws IOException {
-        if( !(dataset instanceof Dataset)){
-            throw new IOException("Can only delete Datacat objects");
-        }
+    public void deleteDataset(DcRecord dataset) throws IOException {
         try {
-            deleteDataset( dataset.getPk());
+            deleteDataset(dataset.getPk());
         } catch (SQLException ex){
             throw new IOException("Error deleting dataset: " + dataset.getPath(), ex);
         }
     }
-        
-    public DatasetVersion createOrMergeDatasetVersion(Long datasetPk, String dsPath, DatasetVersion currentVersion, 
-            DatasetVersion request, boolean mergeVersion, boolean skipVersionCheck) throws IOException, FileSystemException{
+    
+    public DatasetVersion createOrMergeDatasetVersion(DcRecord dsRecord, DatasetVersion request, Optional<DatasetVersion> curVersionOpt, boolean mergeVersion) throws IOException, FileSystemException{
         try {
             int newId = request.getVersionId();
             boolean isCurrent = true;
             // If there exists a version already and we aren't skipping the check...
-            if(currentVersion != null && !skipVersionCheck){
+            if(curVersionOpt.isPresent()){
+                DatasetVersion currentVersion = curVersionOpt.get();
                 int currentId = currentVersion.getVersionId();
                 if(mergeVersion){
-                    newId = getMergeVersionId(dsPath, currentId, newId);
+                    newId = getMergeVersionId(dsRecord.getPath(), currentId, newId);
                     if(newId == currentId){
-                        deleteDatasetVersion(datasetPk, currentVersion);
+                        deleteDatasetVersion(dsRecord.getPk(), currentVersion);
                     }
                 } else {
                     // Will throw an error if the record exists.
-                    newId = getCreationVersionID(dsPath, currentId, newId);
+                    newId = getCreationVersionID(dsRecord.getPath(), currentId, newId);
                 }
             }
-            return insertDatasetVersion(datasetPk, newId, isCurrent, request);
+            return insertDatasetVersion(dsRecord.getPk(), newId, isCurrent, request);
         } catch (SQLException ex){
             throw new IOException("Unable to create or merge version", ex);
         }
     }
     
-    public DatasetLocation createDatasetLocation(DatasetVersion version, String path, DatasetLocation newLoc, boolean skipCheck) throws IOException, FileSystemException{
+    public DatasetLocation createDatasetLocation(Long versionPk, String path, DatasetLocation newLoc, boolean skipCheck) throws IOException, FileSystemException{
         try {
             if(!skipCheck){
-                assertCanCreateLocation(version.getPk(), path, newLoc);
+                assertCanCreateLocation(versionPk, path, newLoc);
             }
-            return insertDatasetLocation(version.getPk(), newLoc);
+            return insertDatasetLocation(versionPk, newLoc);
         } catch (SQLException ex){
             throw new IOException("Unable to check and/or insert dataset location", ex);
         }
     }
     
-    public DatasetVersion getCurrentVersion(Long datasetPk) throws IOException {
+    public DatasetVersion getCurrentVersion(DcRecord dsRecord) throws IOException {
         try {
-            for(DatasetVersion v: getDatasetVersions(datasetPk)){
+            for(DatasetVersion v: getDatasetVersions(dsRecord.getPk())){
                 if(v.isLatest()){
                     return v;
                 }
@@ -103,9 +102,9 @@ public class DatasetDAO extends BaseDAO {
         }
     }
 
-    public DatasetViewInfo getDatasetViewInfo(Long datasetPk, DatasetView view) throws IOException{
+    public DatasetViewInfo getDatasetViewInfo(DcRecord dsRecord, DatasetView view) throws IOException{
         try {
-            return getDatasetViewInfoInternal( datasetPk, view );
+            return getDatasetViewInfoInternal(dsRecord.getPk(), view );
         } catch (SQLException ex){
             throw new IOException("Failed to retrieve version", ex);
         }
@@ -343,7 +342,7 @@ public class DatasetDAO extends BaseDAO {
             retVersion = builder.build();
         }
         if(request.getMetadata() != null){
-            addDatasetVersionMetadata(retVersion, request.getMetadataMap());
+            addDatasetVersionMetadata(retVersion.getPk(), request.getMetadataMap());
         }
         // Update isLatest
         if(retVersion.isLatest()){

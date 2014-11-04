@@ -1,6 +1,7 @@
 
 package org.srs.datacat.vfs;
 
+import com.google.common.base.Optional;
 import org.srs.datacat.vfs.security.DcPermissions;
 import java.io.IOException;
 import java.net.URI;
@@ -144,14 +145,14 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         if(!dirFile.isDirectory()){
             throw new NotDirectoryException( dirFile.toString() );
         }
-        Long fileKey = dirFile.fileKey();
+
         // !IMPORTANT!: This object is closed when the stream is closed
         final ContainerDAO dao = daoFactory.newContainerDAO(); 
         DirectoryStream<DatacatObject> stream;
         if(viewPrefetch != null){
-            stream = dao.getChildrenStream(fileKey, dcPath.toString(), viewPrefetch);
+            stream = dao.getChildrenStream(dirFile.asRecord(), viewPrefetch);
         } else {
-            stream = dao.getSubdirectoryStream(fileKey, dcPath.toString());
+            stream = dao.getSubdirectoryStream(dirFile.asRecord());
         }
 
         final Iterator<DatacatObject> iter = stream.iterator();
@@ -382,8 +383,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                 child = dao.getObjectInParent(null, path.toString());
             } else {
                 aclView = parent.getAttributeView(DcAclFileAttributeView.class);
-                DatacatObject par = parent.getObject();
-                child = dao.getObjectInParent( par.getPk(), path.toString());
+                child = dao.getObjectInParent(parent.asRecord(), path.toString());
             }
             DcFile f = new DcFile(path, child, aclView);
             return f;
@@ -404,7 +404,6 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         DcPath dsPath = checkPath(path);
         DcFile dsParent = resolveFile(dsPath.getParent());
-        long parentPk = dsParent.fileKey();
         String pathString = dsPath.toString();
         
         //checkPermission(dsParent, DcPermissions.CREATE_CHILD);
@@ -419,12 +418,12 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                 if(!options.contains(DatasetOption.SKIP_NODE_CHECK) && exists(dsPath)){ 
                     DcFsException.DATASET_EXISTS.throwError(dsPath.toString(), "A dataset node already exists at this location");
                 }
-                ds = dao.createDatasetNode(parentPk, dsParent.getObject().getType(), pathString, dsReq);
+                ds = dao.createDatasetNode(dsParent.asRecord(), pathString, dsReq);
                 dsOptions.add(DatasetOption.SKIP_VERSION_CHECK); // If we added a node, skip version check
             }
             
             if(ds == null){   // No DatasetOption.CREATE_NODE, find current dataset instead
-                DatacatObject o = dao.getObjectInParent(parentPk, pathString);
+                DatacatObject o = dao.getObjectInParent(dsParent.asRecord(), pathString);
                 if(!(o instanceof Dataset)){
                     AfsException.NO_SUCH_FILE.throwError(pathString, "Target is not a dataset");
                 }
@@ -464,7 +463,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     
     public DatasetViewInfo getDatasetViewInfo(DcFile file, DatasetView view) throws IOException, NoSuchFileException {
         try(DatasetDAO dsdao = daoFactory.newDatasetDAO()) {
-            DatasetViewInfo ret = dsdao.getDatasetViewInfo(file.fileKey(), view);
+            DatasetViewInfo ret = dsdao.getDatasetViewInfo(file.asRecord(), view);
             if(ret == null){
                 throw new NoSuchFileException(String.format("Invalid View. Version %d not found", view.getVersionId()));
             }
@@ -523,31 +522,31 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         boolean skipVersionCheck = dsOptions.remove(DatasetOption.SKIP_VERSION_CHECK);
         boolean skipLocationCheck = dsOptions.remove(DatasetOption.SKIP_LOCATION_CHECK);
         List<DatasetLocation> retLocations = new ArrayList<>();
-        String path = ds.getPath();
+        DcRecord dsRecord = new DcRecord(ds);
         DatasetVersion curVersion = null;
         
         if(createVersion || mergeVersion) {
-            curVersion = skipVersionCheck ? null : dao.getCurrentVersion(ds.getPk());
             if(!reqView.versionOpt().isPresent()){
                 throw new IllegalArgumentException("Missing version from request");
             }
-            curVersion = dao.createOrMergeDatasetVersion(ds.getPk(), path, curVersion, reqView.getVersion(), mergeVersion, skipVersionCheck);
+            Optional<DatasetVersion> versionOpt = Optional.fromNullable(skipVersionCheck ? null : dao.getCurrentVersion(dsRecord));
+            curVersion = dao.createOrMergeDatasetVersion(dsRecord, reqView.getVersion(), versionOpt, mergeVersion);
             skipLocationCheck = true;
         } else {
             /* We didn't create or merge a version, so we're only creating a location.
                If skipVersionCheck, use reqVersion otherwise get current version */
-            curVersion = skipVersionCheck ? reqView.getVersion() : dao.getCurrentVersion(ds.getPk());
+            curVersion = skipVersionCheck ? reqView.getVersion() : dao.getCurrentVersion(dsRecord);
         }
 
         if(createLocations){
             if(curVersion == null){
-                DcFsException.NO_SUCH_VERSION.throwError(path, "No version exists which we can add a location to");
+                DcFsException.NO_SUCH_VERSION.throwError(dsRecord.getPath(), "No version exists which we can add a location to");
             }
             if(!reqView.locationsOpt().isPresent() || reqView.getLocations().isEmpty()){
                 throw new IllegalArgumentException("Unable to create the view specified without locations");
             }
             for(DatasetLocation reqLocation: reqView.getLocations()){
-                DatasetLocation l = dao.createDatasetLocation(curVersion, path, reqLocation, skipLocationCheck);
+                DatasetLocation l = dao.createDatasetLocation(curVersion.getPk(), dsRecord.getPath(), reqLocation, skipLocationCheck);
                 retLocations.add(l);
             }
         }
@@ -580,7 +579,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         ContainerCreationAttribute dsAttr = (ContainerCreationAttribute) attrs[0];
         DatacatObject request = dsAttr.value();
         try (ContainerDAO dao = daoFactory.newContainerDAO(targetDir)){
-            DatacatObject ret = dao.createContainer(parent.fileKey(), targetDir.toString(), request);
+            DatacatObject ret = dao.createContainer(parent.asRecord(), targetDir.toString(), request);
             dao.commit();
             parent.childAdded(targetDir, FileType.DIRECTORY);
             DcFile f = new DcFile(targetDir, ret, parent.getAttributeView( DcAclFileAttributeView.class ));
@@ -610,30 +609,36 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         // TODO: Delete permissions
         // checkPermission( file, DcPermissions.DELETE );
         if(file.isDirectory()){
-            doDeleteDirectory(dcPath.toString(), file);
+            doDeleteDirectory(file.asRecord());
         } else if (file.isRegularFile()){
-            doDeleteDataset(dcPath.toString(), file );
+            doDeleteDataset(file.asRecord());
         }
         getCache().removeFile(dcPath);
         parentFile.childRemoved(dcPath);
     }
     
-    protected void doDeleteDirectory(String path, DcFile file) throws DirectoryNotEmptyException, IOException{
-        try(ContainerDAO dao = daoFactory.newContainerDAO()) {
+    protected void doDeleteDirectory(DcRecord record) throws DirectoryNotEmptyException, IOException{
+        if(!record.getType().isContainer()){
+            throw new IOException("Unable to delete object: Not a Group or Folder" + record.getType());
+        }
+        try(ContainerDAO dao = daoFactory.newContainerDAO()){
             // Verify directory is empty
-            try(DirectoryStream ds = dao.getChildrenStream( file.fileKey(), path, DatasetView.EMPTY )) {
+            try(DirectoryStream ds = dao.getChildrenStream(record, DatasetView.EMPTY)) {
                 if(ds.iterator().hasNext()){
-                    AfsException.DIRECTORY_NOT_EMPTY.throwError( path, "Container not empty" );
+                    AfsException.DIRECTORY_NOT_EMPTY.throwError(record.getPath(), "Container not empty" );
                 }
             }
-            dao.deleteContainer( file.getObject() );
+            dao.deleteContainer(record);
             dao.commit();
         }
     }
     
-    protected void doDeleteDataset(String path, DcFile file) throws IOException {
+    protected void doDeleteDataset(DcRecord record) throws IOException {
+        if(!(record.getType() == DatacatObject.Type.DATASET)){
+            throw new IOException("Can only delete Datacat objects");
+        }
         try(DatasetDAO dao = daoFactory.newDatasetDAO()){
-            dao.deleteDataset(file.getObject());
+            dao.deleteDataset(record);
         }
     }
     

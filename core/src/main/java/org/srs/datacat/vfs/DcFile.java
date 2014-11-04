@@ -37,6 +37,7 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     
     private final DatacatObject _object;
     private long _objectCreation = System.currentTimeMillis();
+    private DcRecord _record = null;
     
     public DcFile(DcPath path, DatacatObject object, DcAclFileAttributeView aclView){
         super(path, fileType(object));
@@ -143,6 +144,13 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     
     public DatacatObject getObject(){
         return this._object;
+    }
+    
+    public DcRecord asRecord(){
+        if(this._record == null){
+            return new DcRecord(this._object);
+        }
+        return this._record;
     }
 
     @Override

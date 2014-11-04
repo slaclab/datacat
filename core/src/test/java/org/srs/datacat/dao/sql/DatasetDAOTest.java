@@ -1,6 +1,7 @@
 
 package org.srs.datacat.dao.sql;
 
+import com.google.common.base.Optional;
 import org.srs.datacat.dao.sql.DatasetDAO;
 import org.srs.datacat.dao.sql.ContainerDAO;
 import java.io.IOException;
@@ -22,6 +23,7 @@ import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.test.HSqlDbHarness;
+import org.srs.datacat.vfs.DcRecord;
 import org.srs.vfs.PathUtils;
 
 /**
@@ -63,7 +65,7 @@ public class DatasetDAOTest {
         DatacatObject next = dao.getDatacatObject(null, "/");
         int offsets[] = PathUtils.offsets(path);
         for(int i = 1; i <= offsets.length; i++){
-            next = dao.getDatacatObject( next.getPk(), PathUtils.absoluteSubpath(path, i, offsets));
+            next = dao.getDatacatObject(new DcRecord(next), PathUtils.absoluteSubpath(path, i, offsets));
         }
         return next;
     }
@@ -133,8 +135,8 @@ public class DatasetDAOTest {
                 .datasetSource(TEST_DATASET_SOURCE)
                 .build();
         Dataset ds = create(TEST_BASE_PATH, req);
-        
-        DatasetVersion newVer = dao.createOrMergeDatasetVersion(ds.getPk(), req.getPath(), null, req.getVersion(), false, true);
+        Optional<DatasetVersion> versionOpt = Optional.absent();
+        DatasetVersion newVer = dao.createOrMergeDatasetVersion(new DcRecord(ds), req.getVersion(), versionOpt, false);
         System.out.println("Registered: " + newVer.toString());
         System.out.println(new Dataset.Builder(ds).version(newVer).build().toString());
         dao.deleteDatasetVersion(ds.getParentPk(), newVer);

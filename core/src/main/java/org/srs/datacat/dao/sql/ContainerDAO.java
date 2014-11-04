@@ -24,6 +24,7 @@ import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.container.DatasetStat;
 import org.srs.datacat.shared.dataset.DatasetViewInfo;
+import org.srs.datacat.vfs.DcRecord;
 import org.srs.vfs.PathUtils;
 
 
@@ -44,9 +45,9 @@ public class ContainerDAO extends BaseDAO {
         super(conn, lock);
     }
     
-    public DatacatObject createContainer(Long parentPk, String targetPath, DatacatObject request) throws IOException{
+    public DatacatObject createContainer(DcRecord parent, String targetPath, DatacatObject request) throws IOException{
         try {
-            return insertContainer( parentPk, targetPath.toString(), request );
+            return insertContainer(parent.getPk(), targetPath.toString(), request);
         } catch (SQLException ex){
             throw new IOException("Unable to create container", ex);
         }
@@ -102,7 +103,7 @@ public class ContainerDAO extends BaseDAO {
         return retObject;
     }
     
-    public void deleteContainer(DatacatObject container) throws IOException {
+    public void deleteContainer(DcRecord container) throws IOException {
         try {
             switch(container.getType()){
                 case GROUP:
@@ -115,7 +116,6 @@ public class ContainerDAO extends BaseDAO {
         } catch (SQLException ex){
             throw new IOException("Unable to delete object: " +  container.getPath(), ex);
         }
-        throw new IOException("Unable to delete object: Not a Group or Folder" + container.getType());
     }
     
     protected void deleteFolder(long folderPk) throws SQLException {
@@ -128,19 +128,20 @@ public class ContainerDAO extends BaseDAO {
         delete1( deleteSql, groupPk);
     }
     
-    public BasicStat getBasicStat(DatacatObject container) throws IOException {
-        String parent = container instanceof LogicalFolder ? "datasetlogicalfolder" : "datasetgroup";
+    public BasicStat getBasicStat(DcRecord container) throws IOException {
+        boolean isFolder = container.getType() == DatacatObject.Type.FOLDER;
+        String parent = isFolder ? "datasetlogicalfolder" : "datasetgroup";
 
         String statSQL = "select 'D' type, count(1) count from verdataset where " + parent + " = ? ";
-        if(container instanceof LogicalFolder){
+        if(isFolder){
             statSQL = statSQL + "UNION ALL select 'G' type, count(1) count from datasetgroup where datasetlogicalfolder = ? ";
             statSQL = statSQL + "UNION ALL select 'F' type, count(1) count from datasetlogicalfolder where parent = ? ";
         }
         try(PreparedStatement stmt = getConnection().prepareStatement( statSQL )) {
-            stmt.setLong( 1, ((DatacatObject) container).getPk() );
-            if(container instanceof LogicalFolder){
-                stmt.setLong( 2, ((DatacatObject) container).getPk() );
-                stmt.setLong( 3, ((DatacatObject) container).getPk() );
+            stmt.setLong( 1, container.getPk());
+            if(isFolder){
+                stmt.setLong(2, container.getPk());
+                stmt.setLong(3, container.getPk());
             }
             ResultSet rs = stmt.executeQuery();
             BasicStat cs = new BasicStat();
@@ -164,9 +165,10 @@ public class ContainerDAO extends BaseDAO {
         }
     }
     
-    public DatasetStat getDatasetStat(DatacatObject container, BasicStat stat) throws IOException {
+    public DatasetStat getDatasetStat(DcRecord container) throws IOException {
         String primaryTable;
-        if(container instanceof LogicalFolder){
+        boolean isFolder = container.getType() == DatacatObject.Type.FOLDER;
+        if(isFolder){
             primaryTable = "datasetlogicalfolder";
         } else {
             primaryTable = "datasetgroup";
@@ -187,7 +189,7 @@ public class ContainerDAO extends BaseDAO {
             if(!rs.next()){
                 throw new SQLException("Unable to determine dataset stat");
             }
-            DatasetStat ds = new DatasetStat(stat);
+            DatasetStat ds = new DatasetStat(getBasicStat( container ));
             ds.setDatasetCount( rs.getInt("files") );
             ds.setEventCount( rs.getLong( "events") );
             ds.setDiskUsageBytes( rs.getLong( "totalsize") );
@@ -199,14 +201,13 @@ public class ContainerDAO extends BaseDAO {
         }
     }
     
-    public DirectoryStream<DatacatObject> getSubdirectoryStream(Long parentPk, final String parentPath) throws IOException {
-        return getChildrenStream( parentPk, parentPath, null);
+    public DirectoryStream<DatacatObject> getSubdirectoryStream(DcRecord parent) throws IOException {
+        return getChildrenStream(parent, null);
     }
-       
-    public DirectoryStream<DatacatObject> getChildrenStream(Long parentPk, final String parentPath, 
-            DatasetView viewPrefetch) throws IOException{
+    
+    public DirectoryStream<DatacatObject> getChildrenStream(DcRecord parent, DatasetView viewPrefetch) throws IOException{
         try {
-            return getChildrenStreamInternal( parentPk, parentPath, viewPrefetch );
+            return getChildrenStreamInternal(parent.getPk(), parent.getPath(), viewPrefetch );
         } catch (SQLException ex) {
             throw new IOException(ex);
         }

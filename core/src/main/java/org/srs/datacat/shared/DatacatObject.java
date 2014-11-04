@@ -111,7 +111,7 @@ public class DatacatObject implements Serializable {
         this(object.pk, object.parentPk, object.name);
         this.path = object.path;
         if(object.metadata != null){
-            this.metadata.putAll( object.metadata);
+            this.metadata.putAll(object.metadata);
         }
     }
     

@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetView;
@@ -23,13 +22,14 @@ import org.srs.datacat.shared.DatasetGroup;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
+import org.srs.datacat.vfs.DcRecord;
 
 /**
  *
  * @author bvan
  */
 public class BaseDAO implements AutoCloseable {
-
+ 
     private Connection conn;    
     private final ReentrantLock lock;
     
@@ -89,19 +89,19 @@ public class BaseDAO implements AutoCloseable {
         }
     }
         
-    public DatacatObject getObjectInParent(Long parentPk, String path) throws IOException, NoSuchFileException {
-        return getDatacatObject(parentPk, path);
+    public DatacatObject getObjectInParent(DcRecord parent, String path) throws IOException, NoSuchFileException {
+        return getDatacatObject(parent, path);
     }
     
-    protected DatacatObject getDatacatObject(Long parentPk, String path) throws IOException, NoSuchFileException {
+    protected DatacatObject getDatacatObject(DcRecord parent, String path) throws IOException, NoSuchFileException {
         try {
-            return getChild(parentPk, path);
+            return getChild(parent, path);
         } catch(SQLException ex) {
             throw new IOException("Unknown exception occurred in the database", ex);
         }
     }
 
-    private DatacatObject getChild(Long parentPk, String path) throws SQLException, NoSuchFileException{
+    private DatacatObject getChild(DcRecord parent, String path) throws SQLException, NoSuchFileException{
         int[] offsets = PathUtils.offsets(path);
         String fileName = PathUtils.getFileName(path, offsets);
         String parentPath = PathUtils.getParentPath(path, offsets);
@@ -133,7 +133,7 @@ public class BaseDAO implements AutoCloseable {
         DatacatObject.Builder builder = null;
         try(PreparedStatement stmt = getConnection().prepareStatement( sql )) {
             if(nameParam != null){
-                stmt.setLong( 1, parentPk);
+                stmt.setLong( 1, parent != null ? parent.getPk() : null);
                 stmt.setString( 2, nameParam);
             }
             ResultSet rs = stmt.executeQuery();
@@ -252,28 +252,28 @@ public class BaseDAO implements AutoCloseable {
         }
     }
     
-    public void addMetadata(DatacatObject object, Map metaData) throws IOException {
+    public void addMetadata(DcRecord record, Map metaData) throws IOException {
         try {
-            switch(object.getType()){
+            switch(record.getType()){
                 case DATASETVERSION:
-                    addDatasetVersionMetadata((DatasetVersion) object, metaData);
+                    addDatasetVersionMetadata(record.getPk(), metaData);
                     break;
                 case GROUP:
-                    addGroupMetadata( object.getPk(), metaData);
+                    addGroupMetadata(record.getPk(), metaData);
                     break;
                 case FOLDER:
-                    addFolderMetadata(object.getPk(), metaData);
+                    addFolderMetadata(record.getPk(), metaData);
                     break;
                 default:
-                    throw new IOException("Unable to add metadata to object type: " + object.getType().toString());
+                    throw new IOException("Unable to add metadata to object type: " + record.getType());
             }
         } catch (SQLException ex){
             throw new IOException("Unable to add metadata to object", ex);
         }
     }
     
-    protected void addDatasetVersionMetadata(DatasetVersion version, Map metaData) throws SQLException{
-        addDatacatObjectMetadata( version.getPk(), metaData, "VerDataset", "DatasetVersion" );
+    protected void addDatasetVersionMetadata(Long pk, Map metaData) throws SQLException{
+        addDatacatObjectMetadata(pk, metaData, "VerDataset", "DatasetVersion" );
     }
 
     protected void addGroupMetadata(long datasetGroupPK, Map metaData) throws SQLException{
