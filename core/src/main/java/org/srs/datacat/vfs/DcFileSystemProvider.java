@@ -340,7 +340,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         AclEntryPermission perm = DcPermissions.READ;
         if(modes.length > 0){
             if(modes[0] == AccessMode.WRITE){
-                perm = DcPermissions.MODIFY;
+                perm = DcPermissions.WRITE;
             }
         }
         checkPermission(file, perm);
