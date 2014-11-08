@@ -15,16 +15,8 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 
-import java.nio.file.attribute.AclEntry;
-import java.nio.file.attribute.AclEntryPermission;
-import java.nio.file.attribute.AclEntryType;
-import java.nio.file.attribute.AclFileAttributeView;
-import java.nio.file.attribute.UserPrincipal;
-
 import java.nio.file.spi.FileSystemProvider;
 
-import java.security.acl.Group;
-import org.srs.vfs.AbstractFsProvider.AfsException;
 
 /**
  *
@@ -62,7 +54,7 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
     public abstract P getPath(URI uri);
     
     public abstract V retrieveFileAttributes(P path, V parent) throws NoSuchFileException, IOException;
-
+    
     public V resolveFile(P path) throws NoSuchFileException, IOException {
         // Find this file in the cache. If it's not in the cache, resolve it's parents
         // (thereby putting them in the cache), and eventually this file.
@@ -79,37 +71,6 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
         return file;
     }
             
-    public void checkPermission(V file, AclEntryPermission permission) throws IOException {
-        AbstractPath path = file.getPath();
-        String userName = path.getUserName();
-        AbstractFs fs = path.getFileSystem();
-        UserPrincipal user = fs.getUserPrincipalLookupService().lookupPrincipalByName(userName);
-        
-        AclFileAttributeView aclView = file.getAttributeView(AclFileAttributeView.class);
-        
-        for(AclEntry entry: aclView.getAcl()){
-            UserPrincipal principal = entry.principal();
-            if(entry.type() == AclEntryType.ALARM || entry.type() == AclEntryType.AUDIT){
-                AfsException.ACCESS_DENIED.throwError(path, "Unsupported Access Control Entry found: " + entry.type());
-            }
-            boolean allow = entry.type() == AclEntryType.ALLOW;
-            if(principal instanceof Group){
-                boolean isMember = ((Group) principal).isMember( user );
-                boolean hasPermission = entry.permissions().contains(permission);
-                if(isMember && hasPermission){
-                    if(allow){
-                        return;
-                    } else {
-                        AfsException.ACCESS_DENIED.throwError(path, "User disallowed access to path");
-                    }
-                }
-            }
-        }
-        AfsException.ACCESS_DENIED.throwError(path, "No Access Control Entries Found");
-    }
-
-
-    
     @Override
     public void copy(Path source, Path target, CopyOption... options) throws IOException{
         throw new UnsupportedOperationException( "Unimplemented feature" ); 
