@@ -47,7 +47,7 @@ public class ContainerDAO extends BaseDAO {
     
     public DatacatObject createContainer(DatacatRecord parent, String targetPath, DatacatObject request) throws IOException{
         try {
-            return insertContainer(parent.getPk(), targetPath.toString(), request);
+            return insertContainer(parent.getPk(), targetPath, request);
         } catch (SQLException ex){
             throw new IOException("Unable to create container", ex);
         }
@@ -212,21 +212,21 @@ public class ContainerDAO extends BaseDAO {
             throw new IOException(ex);
         }
     }
-        
+    
     private DirectoryStream<DatacatObject> getChildrenStreamInternal(Long parentPk, final String parentPath, 
             DatasetView viewPrefetch) throws SQLException, IOException{
-        String sql = "WITH OBJECTS (type, pk, name, parent) AS ( "
-                + "    SELECT 'F', datasetlogicalfolder, name, parent "
+        String sql = "WITH OBJECTS (type, pk, name, parent, acl) AS ( "
+                + "    SELECT 'F', datasetlogicalfolder, name, parent, acl "
                 + "      FROM datasetlogicalfolder "
                 + "  UNION ALL "
-                + "    SELECT 'G', datasetGroup, name, datasetLogicalFolder "
+                + "    SELECT 'G', datasetGroup, name, datasetLogicalFolder, acl "
                 + "      FROM DatasetGroup "
                 + ( viewPrefetch != null ? "  UNION ALL "
                 + "    SELECT   'D', dataset, datasetName, "
-                + "      CASE WHEN datasetlogicalfolder is not null THEN datasetlogicalfolder else datasetgroup END "
+                + "      CASE WHEN datasetlogicalfolder is not null THEN datasetlogicalfolder else datasetgroup END, acl "
                 + "      FROM VerDataset " : " " )
                 + ") "
-                + "SELECT type, pk, name, parent FROM OBJECTS "
+                + "SELECT type, pk, name, parent, acl FROM OBJECTS "
                 + "  WHERE parent = ? "
                 + "  ORDER BY name";
         

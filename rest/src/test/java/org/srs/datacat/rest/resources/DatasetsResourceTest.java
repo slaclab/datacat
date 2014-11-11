@@ -42,6 +42,7 @@ import org.srs.datacat.rest.FormParamConverter;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.DcPath;
+import org.srs.datacat.vfs.TestUtils;
 import static org.srs.datacat.vfs.TestUtils.alphaMdValues;
 import static org.srs.datacat.vfs.TestUtils.alphaName;
 import static org.srs.datacat.vfs.TestUtils.numberMdValues;
@@ -78,7 +79,11 @@ public class DatasetsResourceTest extends JerseyTest {
 
         }
 
-        ResourceConfig app = new App(harness.getDataSource()).register(ContainerResource.class).register( PathResource.class).register(DatasetsResource.class);
+        ResourceConfig app = new App(harness.getDataSource(), TestUtils.getLookupService())
+                .register(TestSecurityFilter.class)
+                .register(ContainerResource.class)
+                .register(PathResource.class)
+                .register(DatasetsResource.class);
         app.property( ServerProperties.TRACING, "ALL");
         for(Resource r: app.getResources()){
             System.out.println(r.getPath());
@@ -129,6 +134,7 @@ public class DatasetsResourceTest extends JerseyTest {
         Response resp = target("/datasets.json" + parent)
                 .property( ClientProperties.FOLLOW_REDIRECTS, "false")
                 .request()
+                .header("authentication", TestUtils.TEST_USER)
                 .post(Entity.form(entity));
         
         return resp;
@@ -164,6 +170,7 @@ public class DatasetsResourceTest extends JerseyTest {
                 .register(JacksonFeature.class)
                 .property(ClientProperties.FOLLOW_REDIRECTS, "false")
                 .request(MediaType.APPLICATION_JSON)
+                .header("authentication", TestUtils.TEST_USER)
                 .post(Entity.entity(req, MediaType.APPLICATION_JSON));
 
         printTrace( resp );
@@ -218,6 +225,7 @@ public class DatasetsResourceTest extends JerseyTest {
                 entity.add("versionMetadata",mdMapper.writeValueAsString(MetadataEntry.toList( metadata )));
                 Response resp = testCase.target("/datasets.txt" + parent)
                     .request()
+                    .header("authentication", TestUtils.TEST_USER)
                     .post(Entity.form(entity));
                 if(resp.getStatus() == 200){
                     System.out.println("duplicate: datasets" + parent + "/" + name);

@@ -90,28 +90,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
     public String toString() {
         return super.toString() + "\tType: " + dataType + "\tCreated: " + dateCreated;
     }
-
-    @Override
-    public boolean weakEquals(Object obj){
-       if(obj == null || getClass().isAssignableFrom(obj.getClass())){
-            return false;
-        }
-        if(!super.weakEquals( obj )){
-            return false;
-        }
-        Dataset other = (Dataset) obj;
-        if(!weakEquivalence( this.fileFormat, other.fileFormat )){
-            return false;
-        }
-        if(!weakEquivalence( this.dataType, other.dataType )){
-            return false;
-        }
-        if(!weakEquivalence( this.dateCreated, other.dateCreated )){
-            return false;
-        }
-        return true;
-    }
-    
+   
     @XmlTransient
     public List<DatasetView> getDatasetViews(){
         return Collections.singletonList(DatasetView.EMPTY);

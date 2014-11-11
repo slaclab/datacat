@@ -81,7 +81,7 @@ public class ContainerResource extends BaseResource {
             throw new RestException(ex, 400, "Unable to validate request view", ex.getMessage());
         }
         
-        DcPath containerPath = getProvider().getPath(DcUriUtils.toFsUri(path, null, "SRS"));
+        DcPath containerPath = getProvider().getPath(DcUriUtils.toFsUri(path, getUser(), "SRS"));
         
         try {
             if(!Files.readAttributes(containerPath, DcFile.class).isDirectory()){
@@ -122,7 +122,7 @@ public class ContainerResource extends BaseResource {
         }
 
         DatasetContainer.Builder builder = FormParamConverter.getContainerBuilder( type, formParams );
-        DcPath parentPath = getProvider().getPath(DcUriUtils.toFsUri(sParentPath, null, "SRS"));
+        DcPath parentPath = getProvider().getPath(DcUriUtils.toFsUri(sParentPath, getUser(), "SRS"));
         DcPath targetPath = parentPath.resolve(builder.name);
         builder.path(targetPath.toString());
         
@@ -131,7 +131,7 @@ public class ContainerResource extends BaseResource {
         try {
             getProvider().createDirectory(targetPath, request);
             //System.out.println("req: " + parentPath.resolve(request.value().getName()));
-            return Response.created(DcUriUtils.toFsUri(targetPath.toString(), null, "SRS")).entity(builder.build()).build();
+            return Response.created(DcUriUtils.toFsUri(targetPath.toString(), getUser(), "SRS")).entity(builder.build()).build();
         } catch (NoSuchFileException ex){
              throw new RestException(ex ,404, "Parent file doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
@@ -150,7 +150,7 @@ public class ContainerResource extends BaseResource {
     public Response deleteContainer(@PathParam("containerType") String contType, 
             @PathParam("id") String path) throws IOException{
         path = "/" + path;
-        DcPath dcPath = getProvider().getPath(DcUriUtils.toFsUri(path, null, "SRS"));
+        DcPath dcPath = getProvider().getPath(DcUriUtils.toFsUri(path, getUser(), "SRS"));
         try {
             Files.delete(dcPath);
             return Response.noContent().build();

@@ -90,7 +90,7 @@ public class DatasetsResource extends BaseResource  {
             @MatrixParam("v") List<String> versions,
             @MatrixParam("l") List<String> locations) throws IOException{
         System.out.println(ui.getAbsolutePath());
-        DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, null, "SRS"));
+        DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
         DatacatObject.Type targetType = null;
         try {
             DcFile file = getProvider().getFile(targetPath);
@@ -136,7 +136,7 @@ public class DatasetsResource extends BaseResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response createDataset(Dataset dsReq) throws IOException{
-        DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, null, "SRS"));
+        DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
         DcFile parentFile = null;
         DatacatObject.Type targetType = null;
         RequestView rv = null;
@@ -193,7 +193,7 @@ public class DatasetsResource extends BaseResource  {
         reqDs = requestBuilder.build();
         try {
             Dataset ret = getProvider().createDataset(datasetPath, reqDs, options);
-            return Response.created(DcUriUtils.toFsUri(datasetPath.toString(), null, "SRS"))
+            return Response.created(DcUriUtils.toFsUri(datasetPath.toString(), getUser(), "SRS"))
                     .entity(ret).build();
         } catch (FileAlreadyExistsException ex) {
             return handleFileAlreadyExists(ex, datasetPath, viewRequestOpt, options);

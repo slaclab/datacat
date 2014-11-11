@@ -54,8 +54,8 @@ public class DatacatSearchTest {
 
     public DatacatSearchTest() throws SQLException, IOException {
         ds = harness.getDataSource();
-        provider = new DcFileSystemProvider(ds);
-        root = provider.getPath(DcUriUtils.toFsUri( "/", null, "SRS"));
+        provider = new DcFileSystemProvider(ds, TestUtils.getLookupService());
+        root = provider.getPath(DcUriUtils.toFsUri( "/", TestUtils.TEST_USER, "SRS"));
         
         pluginMap = new HashMap<>();
         DatacatPlugin exoPlugin = new EXODatacatSearchPlugin();

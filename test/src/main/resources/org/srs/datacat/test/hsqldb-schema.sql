@@ -64,6 +64,7 @@ create table DatasetLogicalFolder (
 	Name			varchar(50),
 	Parent			integer,
 	Description		varchar(400),
+        ACL                     varchar(1000),
 	constraint PK_DatasetLogicalFolder primary key (DatasetLogicalFolder),
 	constraint FK_DatasetLogicalFolderParent foreign key (parent)
 		references DatasetLogicalFolder (DatasetLogicalFolder)
@@ -84,6 +85,7 @@ create table DatasetGroup (
 	NumberEvents		number,
 	DiskSizeBytes		number,
 	Description		varchar(400),
+        ACL                     varchar(1000),
 	constraint PK_DatasetGroup primary key (DatasetGroup),
 	constraint FK_DSG_DSLF foreign key (DatasetLogicalFolder)
 		references DatasetLogicalFolder (DatasetLogicalFolder)
@@ -102,6 +104,7 @@ create table VerDataset (
 	DatasetGroup		number,
 	LatestVersion		number,
 	Registered		timestamp DEFAULT CURRENT_TIMESTAMP,
+        ACL                     varchar(40),
 	constraint FK_VDS_DSDataType foreign key (DatasetDataType)
 		references DatasetDataType (DatasetDataType),
 	constraint FK_VDS_DSFileFormat foreign key (DatasetFileFormat)
@@ -369,8 +372,8 @@ create table DatasetLocationPurge (
 create index idx_DSLP_PurgeTime on DatasetLocationPurge (Purged);
 
 insert
-  into DatasetLogicalFolder (DatasetLogicalFolder, Name, Parent)
-  values(0, 'ROOT', NULL);
+  into DatasetLogicalFolder (DatasetLogicalFolder, Name, Parent, ACL)
+  values(0, 'ROOT', NULL, '$PUBLIC$@:g:ira:,test_user@SRS:o::,test_group@SRS:g:idrwa:');
 
 create global temporary table ContainerSearch (
     DatasetLogicalFolder	number,

@@ -43,7 +43,7 @@ public class RootResource extends BaseResource {
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public ArrayList<DatacatObject> getChildren(){
-        DcPath dcpath = getProvider().getPath( DcUriUtils.toFsUri("/", null, "SRS"));
+        DcPath dcpath = getProvider().getPath( DcUriUtils.toFsUri("/", getUser(), "SRS"));
         DirectoryStream.Filter filter = AcceptAllFilter;
         try (DirectoryStream<java.nio.file.Path> ds = getProvider().newDirectoryStream(dcpath, filter)){
             ArrayList<DatacatObject> retList = new ArrayList<>();

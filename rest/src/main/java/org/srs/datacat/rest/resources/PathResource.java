@@ -104,7 +104,7 @@ public class PathResource extends BaseResource {
         List<String> stl = matrixParams.get( "stat");
         String st = stl != null && !stl.isEmpty() ? stl.get(0).toUpperCase() : null;
         StatType statType = st != null ? StatType.valueOf(st) : StatType.BASIC;
-        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(path, null, "SRS"));
+        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(path, getUser(), "SRS"));
         try {
             if(refresh){
                 getProvider().getCache().removeFile(dcp);

@@ -1,6 +1,7 @@
 
 package org.srs.datacat.shared;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.DatacatObject;
 import com.fasterxml.jackson.databind.AnnotationIntrospector;
@@ -43,10 +44,17 @@ public class MapperTest extends TestCase {
         String actual = writ.toString();
         assertEquals("JSON string representation mismatch",jsonText,actual);
 
+        //System.out.println(mapper.writeValueAsString(generator.generateSchema(DatacatObject.class)));
         
+        System.out.print(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(generator.generateSchema( DatacatObject.class)));
         
-        
-        System.out.println(mapper.writeValueAsString(generator.generateSchema(DatacatObject.class)));
+        System.out.println(",");
+        for(JsonSubTypes.Type t:DatacatObject.class.getAnnotation(JsonSubTypes.class).value()){
+            System.out.print(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(generator.generateSchema(t.value())));
+            System.out.println(",");
+        }
+        System.out.print(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(generator.generateSchema( MetadataEntry.class)));
+        System.out.print(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(generator.generateSchema( MetadataValue.class)));
         //System.out.println(mapper.writeValueAsString(generator.generateSchema(DatasetGroup.class)));
         //System.out.println(mapper.writeValueAsString(generator.generateSchema(LogicalFolder.class)));
         //System.out.println(mapper.writeValueAsString(generator.generateSchema(MetadataEntry.class)));

@@ -18,7 +18,7 @@ import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 import org.srs.datacat.vfs.attribute.SubdirectoryView;
-import org.srs.datacat.vfs.security.DcAclFileAttributeView;
+import org.srs.datacat.vfs.attribute.DcAclFileAttributeView;
 import org.srs.vfs.FileType;
 
 
@@ -37,8 +37,7 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     public static class GroupType extends FileType.Directory {}
     
     private final DatacatObject _object;
-    private long _objectCreation = System.currentTimeMillis();
-    private DatacatRecord _record = null;
+    private final long _objectCreation = System.currentTimeMillis();
     
     public DcFile(DcPath path, DatacatObject object, DcAclFileAttributeView aclView){
         super(path, fileType(object));

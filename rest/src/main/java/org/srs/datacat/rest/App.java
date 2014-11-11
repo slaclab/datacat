@@ -2,17 +2,11 @@ package org.srs.datacat.rest;
 
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
-import java.util.Iterator;
-import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.naming.InitialContext;
@@ -20,15 +14,15 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.FeatureContext;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.CommonProperties;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.server.model.Resource;
 import org.glassfish.jersey.server.spi.Container;
 import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
+import org.srs.datacat.rest.security.GroupManagerLookupService;
+import org.srs.datacat.security.DcUserLookupService;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacatalog.search.plugins.EXODatacatSearchPlugin;
 
@@ -40,6 +34,7 @@ public class App extends ResourceConfig {
     private static boolean classesLoaded = false;
     public static DcFileSystemProvider fsProvider;
     private DataSource dataSource;
+    private DcUserLookupService lookup;
 
     public static class JacksonFeature implements Feature {
 
@@ -81,12 +76,13 @@ public class App extends ResourceConfig {
     }
 
     public App(){
-        this(initDatasource("jdbc/datacat-prod"));
+        this(initDatasource("jdbc/datacat-prod"), new GroupManagerLookupService());
     }
         
-    public App(DataSource dataSource){
+    public App(DataSource dataSource, DcUserLookupService lookupService){
         super();
         this.dataSource = dataSource;
+        this.lookup = lookupService;
         registerInstances( new Reloader() );
         register( JacksonFeature.class );
         register( RequestAcceptFilter.class );
@@ -169,7 +165,7 @@ public class App extends ResourceConfig {
     }
     
     void initPlugins() throws IOException {
-        fsProvider = new DcFileSystemProvider(dataSource);
+        fsProvider = new DcFileSystemProvider(dataSource, lookup);
         register(new DataSourceBinder(dataSource));
         register(new FsBinder(fsProvider));
         

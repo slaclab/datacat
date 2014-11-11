@@ -40,7 +40,7 @@ public class DatasetDAO extends BaseDAO {
     
     public Dataset createDatasetNode(DatacatRecord parent, String path, Dataset request) throws IOException, FileSystemException{
         try {
-            return insertDataset(parent.getPk(), parent.getType(), path.toString(), request);
+            return insertDataset(parent.getPk(), parent.getType(), path, request);
         } catch (SQLException ex){
             throw new IOException("Unable to insert node: " + path, ex);
         }
@@ -463,7 +463,6 @@ public class DatasetDAO extends BaseDAO {
     
     /**
      * Check if we can merge these items
-     * @param datasetPk
      * @param dsPath
      * @param currentId
      * @param newId

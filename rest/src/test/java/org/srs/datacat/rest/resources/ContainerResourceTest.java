@@ -19,6 +19,7 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
 import org.srs.datacat.rest.App;
 import org.srs.datacat.test.HSqlDbHarness;
+import org.srs.datacat.vfs.TestUtils;
 import org.srs.vfs.PathUtils;
 
 /**
@@ -39,6 +40,7 @@ public class ContainerResourceTest extends JerseyTest {
             System.out.println("/folders.txt" + newPath);
             Response resp = testInstance.target("/folders.txt" + parent)
                     .request()
+                    .header("authentication", TestUtils.TEST_USER)
                     .post( Entity.form(new Form("name",name)));
             TestCase.assertEquals(resp.readEntity(String.class), expectedStatus, resp.getStatus());
         }
@@ -54,7 +56,10 @@ public class ContainerResourceTest extends JerseyTest {
 
         }
 
-        ResourceConfig app = new App(harness.getDataSource()).register(ContainerResource.class).register( PathResource.class);
+        ResourceConfig app = new App(harness.getDataSource(), TestUtils.getLookupService())
+                .register(TestSecurityFilter.class)
+                .register(ContainerResource.class)
+                .register(PathResource.class);
         for(Resource r: app.getResources()){
             System.out.println(r.getPath());
         }
@@ -76,6 +81,7 @@ public class ContainerResourceTest extends JerseyTest {
                 
         resp = target("/folders.txt/testpath")
                 .request()
+                .header("authentication", TestUtils.TEST_USER)
                 .post(Entity.form( entity ));
         TestCase.assertEquals( Status.CREATED, Status.fromStatusCode(resp.getStatus()));
         
@@ -83,11 +89,13 @@ public class ContainerResourceTest extends JerseyTest {
         entity.add( "name", "dispatchTest2");
         resp = target("/folders.txt/testpath/dispatchTest")
                 .request()
-                .post(Entity.form( entity ));
+                .header("authentication", TestUtils.TEST_USER)
+                .post(Entity.form(entity));
         TestCase.assertEquals( Status.CREATED, Status.fromStatusCode(resp.getStatus()));
         
         resp = target("/folders.txt/testpath/dispatchTest/dispatchTest2")
                 .request()
+                .header("authentication", TestUtils.TEST_USER)
                 .get();
         TestCase.assertEquals( Status.OK, Status.fromStatusCode(resp.getStatus()));
         
@@ -126,7 +134,7 @@ public class ContainerResourceTest extends JerseyTest {
             resp = target("/folders.txt" + newPath)
                     .request( MediaType.APPLICATION_JSON )
                     .get();
-            TestCase.assertEquals( resp.getStatus(), expectedStatus);
+            TestCase.assertEquals(expectedStatus, resp.getStatus());
         }
         
         MultivaluedHashMap<String,String> entity = new MultivaluedHashMap<>();
@@ -134,6 +142,7 @@ public class ContainerResourceTest extends JerseyTest {
                 
         resp = target("/folders.txt/testpath")
                 .request()
+                .header("authentication", TestUtils.TEST_USER)
                 .post(Entity.form( entity ));
         TestCase.assertEquals( Status.CREATED, Status.fromStatusCode(resp.getStatus()));
         
@@ -145,26 +154,31 @@ public class ContainerResourceTest extends JerseyTest {
         
         resp = target("/folders.txt/testpath/createFolderTest")
                 .request()
+                .header("authentication", TestUtils.TEST_USER)
                 .post(Entity.form( entity ));
         TestCase.assertEquals( Status.CREATED, Status.fromStatusCode(resp.getStatus()));
         
         resp = target("/folders.txt/testpath/createFolderTest")
             .request()
+            .header("authentication", TestUtils.TEST_USER)
             .delete();
         TestCase.assertEquals( Status.CONFLICT, Status.fromStatusCode(resp.getStatus()));
         
         resp = target("/folders.txt/testpath/createFolderTest/createFolderTest")
             .request()
+            .header("authentication", TestUtils.TEST_USER)
             .delete();
         TestCase.assertEquals( Status.NO_CONTENT, Status.fromStatusCode(resp.getStatus()));
         
         resp = target("/folders.txt/testpath/createFolderTest")
             .request()
+            .header("authentication", TestUtils.TEST_USER)
             .delete();
         TestCase.assertEquals( Status.NO_CONTENT, Status.fromStatusCode(resp.getStatus()));
         
         resp = target("/folders.txt/testpath/createFolderTest")
             .request()
+            .header("authentication", TestUtils.TEST_USER)
             .delete();
         TestCase.assertEquals( Status.NOT_FOUND, Status.fromStatusCode(resp.getStatus()));
         
@@ -189,7 +203,7 @@ public class ContainerResourceTest extends JerseyTest {
             resp = target("/folders.txt" + newPath)
                     .request( MediaType.APPLICATION_JSON )
                     .get();
-            TestCase.assertEquals( resp.getStatus(), expectedStatus);
+            TestCase.assertEquals(expectedStatus, resp.getStatus());
         }
 
         expectedStatus = 204;
@@ -198,8 +212,9 @@ public class ContainerResourceTest extends JerseyTest {
             String newPath = PathUtils.resolve(parent, name);
             resp = target("/folders.txt" + newPath)
                     .request()
+                    .header("authentication", TestUtils.TEST_USER)
                     .delete();
-            TestCase.assertEquals( resp.getStatus(), expectedStatus);
+            TestCase.assertEquals(expectedStatus, resp.getStatus());
         }
         
         expectedStatus = 404;
@@ -209,7 +224,7 @@ public class ContainerResourceTest extends JerseyTest {
             resp = target("/folders.txt" + newPath)
                     .request( MediaType.APPLICATION_JSON )
                     .get();
-            TestCase.assertEquals( resp.getStatus(), expectedStatus);
+            TestCase.assertEquals(resp.getStatus(), expectedStatus);
         }
 
     }

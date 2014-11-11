@@ -29,6 +29,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.model.Resource;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
+import org.srs.datacat.dao.sql.DatasetDAOTest;
 import org.srs.datacat.rest.App;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.dataset.FlatDataset;
@@ -61,15 +62,17 @@ public class SearchResourceTest extends JerseyTest{
             System.out.println(ex);
 
         }
-        app = new App(harness.getDataSource());
-        ResourceConfig newApp = app.register(SearchResource.class).register( PathResource.class);
+        app = new App(harness.getDataSource(), TestUtils.getLookupService());
+        ResourceConfig newApp = app.register(SearchResource.class)
+                .register(PathResource.class)
+                .register(TestSecurityFilter.class);
         return newApp;
     }
 
     @Test
     public void testBasicSearch() throws IOException {
         DcFileSystemProvider provider = app.getFsProvider();
-        DcPath root = provider.getPath(DcUriUtils.toFsUri( "/", null, "SRS"));
+        DcPath root = provider.getPath(DcUriUtils.toFsUri( "/", TestUtils.TEST_USER, "SRS"));
         TestUtils.generateDatasets( root, provider, 10, 100 );
         
         AnnotationIntrospector primary = new JacksonAnnotationIntrospector();

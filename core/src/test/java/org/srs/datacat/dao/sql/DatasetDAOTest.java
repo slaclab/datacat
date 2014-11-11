@@ -23,6 +23,7 @@ import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.test.HSqlDbHarness;
+import org.srs.datacat.vfs.TestUtils;
 import org.srs.vfs.PathUtils;
 
 /**
@@ -36,12 +37,6 @@ public class DatasetDAOTest {
     
     public DatasetDAOTest(){ }
     
-    public static final String TEST_BASE_NAME = "junit";
-    public static final String TEST_BASE_PATH = "/" + TEST_BASE_NAME;
-    public static final String TEST_DATATYPE_01 = "JUNIT_TEST01";
-    public static final String TEST_FILEFORMAT_01 = "junit.test";
-    public static final String TEST_DATASET_SOURCE = "JUNIT";
-
     @BeforeClass
     public static void setUpDb() throws SQLException, IOException{
         harness = new HSqlDbHarness();
@@ -72,22 +67,22 @@ public class DatasetDAOTest {
     public static void addRecords(Connection c) throws SQLException, IOException{
         ContainerDAO dao = new ContainerDAO(c);
         try {
-            getDatacatObject(dao, TEST_BASE_PATH);
+            getDatacatObject(dao, TestUtils.TEST_BASE_PATH);
             c.close();
             return;
         } catch (NoSuchFileException x){ }
         
-        DatacatObject container = new LogicalFolder.Builder().name( TEST_BASE_NAME ).build();
-        dao.insertContainer( 0L, PathUtils.resolve("/",TEST_BASE_NAME), container );
+        DatacatObject container = new LogicalFolder.Builder().name(TestUtils.TEST_BASE_NAME).build();
+        dao.insertContainer(0L, PathUtils.resolve("/", TestUtils.TEST_BASE_NAME), container );
         DatasetDAO dsDao = new DatasetDAO( c );
         try {
-            dsDao.insertDatasetSource(TEST_DATASET_SOURCE);
+            dsDao.insertDatasetSource(TestUtils.TEST_DATASET_SOURCE);
         } catch (SQLException ex){}
         try {
-            dsDao.insertDatasetDataType( TEST_DATATYPE_01, null, null );
+            dsDao.insertDatasetDataType(TestUtils.TEST_DATATYPE_01, null, null );
         } catch (SQLException ex){}
         try {
-            dsDao.insertDatasetFileFormat( TEST_FILEFORMAT_01, null, null );
+            dsDao.insertDatasetFileFormat(TestUtils.TEST_FILEFORMAT_01, null, null );
         } catch (SQLException ex){}
         
         c.commit();
@@ -96,11 +91,11 @@ public class DatasetDAOTest {
         
     public static void removeRecords(Connection conn) throws Exception {
         ContainerDAO dao = new ContainerDAO(conn);
-        DatacatObject folder = getDatacatObject(dao, TEST_BASE_PATH);
+        DatacatObject folder = getDatacatObject(dao, TestUtils.TEST_BASE_PATH);
         dao.deleteFolder(folder.getPk());
         DatasetDAO dsDao = new DatasetDAO(conn);
-        dsDao.deleteDatasetDataType(TEST_DATATYPE_01);
-        dsDao.deleteDatasetFileFormat(TEST_FILEFORMAT_01);
+        dsDao.deleteDatasetDataType(TestUtils.TEST_DATATYPE_01);
+        dsDao.deleteDatasetFileFormat(TestUtils.TEST_FILEFORMAT_01);
         conn.commit();
         conn.close();
     }
@@ -121,7 +116,7 @@ public class DatasetDAOTest {
         String dsName = "testCaseDataset001";
 
         FlatDataset req =getRequest( dsName ).build();
-        create(TEST_BASE_PATH, req);
+        create(TestUtils.TEST_BASE_PATH, req);
     }
     
     @Test
@@ -131,9 +126,9 @@ public class DatasetDAOTest {
         
         FlatDataset req =(FlatDataset) getRequest(dsName)
                 .versionId(DatasetView.NEW_VER)
-                .datasetSource(TEST_DATASET_SOURCE)
+                .datasetSource(TestUtils.TEST_DATASET_SOURCE)
                 .build();
-        Dataset ds = create(TEST_BASE_PATH, req);
+        Dataset ds = create(TestUtils.TEST_BASE_PATH, req);
         Optional<DatasetVersion> versionOpt = Optional.absent();
         DatasetVersion newVer = dao.createOrMergeDatasetVersion(ds, req.getVersion(), versionOpt, false);
         System.out.println("Registered: " + newVer.toString());
@@ -151,16 +146,16 @@ public class DatasetDAOTest {
     private FlatDataset.Builder getRequest(String dsName) throws SQLException, IOException{
         FlatDataset.Builder builder = new FlatDataset.Builder();
         builder.name(dsName);
-        builder.dataType(TEST_DATATYPE_01);
-        builder.fileFormat(TEST_FILEFORMAT_01);
+        builder.dataType(TestUtils.TEST_DATATYPE_01);
+        builder.fileFormat(TestUtils.TEST_FILEFORMAT_01);
         HashMap m = new HashMap();
         m.put( "fakeMetadata", "fakeString");
         m.put( "fakeMetadataNumber", 24);
         m.put( "fakeMetadataDecimal", 24.242);
         builder.versionMetadata(m);
         builder.versionId(DatasetView.NEW_VER);
-        builder.dataType(TEST_DATATYPE_01);
-        builder.datasetSource(TEST_DATASET_SOURCE);
+        builder.dataType(TestUtils.TEST_DATATYPE_01);
+        builder.datasetSource(TestUtils.TEST_DATASET_SOURCE);
         return builder;
     }
 

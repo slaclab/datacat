@@ -11,6 +11,7 @@ import org.apache.commons.dbcp2.DelegatingConnection;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.BeforeClass;
+import org.srs.datacat.security.DcUser;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
 import org.srs.vfs.PathUtils;
@@ -37,8 +38,8 @@ public class DirectoryWalkerTest {
     
     @Before
     public void setUp() throws IOException{
-        URI uri = DcUriUtils.toFsUri( "/", null, "SRS");
-        provider = new DcFileSystemProvider(harness.getDataSource());
+        URI uri = DcUriUtils.toFsUri( "/", (DcUser) null, "SRS");
+        provider = new DcFileSystemProvider(harness.getDataSource(), TestUtils.getLookupService());
         root = provider.getPath( uri );
     }
 

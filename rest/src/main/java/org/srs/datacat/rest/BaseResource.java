@@ -2,6 +2,7 @@
 package org.srs.datacat.rest;
 
 import java.net.URLEncoder;
+import java.security.Principal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.SecurityContext;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 
 /**
@@ -23,7 +25,8 @@ import org.srs.datacat.vfs.DcFileSystemProvider;
 public class BaseResource {
     
     public static final String OPTIONAL_EXTENSIONS = "{ext: (\\.txt|\\.json|\\.xml)?}";
-    
+   
+    @Context SecurityContext securityContext;
     @Context HttpServletRequest request;
     @Context HttpServletResponse response;
     @Inject DcFileSystemProvider provider;
@@ -105,5 +108,10 @@ public class BaseResource {
     public HttpServletRequest getRequest(){
         return request;
     }
-        
+    
+
+    public Principal getUser(){
+        return securityContext.getUserPrincipal();
+    }
+
 }

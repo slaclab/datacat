@@ -31,6 +31,7 @@ import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.dao.sql.DatasetDAOTest;
+import org.srs.datacat.security.DcUser;
 import org.srs.datacat.test.HSqlDbHarness;
 
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
@@ -62,8 +63,8 @@ public class DcFileSystemProviderTest {
     
     @Before
     public void setUp() throws IOException, SQLException{
-        DcFileSystemProvider provider  = new DcFileSystemProvider(harness.getDataSource());
-        URI uri = DcUriUtils.toFsUri( "/", null, "SRS");
+        DcFileSystemProvider provider  = new DcFileSystemProvider(harness.getDataSource(), TestUtils.getLookupService());
+        URI uri = DcUriUtils.toFsUri( "/", (DcUser) null, "SRS");
         DcPath rootPath = provider.getPath( uri );
         try(DirectoryStream<Path> s = provider.newDirectoryStream( rootPath )){
             for(Path p: s){
@@ -71,7 +72,7 @@ public class DcFileSystemProviderTest {
             }
         }
         
-        provider  = new DcFileSystemProvider(harness.getDataSource());
+        provider  = new DcFileSystemProvider(harness.getDataSource(), TestUtils.getLookupService());
         
         DatacatObject o = provider.resolveFile(rootPath.resolve("testpath")).getAttributeView(DcFile.class).getObject();
         
@@ -134,16 +135,16 @@ public class DcFileSystemProviderTest {
 
     @Test
     public void testCreateDataset() throws IOException{
-        DcFileSystemProvider provider  = new DcFileSystemProvider(harness.getDataSource());
+        DcFileSystemProvider provider  = new DcFileSystemProvider(harness.getDataSource(), TestUtils.getLookupService());
         
         Dataset.Builder builder = new Dataset.Builder();
         builder.name("testCaseDataset001");
-        builder.dataType(DatasetDAOTest.TEST_DATATYPE_01);
-        builder.fileFormat(DatasetDAOTest.TEST_FILEFORMAT_01);
-        builder.datasetSource( DatasetDAOTest.TEST_DATASET_SOURCE);
+        builder.dataType(TestUtils.TEST_DATATYPE_01);
+        builder.fileFormat(TestUtils.TEST_FILEFORMAT_01);
+        builder.datasetSource( TestUtils.TEST_DATASET_SOURCE);
         
         Dataset request = builder.build();
-        DcPath parentPath = provider.getPath( DcUriUtils.toFsUri(DatasetDAOTest.TEST_BASE_PATH, null, "SRS"));
+        DcPath parentPath = provider.getPath( DcUriUtils.toFsUri(TestUtils.TEST_BASE_PATH, (DcUser) null, "SRS"));
         DcPath filePath = parentPath.resolve(request.getName());
         HashSet<DatasetOption> options = new HashSet<>(Arrays.asList( DatasetOption.CREATE_NODE));
         provider.createDataset( filePath, request, options);
@@ -151,12 +152,12 @@ public class DcFileSystemProviderTest {
     
     @Test
     public void testCreateDeleteDirectory() throws IOException {
-        DcFileSystemProvider provider  = new DcFileSystemProvider(harness.getDataSource());
+        DcFileSystemProvider provider  = new DcFileSystemProvider(harness.getDataSource(), TestUtils.getLookupService());
         
         String folderName = "createFolderTest";
         LogicalFolder request = new LogicalFolder(new DatacatObject(0L, 0L, folderName));
         ContainerCreationAttribute attr = new ContainerCreationAttribute(request);
-        URI uri = DcUriUtils.toFsUri(DatasetDAOTest.TEST_BASE_PATH, null, "SRS");
+        URI uri = DcUriUtils.toFsUri(TestUtils.TEST_BASE_PATH, TestUtils.TEST_USER, "SRS");
         DcPath path =  provider.getPath(uri);
         provider.createDirectory(path.resolve(folderName), attr);
         provider.createDirectory(path.resolve(folderName).resolve(folderName), attr);

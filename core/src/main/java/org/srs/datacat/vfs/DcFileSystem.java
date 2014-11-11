@@ -1,14 +1,10 @@
 
 package org.srs.datacat.vfs;
 
-import java.io.IOException;
 import java.net.URI;
-import java.nio.file.attribute.GroupPrincipal;
-import java.nio.file.attribute.UserPrincipal;
-import java.nio.file.attribute.UserPrincipalLookupService;
 import org.srs.vfs.AbstractFs;
 import org.srs.vfs.PathProvider;
-import org.srs.datacat.vfs.security.DcGroup;
+import org.srs.datacat.security.DcUserLookupService;
 
 /**
  *
@@ -16,6 +12,7 @@ import org.srs.datacat.vfs.security.DcGroup;
  */
 public class DcFileSystem extends AbstractFs<DcPath> {
         
+    private final DcUserLookupService lookupService;
     private final PathProvider<DcPath> pathProvider = new PathProvider<DcPath>(){
 
         @Override
@@ -34,8 +31,9 @@ public class DcFileSystem extends AbstractFs<DcPath> {
         }
     };
 
-    public DcFileSystem(DcFileSystemProvider provider){
+    public DcFileSystem(DcFileSystemProvider provider, DcUserLookupService lookupService){
         super(provider);
+        this.lookupService = lookupService;
     }
 
     @Override
@@ -49,23 +47,8 @@ public class DcFileSystem extends AbstractFs<DcPath> {
     }
     
     @Override
-    public UserPrincipalLookupService getUserPrincipalLookupService(){
-        return new UserPrincipalLookupService(){
-
-            @Override
-            public UserPrincipal lookupPrincipalByName(String name) throws IOException{
-                if(name == null){
-                    return DcGroup.PUBLIC_GROUP;
-                }
-                return null;
-            }
-
-            @Override
-            public GroupPrincipal lookupPrincipalByGroupName(String group) throws IOException{
-                throw new UnsupportedOperationException();
-            }
-            
-        };
+    public DcUserLookupService getUserPrincipalLookupService(){
+        return lookupService;
     }
 
     @Override

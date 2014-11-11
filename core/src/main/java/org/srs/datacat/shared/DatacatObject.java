@@ -21,6 +21,8 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.security.DcPermissions;
+import org.srs.datacat.security.OwnerAclAttributes;
 import org.srs.datacat.shared.DatacatObject.Builder;
 import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.shared.dataset.FullDataset;
@@ -53,6 +55,7 @@ public class DatacatObject implements DatacatRecord {
     private Long parentPk;
     private String name;
     private String path;
+    private OwnerAclAttributes acl;
     private final HashMap<String, Object> metadata = new HashMap<>();
 
     @XmlEnum(String.class)
@@ -113,6 +116,7 @@ public class DatacatObject implements DatacatRecord {
         if(object.metadata != null){
             this.metadata.putAll(object.metadata);
         }
+        this.acl = object.acl;
     }
     
     public DatacatObject(Builder builder){
@@ -121,6 +125,7 @@ public class DatacatObject implements DatacatRecord {
         if(builder.metadata != null){
             this.metadata.putAll(builder.metadata);
         }
+        this.acl = builder.acl;
     }
     
     @XmlElement(required=false)
@@ -211,6 +216,11 @@ public class DatacatObject implements DatacatRecord {
         return t.value();
     }
     
+    @XmlTransient
+    public OwnerAclAttributes getAclAttributes(){
+        return this.acl;
+    }
+    
     @Override
     public String toString(){
         StringBuilder sb = new StringBuilder();
@@ -230,41 +240,6 @@ public class DatacatObject implements DatacatRecord {
     protected String omitNull(String name, Object o){
         return o != null ? name + o + "\t": "";
     }
-
-    /**
-     * Checks to make sure any fields that are declared are equivalent
-     * @param obj
-     * @return 
-     */
-    public boolean weakEquals(Object obj){
-        if(obj == null){
-            return false;
-        }
-        if(getClass() != obj.getClass()){
-            return false;
-        }
-        final DatacatObject other = (DatacatObject) obj;
-        if(!weakEquivalence(this.pk, other.pk)){
-            return false;
-        }
-        if(!weakEquivalence(this.parentPk, other.parentPk)){
-            return false;
-        }
-        if(!weakEquivalence(this.name, other.name)){
-            return false;
-        }
-        if(!weakEquivalence(this.path, other.path)){
-            return false;
-        }
-        return true;
-    }
-    
-    public static boolean weakEquivalence(Object source, Object target){
-        if(target == null || Objects.equals(source, target)){
-            return true;
-        }
-        return false;
-    }
     
     /**
      *
@@ -278,6 +253,7 @@ public class DatacatObject implements DatacatRecord {
         public Type parentType = null;
         public String path;
         public Type type;
+        public OwnerAclAttributes acl;
         public HashMap<String, Object> metadata = new HashMap<>();
 
         public Builder(){
@@ -292,6 +268,7 @@ public class DatacatObject implements DatacatRecord {
             this.path = object.getPath();
             this.type = object.getType();
             this.metadata = object.metadata;
+            this.acl = object.acl;
         }
 
         public Builder(Builder builder){
@@ -302,6 +279,7 @@ public class DatacatObject implements DatacatRecord {
             this.path = builder.path;
             this.type = builder.type;
             this.metadata = builder.metadata;
+            this.acl = builder.acl;
         }
 
         public Builder(Type type){
@@ -388,7 +366,12 @@ public class DatacatObject implements DatacatRecord {
             }
             return (U) this;
         }
+        
+        public U acl(String acl){
+            this.acl = DcPermissions.getOwnerAclAttributes(acl).orNull();
+            return (U) this;
+        }
     }
     
-    
+
 }

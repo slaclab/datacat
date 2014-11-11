@@ -118,18 +118,18 @@ public class BaseDAO implements AutoCloseable {
             parentClause = " = ? and name = ?";
         }
         
-        String sql = String.format("WITH OBJECTS (type, pk, name, parent) AS ( "
-                + "    SELECT 'F', datasetlogicalfolder, name, parent "
+        String sql = String.format("WITH OBJECTS (type, pk, name, parent, acl) AS ( "
+                + "    SELECT 'F', datasetlogicalfolder, name, parent, acl "
                 + "      FROM datasetlogicalfolder "
                 + "  UNION ALL "
-                + "    SELECT 'G', datasetGroup, name, datasetLogicalFolder "
+                + "    SELECT 'G', datasetGroup, name, datasetLogicalFolder, acl "
                 + "      FROM DatasetGroup "
                 + "  UNION ALL "
                 + "    SELECT 'D', dataset, datasetName, "
-                + "      CASE WHEN datasetlogicalfolder is not null THEN datasetlogicalfolder else datasetgroup END "
+                + "      CASE WHEN datasetlogicalfolder is not null THEN datasetlogicalfolder else datasetgroup END, acl "
                 + "      FROM VerDataset "
                 + ") "
-                + "SELECT type, pk, name, parent FROM OBJECTS "
+                + "SELECT type, pk, name, parent, acl FROM OBJECTS "
                 + "  WHERE parent %s "
                 + "  ORDER BY name", parentClause);
 
@@ -203,13 +203,12 @@ public class BaseDAO implements AutoCloseable {
                 + "  )";
         
         HashMap<String, Object> metadata = new HashMap<>();
-        //HashMap<String, Number> nmap = new HashMap<>();
         Long pk = builder.pk;
         try (PreparedStatement stmt = getConnection().prepareStatement( sql )){
             stmt.setLong(1, pk);
             ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                processMetadata( rs, metadata);
+            while(rs.next()){
+                processMetadata(rs, metadata);
             }
         }
         if(!metadata.isEmpty()){
@@ -400,7 +399,8 @@ public class BaseDAO implements AutoCloseable {
         String name = rs.getString( "name" );
         o.pk( rs.getLong( "pk" ) )
                 .parentPk( rs.getLong( "parent" ) )
-                .name(name);
+                .name(name)
+                .acl(rs.getString("acl"));
         if(parentPath != null && !parentPath.isEmpty()){
             o.path(PathUtils.resolve( parentPath, name));
         }
