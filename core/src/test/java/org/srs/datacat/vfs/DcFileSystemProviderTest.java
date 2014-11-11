@@ -144,7 +144,7 @@ public class DcFileSystemProviderTest {
         builder.datasetSource( TestUtils.TEST_DATASET_SOURCE);
         
         Dataset request = builder.build();
-        DcPath parentPath = provider.getPath( DcUriUtils.toFsUri(TestUtils.TEST_BASE_PATH, (DcUser) null, "SRS"));
+        DcPath parentPath = provider.getPath( DcUriUtils.toFsUri(TestUtils.TEST_BASE_PATH, TestUtils.TEST_USER, "SRS"));
         DcPath filePath = parentPath.resolve(request.getName());
         HashSet<DatasetOption> options = new HashSet<>(Arrays.asList( DatasetOption.CREATE_NODE));
         provider.createDataset( filePath, request, options);
