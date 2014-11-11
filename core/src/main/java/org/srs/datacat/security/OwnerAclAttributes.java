@@ -29,7 +29,7 @@ public class OwnerAclAttributes {
 
     @Override
     public String toString(){
-        return "OwnerAclAttributes{" + "owner=" + owner + ", acl=" + acl + '}';
+        return "owner:" + owner + ", acl=" + acl.toString() + '}';
     }
 
 }

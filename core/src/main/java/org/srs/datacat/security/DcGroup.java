@@ -31,15 +31,12 @@ public class DcGroup implements GroupPrincipal {
 
     @Override
     public String toString(){
-        return "DcGroup{" + "name=" + name + ", experiment=" + experiment + '}';
+        return (name != null ? name : "") + "@" + (experiment != null ? experiment : "");
     }
 
     @Override
     public int hashCode(){
-        int hash = 3;
-        hash = 67 * hash + Objects.hashCode(this.name);
-        hash = 67 * hash + Objects.hashCode(this.experiment);
-        return hash;
+        return toString().hashCode();
     }
 
     @Override
