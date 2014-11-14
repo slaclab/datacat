@@ -11,11 +11,17 @@
 <div class="browser">
     <ol class="breadcrumb datacat-path">
         <li><a href="${pageContext.request.contextPath}/browser">Root</a></li>
-        <c:if test="${path != null}">
-            <c:forEach var="pathElem" items="${path.pathList}" varStatus="status">
-                <li><a href="${pageContext.request.contextPath}/browser${pathElem.path}/${pathElem.name}">${pathElem.name}</a></li>
-            </c:forEach>
-            <li class="active">${path.name}</li>
+        <c:if test='${path != null}'>
+            <c:if test='${path.path.lastIndexOf("/") > 1}'>
+                <c:set var="pathPart" value="" />
+                <c:set var="parentPath" value='${path.path.substring(1, path.path.lastIndexOf("/"))}' />
+                <c:set var="pathList" value='${parentPath.split("/")}' />
+                <c:forEach var="pathElem" items="${pathList}" varStatus="status">
+                    <li><a href="${pageContext.request.contextPath}/browser${pathPart}/${pathElem}">${pathElem}</a></li>
+                    <c:set var="pathPart" value='${pathPart}/${pathElem}' />
+                </c:forEach>
+                <li class="active">${path.name}</li>
+            </c:if>
         </c:if>
     </ol>
     <button class="btn btn-primary btn-xs" id="paginate-containers-button" onclick="paginateContainers()">
@@ -34,7 +40,7 @@
         
         <tbody class="file-browser">
             <%-- Only groups or datasets should ever be these children --%>
-            <c:forEach var="child" items="${children}">
+            <c:forEach var="child" items="${containers}">
 
                 <c:set var="isFolder" value='${child.getClass().simpleName eq "LogicalFolder"}' />
                 <c:set var="isContainer" value='${child.getClass().simpleName eq "LogicalFolder" or child.getClass().simpleName eq "DatasetGroup"}' />
@@ -59,7 +65,7 @@
                                 <a href="#selected" />${child.name}
                             </c:when>
                             <c:otherwise>
-                                <a href="${pageContext.request.contextPath}/browser${child.path}/${child.name}" 
+                                <a href="${pageContext.request.contextPath}/browser${child.path}" 
                                    <c:if test="${needsInfo eq true}">class="needsInfo" asyncPath="${initParam.restResourceBaseURL}/path${child.path}/${child.name}"</c:if>
                                    >${child.name}</a>
                             </c:otherwise>

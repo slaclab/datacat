@@ -42,8 +42,8 @@
                                 <a href="${pageContext.request.contextPath}/browser${child.path}/${child.name}" pk="${child.pk}">${child.name}</a>
                             </td>
                             <td>${child.dataType}</td>
-                            <td>${web_dc:formatBytes(child.fsize)}</td>
-                            <td><fmt:formatDate value="${child.versionRegistrationDate}"  pattern="yyyy-MM-dd HH:mm z" /></td>
+                            <td>${web_dc:formatBytes(child.size)}</td>
+                            <td><fmt:formatDate value="${child.dateVersionCreated}"  pattern="yyyy-MM-dd HH:mm z" /></td>
                         </tr>
                     </c:forEach> 
                 </c:if>

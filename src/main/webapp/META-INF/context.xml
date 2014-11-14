@@ -4,5 +4,6 @@
   <ResourceLink global="jdbc/config-fermi" name="jdbc/config-fermi" type="javax.sql.DataSource"/>
   <ResourceLink global="jdbc/config-exo" name="jdbc/config-exo" type="javax.sql.DataSource"/>
   <ResourceLink global="jdbc/datacat-prod" name="jdbc/datacat-prod" type="javax.sql.DataSource"/>
+  <ResourceLink global="jdbc/datacat-test" name="jdbc/datacat-test" type="javax.sql.DataSource"/>
   <!--<Logger className="org.apache.catalina.logger.FileLogger" prefix="RESTfulDatacat." suffix=".log" timestamp="true"/> -->
 </Context>
