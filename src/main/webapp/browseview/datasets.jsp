@@ -39,7 +39,7 @@
                                 <span class="glyphicon glyphicon-download-alt"></span>
                             </td>
                             <td>
-                                <a href="${pageContext.request.contextPath}/browser${child.path}/${child.name}" pk="${child.pk}">${child.name}</a>
+                                <a href="${pageContext.request.contextPath}/browser${child.path}" pk="${child.pk}">${child.name}</a>
                             </td>
                             <td>${child.dataType}</td>
                             <td>${web_dc:formatBytes(child.size)}</td>
