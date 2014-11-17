@@ -403,6 +403,8 @@ public class BaseDAO implements AutoCloseable {
                 .acl(rs.getString("acl"));
         if(parentPath != null && !parentPath.isEmpty()){
             o.path(PathUtils.resolve( parentPath, name));
+        } else {
+            o.path("/");
         }
         return o;
     }

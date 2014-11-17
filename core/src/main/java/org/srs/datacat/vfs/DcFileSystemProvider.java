@@ -165,7 +165,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                 while(iter.hasNext()){
                     DatacatObject child = iter.next();
                     DcPath maybeNext = dcPath.resolve( child.getName() );
-                    DcFile file = new DcFile( maybeNext, child, aclView);
+                    DcFile file = DcFileSystemProvider.this.buildChild(dirFile, maybeNext, child);
 
                     if(file.isDirectory()){
                         getCache().putFileIfAbsent(file);
@@ -327,6 +327,26 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         return null; // Keep compiler happy
     }
     
+    /**
+     * Add metadata to a DatacatRecord at a given path
+     * @param path
+     * @param record
+     * @param metadata
+     * @return
+     * @throws IOException 
+     */
+    public DcFile addMetadata(Path path, DatacatRecord record, Map metadata) throws IOException{
+        DcPath dcPath = checkPath(path);
+        DcFile f = getFile(dcPath);
+        checkPermission(dcPath.getUserName(), f, DcPermissions.WRITE);
+        try (BaseDAO dao = daoFactory.newBaseDAO()){
+            dao.addMetadata(record, metadata);
+            dao.commit();
+        }
+        getCache().removeFile(dcPath);
+        return getFile(dcPath);
+    }
+    
     @Override
     public DcPath getPath(URI uri){
         return fileSystem.getPathProvider().getPath(uri);
@@ -370,32 +390,34 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     public DcFile retrieveFileAttributes(DcPath path, DcFile parent) throws IOException {
         // LOG: Checking database
         try (BaseDAO dao = daoFactory.newBaseDAO()){
-            DcAclFileAttributeView aclView;
-            DatacatObject child;
-            if(path.equals(path.getRoot())){
-                child = dao.getObjectInParent(null, path.toString());
-                aclView = new DcAclFileAttributeView(child.getAclAttributes());
-            } else {
-                child = dao.getObjectInParent(parent.asRecord(), path.toString());
-                if(child.getAclAttributes() != null){
-                    /* 
-                      TODO: Come up with better strategy for global ADMIN privileges 
-                        Always inherit parent ADMIN permissions for now.
-                    */
-                    List<AclEntry> acl = new ArrayList<>(child.getAclAttributes().getAcl());
-                    for(AclEntry e: parent.getAttributeView(DcAclFileAttributeView.class).getAcl()){
-                        if(e.permissions().contains(DcPermissions.ADMIN)){
-                            acl.add(e);
-                        }
-                    }
-                    aclView = new DcAclFileAttributeView(child.getAclAttributes().getOwner(), acl);
-                } else {
-                    // Inherit parent's attributes
-                    aclView = parent.getAttributeView(DcAclFileAttributeView.class);
-                }
-            }
-            return new DcFile(path, child, aclView);
+            DatacatRecord parentRecord = parent != null ? parent.asRecord() : null;
+            return buildChild(parent, path, dao.getObjectInParent(parentRecord, path.toString()));
         }
+    }
+    
+    private DcFile buildChild(DcFile parent, DcPath childPath, DatacatObject child) throws IOException{
+        DcAclFileAttributeView aclView;
+        if(parent == null){
+            aclView = new DcAclFileAttributeView(child.getAclAttributes());
+        } else {
+            if(child.getAclAttributes() != null){
+                /* 
+                  TODO: Come up with better strategy for global ADMIN privileges 
+                    Always inherit parent ADMIN permissions for now.
+                */
+                List<AclEntry> acl = new ArrayList<>(child.getAclAttributes().getAcl());
+                for(AclEntry e: parent.getAttributeView(DcAclFileAttributeView.class).getAcl()){
+                    if(e.permissions().contains(DcPermissions.ADMIN)){
+                        acl.add(e);
+                    }
+                }
+                aclView = new DcAclFileAttributeView(child.getAclAttributes().getOwner(), acl);
+            } else {
+                // Inherit parent's attributes
+                aclView = parent.getAttributeView(DcAclFileAttributeView.class);
+            }
+        }
+        return new DcFile(childPath, child, aclView);
     }
     
     /**
@@ -591,7 +613,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             DatacatObject ret = dao.createContainer(parent.asRecord(), targetDir.toString(), request);
             dao.commit();
             parent.childAdded(targetDir, FileType.DIRECTORY);
-            DcFile f = new DcFile(targetDir, ret, parent.getAttributeView(DcAclFileAttributeView.class));
+            DcFile f = buildChild(parent, targetDir, ret);
             getCache().putFile(f);
         }
     }
