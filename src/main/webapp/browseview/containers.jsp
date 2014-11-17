@@ -53,7 +53,7 @@
                     <td>
                         <span class="glyphicon glyphicon-info-sign"></span>
                         <c:if test='${isFolder eq true and hasDatasets eq true and hasContainers eq true}' >
-                            <a href="${pageContext.request.contextPath}/browser${parentURL}#datasets=${parentURL}/${child.name}" pk="${child.pk}">
+                            <a href="${pageContext.request.contextPath}/browser${parentURL}#datasets=${parentURL}/${child.name}">
                                 <span class="glyphicon glyphicon-list" style="margin-left: 8px;" title="List datasets for ${child.name}"></span>
                             </a>
                         </c:if>
@@ -62,12 +62,10 @@
                         <span class="glyphicon glyphicon-${iconName} type-icon"></span>
                         <c:choose>
                             <c:when test="${child.pk == selected.pk}" >
-                                <a href="#selected" />${child.name}
+                                <a href="#selected" />${child.name}</a>
                             </c:when>
                             <c:otherwise>
-                                <a href="${pageContext.request.contextPath}/browser${child.path}" 
-                                   <c:if test="${needsInfo eq true}">class="needsInfo" asyncPath="${initParam.restResourceBaseURL}/path${child.path}/${child.name}"</c:if>
-                                   >${child.name}</a>
+                                <a href="${pageContext.request.contextPath}/browser${child.path}">${child.name}</a>
                             </c:otherwise>
                         </c:choose>
                     </td>

@@ -88,6 +88,12 @@ public class BrowserController extends ConnectionHttpServlet {
             }
         } catch (AccessDeniedException ex) {
             request.setAttribute("error", new ErrorResponse(ex.getMessage(), ex.getClass().getSimpleName(), "403", null));
+            response.setStatus(403);
+            request.getRequestDispatcher( "/browseview/error.jsp" ).forward( request, response );
+            return;
+        } catch (NoSuchFileException ex) {
+            request.setAttribute("error", new ErrorResponse(ex.getMessage(), ex.getClass().getSimpleName(), "404", null));
+            response.setStatus(404);
             request.getRequestDispatcher( "/browseview/error.jsp" ).forward( request, response );
             return;
         }
@@ -111,7 +117,12 @@ public class BrowserController extends ConnectionHttpServlet {
             
             while(iter.hasNext() && (retList.size() < max || showCount)){
                 java.nio.file.Path p = iter.next();
-                DcFile file = getProvider().getFile(p);
+                DcFile file;
+                try {
+                     file = getProvider().getFile(p);
+                } catch (AccessDeniedException ex){
+                    continue;
+                }
                 if(!withDs && file.isRegularFile()){
                     continue;
                 }
@@ -149,9 +160,13 @@ public class BrowserController extends ConnectionHttpServlet {
             
             while(iter.hasNext() && (retList.size() < max || showCount)){
                 java.nio.file.Path p = iter.next();
-                DcFile file = getProvider().getFile(p);
+                DcFile file;
+                try {
+                    file = getProvider().getFile(p);
+                } catch (AccessDeniedException ex){ continue; }
                 if(count >= offset && retList.size() < max){
-                    retList.add(file.getAttributeView(ContainerViewProvider.class).withView(statType));
+                    System.out.println(file.getAttributeView(ContainerViewProvider.class).withView(statType).getPath());
+                    retList.add(file.getAttributeView(ContainerViewProvider.class).withView(statType));                    
                 }
                 count++;
             }
