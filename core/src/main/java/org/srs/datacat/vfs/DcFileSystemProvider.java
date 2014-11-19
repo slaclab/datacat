@@ -391,7 +391,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         // LOG: Checking database
         try (BaseDAO dao = daoFactory.newBaseDAO()){
             DatacatRecord parentRecord = parent != null ? parent.asRecord() : null;
-            return buildChild(parent, path, dao.getObjectInParent(parentRecord, path.toString()));
+            return buildChild(parent, path, dao.getObjectInParent(parentRecord, path.getFileName().toString()));
         }
     }
     
@@ -448,12 +448,12 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                 if(!options.contains(DatasetOption.SKIP_NODE_CHECK) && exists(dsPath)){ 
                     DcFsException.DATASET_EXISTS.throwError(dsPath.toString(), "A dataset node already exists at this location");
                 }
-                ds = dao.createDatasetNode(dsParent.asRecord(), pathString, dsReq);
+                ds = dao.createNode(dsParent.asRecord(), dsPath.getFileName().toString(), dsReq);
                 dsOptions.add(DatasetOption.SKIP_VERSION_CHECK); // If we added a node, skip version check
             }
             
             if(ds == null){   // No DatasetOption.CREATE_NODE, find current dataset instead
-                DatacatObject o = dao.getObjectInParent(dsParent.asRecord(), pathString);
+                DatacatObject o = dao.getObjectInParent(dsParent.asRecord(), dsPath.getFileName().toString());
                 if(!(o instanceof Dataset)){
                     AfsException.NO_SUCH_FILE.throwError(pathString, "Target is not a dataset");
                 }
@@ -610,7 +610,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         ContainerCreationAttribute dsAttr = (ContainerCreationAttribute) attrs[0];
         DatacatObject request = dsAttr.value();
         try (ContainerDAO dao = daoFactory.newContainerDAO(targetDir)){
-            DatacatObject ret = dao.createContainer(parent.asRecord(), targetDir.toString(), request);
+            DatacatObject ret = dao.createNode(parent.asRecord(), targetDir.getFileName().toString(), request);
             dao.commit();
             parent.childAdded(targetDir, FileType.DIRECTORY);
             DcFile f = buildChild(parent, targetDir, ret);

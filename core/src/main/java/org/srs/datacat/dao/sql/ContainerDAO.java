@@ -45,17 +45,15 @@ public class ContainerDAO extends BaseDAO implements org.srs.datacat.dao.Contain
         super(conn, lock);
     }
     
-    @Override
-    public DatacatObject createContainer(DatacatRecord parent, String targetPath, DatacatObject request) throws IOException{
+    public DatacatObject createContainer(DatacatRecord parent, String name, DatacatObject request) throws IOException{
         try {
-            return insertContainer(parent.getPk(), targetPath, request);
+            return insertContainer(parent, name, request);
         } catch (SQLException ex){
-            throw new IOException("Unable to create container", ex);
+            throw new IOException("Unable to create container: " + PathUtils.resolve(parent.getPath(), name), ex);
         }
     }
 
-    protected DatacatObject insertContainer(Long parentPk, String targetPath, DatacatObject request) throws SQLException{
-        String name = PathUtils.getFileName(targetPath);
+    protected DatacatObject insertContainer(DatacatRecord parent, String name, DatacatObject request) throws SQLException{
         String tableName;
         String parentColumn;
         DatacatObject.Type newType = request.getType();
@@ -82,15 +80,15 @@ public class ContainerDAO extends BaseDAO implements org.srs.datacat.dao.Contain
         
         try (PreparedStatement stmt = getConnection().prepareStatement( sql, new String[]{tableName} )) {
             stmt.setString( 1, name);
-            stmt.setLong(2, parentPk);
+            stmt.setLong(2, parent.getPk());
             stmt.setString(3, description);
             stmt.executeUpdate();
             try (ResultSet rs = stmt.getGeneratedKeys()){
                 rs.next();
                 builder.pk(rs.getLong(1));
             }
-            builder.parentPk(parentPk);
-            builder.path(targetPath);
+            builder.parentPk(parent.getPk());
+            builder.path(PathUtils.resolve(parent.getPath(), name));
             retObject = builder.build();
         }
         
@@ -104,7 +102,6 @@ public class ContainerDAO extends BaseDAO implements org.srs.datacat.dao.Contain
         return retObject;
     }
     
-    @Override
     public void deleteContainer(DatacatRecord container) throws IOException {
         try {
             switch(container.getType()){

@@ -15,16 +15,12 @@ import org.srs.datacat.shared.container.DatasetStat;
  */
 public interface ContainerDAO extends BaseDAO {
 
-    DatacatObject createContainer(DatacatRecord parent, String targetPath, DatacatObject request) throws IOException;
-
-    void deleteContainer(DatacatRecord container) throws IOException;
-
-    BasicStat getBasicStat(DatacatRecord container) throws IOException;
-
     DirectoryStream<DatacatObject> getChildrenStream(DatacatRecord parent, DatasetView viewPrefetch) throws IOException;
+    
+    DirectoryStream<DatacatObject> getSubdirectoryStream(DatacatRecord parent) throws IOException;
+    
+    BasicStat getBasicStat(DatacatRecord container) throws IOException;
 
     DatasetStat getDatasetStat(DatacatRecord container) throws IOException;
 
-    DirectoryStream<DatacatObject> getSubdirectoryStream(DatacatRecord parent) throws IOException;
-    
 }

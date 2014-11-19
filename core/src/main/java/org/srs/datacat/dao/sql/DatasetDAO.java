@@ -38,16 +38,14 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
         super(conn, lock);
     }
     
-    @Override
-    public Dataset createDatasetNode(DatacatRecord parent, String path, Dataset request) throws IOException, FileSystemException{
+    public Dataset createDatasetNode(DatacatRecord parent, String name, Dataset request) throws IOException, FileSystemException{
         try {
-            return insertDataset(parent.getPk(), parent.getType(), path, request);
+            return insertDataset(parent, name, request);
         } catch (SQLException ex){
-            throw new IOException("Unable to insert node: " + path, ex);
+            throw new IOException("Unable to insert node: " + PathUtils.resolve(parent.getPath(), name), ex);
         }
     }
     
-    @Override
     public void deleteDataset(DatacatRecord dataset) throws IOException {
         try {
             deleteDataset(dataset.getPk());
@@ -221,8 +219,9 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
         }        
     }
     
-    protected Dataset insertDataset(Long parentPk, DatacatObject.Type parentType, String targetPath, Dataset request) throws SQLException {
-        String name = PathUtils.getFileName(targetPath);
+    protected Dataset insertDataset(DatacatRecord parent, String name, Dataset request) throws SQLException {
+        Long parentPk = parent.getPk();
+        DatacatObject.Type parentType = parent.getType();
         String insertSql = "insert into VerDataset (DatasetName, DataSetFileFormat, DataSetDataType, "
                 + "DatasetLogicalFolder, DatasetGroup) values (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = getConnection().prepareStatement( insertSql, new String[]{"DATASET", "REGISTERED"} )) {
@@ -245,7 +244,7 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
                 builder.pk(rs.getLong(1));
                 builder.parentPk(parentPk);
                 builder.parentType(parentType);
-                builder.path(targetPath);
+                builder.path(PathUtils.resolve(parent.getPath(), name));
                 builder.created(rs.getTimestamp(2));
             }
             return builder.build();

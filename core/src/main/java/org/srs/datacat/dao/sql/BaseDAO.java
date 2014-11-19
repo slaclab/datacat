@@ -4,6 +4,7 @@ package org.srs.datacat.dao.sql;
 import java.io.IOException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystemException;
 import java.nio.file.NoSuchFileException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -94,29 +95,28 @@ public class BaseDAO implements org.srs.datacat.dao.BaseDAO {
     }
         
     @Override
-    public DatacatObject getObjectInParent(DatacatRecord parent, String path) throws IOException, NoSuchFileException {
-        return getDatacatObject(parent, path);
+    public DatacatObject getObjectInParent(DatacatRecord parent, String name) throws IOException, NoSuchFileException {
+        return getDatacatObject(parent, name);
     }
     
-    protected DatacatObject getDatacatObject(DatacatRecord parent, String path) throws IOException, NoSuchFileException {
+    protected DatacatObject getDatacatObject(DatacatRecord parent, String name) throws IOException, NoSuchFileException {
         try {
-            return getChild(parent, path);
+            return getChild(parent, name);
         } catch(SQLException ex) {
             throw new IOException("Unknown exception occurred in the database", ex);
         }
     }
 
-    private DatacatObject getChild(DatacatRecord parent, String path) throws SQLException, NoSuchFileException{
-        int[] offsets = PathUtils.offsets(path);
-        String fileName = PathUtils.getFileName(path, offsets);
-        String parentPath = PathUtils.getParentPath(path, offsets);
+    private DatacatObject getChild(DatacatRecord parent, String name) throws SQLException, NoSuchFileException{
+        String parentPath = parent != null ? parent.getPath() : null;
         String nameParam = null;
         
+        String childPath = parent != null ? PathUtils.resolve(parent.getPath(), name) : name;
         String parentClause;
-        if(parentPath == null || "/".equals(path)){
+        if(parentPath == null || "/".equals(name)){
             parentClause = " is null ";
         } else {
-            nameParam = fileName;
+            nameParam = name;
             parentClause = " = ? and name = ?";
         }
         
@@ -143,7 +143,7 @@ public class BaseDAO implements org.srs.datacat.dao.BaseDAO {
             }
             ResultSet rs = stmt.executeQuery();
             if(!rs.next()){
-                throw (new NoSuchFileException( "Unable to resolve objects: " + path ));
+                throw (new NoSuchFileException( "Unable to resolve objects: " + childPath + " in parent " + parent.toString()));
             }
             builder = getBuilder(rs, parentPath);
         }
@@ -444,6 +444,17 @@ public class BaseDAO implements org.srs.datacat.dao.BaseDAO {
         builder.created(rs.getTimestamp( "registered"));
         builder.master( rs.getBoolean( "isMaster"));
         locations.add(builder.build());
+    }
+
+    @Override
+    public <T extends DatacatObject> T createNode(DatacatRecord parent, String path, T request) throws IOException, FileSystemException{
+        if(request instanceof Dataset){
+            DatasetDAO dao = new DatasetDAO(getConnection());
+            return (T) dao.createDatasetNode(parent, path, (Dataset) request);
+        }
+        // It should be a container
+        ContainerDAO dao = new ContainerDAO(getConnection());
+        return (T) dao.createContainer(parent, path, request );
     }
     
     protected enum VersionParent {
