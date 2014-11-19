@@ -16,7 +16,7 @@ import org.srs.datacat.shared.dataset.DatasetViewInfo;
  */
 public interface DatasetDAO extends BaseDAO {
 
-    DatasetLocation createDatasetLocation(Long versionPk, String path, DatasetLocation newLoc,
+    DatasetLocation createDatasetLocation(DatacatRecord versionRecord, DatasetLocation newLoc,
             boolean skipCheck) throws IOException, FileSystemException;
 
     DatasetVersion createOrMergeDatasetVersion(DatacatRecord dsRecord, DatasetVersion request,

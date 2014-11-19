@@ -577,7 +577,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                 throw new IllegalArgumentException("Unable to create the view specified without locations");
             }
             for(DatasetLocation reqLocation: reqView.getLocations()){
-                DatasetLocation l = dao.createDatasetLocation(curVersion.getPk(), dsRecord.getPath(), reqLocation, skipLocationCheck);
+                DatasetLocation l = dao.createDatasetLocation(curVersion, reqLocation, skipLocationCheck);
                 retLocations.add(l);
             }
         }

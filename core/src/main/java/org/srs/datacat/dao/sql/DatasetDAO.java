@@ -48,7 +48,8 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
     
     public void deleteDataset(DatacatRecord dataset) throws IOException {
         try {
-            deleteDataset(dataset.getPk());
+            String deleteSql = "delete from VerDataset where Dataset=?";
+            delete1(deleteSql, dataset.getPk());
         } catch (SQLException ex){
             throw new IOException("Error deleting dataset: " + dataset.getPath(), ex);
         }
@@ -73,19 +74,19 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
                     newId = getCreationVersionID(dsRecord.getPath(), currentId, newId);
                 }
             }
-            return insertDatasetVersion(dsRecord.getPk(), newId, isCurrent, request);
+            return insertDatasetVersion(dsRecord, newId, isCurrent, request);
         } catch (SQLException ex){
             throw new IOException("Unable to create or merge version", ex);
         }
     }
     
     @Override
-    public DatasetLocation createDatasetLocation(Long versionPk, String path, DatasetLocation newLoc, boolean skipCheck) throws IOException, FileSystemException{
+    public DatasetLocation createDatasetLocation(DatacatRecord versionRecord, DatasetLocation newLoc, boolean skipCheck) throws IOException, FileSystemException{
         try {
             if(!skipCheck){
-                assertCanCreateLocation(versionPk, path, newLoc);
+                assertCanCreateLocation(versionRecord, newLoc);
             }
-            return insertDatasetLocation(versionPk, newLoc);
+            return insertDatasetLocation(versionRecord.getPk(), newLoc);
         } catch (SQLException ex){
             throw new IOException("Unable to check and/or insert dataset location", ex);
         }
@@ -94,7 +95,7 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
     @Override
     public DatasetVersion getCurrentVersion(DatacatRecord dsRecord) throws IOException {
         try {
-            for(DatasetVersion v: getDatasetVersions(dsRecord.getPk())){
+            for(DatasetVersion v: getDatasetVersions(dsRecord)){
                 if(v.isLatest()){
                     return v;
                 }
@@ -108,20 +109,20 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
     @Override
     public DatasetViewInfo getDatasetViewInfo(DatacatRecord dsRecord, DatasetView view) throws IOException{
         try {
-            return getDatasetViewInfoInternal(dsRecord.getPk(), view );
+            return getDatasetViewInfoInternal(dsRecord, view );
         } catch (SQLException ex){
             throw new IOException("Failed to retrieve version", ex);
         }
     }
 
-    private DatasetViewInfo getDatasetViewInfoInternal(Long datasetPk, DatasetView view) throws SQLException{
+    private DatasetViewInfo getDatasetViewInfoInternal(DatacatRecord dsRecord, DatasetView view) throws SQLException{
         String sqlWithMetadata = getVersionsSql( VersionParent.DATASET, view );
         String sqlLocations = getLocationsSql(VersionParent.DATASET, view );
         PreparedStatement stmt1 = getConnection().prepareStatement( sqlWithMetadata );
         PreparedStatement stmt2 = getConnection().prepareStatement( sqlLocations );
         try {
-            stmt1.setLong( 1, datasetPk);
-            stmt2.setLong( 1, datasetPk);
+            stmt1.setLong( 1, dsRecord.getPk());
+            stmt2.setLong( 1, dsRecord.getPk());
             if(!view.isCurrent()){
                 stmt1.setInt( 2, view.getVersionId());
                 stmt2.setInt( 2, view.getVersionId());
@@ -134,11 +135,12 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
             DatasetVersion.Builder builder = new DatasetVersion.Builder();
             List<DatasetLocation> locations = new ArrayList<>();
             if(rs1.next()){
-                builder.pk(rs1.getLong( "datasetversion"));
-                builder.parentPk(datasetPk);
-                builder.versionId(rs1.getInt( "versionid"));
+                builder.pk(rs1.getLong("datasetversion"));
+                builder.parentPk(dsRecord.getPk());
+                builder.versionId(rs1.getInt("versionid"));
                 builder.datasetSource(rs1.getString("datasetSource"));
-                builder.latest(rs1.getBoolean( "isLatest"));                
+                builder.latest(rs1.getBoolean("isLatest"));
+                builder.path( dsRecord.getPath() + ";v=" + rs1.getInt("versionid"));
                 processMetadata( rs1, metadata );
                 while(rs1.next()){
                     processMetadata( rs1, metadata );
@@ -156,7 +158,7 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
         }
     }
     
-    private List<DatasetVersion> getDatasetVersions(Long datasetPk) throws SQLException{
+    private List<DatasetVersion> getDatasetVersions(DatacatRecord dsRecord) throws SQLException{
         String sql = 
                 "select dsv.datasetversion, dsv.versionid, dsv.datasetsource, " 
                 + "CASE WHEN vd.latestversion = dsv.datasetversion THEN 1 ELSE 0 END isLatest "
@@ -165,17 +167,18 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
                 + "WHERE vd.dataset = ? ";
 
         try (PreparedStatement stmt = getConnection().prepareStatement( sql )){
-            stmt.setLong( 1, datasetPk);
+            stmt.setLong( 1, dsRecord.getPk());
             ResultSet rs = stmt.executeQuery();
             ArrayList<DatasetVersion> versions = new ArrayList<>();
             DatasetVersion.Builder builder;
             while(rs.next()){
                 builder = new DatasetVersion.Builder();
                 builder.pk(rs.getLong( "datasetversion"));
-                builder.parentPk(datasetPk);
+                builder.parentPk(dsRecord.getPk());
                 builder.versionId(rs.getInt( "versionid"));
                 builder.datasetSource(rs.getString( "datasetSource"));
                 builder.latest(rs.getBoolean( "isLatest"));
+                builder.path( dsRecord.getPath() + ";v=" + rs.getInt("versionid"));
                 setVersionMetadata( builder );
                 versions.add( builder.build());
             }
@@ -300,7 +303,7 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
         delete1(deleteSql.toLowerCase(), fileFormat);
     }
     
-    protected void deleteAllDatasetViews(long datasetPk) throws SQLException{
+    /*protected void deleteAllDatasetViews(long datasetPk) throws SQLException{
         for(DatasetVersion v: getDatasetVersions( datasetPk )){
             deleteDatasetVersion(datasetPk, v);
         }
@@ -309,9 +312,9 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
     protected void deleteDataset(long datasetPk) throws SQLException{
         String deleteSql = "delete from VerDataset where Dataset=?";
         delete1(deleteSql, datasetPk);
-    }
+    }*/
     
-    protected DatasetVersion insertDatasetVersion(Long datasetPk, int newVersionId, boolean isCurrent, DatasetVersion request) throws SQLException {
+    protected DatasetVersion insertDatasetVersion(DatacatRecord dsRecord, int newVersionId, boolean isCurrent, DatasetVersion request) throws SQLException {
         // One last integrity check
         newVersionId = newVersionId < 0 ? 0 : newVersionId;
         
@@ -322,7 +325,7 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
         String datasetSource = request.getDatasetSource() != null ? request.getDatasetSource() : DEFAULT_DATA_SOURCE;
         DatasetVersion retVersion = null;
         try(PreparedStatement stmt = getConnection().prepareStatement( sql, new String[]{"DATASETVERSION", "REGISTERED"} )) {
-            stmt.setLong(1, datasetPk );
+            stmt.setLong(1, dsRecord.getPk());
             stmt.setInt(2, newVersionId );
             stmt.setString(3, datasetSource);
             if(request.getProcessInstance() != null){
@@ -334,13 +337,14 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
             stmt.executeUpdate();   // will throw exception if required parameter is empty...
             
             DatasetVersion.Builder builder = new DatasetVersion.Builder(request);
-            builder.parentPk(datasetPk);
+            builder.parentPk(dsRecord.getPk());
             builder.versionId(newVersionId);
             builder.latest(isCurrent);
+            builder.path(dsRecord.getPath() + ";v=" + newVersionId);
             try(ResultSet rs = stmt.getGeneratedKeys()){
                 rs.next();
                 builder.pk(rs.getLong(1));
-                builder.parentPk(datasetPk);
+                builder.parentPk(dsRecord.getPk());
                 builder.created(rs.getTimestamp(2));
                 builder.metadata(request.getMetadataMap());
             }
@@ -354,7 +358,7 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
             sql = "UPDATE VerDataset set LatestVersion = ? WHERE Dataset = ?";
             try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
                 stmt.setLong(1, retVersion.getPk());
-                stmt.setLong(2, datasetPk);
+                stmt.setLong(2, dsRecord.getPk());
                 stmt.executeUpdate();
             }
         }
@@ -488,12 +492,12 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
         }
     }
     
-    protected void assertCanCreateLocation(Long versionPk, String dsPath, DatasetLocation newLoc) throws SQLException, FileSystemException{
-        for(DatasetLocation l: getDatasetLocations(versionPk)){
+    protected void assertCanCreateLocation(DatacatRecord versionRecord, DatasetLocation newLoc) throws SQLException, FileSystemException{
+        for(DatasetLocation l: getDatasetLocations(versionRecord.getPk())){
             if(l.getSite().equals(newLoc.getSite())){
-                LOCATION_EXISTS.throwError( dsPath,"Location entry for site " + newLoc.getSite() + " already exists");
+                LOCATION_EXISTS.throwError(versionRecord.getPath(),"Location entry for site " + newLoc.getSite() + " already exists");
             }
         }
     }
-       
+    
 }
