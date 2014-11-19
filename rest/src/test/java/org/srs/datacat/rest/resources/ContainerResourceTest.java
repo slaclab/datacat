@@ -18,6 +18,7 @@ import org.glassfish.jersey.server.model.Resource;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
 import org.srs.datacat.rest.App;
+import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.TestUtils;
 import org.srs.vfs.PathUtils;
@@ -48,9 +49,9 @@ public class ContainerResourceTest extends JerseyTest {
 
     @Override
     protected Application configure(){
-        HSqlDbHarness harness = null;
+        DbHarness harness = null;
         try {
-            harness = new HSqlDbHarness();
+            harness = DbHarness.getDbHarness();
         } catch(SQLException ex) {
             System.out.println(ex);
 

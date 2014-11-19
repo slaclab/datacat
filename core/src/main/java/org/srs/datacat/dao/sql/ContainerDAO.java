@@ -32,7 +32,7 @@ import org.srs.vfs.PathUtils;
  *
  * @author bvan
  */
-public class ContainerDAO extends BaseDAO {
+public class ContainerDAO extends BaseDAO implements org.srs.datacat.dao.ContainerDAO {
     
     public static final int FETCH_SIZE_CHILDREN = 5000;
     public static final int FETCH_SIZE_METADATA = 100000;
@@ -45,6 +45,7 @@ public class ContainerDAO extends BaseDAO {
         super(conn, lock);
     }
     
+    @Override
     public DatacatObject createContainer(DatacatRecord parent, String targetPath, DatacatObject request) throws IOException{
         try {
             return insertContainer(parent.getPk(), targetPath, request);
@@ -103,6 +104,7 @@ public class ContainerDAO extends BaseDAO {
         return retObject;
     }
     
+    @Override
     public void deleteContainer(DatacatRecord container) throws IOException {
         try {
             switch(container.getType()){
@@ -128,6 +130,7 @@ public class ContainerDAO extends BaseDAO {
         delete1( deleteSql, groupPk);
     }
     
+    @Override
     public BasicStat getBasicStat(DatacatRecord container) throws IOException {
         boolean isFolder = container.getType() == DatacatObject.Type.FOLDER;
         String parent = isFolder ? "datasetlogicalfolder" : "datasetgroup";
@@ -165,6 +168,7 @@ public class ContainerDAO extends BaseDAO {
         }
     }
     
+    @Override
     public DatasetStat getDatasetStat(DatacatRecord container) throws IOException {
         String primaryTable;
         boolean isFolder = container.getType() == DatacatObject.Type.FOLDER;
@@ -201,10 +205,12 @@ public class ContainerDAO extends BaseDAO {
         }
     }
     
+    @Override
     public DirectoryStream<DatacatObject> getSubdirectoryStream(DatacatRecord parent) throws IOException {
         return getChildrenStream(parent, null);
     }
     
+    @Override
     public DirectoryStream<DatacatObject> getChildrenStream(DatacatRecord parent, DatasetView viewPrefetch) throws IOException{
         try {
             return getChildrenStreamInternal(parent.getPk(), parent.getPath(), viewPrefetch );

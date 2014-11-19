@@ -32,6 +32,7 @@ import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.dao.sql.DatasetDAOTest;
 import org.srs.datacat.security.DcUser;
+import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.test.HSqlDbHarness;
 
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
@@ -44,14 +45,14 @@ import org.srs.vfs.AbstractPath;
  */
 public class DcFileSystemProviderTest {
     
-    static HSqlDbHarness harness;
+    static DbHarness harness;
     
     public DcFileSystemProviderTest(){ }
     
     @BeforeClass
     public static void setUpDb() throws SQLException, IOException{
         DatasetDAOTest.setUpDb();
-        harness = new HSqlDbHarness();
+        harness = DbHarness.getDbHarness();
         DataSource d = harness.getDataSource();
         DatasetDAOTest.addRecords(d.getConnection());
     }

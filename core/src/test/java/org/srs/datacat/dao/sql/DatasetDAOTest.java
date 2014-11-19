@@ -22,6 +22,7 @@ import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.dataset.FlatDataset;
+import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.TestUtils;
 import org.srs.vfs.PathUtils;
@@ -32,14 +33,14 @@ import org.srs.vfs.PathUtils;
  */
 public class DatasetDAOTest {
     
-    static HSqlDbHarness harness;
+    static DbHarness harness;
     Connection conn;
     
     public DatasetDAOTest(){ }
     
     @BeforeClass
     public static void setUpDb() throws SQLException, IOException{
-        harness = new HSqlDbHarness();
+        harness = DbHarness.getDbHarness();
         DataSource d = harness.getDataSource();
         addRecords(d.getConnection());
     }

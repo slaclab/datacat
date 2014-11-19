@@ -13,7 +13,7 @@ import org.srs.datacat.vfs.DcPath;
  *
  * @author bvan
  */
-public class DAOFactory {
+public class DAOFactory implements org.srs.datacat.dao.DAOFactory {
     private final DataSource dataSource;
     private final Locker locker = new Locker();
     
@@ -85,6 +85,7 @@ public class DAOFactory {
         this.dataSource = ds;
     }
     
+    @Override
     public BaseDAO newBaseDAO() throws IOException{
         try {
             return new BaseDAO(dataSource.getConnection());
@@ -93,6 +94,7 @@ public class DAOFactory {
         }
     }
     
+    @Override
     public ContainerDAO newContainerDAO(DcPath lockPath) throws IOException{
         try {
             ReentrantLock lock = locker.prepareLease(lockPath);
@@ -103,6 +105,7 @@ public class DAOFactory {
         }
     }
     
+    @Override
     public ContainerDAO newContainerDAO() throws IOException{
         try {
             return new ContainerDAO(dataSource.getConnection());
@@ -111,6 +114,7 @@ public class DAOFactory {
         }
     }
     
+    @Override
     public DatasetDAO newDatasetDAO() throws IOException{
         try {
             return new DatasetDAO(dataSource.getConnection());
@@ -125,6 +129,7 @@ public class DAOFactory {
      * @return
      * @throws IOException 
      */
+    @Override
     public DatasetDAO newDatasetDAO(DcPath lockPath) throws IOException{
         try {
             ReentrantLock lock = locker.prepareLease(lockPath);

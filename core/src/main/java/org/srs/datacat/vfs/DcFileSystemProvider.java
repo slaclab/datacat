@@ -49,9 +49,9 @@ import org.srs.datacat.dao.sql.ContainerDAO;
 import org.srs.vfs.AbstractFsProvider;
 import org.srs.vfs.AbstractPath;
 import org.srs.vfs.ChildrenView;
-import org.srs.datacat.dao.sql.BaseDAO;
-import org.srs.datacat.dao.sql.DAOFactory;
-import org.srs.datacat.dao.sql.DatasetDAO;
+import org.srs.datacat.dao.BaseDAO;
+import org.srs.datacat.dao.DatasetDAO;
+import org.srs.datacat.dao.DAOFactory;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.shared.dataset.DatasetViewInfo;
 import org.srs.datacat.shared.dataset.DatasetWithView;
@@ -82,7 +82,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         
     public DcFileSystemProvider(DataSource dataSource, DcUserLookupService userLookupService) throws IOException{
         super();
-        this.daoFactory = new DAOFactory(dataSource);
+        this.daoFactory = new org.srs.datacat.dao.sql.DAOFactory(dataSource);
         fileSystem = new DcFileSystem(this, userLookupService);
     }
     

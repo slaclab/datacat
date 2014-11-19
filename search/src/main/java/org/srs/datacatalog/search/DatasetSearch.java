@@ -65,6 +65,10 @@ public class DatasetSearch {
         }
     }
     
+    public void close(){
+        
+    }
+    
     public List<Dataset> retrieveDatasets() throws IOException {
         try {
             return SearchUtils.getResults(conn, selectStatement, datasetView, metadataFields);

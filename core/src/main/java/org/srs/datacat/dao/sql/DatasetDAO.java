@@ -26,7 +26,7 @@ import org.srs.vfs.PathUtils;
  *
  * @author bvan
  */
-public class DatasetDAO extends BaseDAO {
+public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDAO {
     
     private static final String DEFAULT_DATA_SOURCE = "RESTFUL_API_v0.2";
 
@@ -38,6 +38,7 @@ public class DatasetDAO extends BaseDAO {
         super(conn, lock);
     }
     
+    @Override
     public Dataset createDatasetNode(DatacatRecord parent, String path, Dataset request) throws IOException, FileSystemException{
         try {
             return insertDataset(parent.getPk(), parent.getType(), path, request);
@@ -46,6 +47,7 @@ public class DatasetDAO extends BaseDAO {
         }
     }
     
+    @Override
     public void deleteDataset(DatacatRecord dataset) throws IOException {
         try {
             deleteDataset(dataset.getPk());
@@ -54,6 +56,7 @@ public class DatasetDAO extends BaseDAO {
         }
     }
     
+    @Override
     public DatasetVersion createOrMergeDatasetVersion(DatacatRecord dsRecord, DatasetVersion request, Optional<DatasetVersion> curVersionOpt, boolean mergeVersion) throws IOException, FileSystemException{
         try {
             int newId = request.getVersionId();
@@ -78,6 +81,7 @@ public class DatasetDAO extends BaseDAO {
         }
     }
     
+    @Override
     public DatasetLocation createDatasetLocation(Long versionPk, String path, DatasetLocation newLoc, boolean skipCheck) throws IOException, FileSystemException{
         try {
             if(!skipCheck){
@@ -89,6 +93,7 @@ public class DatasetDAO extends BaseDAO {
         }
     }
     
+    @Override
     public DatasetVersion getCurrentVersion(DatacatRecord dsRecord) throws IOException {
         try {
             for(DatasetVersion v: getDatasetVersions(dsRecord.getPk())){
@@ -102,6 +107,7 @@ public class DatasetDAO extends BaseDAO {
         }
     }
 
+    @Override
     public DatasetViewInfo getDatasetViewInfo(DatacatRecord dsRecord, DatasetView view) throws IOException{
         try {
             return getDatasetViewInfoInternal(dsRecord.getPk(), view );

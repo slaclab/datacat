@@ -24,7 +24,7 @@ import org.apache.commons.dbcp2.DriverManagerConnectionFactory;
 /**
  * HSQL DB Test Harness
  */
-public class HSqlDbHarness extends DbHarness {
+public class MySQLDbHarness extends DbHarness {
    
     static String url = "jdbc:hsqldb:mem:test";
     private final String driver = "org.hsqldb.jdbc.JDBCDriver";
@@ -34,7 +34,7 @@ public class HSqlDbHarness extends DbHarness {
     public static String JUNIT_DATASET_DATASOURCE = "JUNIT_SOURCE";
     public static String JUNIT_DATASET_FILEFORMAT = "junit.test";
     
-    protected HSqlDbHarness() throws SQLException{
+    protected MySQLDbHarness() throws SQLException{
         
         try {
             Class.forName(driver);
@@ -72,9 +72,9 @@ public class HSqlDbHarness extends DbHarness {
     
     private void init() throws SQLException{
         Connection conn = ds.getConnection();
-        executeScript(conn, getClass().getResourceAsStream("hsqldb-schema.sql"), true);
+        executeScript(conn, getClass().getResourceAsStream("mysql-schema.sql"), true);
         executeScript(conn, getClass().getResourceAsStream("init-junit.sql"), true);
-        conn.commit();        
+        conn.commit();
     }
 
     public void executeScript(Connection conn, InputStream scriptStream, boolean swallowErrors) throws SQLException{
@@ -144,12 +144,12 @@ public class HSqlDbHarness extends DbHarness {
 
     
     public static void main(String[] argv) throws SQLException{
-        System.out.println(new HSqlDbHarness().getDataSource().toString());
+        System.out.println(new MySQLDbHarness().getDataSource().toString());
     }
     
     
     public long createFolder(Connection conn, long parentPk, String name) throws SQLException{
-        String sql = "INSERT INTO DATASETLOGICALFOLDER (NAME, PARENT) SELECT ?, DATASETLOGICALFOLDER FROM DATASETLOGICALFOLDER WHERE NAME = 'testpath'";
+        String sql = "INSERT INTO DatasetLogicalFolder (NAME, PARENT) SELECT ?, DatasetLogicalFolder FROM DatasetLogicalFolder WHERE NAME = 'testpath'";
         try (PreparedStatement stmt = conn.prepareStatement( sql, new String[]{"DATASETLOGICALFOLDER"} )) {
             stmt.setString(1, name);
             stmt.executeUpdate();

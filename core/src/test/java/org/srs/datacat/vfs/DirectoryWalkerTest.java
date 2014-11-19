@@ -12,7 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.BeforeClass;
 import org.srs.datacat.security.DcUser;
-import org.srs.datacat.test.HSqlDbHarness;
+import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
 import org.srs.vfs.PathUtils;
 
@@ -21,7 +21,7 @@ import org.srs.vfs.PathUtils;
  * @author Brian Van Klaveren<bvan@slac.stanford.edu>
  */
 public class DirectoryWalkerTest {
-    static HSqlDbHarness harness;
+    static DbHarness harness;
     DcFileSystemProvider provider;
     DcPath root;
     
@@ -30,7 +30,7 @@ public class DirectoryWalkerTest {
     
     @BeforeClass
     public static void setUpDb() throws SQLException, IOException{
-        harness = new HSqlDbHarness();
+        harness = DbHarness.getDbHarness();
         DataSource d = harness.getDataSource();
         Connection c = ((DelegatingConnection)d.getConnection()).getInnermostDelegate();
         

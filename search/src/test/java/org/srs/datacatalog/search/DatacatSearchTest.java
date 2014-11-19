@@ -18,6 +18,7 @@ import org.srs.datacat.model.DatasetView;
 import org.srs.datacatalog.search.plugins.DatacatPlugin;
 import org.srs.datacatalog.search.plugins.EXODatacatSearchPlugin;
 import org.srs.datacat.shared.Dataset;
+import org.srs.datacat.test.DbHarness;
 
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.DcFileSystemProvider;
@@ -36,7 +37,7 @@ import org.srs.vfs.PathUtils;
  */
 public class DatacatSearchTest {
     
-    static HSqlDbHarness harness;
+    static DbHarness harness;
     DatasetSearch datacatSearch;
     HashMap<String, DatacatPlugin> pluginMap;
     public DataSource ds = null;
@@ -64,7 +65,7 @@ public class DatacatSearchTest {
         
     @BeforeClass
     public static void setUpDb() throws SQLException, IOException{
-        harness = new HSqlDbHarness();
+        harness = DbHarness.getDbHarness();
         DataSource d = harness.getDataSource();
     }
 

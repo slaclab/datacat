@@ -31,7 +31,7 @@ import org.srs.vfs.AbstractFsProvider.AfsException;
  *
  * @author bvan
  */
-public class BaseDAO implements AutoCloseable {
+public class BaseDAO implements org.srs.datacat.dao.BaseDAO {
  
     private Connection conn;    
     private final ReentrantLock lock;
@@ -61,6 +61,7 @@ public class BaseDAO implements AutoCloseable {
 
     }
     
+    @Override
     public void commit() throws IOException {
         try {
             conn.commit();
@@ -92,6 +93,7 @@ public class BaseDAO implements AutoCloseable {
         }
     }
         
+    @Override
     public DatacatObject getObjectInParent(DatacatRecord parent, String path) throws IOException, NoSuchFileException {
         return getDatacatObject(parent, path);
     }
@@ -254,6 +256,7 @@ public class BaseDAO implements AutoCloseable {
         }
     }
     
+    @Override
     public void delete(DatacatRecord record) throws IOException{
         if(record.getType().isContainer()){
             doDeleteDirectory(record);
@@ -284,6 +287,7 @@ public class BaseDAO implements AutoCloseable {
         dao.deleteDataset(record);
     }
     
+    @Override
     public void addMetadata(DatacatRecord record, Map metaData) throws IOException {
         try {
             switch(record.getType()){

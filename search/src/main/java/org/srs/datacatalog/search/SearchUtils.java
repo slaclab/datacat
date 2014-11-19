@@ -255,8 +255,22 @@ public class SearchUtils {
     }
     
     public static void populateParentTempTable(Connection conn, LinkedList<DcFile> containers) throws SQLException {
+
+        if(conn.getMetaData().getDatabaseProductName().contains("MySQL")){
+            String tableSql = 
+                    "drop temporary table if exists ContainerSearch; "
+                    + "create temporary table ContainerSearch ( "
+                    + "    DatasetLogicalFolder	bigint, "
+                    + "    DatasetGroup		bigint, "
+                    + "    ContainerPath varchar(500) "
+                    + ")";
+            try (PreparedStatement stmt  = conn.prepareStatement(tableSql)){
+                stmt.execute();
+            }
+        }
+        
         String sql = "INSERT INTO ContainerSearch (DatasetLogicalFolder, DatasetGroup, ContainerPath) VALUES (?,?,?)";
-        try (PreparedStatement stmt  = conn.prepareStatement( sql )){
+        try (PreparedStatement stmt  = conn.prepareStatement(sql)){
             while(containers.peek() != null){
                 DcFile file = containers.remove();
                 boolean isGroup = file.getType() instanceof DcFile.GroupType;
@@ -266,13 +280,6 @@ public class SearchUtils {
                 stmt.executeUpdate();
             }
         }
-        /*try (PreparedStatement stmt2 = conn.prepareStatement( "SELECT ContainerPath FROM ContainerSearch")){
-            ResultSet rs = stmt2.executeQuery();
-            while(rs.next()){
-                System.out.println(rs.getString("ContainerPath"));
-            }
-        }*/
-
     }
     
     public static void pruneParentTempTable(Connection conn, DirectoryWalker.ContainerVisitor visitor) throws SQLException {

@@ -40,6 +40,7 @@ import org.srs.datacat.rest.App;
 import org.srs.datacat.rest.App.JacksonFeature;
 import org.srs.datacat.rest.FormParamConverter;
 import org.srs.datacat.shared.Dataset;
+import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.TestUtils;
@@ -71,9 +72,9 @@ public class DatasetsResourceTest extends JerseyTest {
     
     @Override
     protected Application configure(){
-        HSqlDbHarness harness = null;
+        DbHarness harness = null;
         try {
-            harness = new HSqlDbHarness();
+            harness = DbHarness.getDbHarness();
         } catch(SQLException ex) {
             System.out.println(ex);
 

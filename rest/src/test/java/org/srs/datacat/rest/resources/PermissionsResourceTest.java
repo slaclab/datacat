@@ -22,7 +22,7 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.srs.datacat.rest.App;
-import org.srs.datacat.test.HSqlDbHarness;
+import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.vfs.TestUtils;
 
 /**
@@ -43,9 +43,9 @@ public class PermissionsResourceTest extends JerseyTest {
     
     @Override
     protected Application configure(){
-        HSqlDbHarness harness = null;
+        DbHarness harness = null;
         try {
-            harness = new HSqlDbHarness();
+            harness = DbHarness.getDbHarness();
         } catch(SQLException ex) {
             System.out.println(ex);
 
