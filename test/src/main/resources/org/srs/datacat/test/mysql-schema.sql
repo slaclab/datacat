@@ -1,6 +1,6 @@
 
 
-drop table      ContainerSearch;
+--drop table      ContainerSearch;
 
 drop table	VerDatasetMetaString ;
 drop table	VerDatasetMetaNumber ;
@@ -148,10 +148,10 @@ create table VerDatasetLocation (
 	NumberEvents		numeric,
 	FileSizeBytes		numeric,
 	CheckSum		numeric,
+        Registered		timestamp DEFAULT CURRENT_TIMESTAMP,
 	LastModified		timestamp,
 	LastScanned 		timestamp,
 	ScanStatus 		varchar(20) DEFAULT 'UNSCANNED',
-	Registered		timestamp DEFAULT CURRENT_TIMESTAMP,
         constraint PK_VerDatasetLocation primary key (DatasetLocation),
 	constraint FK_VDSL_DSVersion foreign key (DatasetVersion)
 		references DatasetVersion (DatasetVersion)
@@ -357,11 +357,11 @@ insert
   into DatasetLogicalFolder (DatasetLogicalFolder, Name, Parent, ACL)
   values(0, 'ROOT', NULL, '$PUBLIC$@:g:r:,test_user@SRS:o::,test_group@SRS:g:idrwa:');
 
-create global temporary table ContainerSearch (
-    DatasetLogicalFolder	bigint,
-    DatasetGroup		bigint,
-    ContainerPath varchar(500)
-) on commit delete rows;
+--create global temporary table ContainerSearch (
+--    DatasetLogicalFolder	bigint,
+--    DatasetGroup		bigint,
+--    ContainerPath varchar(500)
+--) on commit delete rows;
 
 -- The block keyword should be removed, it's mostly used to tell the scanner
 -- that this is one statement.
