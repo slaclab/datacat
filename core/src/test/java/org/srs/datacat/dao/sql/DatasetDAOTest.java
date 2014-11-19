@@ -60,7 +60,7 @@ public class DatasetDAOTest {
         DatacatObject next = dao.getDatacatObject(null, "/");
         int offsets[] = PathUtils.offsets(path);
         for(int i = 1; i <= offsets.length; i++){
-            next = dao.getDatacatObject(next, PathUtils.absoluteSubpath(path, i, offsets));
+            next = dao.getDatacatObject(next, PathUtils.getFileName(PathUtils.absoluteSubpath(path, i, offsets)));
         }
         return next;
     }
@@ -74,7 +74,8 @@ public class DatasetDAOTest {
         } catch (NoSuchFileException x){ }
         
         DatacatObject container = new LogicalFolder.Builder().name(TestUtils.TEST_BASE_NAME).build();
-        dao.insertContainer(0L, PathUtils.resolve("/", TestUtils.TEST_BASE_NAME), container );
+        DatacatObject rootRecord = new LogicalFolder.Builder().pk(0L).path( "/").build();
+        dao.insertContainer(rootRecord, TestUtils.TEST_BASE_NAME, container);
         DatasetDAO dsDao = new DatasetDAO( c );
         try {
             dsDao.insertDatasetSource(TestUtils.TEST_DATASET_SOURCE);
@@ -141,7 +142,7 @@ public class DatasetDAOTest {
         DatasetDAO dao = new DatasetDAO(conn);
         System.out.println(path);
         DatacatObject folder = getDatacatObject(dao, path);
-        return dao.insertDataset(folder.getPk(), DatacatObject.Type.FOLDER, PathUtils.resolve(path, ds.getName()), ds);
+        return dao.insertDataset(folder, PathUtils.resolve(path, ds.getName()), ds);
     }
     
     private FlatDataset.Builder getRequest(String dsName) throws SQLException, IOException{
