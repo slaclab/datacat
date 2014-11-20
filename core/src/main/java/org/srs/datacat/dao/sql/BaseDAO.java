@@ -106,7 +106,7 @@ public class BaseDAO implements org.srs.datacat.dao.BaseDAO {
             throw new IOException("Unknown exception occurred in the database", ex);
         }
     }
-
+    
     private DatacatObject getChild(DatacatRecord parent, String name) throws SQLException, NoSuchFileException{
         String parentPath = parent != null ? parent.getPath() : null;
         String nameParam = null;

@@ -4,13 +4,16 @@ package org.srs.datacat.dao.sql;
 import com.google.common.base.Optional;
 import java.io.IOException;
 import java.nio.file.FileSystemException;
+import java.nio.file.NoSuchFileException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetView;
@@ -20,6 +23,7 @@ import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.DatasetViewInfo;
 import static org.srs.datacat.vfs.DcFileSystemProvider.DcFsException.*;
+import org.srs.datacat.vfs.attribute.DatasetOption;
 import org.srs.vfs.PathUtils;
 
 /**
@@ -44,6 +48,53 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
         } catch (SQLException ex){
             throw new IOException("Unable to insert node: " + PathUtils.resolve(parent.getPath(), name), ex);
         }
+    }
+    
+    @Override
+    public Dataset createDataset(DatacatRecord parent, String dsName,
+            Optional<Dataset> dsReq, Optional<DatasetViewInfo> viewInfo, Set options) throws IOException{
+        
+        Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
+        DatacatRecord target = null;
+        
+        if(!options.contains(DatasetOption.SKIP_NODE_CHECK)){
+            try {
+                target = getObjectInParent(parent, dsName);
+            } catch (NoSuchFileException ex){
+                // This is okay
+            }
+        }
+        
+        if(dsReq.isPresent()){
+            if(target != null){
+                String pathString = PathUtils.resolve( parent.getPath(), dsName);
+                DATASET_EXISTS.throwError(pathString, "A dataset node already exists at this location");
+            }
+            target = createNode(parent, dsName, dsReq.get());
+            // If we added a node, skip version check
+            dsOptions.add(DatasetOption.SKIP_VERSION_CHECK); 
+        }
+
+        if(target == null){
+            throw new IOException(new IllegalArgumentException("Unable to process request: no target found"));
+        }
+
+        // Target must exist and also be a Dataset, from above
+        Dataset.Builder builder = new Dataset.Builder((Dataset) target);
+        // One of these conditions must be present to continue on and create a view           
+        // We had a flag that denoting we should create a view, so we continue on
+        if(viewInfo.isPresent()){
+            DatasetViewInfo retView = createOrMergeDatasetView(target, viewInfo.get(), dsOptions);
+            builder.version(retView.getVersion());
+            if(retView.locationsOpt().isPresent()){
+                if(retView.singularLocationOpt().isPresent()){
+                    builder.location(retView.singularLocationOpt().get());
+                } else if (!retView.getLocations().isEmpty()){
+                    builder.locations(retView.getLocations());
+                }
+            }
+        }
+        return builder.build();
     }
     
     public void deleteDataset(DatacatRecord dataset) throws IOException {
@@ -156,6 +207,44 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
             stmt1.close();
             stmt2.close();
         }
+    }
+    
+    public DatasetViewInfo createOrMergeDatasetView(DatacatRecord dsRecord, DatasetViewInfo reqView, Set<DatasetOption> options) throws IOException {        
+        Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
+        boolean mergeVersion = dsOptions.remove(DatasetOption.MERGE_VERSION);
+        boolean createVersion = dsOptions.remove(DatasetOption.CREATE_VERSION);
+        boolean createLocations = dsOptions.remove(DatasetOption.CREATE_LOCATIONS);
+        boolean skipVersionCheck = dsOptions.remove(DatasetOption.SKIP_VERSION_CHECK);
+        boolean skipLocationCheck = dsOptions.remove(DatasetOption.SKIP_LOCATION_CHECK);
+        List<DatasetLocation> retLocations = new ArrayList<>();
+        DatasetVersion curVersion = null;
+        
+        if(createVersion || mergeVersion) {
+            if(!reqView.versionOpt().isPresent()){
+                throw new IllegalArgumentException("Missing version from request");
+            }
+            Optional<DatasetVersion> versionOpt = Optional.fromNullable(skipVersionCheck ? null : getCurrentVersion(dsRecord));
+            curVersion = createOrMergeDatasetVersion(dsRecord, reqView.getVersion(), versionOpt, mergeVersion);
+            skipLocationCheck = true;
+        } else {
+            /* We didn't create or merge a version, so we're only creating a location.
+               If skipVersionCheck, use reqVersion otherwise get current version */
+            curVersion = skipVersionCheck ? reqView.getVersion() : getCurrentVersion(dsRecord);
+        }
+
+        if(createLocations){
+            if(curVersion == null){
+                NO_SUCH_VERSION.throwError(dsRecord.getPath(), "No version exists which we can add a location to");
+            }
+            if(!reqView.locationsOpt().isPresent() || reqView.getLocations().isEmpty()){
+                throw new IllegalArgumentException("Unable to create the view specified without locations");
+            }
+            for(DatasetLocation reqLocation: reqView.getLocations()){
+                DatasetLocation l = createDatasetLocation(curVersion, reqLocation, skipLocationCheck);
+                retLocations.add(l);
+            }
+        }
+        return new DatasetViewInfo(curVersion, retLocations);
     }
     
     private List<DatasetVersion> getDatasetVersions(DatacatRecord dsRecord) throws SQLException{

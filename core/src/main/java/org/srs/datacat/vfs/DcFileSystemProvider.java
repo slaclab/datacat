@@ -41,8 +41,6 @@ import org.srs.datacat.model.DatasetView;
 
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.DatasetLocation;
-import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.container.BasicStat;
 
 import org.srs.datacat.dao.sql.ContainerDAO;
@@ -433,65 +431,41 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             throw new IOException( "Not enough information to create create a Dataset node or view" );
         }
         DcPath dsPath = checkPath(path);
-
+        
+        DcFile dsParent = resolveFile(dsPath.getParent());
+        String dsName = path.getFileName().toString();
+        Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
+        
+        Optional<Dataset> requestDataset = Optional.absent();
+        Optional<DatasetViewInfo> requestView = Optional.absent();
+        
+        boolean createNode = dsOptions.remove(DatasetOption.CREATE_NODE);
+        
+        if(createNode){
+            checkPermission(dsPath.getUserName(), dsParent, DcPermissions.INSERT);
+            requestDataset = Optional.of(new Dataset(dsReq));
+        }
+        HashSet<DatasetOption> viewWork = new HashSet<>( Arrays.asList( 
+                                            DatasetOption.CREATE_VERSION, 
+                                            DatasetOption.MERGE_VERSION, 
+                                            DatasetOption.CREATE_LOCATIONS));
+        viewWork.retainAll(dsOptions);
+        if(!viewWork.isEmpty()){
+            checkPermission(dsPath.getUserName(), dsParent, DcPermissions.WRITE);
+            if(dsReq instanceof DatasetWithView){
+                requestView = Optional.of(((DatasetWithView) dsReq).getViewInfo());
+            } else {
+                throw new IllegalArgumentException("Unable to fulfill rquest");
+            }
+        }
         try (DatasetDAO dao = daoFactory.newDatasetDAO(dsPath)){
-            DcFile dsParent = resolveFile(dsPath.getParent());
-            
-            String pathString = dsPath.toString();
-            Dataset ds = null;
-            Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
-            boolean createNode = dsOptions.remove(DatasetOption.CREATE_NODE);
-            
-            if(createNode){
-                checkPermission(dsPath.getUserName(), dsParent, DcPermissions.INSERT);
-                // Fail fast
-                if(!options.contains(DatasetOption.SKIP_NODE_CHECK) && exists(dsPath)){ 
-                    DcFsException.DATASET_EXISTS.throwError(dsPath.toString(), "A dataset node already exists at this location");
-                }
-                ds = dao.createNode(dsParent.asRecord(), dsPath.getFileName().toString(), dsReq);
-                dsOptions.add(DatasetOption.SKIP_VERSION_CHECK); // If we added a node, skip version check
-            }
-            
-            if(ds == null){   // No DatasetOption.CREATE_NODE, find current dataset instead
-                DatacatObject o = dao.getObjectInParent(dsParent.asRecord(), dsPath.getFileName().toString());
-                if(!(o instanceof Dataset)){
-                    AfsException.NO_SUCH_FILE.throwError(pathString, "Target is not a dataset");
-                }
-                ds = (Dataset) o;
-            }
-            
-            Dataset.Builder builder = new Dataset.Builder(ds);
-            // One of these conditions must be present to continue on and create a view
-            HashSet<DatasetOption> viewWork = new HashSet<>( Arrays.asList( 
-                                                DatasetOption.CREATE_VERSION, 
-                                                DatasetOption.MERGE_VERSION, 
-                                                DatasetOption.CREATE_LOCATIONS));
-            viewWork.retainAll(dsOptions);
-            if(!viewWork.isEmpty()){
-                checkPermission(dsPath.getUserName(), dsParent, DcPermissions.WRITE);
-                // We had a flag that denoting we should create a view, so we continue on
-                if(dsReq instanceof DatasetWithView){
-                    DatasetViewInfo info = ((DatasetWithView) dsReq).getViewInfo();
-                    DatasetViewInfo retView = createDatasetViewInternal(dao, ds, info, options);
-                    builder.version(retView.getVersion());
-                    if(retView.locationsOpt().isPresent()){
-                        if(retView.singularLocationOpt().isPresent()){
-                            builder.location(retView.singularLocationOpt().get());
-                        } else if (!retView.getLocations().isEmpty()){
-                            builder.locations(retView.getLocations());
-                        }
-                    }   
-                } else {
-                    throw new IOException("Unable to create dataset, not enough information");
-                }
-            }
+            Dataset ret = dao.createDataset(dsParent.asRecord(), dsName, requestDataset, requestView, dsOptions);
             dao.commit();
-            dao.close();
             dsParent.childAdded(dsPath, FileType.FILE);
-            return builder.build();
+            return ret;
         }
     }
-    
+        
     public DatasetViewInfo getDatasetViewInfo(DcFile file, DatasetView view) throws IOException, NoSuchFileException {
         try(DatasetDAO dsdao = daoFactory.newDatasetDAO()) {
             DatasetViewInfo ret = dsdao.getDatasetViewInfo(file.asRecord(), view);
@@ -500,88 +474,6 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             }
             return ret;
         }
-    }
-    
-    /*public void createDatasetView(Path path, DatasetVersion verRequest, DatasetLocation locRequest, Set<DatasetOption> options) throws IOException{
-        createDatasetView( path, verRequest, Arrays.asList(locRequest), options );
-    }
-    
-    public void createDatasetView(Path path, DatasetVersion verRequest, Collection<DatasetLocation> locRequest, Set<DatasetOption> options) throws IOException{
-        DcPath dsPath = checkPath( path );
-        DcFile dsFile = resolveFile(dsPath);
-        if(options.contains(DatasetOption.CREATE_NODE)){
-            throw new UnsupportedOperationException("This method cannot create a node");
-        }
-        if(!dsFile.isRegularFile() ){
-            AfsException.NO_SUCH_FILE.throwError(path, "Path is not a dataset");
-        }
-        Dataset ds = (Dataset) dsFile.getObject();
-        
-        //checkPermission(dsFile, DcPermissions.MODIFY);
-        try (DatasetDAO dao = daoFactory.newDatasetDAO()){
-            createDatasetViewInternal(dao, ds, verRequest, locRequest, null, options);
-            dao.commit();
-            dao.close();
-        }
-        dsFile.getAttributeView(DatasetViewProvider.class).clear();
-        resolveFile(dsPath.getParent()).childModified(dsPath);
-    }*/
-    
-    /**
-     * Create a Dataset View.
-     * 
-     * If options Contains CREATE_VERSION or MERGE_VERSION, we will attempt to create or merge the
-     * requestVersion. If SKIP_VERSION_CHECK was present, we will not attempt to check the
-     * data store for the current version for performance reasons.
-     * 
-     * If options Contains CREATE_LOCATION, we will attempt to create a location.
-     * If SKIP_VERSION_CHECK was present, we add the location to the version represented by 
-     * requestVersion, otherwise, we fetch and use the current version.
-     * 
-     * @param ds
-     * @param requestVersion
-     * @param requestLocation
-     * @param returnLocations Location Builder to update
-     * @param options Set of flags to aid in the view build
-     * @throws IOException 
-     */
-    private DatasetViewInfo createDatasetViewInternal(DatasetDAO dao, Dataset ds, DatasetViewInfo reqView, Set<DatasetOption> options) throws IOException {        
-        Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
-        boolean mergeVersion = dsOptions.remove(DatasetOption.MERGE_VERSION);
-        boolean createVersion = dsOptions.remove(DatasetOption.CREATE_VERSION);
-        boolean createLocations = dsOptions.remove(DatasetOption.CREATE_LOCATIONS);
-        boolean skipVersionCheck = dsOptions.remove(DatasetOption.SKIP_VERSION_CHECK);
-        boolean skipLocationCheck = dsOptions.remove(DatasetOption.SKIP_LOCATION_CHECK);
-        List<DatasetLocation> retLocations = new ArrayList<>();
-        DatacatRecord dsRecord = ds;
-        DatasetVersion curVersion = null;
-        
-        if(createVersion || mergeVersion) {
-            if(!reqView.versionOpt().isPresent()){
-                throw new IllegalArgumentException("Missing version from request");
-            }
-            Optional<DatasetVersion> versionOpt = Optional.fromNullable(skipVersionCheck ? null : dao.getCurrentVersion(dsRecord));
-            curVersion = dao.createOrMergeDatasetVersion(dsRecord, reqView.getVersion(), versionOpt, mergeVersion);
-            skipLocationCheck = true;
-        } else {
-            /* We didn't create or merge a version, so we're only creating a location.
-               If skipVersionCheck, use reqVersion otherwise get current version */
-            curVersion = skipVersionCheck ? reqView.getVersion() : dao.getCurrentVersion(dsRecord);
-        }
-
-        if(createLocations){
-            if(curVersion == null){
-                DcFsException.NO_SUCH_VERSION.throwError(dsRecord.getPath(), "No version exists which we can add a location to");
-            }
-            if(!reqView.locationsOpt().isPresent() || reqView.getLocations().isEmpty()){
-                throw new IllegalArgumentException("Unable to create the view specified without locations");
-            }
-            for(DatasetLocation reqLocation: reqView.getLocations()){
-                DatasetLocation l = dao.createDatasetLocation(curVersion, reqLocation, skipLocationCheck);
-                retLocations.add(l);
-            }
-        }
-        return new DatasetViewInfo(curVersion, retLocations);
     }
     
     @Override

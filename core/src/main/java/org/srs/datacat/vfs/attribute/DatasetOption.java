@@ -1,7 +1,6 @@
 
 package org.srs.datacat.vfs.attribute;
 
-import java.nio.file.OpenOption;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -10,7 +9,7 @@ import java.util.Collections;
  *
  * @author bvan
  */
-public enum DatasetOption implements OpenOption {
+public enum DatasetOption {
     
     CREATE_NODE,
     CREATE_VERSION,
