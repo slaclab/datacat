@@ -42,7 +42,8 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
         super(conn, lock);
     }
     
-    public Dataset createDatasetNode(DatacatRecord parent, String name, Dataset request) throws IOException, FileSystemException{
+    public Dataset createDatasetNode(DatacatRecord parent, String name, 
+            Dataset request) throws IOException, FileSystemException{
         try {
             return insertDataset(parent, name, request);
         } catch (SQLException ex){
@@ -61,7 +62,7 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
             try {
                 target = getObjectInParent(parent, dsName);
             } catch (NoSuchFileException ex){
-                // This is okay
+                target = null; // This is okay
             }
         }
         
@@ -107,7 +108,8 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
     }
     
     @Override
-    public DatasetVersion createOrMergeDatasetVersion(DatacatRecord dsRecord, DatasetVersion request, Optional<DatasetVersion> curVersionOpt, boolean mergeVersion) throws IOException, FileSystemException{
+    public DatasetVersion createOrMergeDatasetVersion(DatacatRecord dsRecord, DatasetVersion request, 
+            Optional<DatasetVersion> curVersionOpt, boolean mergeVersion) throws IOException, FileSystemException{
         try {
             int newId = request.getVersionId();
             boolean isCurrent = true;
@@ -132,7 +134,8 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
     }
     
     @Override
-    public DatasetLocation createDatasetLocation(DatacatRecord versionRecord, DatasetLocation newLoc, boolean skipCheck) throws IOException, FileSystemException{
+    public DatasetLocation createDatasetLocation(DatacatRecord versionRecord, DatasetLocation newLoc, 
+            boolean skipCheck) throws IOException, FileSystemException{
         try {
             if(!skipCheck){
                 assertCanCreateLocation(versionRecord, newLoc);
@@ -209,7 +212,8 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
         }
     }
     
-    public DatasetViewInfo createOrMergeDatasetView(DatacatRecord dsRecord, DatasetViewInfo reqView, Set<DatasetOption> options) throws IOException {        
+    public DatasetViewInfo createOrMergeDatasetView(DatacatRecord dsRecord, DatasetViewInfo reqView, 
+            Set<DatasetOption> options) throws IOException {        
         Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
         boolean mergeVersion = dsOptions.remove(DatasetOption.MERGE_VERSION);
         boolean createVersion = dsOptions.remove(DatasetOption.CREATE_VERSION);
@@ -223,7 +227,8 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
             if(!reqView.versionOpt().isPresent()){
                 throw new IllegalArgumentException("Missing version from request");
             }
-            Optional<DatasetVersion> versionOpt = Optional.fromNullable(skipVersionCheck ? null : getCurrentVersion(dsRecord));
+            DatasetVersion maybeVersion = skipVersionCheck ? null : getCurrentVersion(dsRecord);
+            Optional<DatasetVersion> versionOpt = Optional.fromNullable(maybeVersion);
             curVersion = createOrMergeDatasetVersion(dsRecord, reqView.getVersion(), versionOpt, mergeVersion);
             skipLocationCheck = true;
         } else {
@@ -316,18 +321,21 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
         DatacatObject.Type parentType = parent.getType();
         String insertSql = "insert into VerDataset (DatasetName, DataSetFileFormat, DataSetDataType, "
                 + "DatasetLogicalFolder, DatasetGroup) values (?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = getConnection().prepareStatement( insertSql, new String[]{"DATASET", "REGISTERED"} )) {
+        try(PreparedStatement stmt = getConnection().prepareStatement(insertSql, 
+                new String[]{"DATASET", "REGISTERED"})) {
             stmt.setString(1, name);
             stmt.setString(2, request.getFileFormat() );
             stmt.setString(3, request.getDataType().toUpperCase());
             switch(parentType){
                 case FOLDER:
-                    stmt.setLong( 4, parentPk);
-                    stmt.setNull( 5, java.sql.Types.BIGINT );
+                    stmt.setLong(4, parentPk);
+                    stmt.setNull(5, java.sql.Types.BIGINT);
                     break;
                 case GROUP:
-                    stmt.setNull( 4, java.sql.Types.BIGINT );
-                    stmt.setLong( 5, parentPk);
+                    stmt.setNull(4, java.sql.Types.BIGINT);
+                    stmt.setLong(5, parentPk);
+                default:
+                    break;
             }
             stmt.executeUpdate();   // will throw exception if required parameter is empty...
             Dataset.Builder builder = new Dataset.Builder(request);
@@ -358,25 +366,28 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
         try(PreparedStatement stmt = getConnection().prepareStatement( sql )){
             stmt.setString(1, dataType.toUpperCase());
             stmt.setString(2, description);
-            if(priority != null)
-                stmt.setInt( 3, priority);
-            else
-                stmt.setNull( 3, java.sql.Types.INTEGER);
+            if(priority != null) {
+                stmt.setInt(3, priority);
+            } else {
+                stmt.setNull(3, java.sql.Types.INTEGER);
+            }
             stmt.executeUpdate();
             return dataType.toUpperCase();
         }
     }
     
-    protected String insertDatasetFileFormat(String fileFormat, String description, String mimeType) throws SQLException{
+    protected String insertDatasetFileFormat(String fileFormat, String description, 
+            String mimeType) throws SQLException{
         String sql = "INSERT INTO DatasetFileFormat (DatasetFileFormat, Description, MimeType) "
                 + "VALUES (?,?,?)";
         try(PreparedStatement stmt = getConnection().prepareStatement( sql )){
             stmt.setString(1, fileFormat.toLowerCase());
             stmt.setString(2, description);
-            if(mimeType != null)
-                stmt.setString( 3, mimeType);
-            else
-                stmt.setNull( 3, java.sql.Types.VARCHAR);
+            if(mimeType != null) {
+                stmt.setString(3, mimeType);
+            } else {
+                stmt.setNull(3, java.sql.Types.VARCHAR);
+            }
             stmt.executeUpdate();
             return fileFormat.toLowerCase();
         }
@@ -403,7 +414,8 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
         delete1(deleteSql, datasetPk);
     }*/
     
-    protected DatasetVersion insertDatasetVersion(DatacatRecord dsRecord, int newVersionId, boolean isCurrent, DatasetVersion request) throws SQLException {
+    protected DatasetVersion insertDatasetVersion(DatacatRecord dsRecord, int newVersionId, 
+            boolean isCurrent, DatasetVersion request) throws SQLException {
         // One last integrity check
         newVersionId = newVersionId < 0 ? 0 : newVersionId;
         
@@ -413,7 +425,8 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
                 + "values (?, ?, ?, ?, ?)";
         String datasetSource = request.getDatasetSource() != null ? request.getDatasetSource() : DEFAULT_DATA_SOURCE;
         DatasetVersion retVersion = null;
-        try(PreparedStatement stmt = getConnection().prepareStatement( sql, new String[]{"DATASETVERSION", "REGISTERED"} )) {
+        try(PreparedStatement stmt = getConnection().prepareStatement(sql, 
+                new String[]{"DATASETVERSION", "REGISTERED"})) {
             stmt.setLong(1, dsRecord.getPk());
             stmt.setInt(2, newVersionId );
             stmt.setString(3, datasetSource);
@@ -458,17 +471,17 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
         if(version.isLatest()){
             // Will set to NULL if there is no other dataset version
             String nextLatest = 
-                    "UPDATE VerDataset m "
-                    + "   SET m.LatestVersion =  "
-                    + "     (SELECT dsv.DatasetVersion "
-                    + "       FROM DatasetVersion dsv "
-                    + "       WHERE dsv.Dataset=m.Dataset "
-                    + "       AND dsv.VersionId = "
-                    + "         (SELECT Max(VersionId) "
-                    + "           FROM DatasetVersion WHERE Dataset=m.DataSet "
-                    + "           AND VersionId != ?) "
-                    + "      ) "
-                    + "   WHERE m.Dataset = ?";
+                "UPDATE VerDataset m "
+                + "   SET m.LatestVersion =  "
+                + "     (SELECT dsv.DatasetVersion "
+                + "       FROM DatasetVersion dsv "
+                + "       WHERE dsv.Dataset=m.Dataset "
+                + "       AND dsv.VersionId = "
+                + "         (SELECT Max(VersionId) "
+                + "           FROM DatasetVersion WHERE Dataset=m.DataSet "
+                + "           AND VersionId != ?) "
+                + "      ) "
+                + "   WHERE m.Dataset = ?";
             
             try(PreparedStatement stmt = getConnection().prepareStatement( nextLatest )) {
                 stmt.setInt( 1, version.getVersionId() );
@@ -487,7 +500,8 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
               + " NumberEvents, FileSizeBytes) values (?, ?, ?, ?, ?, ?, ?)";
         
         DatasetLocation retLoc;
-        try(PreparedStatement stmt = getConnection().prepareStatement( insertSql, new String[]{"DATASETLOCATION", "REGISTERED"} )) {
+        try(PreparedStatement stmt = getConnection().prepareStatement(insertSql, 
+                new String[]{"DATASETLOCATION", "REGISTERED"})) {
             stmt.setLong( 1, datasetVersionPk );
             stmt.setString( 2, request.getSite() );
             stmt.setString( 3, request.getResource() );
@@ -550,17 +564,19 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
             case DatasetView.NEW_VER:
                 return currentId+1;
             case DatasetView.CURRENT_VER:
-                VERSION_EXISTS.throwError( dsPath, String.format( "Version %d already exists", currentId ) );
+                VERSION_EXISTS.throwError(dsPath, String.format("Version %d already exists", currentId));
             default:
                 if(currentId >= newId){
-                    NEWER_VERSION_EXISTS.throwError( dsPath, String.format( "Version ID %d not greater than current version of %d", newId, currentId ) );
+                    String msg = String.format("Version %d not greater than current version %d", newId, currentId);
+                    NEWER_VERSION_EXISTS.throwError(dsPath, msg);
                 }
         }
         return newId;
     }
     
     /**
-     * Check if we can merge these items
+     * Check if we can merge these items.
+     * 
      * @param dsPath
      * @param currentId
      * @param newId
@@ -581,10 +597,12 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
         }
     }
     
-    protected void assertCanCreateLocation(DatacatRecord versionRecord, DatasetLocation newLoc) throws SQLException, FileSystemException{
+    protected void assertCanCreateLocation(DatacatRecord versionRecord, 
+            DatasetLocation newLoc) throws SQLException, FileSystemException{
         for(DatasetLocation l: getDatasetLocations(versionRecord.getPk())){
             if(l.getSite().equals(newLoc.getSite())){
-                LOCATION_EXISTS.throwError(versionRecord.getPath(),"Location entry for site " + newLoc.getSite() + " already exists");
+                String msg = "Location entry for site " + newLoc.getSite() + " already exists";
+                LOCATION_EXISTS.throwError(versionRecord.getPath(), msg);
             }
         }
     }

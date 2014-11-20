@@ -16,9 +16,13 @@ public class DirectoryStreamWrapper<T> implements DirectoryStream<T> {
     private IteratorAcceptor acceptor;
     T next = null;
     
-    public static abstract class IteratorAcceptor<U> {
+    /**
+     * Used to verify entries.
+     * @param <U> 
+     */
+    public static class IteratorAcceptor<U> {
         private DirectoryStreamWrapper<U> thisWrapper;
-        public abstract boolean acceptNext() throws IOException;
+        public boolean acceptNext() throws IOException { return false; }
         
         public void setNext(U next){
             thisWrapper.next = next;

@@ -17,6 +17,9 @@ public class DAOFactory implements org.srs.datacat.dao.DAOFactory {
     private final DataSource dataSource;
     private final Locker locker = new Locker();
     
+    /**
+     * Helper class for locking some records.
+     */
     public static class Locker {
 
         private final HashMap<DcPath, ReentrantLease> locks = new HashMap<>();
@@ -38,7 +41,8 @@ public class DAOFactory implements org.srs.datacat.dao.DAOFactory {
         }
 
         /**
-         * Propose a lease
+         * Propose a lease.
+         * 
          * @param lockPath
          * @return 
          */
@@ -59,7 +63,8 @@ public class DAOFactory implements org.srs.datacat.dao.DAOFactory {
         }
 
         /**
-         * Remove a lease
+         * Remove a lease.
+         * 
          * @param pathLock 
          */
         protected void cleanupLease(Lock pathLock){
@@ -71,7 +76,7 @@ public class DAOFactory implements org.srs.datacat.dao.DAOFactory {
                 }
                 DcPath lockPath = reverseLocks.remove(lease);
                 if(lockPath != null){
-                     locks.remove(lockPath);
+                    locks.remove(lockPath);
                 }
             } finally {
                 mapLock.unlock();
@@ -79,7 +84,6 @@ public class DAOFactory implements org.srs.datacat.dao.DAOFactory {
         }
 
     }
-
           
     public DAOFactory(DataSource ds){
         this.dataSource = ds;
@@ -124,7 +128,8 @@ public class DAOFactory implements org.srs.datacat.dao.DAOFactory {
     }
     
     /**
-     * Get a new DatasetDAO, acquire lock for the given lockPath
+     * Get a new DatasetDAO, acquire lock for the given lockPath.
+     * 
      * @param lockPath
      * @return
      * @throws IOException 

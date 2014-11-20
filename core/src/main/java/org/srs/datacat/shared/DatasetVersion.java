@@ -20,7 +20,9 @@ import org.srs.datacat.shared.DatasetVersion.Builder;
 import org.srs.rest.shared.RestDateAdapter;
 
 /**
- *
+ * A DatasetVersion represents a specific version for a given Dataset.
+ * When combined with one or more DatasetLocations, we can obtain a DatasetView.
+ * 
  * @author bvan
  */
 @XmlRootElement
@@ -44,7 +46,7 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
     public DatasetVersion(){ super(); }
     
     /**
-     * Copy constructor
+     * Copy constructor.
      * @param dataset 
      */
     public DatasetVersion(DatasetVersion dataset){
@@ -66,19 +68,19 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
     }
     
     @Override
-    public Integer getVersionId() { return this.versionId;}
+    public Integer getVersionId() { return this.versionId; }
 
     @Override
     @XmlTransient
-    public String getDatasetSource() { return this.datasetSource;}
+    public String getDatasetSource() { return this.datasetSource; }
     
     @Override
     @XmlElement(required=false) 
-    public Long getProcessInstance() { return this.processInstance;}
+    public Long getProcessInstance() { return this.processInstance; }
     
     @Override
     @XmlElement(required=false)
-    public String getTaskName() { return this.taskName;}
+    public String getTaskName() { return this.taskName; }
     
     @Override
     @XmlElement(required=false)
@@ -87,7 +89,7 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
     @Override
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
     @XmlElement(name="created", required=false)
-    public Timestamp getDateCreated() { return this.versionRegistrationDate;}
+    public Timestamp getDateCreated() { return this.versionRegistrationDate; }
 
     @Override
     @XmlTransient
@@ -111,6 +113,9 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
         Objects.requireNonNull(versionId, "Version ID required");
     }
     
+    /**
+     * Builder.
+     */
     @XmlTransient
     public static class Builder extends DatacatObject.Builder<Builder>{
         public Boolean latest;

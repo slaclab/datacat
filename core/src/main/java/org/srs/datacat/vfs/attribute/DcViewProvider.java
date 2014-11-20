@@ -6,11 +6,11 @@ import java.nio.file.attribute.FileAttributeView;
 import org.srs.datacat.shared.DatacatObject;
 
 /**
- *
+ * Generic interface for view-providing classes that extend FileAttributeView.
  * @author bvan
  */
 public interface DcViewProvider<T> extends FileAttributeView {
     
-    public DatacatObject withView(T viewDescriptor) throws IOException;
+    DatacatObject withView(T viewDescriptor) throws IOException;
 
 }

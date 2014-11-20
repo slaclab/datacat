@@ -22,7 +22,8 @@ public interface DAOFactory {
     DatasetDAO newDatasetDAO() throws IOException;
 
     /**
-     * Get a new DatasetDAO, acquire lock for the given lockPath
+     * Get a new DatasetDAO, acquire lock for the given lockPath.
+     * 
      * @param lockPath
      * @return
      * @throws IOException

@@ -9,7 +9,7 @@ import org.srs.datacat.security.DcUser;
 import org.srs.datacat.security.OwnerAclAttributes;
 
 /**
- *
+ * The view for our permissions.
  * @author bvan
  */
 public class DcAclFileAttributeView implements AclFileAttributeView {

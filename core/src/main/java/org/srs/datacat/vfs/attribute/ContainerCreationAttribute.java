@@ -5,7 +5,7 @@ import java.nio.file.attribute.FileAttribute;
 import org.srs.datacat.shared.DatacatObject;
 
 /**
- *
+ * 
  * @author bvan
  */
 public class ContainerCreationAttribute implements FileAttribute<DatacatObject>{

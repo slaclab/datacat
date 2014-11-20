@@ -12,7 +12,8 @@ import javax.xml.bind.annotation.XmlTransient;
 import org.srs.datacat.shared.LogicalFolder.Builder;
 
 /**
- *
+ * A LogicalFolder is the fundamental container which is used to create a hierarchy.
+ * 
  * @author bvan
  */
 @XmlRootElement(name="folder")
@@ -49,9 +50,11 @@ public class LogicalFolder extends DatacatObject implements DatasetContainer {
     
     private String description = null;
 
+    @Override
     @XmlElement(required=false)
     public String getDescription() { return description; }
-    
+
+    @Override
     @XmlElement(required=false)
     public BasicStat getStat(){
         return this.stat;
@@ -63,11 +66,14 @@ public class LogicalFolder extends DatacatObject implements DatasetContainer {
         this.stat = stat;
     }
     
+    /**
+     * Builder.
+     */
     @XmlTransient
     public static class Builder extends DatasetContainer.Builder {
-        public Builder(){super();}
-        public Builder(DatacatObject o){super(o);}
-        public Builder(DatasetContainer.Builder o){super(o);}
+        public Builder(){ super(); }
+        public Builder(DatacatObject o){ super(o); }
+        public Builder(DatasetContainer.Builder o){ super(o); }
         
         @Override
         public LogicalFolder build(){

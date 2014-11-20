@@ -1,4 +1,3 @@
-
 package org.srs.datacat.shared.dataset;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,13 +20,13 @@ import org.srs.rest.shared.metadata.MetadataEntry;
  */
 public class DatasetWithView extends Dataset implements DatasetVersionModel {
     private DatasetViewInfo viewInfo;
-    
+
     public DatasetWithView(){}
-    
+
     public DatasetWithView(Dataset dataset, boolean flatten){
         super(dataset);
-        DatasetVersion dsVersion = null;
-        DatasetLocation dsLocation = null;
+        DatasetVersion dsVersion;
+        DatasetLocation dsLocation;
         if(dataset instanceof DatasetWithView){
             DatasetViewInfo info = ((DatasetWithView) dataset).getViewInfo();
             dsVersion = info.getVersion();
@@ -45,7 +44,7 @@ public class DatasetWithView extends Dataset implements DatasetVersionModel {
         }
         this.viewInfo = null;
     }
-    
+
     protected DatasetWithView(Dataset.Builder builder, boolean flatten){
         super(builder);
         DatasetVersion viewVer = builder.version;
@@ -62,81 +61,82 @@ public class DatasetWithView extends Dataset implements DatasetVersionModel {
             this.viewInfo = new DatasetViewInfo(viewVer, builder.locations);
         }
     }
-    
+
     @XmlTransient
     public DatasetViewInfo getViewInfo(){
         return viewInfo;
     }
-    
-    @XmlElement(required=false)
+
+    @XmlElement(required = false)
     public Long getVersionPk(){
         if(viewInfo.versionOpt().isPresent()){
-            return viewInfo.getVersion().getPk(); 
+            return viewInfo.getVersion().getPk();
         }
         return null;
     }
-    
-    @XmlElementWrapper(name="versionMetadata")
-    @XmlElement(required=false, name="entry")
+
+    @XmlElementWrapper(name = "versionMetadata")
+    @XmlElement(required = false, name = "entry")
     @JsonProperty("versionMetadata")
-    public List<MetadataEntry> getVersionMetadata(){ 
+    public List<MetadataEntry> getVersionMetadata(){
         if(viewInfo.versionOpt().isPresent()){
             return viewInfo.getVersion().getMetadata();
         }
-        return null; 
-    }
-    
-    @Override
-    @XmlElement(required=false)
-    public String getDatasetSource(){ 
-        if(viewInfo.versionOpt().isPresent()){
-            return viewInfo.getVersion().getDatasetSource();
-        }
-        return null; 
+        return null;
     }
 
     @Override
-    @XmlElement(required=false)
-    public Boolean isLatest(){ 
+    @XmlElement(required = false)
+    public String getDatasetSource(){
         if(viewInfo.versionOpt().isPresent()){
-            return viewInfo.getVersion().isLatest(); 
+            return viewInfo.getVersion().getDatasetSource();
         }
         return null;
     }
 
     @Override
-    @XmlElement(required=false)
-    public Long getProcessInstance(){ 
+    @XmlElement(required = false)
+    public Boolean isLatest(){
+        if(viewInfo.versionOpt().isPresent()){
+            return viewInfo.getVersion().isLatest();
+        }
+        return null;
+    }
+
+    @Override
+    @XmlElement(required = false)
+    public Long getProcessInstance(){
         if(viewInfo.versionOpt().isPresent()){
             return viewInfo.getVersion().getProcessInstance();
         }
-        return null; }
+        return null;
+    }
 
     @Override
-    @XmlElement(required=false)
-    public String getTaskName(){ 
+    @XmlElement(required = false)
+    public String getTaskName(){
         if(viewInfo.versionOpt().isPresent()){
             return viewInfo.getVersion().getTaskName();
         }
-        return null; 
+        return null;
     }
 
     @Override
-    @XmlElement(required=false)
-    public Integer getVersionId(){ 
+    @XmlElement(required = false)
+    public Integer getVersionId(){
         if(viewInfo.versionOpt().isPresent()){
             return viewInfo.getVersion().getVersionId();
         }
-        return null; 
+        return null;
     }
 
-    @XmlElement(name="versionCreated", required=false)
-    @XmlJavaTypeAdapter(RestDateAdapter.class) 
-    public Timestamp getDateVersionCreated(){ 
+    @XmlElement(name = "versionCreated", required = false)
+    @XmlJavaTypeAdapter(RestDateAdapter.class)
+    public Timestamp getDateVersionCreated(){
         if(viewInfo.versionOpt().isPresent()){
             return viewInfo.getVersion().getDateCreated();
         }
-        return null; 
+        return null;
     }
 
 }

@@ -27,7 +27,7 @@ import org.srs.rest.shared.RestDateAdapter;
 import org.srs.rest.shared.metadata.MetadataEntry;
 
 /**
- * Represents an entire dataset. May include information on all datasetversions, 
+ * Represents an entire dataset. Subclasses may include information on all DatasetVersions.
  * @author bvan
  */
 @XmlRootElement
@@ -46,7 +46,8 @@ public class Dataset extends DatacatObject implements DatasetModel {
     public Dataset(DatacatObject o){ super(o); }
     
     /**
-     * Copy constructor
+     * Copy constructor.
+     *
      * @param dataset 
      */
     public Dataset(Dataset dataset){
@@ -69,11 +70,11 @@ public class Dataset extends DatacatObject implements DatasetModel {
     
     @Override
     @XmlElement(required=false)
-    public String getDataType() { return this.dataType;}
+    public String getDataType() { return this.dataType; }
         
     @Override
     @XmlElement(required=false)
-    public String getFileFormat() { return this.fileFormat;}
+    public String getFileFormat() { return this.fileFormat; }
     
     @Override
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
@@ -97,7 +98,8 @@ public class Dataset extends DatacatObject implements DatasetModel {
     }
 
     /**
-     *
+     * Dataset Builder.
+     * 
      * @author bvan
      */
     @XmlTransient
@@ -149,7 +151,8 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         /**
-         * Copy constructor
+         * Copy constructor.
+         * 
          * @param builder
          */
         public Builder(Builder builder){

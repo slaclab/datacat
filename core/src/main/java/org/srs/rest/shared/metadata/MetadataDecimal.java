@@ -41,6 +41,9 @@ public class MetadataDecimal implements MetadataValue<Number> {
     // TODO: Fix this to be BigDecimal if https://github.com/FasterXML/jackson-databind/issues/466 gets fixed.
     public Double getValue(){ return value.doubleValue(); }
     
+    /**
+     * Builder.
+     */
     @XmlTransient
     public static class Builder extends MetadataValue.Builder<MetadataDecimal> {
         public Builder(){}

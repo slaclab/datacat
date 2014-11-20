@@ -1,4 +1,3 @@
-
 package org.srs.datacat.shared.dataset;
 
 import com.google.common.base.Optional;
@@ -18,10 +17,10 @@ import org.srs.datacat.shared.DatasetVersion;
  */
 @XmlTransient
 public class DatasetViewInfo {
-    
+
     private final Optional<DatasetVersion> versionOpt;
     private final Optional<Set<DatasetLocation>> locationOpt;
-    
+
     public DatasetViewInfo(DatasetVersion version, DatasetLocation location){
         this.versionOpt = Optional.fromNullable(version);
         if(location != null){
@@ -31,7 +30,7 @@ public class DatasetViewInfo {
             this.locationOpt = Optional.absent();
         }
     }
-    
+
     public DatasetViewInfo(DatasetVersion version, Collection<DatasetLocation> locations){
         this.versionOpt = Optional.fromNullable(version);
         if(locations != null){
@@ -41,47 +40,47 @@ public class DatasetViewInfo {
             this.locationOpt = Optional.absent();
         }
     }
-    
+
     private HashMap<String, DatasetLocation> toMap(Collection<DatasetLocation> locations){
         HashMap<String, DatasetLocation> locationMap = new HashMap<>();
         for(DatasetLocation l: locations){
             if(l.isMaster() != null && l.isMaster()){
-                locationMap.put( DatasetView.CANONICAL_SITE, l );
+                locationMap.put(DatasetView.CANONICAL_SITE, l);
             }
             locationMap.put(l.getSite(), l);
         }
         return locationMap;
     }
-    
+
     public DatasetVersion getVersion(){
         return versionOpt.orNull();
     }
-    
+
     public DatasetLocation getLocation(DatasetView view){
         if(locationOpt.isPresent()){
             return getLocation(view.getSite());
         }
         return null;
     }
-    
+
     public DatasetLocation getLocation(String site){
         if(locationOpt.isPresent()){
             return toMap(locationOpt.get()).get(site);
         }
         return null;
     }
-    
+
     public Set<DatasetLocation> getLocations(){
         if(locationOpt.isPresent()){
             return locationOpt.get();
         }
         return null;
     }
-    
+
     public Optional<DatasetVersion> versionOpt(){
         return this.versionOpt;
     }
-    
+
     public Optional<DatasetLocation> singularLocationOpt(){
         if(locationOpt.isPresent()){
             if(locationOpt.get().size() == 1){
@@ -91,7 +90,7 @@ public class DatasetViewInfo {
         }
         return Optional.absent();
     }
-    
+
     public Optional<DatasetLocation> canonicalLocationOpt(){
         DatasetView view = new DatasetView(DatasetView.EMPTY_VER, DatasetView.CANONICAL_SITE);
         Optional<Set<DatasetLocation>> maybeLocations = fromView(view).locationsOpt();
@@ -107,13 +106,13 @@ public class DatasetViewInfo {
         }
         return Optional.absent();
     }
-    
+
     public DatasetViewInfo fromView(DatasetView view){
         DatasetVersion retVersion = null;
         Collection<DatasetLocation> retLocations = null;
-        
+
         if(versionOpt.isPresent()){
-            switch (view.getVersionId()){
+            switch(view.getVersionId()){
                 case DatasetView.CURRENT_VER:
                     if(versionOpt.get().isLatest()){
                         retVersion = versionOpt.get();
@@ -128,7 +127,7 @@ public class DatasetViewInfo {
                     }
             }
         }
-        
+
         if(!locationOpt.isPresent()){
             if(view.allSites() || view.zeroOrMoreSites()){
                 retLocations = locationOpt.get();

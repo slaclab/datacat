@@ -35,6 +35,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     
     /**
      * Copy constructor. Can convert a FullDataset to a FlatDataset.
+     * 
      * @param dataset 
      */
     public FlatDataset(Dataset dataset){
@@ -183,12 +184,16 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         return "FlatDataset{" + super.toString() + verInfo + locInfo + '}';
     }
     
+    /**
+     * Builder.
+     */
     @XmlTransient
     public static class Builder extends Dataset.Builder{
         
         public Builder(){}
+        
         /**
-         * Copy constructor
+         * Copy constructor.
          * @param builder 
          */
         public Builder(Dataset.Builder builder){

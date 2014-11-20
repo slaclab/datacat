@@ -14,7 +14,7 @@ import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.FullDataset.Builder;
 
 /**
- * Dataset with a Version, which also must contain locations
+ * Dataset with a Version, which also must contain locations.
  * @author bvan
  */
 @XmlRootElement
@@ -47,6 +47,9 @@ public class FullDataset extends DatasetWithView {
         return getViewInfo().getLocations();
     }
 
+    /**
+     * Builder.
+     */
     @XmlTransient
     public static class Builder extends Dataset.Builder{
         

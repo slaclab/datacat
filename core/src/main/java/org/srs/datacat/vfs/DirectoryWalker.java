@@ -1,4 +1,3 @@
-
 package org.srs.datacat.vfs;
 
 import java.io.IOException;
@@ -17,74 +16,76 @@ import org.srs.datacat.vfs.DcFile.GroupType;
 import org.srs.datacat.vfs.attribute.SubdirectoryView;
 
 /**
- *
+ * A Special walker mainly used for searching. 
  * @author bvan
  */
 public class DirectoryWalker {
-    
+
     private final DcFileSystemProvider provider;
     private final ContainerVisitor visitor;
     private final int maxDepth;
-    
-    public DirectoryWalker(DcFileSystemProvider provider, ContainerVisitor visitor, int maxDepth) {
+
+    public DirectoryWalker(DcFileSystemProvider provider, ContainerVisitor visitor, int maxDepth){
         this.visitor = visitor;
         this.maxDepth = maxDepth;
         this.provider = provider;
     }
 
-    public DirectoryWalker(DcFileSystemProvider provider, DcFileSystem fs, String syntaxAndPattern, int maxDepth) {
+    public DirectoryWalker(DcFileSystemProvider provider, DcFileSystem fs, String syntaxAndPattern,
+            int maxDepth){
         this(provider, new ContainerVisitor(fs, syntaxAndPattern), maxDepth);
     }
-    
-    public void walk(Path start) throws IOException {
+
+    public void walk(Path start) throws IOException{
         FileVisitResult result = walk(start, 0);
         Objects.requireNonNull(result, "FileVisitor returned null");
     }
 
-    private FileVisitResult walk(Path file, int depth)
-        throws IOException {
+    private FileVisitResult walk(Path file, int depth) throws IOException{
 
         DcFile target = null;
         try {
             target = provider.getFile(file);
-        } catch (AccessDeniedException ex) {
+        } catch(AccessDeniedException ex) {
             // Fail if this was the first directory, otherwise skip.
-            if (depth == 0){
+            if(depth == 0){
                 throw ex;
             }
             return FileVisitResult.CONTINUE;
-        } catch (IOException ex) {
+        } catch(IOException ex) {
             return visitor.visitFileFailed(file, ex);
         }
 
         // at maximum depth
-        if (depth >= maxDepth) {
+        if(depth >= maxDepth){
             return FileVisitResult.CONTINUE;
         }
-                
+
         // the exception notified to the postVisitDirectory method
         IOException ioe = null;
         FileVisitResult result;
 
         // invoke preVisitDirectory and then visit each entry
         result = visitor.preVisitDirectory(file, target);
-        if (result != FileVisitResult.CONTINUE) {
+        if(result != FileVisitResult.CONTINUE){
             return result;
         }
 
         try {
-            for (Path dir: target.getAttributeView(SubdirectoryView.class).getChildrenPaths()) {
-                result = walk(dir, depth+1);
+            for(Path dir: target.getAttributeView(SubdirectoryView.class).getChildrenPaths()){
+                result = walk(dir, depth + 1);
 
                 // returning null will cause NPE to be thrown
-                if (result == null || result == FileVisitResult.TERMINATE)
+                if(result == null || result == FileVisitResult.TERMINATE) {
                     return result;
+                }
 
                 // skip remaining siblings in this directory
-                if (result == FileVisitResult.SKIP_SIBLINGS)
+                if(result == FileVisitResult.SKIP_SIBLINGS) {
                     break;
+                }
             }
-        } catch (DirectoryIteratorException e) {
+        } catch(DirectoryIteratorException e) {
             // IOException will be notified to postVisitDirectory
             ioe = e.getCause();
         }
@@ -92,8 +93,11 @@ public class DirectoryWalker {
         // invoke postVisitDirectory last
         return visitor.postVisitDirectory(file, ioe);
     }
-    
-    public static class ContainerVisitor extends SimpleFileVisitor<Path>{
+
+    /**
+     * A Visitor which only visits containers.
+     */
+    public static class ContainerVisitor extends SimpleFileVisitor<Path> {
         protected final ContainerFilter filter;
         private final LinkedList<DcFile> folderStack = new LinkedList<>();
         public LinkedList<DcFile> files = new LinkedList<>();
@@ -101,42 +105,44 @@ public class DirectoryWalker {
         public ContainerVisitor(FileSystem fs, String syntaxAndPattern){
             boolean searchGroups = true;
             boolean searchFolders = true;
-            
+
             // TODO: This should do some checks to make sure $ is escaped for a regex
             if(syntaxAndPattern.endsWith("$")){
                 searchGroups = false;
             } else if(syntaxAndPattern.endsWith("^")){
                 searchFolders = false;
             }
-            if (!searchFolders || !searchGroups){
-                syntaxAndPattern = syntaxAndPattern.substring(0, syntaxAndPattern.length()-1);
+            if(!searchFolders || !searchGroups){
+                syntaxAndPattern = syntaxAndPattern.substring(0, syntaxAndPattern.length() - 1);
             }
-            filter = new ContainerFilter(fs.getPathMatcher( syntaxAndPattern ), searchGroups, searchFolders);
+            filter = new ContainerFilter(fs.getPathMatcher(syntaxAndPattern), searchGroups, searchFolders);
         }
-        
+
         /**
-         * Defaults to glob
+         * Defaults to glob.
+         *
          * @param fs
          * @param path
          * @param searchGroups
-         * @param searchFolders 
+         * @param searchFolders
          */
-        public ContainerVisitor(DcFileSystem fs, String path, Boolean searchGroups, Boolean searchFolders){
+        public ContainerVisitor(DcFileSystem fs, String path, Boolean searchGroups,
+                Boolean searchFolders){
             // TODO: This should do some checks to make sure $ is escaped for a regex
             if(path.endsWith("$")){
                 searchGroups = false;
-                path = path.substring(0, path.length()-1);
+                path = path.substring(0, path.length() - 1);
             } else if(path.endsWith("^")){
                 searchFolders = false;
-                path = path.substring(0, path.length()-1);
+                path = path.substring(0, path.length() - 1);
             }
-            searchGroups = searchGroups == null ? true: searchGroups;
-            searchFolders = searchFolders == null ? true: searchFolders;
+            searchGroups = searchGroups == null ? true : searchGroups;
+            searchFolders = searchFolders == null ? true : searchFolders;
             // TODO: Glob check?
             String globPath = "glob:" + path;
             filter = new ContainerFilter(fs.getPathMatcher(globPath), searchGroups, searchFolders);
         }
-        
+
         public void accept(DcFile file){
             files.add(file);
         }
@@ -160,12 +166,12 @@ public class DirectoryWalker {
         public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException{
             throw exc;
         }
-        
+
         @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException{
             DcFile file = folderStack.removeLast();
             if(filter.searchFolders()){
-                if(filter.matcher.matches( dir )){
+                if(filter.matcher.matches(dir)){
                     accept(file);
                 }
             }
@@ -177,9 +183,9 @@ public class DirectoryWalker {
             return "ContainerVisitor{" + "filter=" + filter + '}';
         }
     }
-    
-    static class ContainerFilter implements DirectoryStream.Filter<Path>{
-        
+
+    static class ContainerFilter implements DirectoryStream.Filter<Path> {
+
         private PathMatcher matcher;
         private boolean searchGroups;
         private boolean searchFolders;
@@ -194,20 +200,21 @@ public class DirectoryWalker {
         public boolean accept(Path entry) throws IOException{
             return matcher.matches(entry);
         }
-        
+
         public boolean searchGroups(){
             return this.searchGroups;
         }
-        
+
         public boolean searchFolders(){
             return this.searchFolders;
         }
 
         @Override
         public String toString(){
-            return "ContainerFilter{" + "matcher=" + matcher + ", searchGroups=" + searchGroups + ", searchFolders=" + searchFolders + '}';
+            return "ContainerFilter{" + "matcher=" + matcher + ", searchGroups=" + searchGroups + 
+                    ", searchFolders=" + searchFolders + '}';
         }
-        
+
     }
-    
+
 }

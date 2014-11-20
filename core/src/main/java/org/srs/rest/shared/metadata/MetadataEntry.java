@@ -24,53 +24,53 @@ import org.srs.rest.shared.metadata.MetadataEntry.Builder;
  *
  * @author bvan
  */
-@XmlRootElement(name="entry")
+@XmlRootElement(name = "entry")
 @JsonTypeName("metadata")
-@JsonPropertyOrder({"key","value"})
-@JsonDeserialize(builder=Builder.class)
+@JsonPropertyOrder({"key", "value"})
+@JsonDeserialize(builder = Builder.class)
 public class MetadataEntry {
-    private String key; 
+    private String key;
     private MetadataValue value;
-    
+
     public MetadataEntry(){}
-       
-    public MetadataEntry(String k, MetadataValue v) {
-       key = k;
-       value = v;
+
+    public MetadataEntry(String k, MetadataValue v){
+        key = k;
+        value = v;
     }
-    
+
     public static List<MetadataEntry> toList(HashMap<String, Object> map){
         ArrayList<MetadataEntry> list = new ArrayList<>();
         for(Entry<String, Object> e: map.entrySet()){
             if(e.getValue() instanceof Number){
-                list.add( new MetadataEntry( e.getKey(), (Number) e.getValue() ) );
+                list.add(new MetadataEntry(e.getKey(), (Number) e.getValue()));
             } else {
-                list.add( new MetadataEntry( e.getKey(), e.getValue().toString() ) );
+                list.add(new MetadataEntry(e.getKey(), e.getValue().toString()));
             }
         }
         return list;
     }
-    
-    public MetadataEntry(String k, Number v) {
-       key = k;
-       if(v instanceof Double || v instanceof java.math.BigDecimal || v instanceof Float){
-          value = new MetadataDecimal(v.doubleValue());
-       } else if(v instanceof Long || v instanceof java.math.BigInteger || v instanceof Integer){
-           value = new MetadataInteger(v.longValue());
-       }
+
+    public MetadataEntry(String k, Number v){
+        key = k;
+        if(v instanceof Double || v instanceof java.math.BigDecimal || v instanceof Float){
+            value = new MetadataDecimal(v.doubleValue());
+        } else if(v instanceof Long || v instanceof java.math.BigInteger || v instanceof Integer){
+            value = new MetadataInteger(v.longValue());
+        }
     }
-    
-    public MetadataEntry(String k, String v) {
-       key = k;
-       value = new MetadataString(v);
+
+    public MetadataEntry(String k, String v){
+        key = k;
+        value = new MetadataString(v);
     }
-    
+
     @XmlElement
     public String getKey(){
         return key;
     }
-    
-    @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="$type", include=JsonTypeInfo.As.EXTERNAL_PROPERTY)
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "$type", include = JsonTypeInfo.As.EXTERNAL_PROPERTY)
     @XmlElementRefs({
         @XmlElementRef(name = "decimal", type = MetadataDecimal.class),
         @XmlElementRef(name = "integer", type = MetadataInteger.class),
@@ -78,31 +78,40 @@ public class MetadataEntry {
     public MetadataValue getValue(){
         return value;
     }
-    
+
     @XmlTransient
     public Object getRawValue(){
         return value.getValue();
     }
-    
+
     @Override
     public String toString(){
         return String.format("\"%s\":%s", key, value);
     }
-    
+
+    /**
+     * Builder.
+     */
     @XmlTransient
     public static class Builder {
         protected String key;
         protected Object rawValue;
         protected String type;
-        
+
         public Builder(){}
-        public static Builder create(){return new Builder();}
-        
+
+        public static Builder create(){
+            return new Builder();
+        }
+
         @JsonSetter
-        public Builder key(String val){ this.key = val; return this; }
-        
+        public Builder key(String val){
+            this.key = val;
+            return this;
+        }
+
         @JsonSetter
-        public Builder value(Object val){ 
+        public Builder value(Object val){
             if(val instanceof MetadataValue){
                 rawValue = ((MetadataValue) val).getValue();
             } else {
@@ -110,17 +119,17 @@ public class MetadataEntry {
             }
             return this;
         }
-        
-        @JsonSetter
-        public Builder $type(String val){
+
+        @JsonSetter(value="$type")
+        public Builder type(String val){
             this.type = val;
             return this;
         }
-        
+
         public MetadataEntry build(){
             MetadataValue.Builder builder = new MetadataValue.Builder();
-            builder.$type(type);
-            builder.value( rawValue );
+            builder.type(type);
+            builder.value(rawValue);
             return new MetadataEntry(key, builder.build());
         }
     }

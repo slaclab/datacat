@@ -12,31 +12,35 @@ import org.srs.rest.shared.metadata.MetadataString.Builder;
  *
  * @author bvan
  */
-@XmlRootElement(name="string")
-@JsonTypeName(value="string")
-@JsonDeserialize(builder=Builder.class)
-public class MetadataString implements MetadataValue<String>{
+@XmlRootElement(name = "string")
+@JsonTypeName(value = "string")
+@JsonDeserialize(builder = Builder.class)
+public class MetadataString implements MetadataValue<String> {
     private String value;
-    
+
     public MetadataString(){}
-    public MetadataString(String value){this.value = value;}
-    
-    
+
+    public MetadataString(String value){ this.value = value; }
+
     @Override
     @XmlValue
     @JsonValue
-    public String getValue(){return value;}
-    
+    public String getValue(){ return value; } 
+
     @Override
     public String toString(){
-        return String.format( "string(\"%s\")", value);
+        return String.format("string(\"%s\")", value);
     }
-    
-    @XmlTransient 
-    public static class Builder extends MetadataValue.Builder<MetadataString>{
+
+    /**
+     * Builder.
+     */
+    @XmlTransient
+    public static class Builder extends MetadataValue.Builder<MetadataString> {
         public Builder(){}
+
         public Builder(String val){
-            super.value( val );
+            super.value(val);
         }
 
         @Override

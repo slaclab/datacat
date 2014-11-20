@@ -1,4 +1,3 @@
-
 package org.srs.datacat.shared;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -13,7 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -30,25 +28,28 @@ import org.srs.rest.shared.metadata.MetadataEntry;
 
 /**
  * The generalized base object for most of the database derived objects.
+ *
  * @author bvan
  */
 @XmlRootElement
-@XmlSeeAlso({LogicalFolder.class, DatasetGroup.class, 
+@XmlSeeAlso({LogicalFolder.class, DatasetGroup.class,
     Dataset.class, FlatDataset.class, FullDataset.class,
     DatasetVersion.class, DatasetLocation.class})
-@XmlType(propOrder={"name","path","pk","parentPk","metadata"})
-@JsonPropertyOrder({"name","path","pk","parentPk","metadata"})
+@XmlType(propOrder = {"name", "path", "pk", "parentPk", "metadata"})
+@JsonPropertyOrder({"name", "path", "pk", "parentPk", "metadata"})
 // Use default implementation of DatacatObject
-@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="$type", defaultImpl=DatacatObject.class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "$type", defaultImpl = DatacatObject.class)
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(LogicalFolder.class), @JsonSubTypes.Type(DatasetGroup.class),
-    @JsonSubTypes.Type(Dataset.class), 
-    @JsonSubTypes.Type(FlatDataset.class),
-    @JsonSubTypes.Type(FullDataset.class),
-    @JsonSubTypes.Type(DatasetVersion.class),
-    @JsonSubTypes.Type(DatasetLocation.class)
-})
-@JsonDeserialize(builder=Builder.class)
+        @JsonSubTypes.Type(LogicalFolder.class),
+        @JsonSubTypes.Type(DatasetGroup.class),
+        @JsonSubTypes.Type(Dataset.class),
+        @JsonSubTypes.Type(FlatDataset.class),
+        @JsonSubTypes.Type(FullDataset.class),
+        @JsonSubTypes.Type(DatasetVersion.class),
+        @JsonSubTypes.Type(DatasetLocation.class)
+        }
+    )
+@JsonDeserialize(builder = Builder.class)
 public class DatacatObject implements DatacatRecord {
 
     private Long pk;
@@ -58,6 +59,9 @@ public class DatacatObject implements DatacatRecord {
     private OwnerAclAttributes acl;
     private final HashMap<String, Object> metadata = new HashMap<>();
 
+    /**
+     * The basic type of this DatacatObject.
+     */
     @XmlEnum(String.class)
     public enum Type {
         DATASET,
@@ -65,21 +69,24 @@ public class DatacatObject implements DatacatRecord {
         DATASETVERSION,
         FOLDER,
         GROUP;
-        
+
         public boolean isContainer(){
             return this == FOLDER || this == GROUP;
         }
-        
+
         public static Type typeOf(DatacatObject object){
-            if(object instanceof LogicalFolder)
+            if(object instanceof LogicalFolder) {
                 return FOLDER;
-            if(object instanceof Dataset)
+            }
+            if(object instanceof Dataset) {
                 return DATASET;
-            if(object instanceof DatasetGroup)
+            }
+            if(object instanceof DatasetGroup) {
                 return GROUP;
+            }
             return null;
-        }        
-        
+        }
+
         public static Type fromJsonType(String jsonType){
             jsonType = jsonType == null ? "" : jsonType;
             switch(jsonType){
@@ -96,19 +103,21 @@ public class DatacatObject implements DatacatRecord {
             }
         }
     }
-    
+
     // Default no-arg constructor needed for jaxb
-    public DatacatObject(){}
-    
+    public DatacatObject(){
+    }
+
     public DatacatObject(Long pk, Long parentPk, String name){
         this.pk = pk;
         this.parentPk = parentPk;
         this.name = name;
     }
-    
+
     /**
-     * Cloning constructor
-     * @param object 
+     * Cloning constructor.
+     *
+     * @param object
      */
     public DatacatObject(DatacatObject object){
         this(object.pk, object.parentPk, object.name);
@@ -118,7 +127,7 @@ public class DatacatObject implements DatacatRecord {
         }
         this.acl = object.acl;
     }
-    
+
     public DatacatObject(Builder builder){
         this(builder.pk, builder.parentPk, builder.name);
         this.path = builder.path;
@@ -127,18 +136,19 @@ public class DatacatObject implements DatacatRecord {
         }
         this.acl = builder.acl;
     }
-    
-    @XmlElement(required=false)
+
+    @XmlElement(required = false)
     public String getName(){
         return name;
     }
-    
+
     /**
-     * Get the primary key for the database object in question.
+     * Get the primary key for the database object in question. 
      * This will correspond to the object's primary key column.
+     *
      * @return The primary key for the given object in the database.
      */
-    @XmlElement(required=false)
+    @XmlElement(required = false)
     public Long getPk(){
         return pk;
     }
@@ -152,10 +162,10 @@ public class DatacatObject implements DatacatRecord {
      * Dataset : Group || Folder
      * DatasetVersion : Dataset
      * DatasetLocation : DatasetVersion
-     * 
+     *
      * @return The primary key for the given object's parent
      */
-    @XmlElement(required=false)
+    @XmlElement(required = false)
     public Long getParentPk(){
         // TODO: Should we return -1 if the parent isn't set?
         return parentPk;
@@ -164,83 +174,86 @@ public class DatacatObject implements DatacatRecord {
     /**
      * If the object has it's path information included, we will return it.
      * If not, we will return null.
+     * 
      * @return The path of the object in the datacatalog as a string.
      * @return null
      */
-    @XmlElement(required=false)
+    @XmlElement(required = false)
     public String getPath(){
         return path;
     }
 
-     /**
-     * Metadata to return 
-     * @return The meatadata, each value should be the proper type (String,Number,etc..)
+    /**
+     * Metadata to return.
+     *
+     * @return The metadata, each value should be the proper type (String,Number,etc..)
      */
     @XmlTransient
-    public HashMap<String,Object> getMetadataMap() {
+    public HashMap<String, Object> getMetadataMap(){
         return metadata;
     }
-    
+
     /**
-     * Convenience method to lump metadata into a list for easy serialization.
+     * Convenience method to lump metadata into a list for easy serialization. 
      * This makes the xml and json output a lot cleaner.
-     * @return 
+     *
+     * @return
      */
-    @XmlElement(required=false)
-    public List<MetadataEntry> getMetadata() {
+    @XmlElement(required = false)
+    public List<MetadataEntry> getMetadata(){
         ArrayList<MetadataEntry> entries = new ArrayList<>();
         for(Entry<String, Object> e: metadata.entrySet()){
             if(e.getValue() instanceof Number){
-                entries.add( new MetadataEntry( e.getKey(), (Number) e.getValue()) );
-            } else if (e.getValue() instanceof String){
-                entries.add( new MetadataEntry(e.getKey(), (String) e.getValue()));
+                entries.add(new MetadataEntry(e.getKey(), (Number) e.getValue()));
+            } else if(e.getValue() instanceof String){
+                entries.add(new MetadataEntry(e.getKey(), (String) e.getValue()));
             }
         }
         return entries.size() > 0 ? entries : null;
     }
-    
+
     @XmlTransient
     public Type getType(){
-        return Type.typeOf( this );
+        return Type.typeOf(this);
     }
-    
+
     @XmlTransient
     public String getXmlTypeName(){
-        XmlType t = getClass().getAnnotation( XmlType.class );
+        XmlType t = getClass().getAnnotation(XmlType.class);
         return t.name();
     }
-    
+
     @XmlTransient
     public String getJsonTypeName(){
-        JsonTypeName t = getClass().getAnnotation( JsonTypeName.class );
+        JsonTypeName t = getClass().getAnnotation(JsonTypeName.class);
         return t.value();
     }
-    
+
     @XmlTransient
     public OwnerAclAttributes getAclAttributes(){
         return this.acl;
     }
-    
+
     @Override
     public String toString(){
         StringBuilder sb = new StringBuilder();
-        sb.append( omitNull("Name: ", name));
-        sb.append( omitNull("Path: ", getPath()));
+        sb.append(omitNull("Name: ", name));
+        sb.append(omitNull("Path: ", getPath()));
         List me = getMetadata();
         if(me != null && !me.isEmpty()){
             sb.append("Metadata: {");
             for(Iterator iter = me.iterator(); iter.hasNext();){
-                sb.append(iter.next()).append( iter.hasNext()? ", " :"");
+                sb.append(iter.next()).append(iter.hasNext() ? ", " : "");
             }
-            sb.append( "}");
+            sb.append("}");
         }
         return sb.toString();
     }
 
-    protected String omitNull(String name, Object o){
-        return o != null ? name + o + "\t": "";
+    protected String omitNull(String key, Object o){
+        return o != null ? key + o + "\t" : "";
     }
-    
+
     /**
      *
      * @author bvan
@@ -289,17 +302,17 @@ public class DatacatObject implements DatacatRecord {
 
         public DatacatObject build(){
             if(type == null){
-                return new DatacatObject( this );
+                return new DatacatObject(this);
             }
             switch(type){
                 case FOLDER:
-                    return new LogicalFolder( this );
+                    return new LogicalFolder(this);
                 case GROUP:
-                    return new DatasetGroup( this );
+                    return new DatasetGroup(this);
                 case DATASET:
-                    return new Dataset( this );
+                    return new Dataset(this);
                 default:
-                    return new DatacatObject( this );
+                    return new DatacatObject(this);
             }
         }
 
@@ -309,14 +322,14 @@ public class DatacatObject implements DatacatRecord {
             return (U) this;
         }
 
-        public U type(Type type){
-            this.type = type;
+        public U type(Type dType){
+            this.type = dType;  
             return (U) this;
         }
-        
+
         @JsonSetter(value = "type")
         public U jsonType(String val){
-            this.type = Type.fromJsonType( val );
+            this.type = Type.fromJsonType(val);
             return (U) this;
         }
 
@@ -349,12 +362,12 @@ public class DatacatObject implements DatacatRecord {
             this.metadata = new HashMap<>();
             if(val != null){
                 for(MetadataEntry e: val){
-                    if(e.getRawValue() instanceof Number) {
-                        metadata.put(e.getKey(), (Number)e.getRawValue());
+                    if(e.getRawValue() instanceof Number){
+                        metadata.put(e.getKey(), (Number) e.getRawValue());
                     } else {
-                        metadata.put(e.getKey(), (String)e.getRawValue());
+                        metadata.put(e.getKey(), (String) e.getRawValue());
                     }
-                }   
+                }
             }
             return (U) this;
         }
@@ -362,16 +375,15 @@ public class DatacatObject implements DatacatRecord {
         public U metadata(Map<String, Object> val){
             this.metadata = new HashMap<>();
             if(val != null){
-                metadata.putAll( val );
+                metadata.putAll(val);
             }
             return (U) this;
         }
-        
-        public U acl(String acl){
-            this.acl = DcPermissions.getOwnerAclAttributes(acl).orNull();
+
+        public U acl(String aclString){
+            this.acl = DcPermissions.getOwnerAclAttributes(aclString).orNull();
             return (U) this;
         }
     }
-    
 
 }

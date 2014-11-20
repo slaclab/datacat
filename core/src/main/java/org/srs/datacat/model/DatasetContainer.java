@@ -9,16 +9,18 @@ import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.container.BasicStat;
 
 /**
- * An interface denoting either a folder or a group
+ * An interface denoting either a folder or a group.
+ * 
  * @author bvan
  */
 public interface DatasetContainer {
     
-    public BasicStat getStat();
-    public String getDescription();
+    BasicStat getStat();
+    String getDescription();    
 
     /**
-     * Builder for DatasetContainers
+     * Builder for DatasetContainers.
+     * 
      * @author bvan
      */
     @XmlTransient
@@ -53,8 +55,9 @@ public interface DatasetContainer {
                     return new LogicalFolder.Builder(container);
                 case GROUP:
                     return new DatasetGroup.Builder(container);
+                default:
+                    return null;
             }
-            return null;
         }
 
         @Override

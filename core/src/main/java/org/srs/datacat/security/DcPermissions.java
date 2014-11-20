@@ -12,10 +12,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
- *
+ * A Utility class for the Datacat Permissions model.
+ * 
  * @author bvan
  */
-public class DcPermissions {
+public final class DcPermissions {
+    
+    private DcPermissions(){}
 
     /**
      *  READ allows a user to lookup the contents of a directory and read the datasets in
@@ -52,16 +55,21 @@ public class DcPermissions {
     public static final AclEntryPermission ADMIN = AclEntryPermission.WRITE_ACL;
     
     public static String pack(AclEntryPermission permission){
-        if(permission == READ)
+        if(permission == READ) {
             return "r";
-        if(permission == INSERT)
+        }
+        if(permission == INSERT) {
             return "i";
-        if(permission == DELETE)
+        }
+        if(permission == DELETE) {
             return "d";
-        if(permission == WRITE)
+        }
+        if(permission == WRITE) {
             return "w";
-        if(permission == ADMIN)
+        }
+        if(permission == ADMIN) {
             return "a";
+        }
         return "";
     }
     
@@ -77,8 +85,9 @@ public class DcPermissions {
                 return WRITE;
             case 'a':
                 return ADMIN;
+            default:
+                throw new IllegalArgumentException("Unable to unpack permission");
         }
-        throw new IllegalArgumentException("Unable to unpack permission");
     }
 
     
@@ -88,9 +97,9 @@ public class DcPermissions {
         }
         List<AclEntry> acl = new ArrayList<>();
         DcUser owner = null;
-        String aclEntries[] = aclString.split(",");
+        String[] aclEntries = aclString.split(",");
         for(String aclEntry: aclEntries){
-            String[] ace = aclEntry.split( ":");
+            String[] ace = aclEntry.split(":");
             String uprin = ace[0];
             String uprinType = ace[1];
             UserPrincipal up = null;
@@ -105,16 +114,21 @@ public class DcPermissions {
                     owner = new DcUser(user);
                     break;
                 default:
-                    
+                    break;
             }
-            
+
             if(up != null){
                 Set<AclEntryPermission> perms = new HashSet<>();
                 String permissions = ace[2];
                 for(int i = 0; i < permissions.length(); i++){
                     perms.add(DcPermissions.unpack(permissions.charAt(i)));
                 }
-                acl.add(AclEntry.newBuilder().setPrincipal(up).setPermissions(perms).setType(AclEntryType.ALLOW).build());
+                acl.add(AclEntry.newBuilder()
+                        .setPrincipal(up)
+                        .setPermissions(perms)
+                        .setType(AclEntryType.ALLOW)
+                        .build()
+                );
             }
         }
         return Optional.fromNullable(new OwnerAclAttributes(owner, acl));

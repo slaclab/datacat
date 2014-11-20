@@ -1,6 +1,4 @@
-
 package org.srs.datacat.vfs;
-
 
 import java.io.IOException;
 import org.srs.datacat.shared.DatacatObject.Type;
@@ -21,35 +19,39 @@ import org.srs.datacat.vfs.attribute.SubdirectoryView;
 import org.srs.datacat.vfs.attribute.DcAclFileAttributeView;
 import org.srs.vfs.FileType;
 
-
 /**
- *
+ * A wrapper class that represents a materialized DatacatObject with some common file-like mappings.
+ * It's used for caching, and it can contain any number of views.
+ * 
  * @author bvan
  */
 public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFileAttributeView {
-    
+
     {
-        addViewName( DcAclFileAttributeView.class, "acl");
-        addViewName( DcFile.class, "basic");
-        addViewName( SubdirectoryView.class, "subdirectories");
+        addViewName(DcAclFileAttributeView.class, "acl");
+        addViewName(DcFile.class, "basic");
+        addViewName(SubdirectoryView.class, "subdirectories");
     }
-    
+
+    /**
+     * Marker for alternative class of FileType.Directory.
+     */
     public static class GroupType extends FileType.Directory {}
-    
-    private final DatacatObject _object;
-    private final long _objectCreation = System.currentTimeMillis();
-    
+
+    private final DatacatObject dcObject;
+    private final long dcObjectCreation = System.currentTimeMillis();
+
     public DcFile(DcPath path, DatacatObject object, DcAclFileAttributeView aclView){
         super(path, fileType(object));
         if(object instanceof Dataset){
-            this._object = new Dataset(object); // make a copy of base object
+            this.dcObject = new Dataset(object); // make a copy of base object
         } else {
-            this._object = object;
+            this.dcObject = object;
         }
         addAttributeViews(aclView);
         initViews(object);
     }
-    
+
     private void initViews(DatacatObject orig){
         addAttributeViews(this);
         if(isRegularFile()){
@@ -63,15 +65,16 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     }
 
     protected static FileType fileType(DatacatObject o){
-        switch (Type.typeOf( o )){
+        switch(Type.typeOf(o)){
             case GROUP:
                 return new GroupType();
             case FOLDER:
                 return FileType.DIRECTORY;
             case DATASET:
                 return FileType.FILE;
+            default:
+                return FileType.FILE;
         }
-        return FileType.FILE;
     }
 
     @Override
@@ -97,19 +100,19 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     @Override
     public FileTime lastModifiedTime(){
         // TODO: Fix Times
-        return FileTime.fromMillis( _objectCreation );
+        return FileTime.fromMillis(dcObjectCreation);
     }
 
     @Override
     public FileTime lastAccessTime(){
         // TODO: Fix Times
-        return FileTime.fromMillis( _objectCreation );
+        return FileTime.fromMillis(dcObjectCreation);
     }
 
     @Override
     public FileTime creationTime(){
         // TODO: Fix Times
-        return FileTime.fromMillis( _objectCreation );
+        return FileTime.fromMillis(dcObjectCreation);
     }
 
     @Override
@@ -134,28 +137,28 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
 
     @Override
     public long size(){
-        throw new UnsupportedOperationException( "Not supported yet." );
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public Long fileKey(){
-        return _object.getPk();
+        return dcObject.getPk();
     }
-    
+
     public DatacatObject getObject(){
-        return this._object;
+        return this.dcObject;
     }
-    
+
     public DatacatRecord asRecord(){
-        return this._object;
+        return this.dcObject;
     }
 
     @Override
     public void setTimes(FileTime lastModifiedTime, FileTime lastAccessTime,
             FileTime createTime) throws IOException{
-        throw new UnsupportedOperationException( "Not supported yet." );
+        throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
     public void childRemoved(DcPath child){
         if(!isDirectory()){
             return;
@@ -165,12 +168,12 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
         getAttributeView(SubdirectoryView.class).unlink(fname);
         getAttributeView(ContainerViewProvider.class).clearStats();
     }
-    
+
     public void datasetAdded(DcPath child){
         getAttributeView(ChildrenView.class).link(child);
         getAttributeView(ContainerViewProvider.class).clearStats();
     }
-    
+
     public void childAdded(DcPath child, FileType fileType){
         getAttributeView(ChildrenView.class).link(child);
         if(fileType instanceof FileType.Directory){
@@ -178,7 +181,7 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
         }
         getAttributeView(ContainerViewProvider.class).clearStats();
     }
-    
+
     public void childModified(DcPath child){
         if(!isDirectory()){
             return;
@@ -188,13 +191,13 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
             getAttributeView(ChildrenView.class).link(child);
         }
         if(getAttributeView(SubdirectoryView.class).unlink(fname)){
-            getAttributeView(SubdirectoryView.class).link( child );
+            getAttributeView(SubdirectoryView.class).link(child);
         }
         getAttributeView(ContainerViewProvider.class).clearStats();
     }
 
     @Override
     public String toString(){
-        return "DcFile{" + "object=" + _object.toString() + '}';
+        return "DcFile{" + "object=" + dcObject.toString() + '}';
     }
 }

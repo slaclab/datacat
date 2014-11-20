@@ -10,7 +10,7 @@ import org.srs.datacat.shared.DatacatObject;
  */
 public interface DatacatRecord extends Serializable {
     
-    public Long getPk();
-    public DatacatObject.Type getType();
-    public String getPath();
+    Long getPk();
+    DatacatObject.Type getType();
+    String getPath();
 }

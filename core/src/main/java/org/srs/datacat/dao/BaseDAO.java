@@ -17,10 +17,11 @@ public interface BaseDAO extends AutoCloseable {
     void commit() throws IOException;
     
     @Override
-    public void close() throws IOException;
+    void close() throws IOException;
     
     /**
-     * Create a Folder, Group, or Dataset node
+     * Create a Folder, Group, or Dataset node.
+     * 
      * @param <T> Folder, Group, or Dataset
      * @param parent The record which will be the parent
      * @param name The name of the target node
@@ -29,10 +30,12 @@ public interface BaseDAO extends AutoCloseable {
      * @throws IOException
      * @throws FileSystemException 
      */
-    <T extends DatacatObject> T createNode(DatacatRecord parent, String name, T request) throws IOException, FileSystemException;
+    <T extends DatacatObject> T createNode(DatacatRecord parent, String name, 
+            T request) throws IOException, FileSystemException;
     
     /**
      * Using the parent record, find the object that corresponds to the given path.
+     * 
      * @param parent
      * @param name The file name
      * @return
@@ -42,7 +45,8 @@ public interface BaseDAO extends AutoCloseable {
     DatacatObject getObjectInParent(DatacatRecord parent, String name) throws IOException, NoSuchFileException;
     
     /**
-     * Add metadata to an existing record
+     * Add metadata to an existing record.
+     * 
      * @param record A Folder, Group, or DatasetVersion
      * @param metaData Metadata to be appended
      * @throws IOException 
@@ -50,7 +54,8 @@ public interface BaseDAO extends AutoCloseable {
     void addMetadata(DatacatRecord record, Map metaData) throws IOException;
     
     /**
-     * Delete a DatacatRecord
+     * Delete a DatacatRecord.
+     * 
      * @param record A Folder, Group, or Dataset
      * @throws IOException 
      */

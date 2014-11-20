@@ -15,7 +15,8 @@ import org.srs.datacat.shared.container.DatasetStat;
  */
 public interface ContainerDAO extends BaseDAO {
 
-    DirectoryStream<DatacatObject> getChildrenStream(DatacatRecord parent, DatasetView viewPrefetch) throws IOException;
+    DirectoryStream<DatacatObject> getChildrenStream(DatacatRecord parent, 
+            DatasetView viewPrefetch) throws IOException;
     
     DirectoryStream<DatacatObject> getSubdirectoryStream(DatacatRecord parent) throws IOException;
     

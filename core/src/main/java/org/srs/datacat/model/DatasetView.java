@@ -5,13 +5,17 @@ import javax.xml.bind.annotation.XmlTransient;
 
 
 /**
- *
+ * A hash-able representation of a DatasetView.
+ * 
  * @author bvan
  */
 public class DatasetView {
     
+    /**
+     * Helper class for understanding a VersionId.
+     */
     @XmlTransient
-    public static class VersionId {
+    public static final class VersionId {
         int id;
         private VersionId(int id){
             this.id = id;

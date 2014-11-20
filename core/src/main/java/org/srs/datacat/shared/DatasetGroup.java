@@ -12,7 +12,8 @@ import javax.xml.bind.annotation.XmlTransient;
 import org.srs.datacat.shared.DatasetGroup.Builder;
 
 /**
- *
+ * A DatasetGroup. A DatasetGroup is  a special container which contains only Datasets.
+ * 
  * @author bvan
  */
 @XmlRootElement
@@ -32,7 +33,8 @@ public class DatasetGroup extends DatacatObject implements DatasetContainer {
     }
     
     /**
-     * Copy constructor
+     * Copy constructor.
+     * 
      * @param group 
      */
     public DatasetGroup(DatasetGroup group){
@@ -64,10 +66,13 @@ public class DatasetGroup extends DatacatObject implements DatasetContainer {
         return stat;
     }
     
+    /**
+     * Builder.
+     */
     @XmlTransient
     public static class Builder extends DatasetContainer.Builder {
         
-        public Builder(){super();}
+        public Builder(){ super(); }
         public Builder(DatacatObject object){ super(object); }
         public Builder(DatasetContainer.Builder builder){ super(builder); }
         

@@ -16,7 +16,7 @@ import org.srs.datacat.shared.dataset.FlatDataset;
  * @author bvan
  */
 @XmlTransient
-public class RequestView extends HashMap<String,String>{
+public class RequestView extends HashMap<String, String>{
     
     DatacatObject.Type type;
     DatasetView datasetView;
@@ -28,7 +28,7 @@ public class RequestView extends HashMap<String,String>{
     
     private static final String PRESENT = new String();
     
-    private static final HashSet<String> allowableAttributes = new HashSet<String>(){
+    private static final HashSet<String> ALLOWABLE_ATTRIBUTES = new HashSet<String>(){
         {
             for(Method m: FlatDataset.Builder.class.getMethods()){
                 if(m.isAnnotationPresent(JsonSetter.class)){
@@ -43,9 +43,9 @@ public class RequestView extends HashMap<String,String>{
         }
     };
     
-    public RequestView(DatacatObject.Type type, Map<String,List<String>> params){
+    public RequestView(DatacatObject.Type type, Map<String, List<String>> params){
         this.type = type;
-        validateView(params != null? params : new HashMap<String,List<String>>(0));
+        validateView(params != null? params : new HashMap<String, List<String>>(0));
     }
     
     public boolean includeMetadata(){
@@ -79,10 +79,10 @@ public class RequestView extends HashMap<String,String>{
         return OBJECT;
     }
     
-    private void validateView(Map<String,List<String>> params){
+    private void validateView(Map<String, List<String>> params){
         String site = DatasetView.ANY_SITES;
         int vid = DatasetView.EMPTY_VER;
-        HashMap<String,String> m = new HashMap<>();
+        HashMap<String, String> m = new HashMap<>();
         if(type == null){
             type = DatacatObject.Type.FOLDER; // Assume to be folder in this case.
         }
@@ -119,8 +119,9 @@ public class RequestView extends HashMap<String,String>{
                 }
                 
                 if(sites != null){
-                    if(sites.size() > 1)
-                        throw new IllegalArgumentException( "Only one site arguments is allowed" );
+                    if(sites.size() > 1) {
+                        throw new IllegalArgumentException("Only one site arguments is allowed");
+                    }
                     site = sites.get(0);
                     switch(site.toLowerCase()){
                         case "all":
@@ -129,10 +130,14 @@ public class RequestView extends HashMap<String,String>{
                         case "master":
                         case "canonical":
                             site = DatasetView.CANONICAL_SITE;
+                        default:
+                            break;
                     }
                 }
+            default:
+                break;
         }
-        for(String attr: allowableAttributes){
+        for(String attr: ALLOWABLE_ATTRIBUTES){
             if(params.containsKey(attr)){
                 m.put(attr, params.get(attr).get(0));
             }

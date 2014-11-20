@@ -20,9 +20,9 @@ public enum DatasetOption {
     SKIP_VERSION_CHECK,
     SKIP_LOCATION_CHECK;
     
-    public static Collection<DatasetOption> VERSION_WORK = 
+    public static final Collection<DatasetOption> VERSION_WORK = 
             Collections.unmodifiableCollection(Arrays.asList(CREATE_VERSION, MERGE_VERSION));
-    public static Collection<DatasetOption> VIEW_WORK = 
+    public static final Collection<DatasetOption> VIEW_WORK = 
             Collections.unmodifiableCollection(Arrays.asList(CREATE_VERSION, MERGE_VERSION, CREATE_LOCATIONS));
 
 }

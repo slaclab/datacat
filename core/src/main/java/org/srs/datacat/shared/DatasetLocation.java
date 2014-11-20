@@ -18,7 +18,8 @@ import org.srs.rest.shared.RestDateAdapter;
 
 
 /**
- * Represents a complete location
+ * A DatasetLocation represents a physical file for a given DatasetVersion.
+ * 
  * @author bvan
  */
 @XmlRootElement
@@ -44,7 +45,8 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     public DatasetLocation(){ super(); }
     
     /**
-     * Copy constructor
+     * Copy constructor.
+     * 
      * @param location 
      */
     public DatasetLocation(DatasetLocation location){
@@ -106,17 +108,17 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     @Override 
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
     @XmlElement(name="modified", required=false)
-    public Timestamp getDateModified() { return this.dateModified;}
+    public Timestamp getDateModified() { return this.dateModified; }
    
     @Override 
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
     @XmlElement(name="scanned", required=false)
-    public Timestamp getDateScanned() { return this.dateScanned;}
+    public Timestamp getDateScanned() { return this.dateScanned; }
 
     @Override
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
     @XmlElement(name="registered", required=false)
-    public Timestamp getDateCreated() { return this.dateCreated;}
+    public Timestamp getDateCreated() { return this.dateCreated; }
 
     @Override public String getScanStatus() { return this.scanStatus; }
     
@@ -132,7 +134,7 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     }
     
     public void validateFields(){
-        Objects.requireNonNull( this.resource,"Physical file path required");
+        Objects.requireNonNull( this.resource, "Physical file path required");
         Objects.requireNonNull( this.site, "Location site is required");
     }
     
@@ -141,6 +143,9 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
         return String.format("%s_%s", this.site, this.resource).hashCode();
     }
 
+    /**
+     * Builder.
+     */
     @XmlTransient
     public static class Builder extends DatacatObject.Builder<Builder>{
         private String resource;

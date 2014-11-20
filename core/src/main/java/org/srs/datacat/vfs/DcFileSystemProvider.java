@@ -1,4 +1,3 @@
-
 package org.srs.datacat.vfs;
 
 import com.google.common.base.Optional;
@@ -33,8 +32,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.sql.DataSource;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetView;
@@ -68,27 +65,27 @@ import org.srs.vfs.FileType;
  * @author bvan
  */
 public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
-    
+
     private static final long MAX_CHILD_CACHE = 500;
     private static final int MAX_METADATA_STRING_BYTE_SIZE = 5000;
-    private static final long MAX_DATASET_CACHE_SIZE = 1<<29; // Don't blow more than about 512MB
+    private static final long MAX_DATASET_CACHE_SIZE = 1 << 29; // Don't blow more than about 512MB
     private static final int NO_MAX = -1;
-    private static final long MAX_CACHE_TIME = 60000L; // 60 seconds TODO: Get rid of this
-    
+    private static final long MAX_CACHE_TIME = 60000L; // TODO: Get rid of this - 60 seconds
+
     private final DcFileSystem fileSystem;
     private final DAOFactory daoFactory;
-        
+
     public DcFileSystemProvider(DataSource dataSource, DcUserLookupService userLookupService) throws IOException{
         super();
         this.daoFactory = new org.srs.datacat.dao.sql.DAOFactory(dataSource);
         fileSystem = new DcFileSystem(this, userLookupService);
     }
-    
+
     @Override
     public String getScheme(){
         return "dc";
     }
-    
+
     public DAOFactory getDaoFactory(){
         return daoFactory;
     }
@@ -96,7 +93,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     @Override
     public DirectoryStream<Path> newDirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
-        return newOptimizedDirectoryStream( dir, filter, NO_MAX, DatasetView.EMPTY );
+        return newOptimizedDirectoryStream(dir, filter, NO_MAX, DatasetView.EMPTY);
     }
 
     public DirectoryStream<Path> newOptimizedDirectoryStream(Path dir,
@@ -121,31 +118,30 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         return (DirectoryStream<Path>) stream;
     }
-    
+
     @Override
     public DirectoryStream<DcPath> unCachedDirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
         return unCachedDirectoryStream(dir, filter, DatasetView.EMPTY, true);
     }
-        
+
     public DirectoryStream<DcPath> directSubdirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
         return unCachedDirectoryStream(dir, filter, null, false);
     }
-    
+
     private DirectoryStream<DcPath> unCachedDirectoryStream(Path dir,
-            final DirectoryStream.Filter<? super Path> filter, final DatasetView viewPrefetch, final boolean cacheDatasets) throws IOException{
-        final DcPath dcPath = checkPath( dir );
-        final DcFile dirFile = resolveFile( dcPath );
+            final DirectoryStream.Filter<? super Path> filter, final DatasetView viewPrefetch,
+            final boolean cacheDatasets) throws IOException{
+        final DcPath dcPath = checkPath(dir);
+        final DcFile dirFile = resolveFile(dcPath);
         checkPermission(dcPath.getUserName(), dirFile, DcPermissions.READ);
-        final DcAclFileAttributeView aclView = dirFile.
-                getAttributeView( DcAclFileAttributeView.class );
         if(!dirFile.isDirectory()){
-            throw new NotDirectoryException( dirFile.toString() );
+            throw new NotDirectoryException(dirFile.toString());
         }
 
         // !IMPORTANT!: This object is closed when the stream is closed
-        final ContainerDAO dao = daoFactory.newContainerDAO(); 
+        final ContainerDAO dao = daoFactory.newContainerDAO();
         DirectoryStream<DatacatObject> stream;
         if(viewPrefetch != null){
             stream = dao.getChildrenStream(dirFile.asRecord(), viewPrefetch);
@@ -155,46 +151,47 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
 
         final Iterator<DatacatObject> iter = stream.iterator();
         final AtomicInteger dsCount = new AtomicInteger();
-        DirectoryStreamWrapper.IteratorAcceptor acceptor = 
-                new DirectoryStreamWrapper.IteratorAcceptor() {
+        DirectoryStreamWrapper.IteratorAcceptor acceptor
+            = new DirectoryStreamWrapper.IteratorAcceptor() {
 
-            @Override
-            public boolean acceptNext() throws IOException{
-                while(iter.hasNext()){
-                    DatacatObject child = iter.next();
-                    DcPath maybeNext = dcPath.resolve( child.getName() );
-                    DcFile file = DcFileSystemProvider.this.buildChild(dirFile, maybeNext, child);
+                @Override
+                public boolean acceptNext() throws IOException{
+                    while(iter.hasNext()){
+                        DatacatObject child = iter.next();
+                        DcPath maybeNext = dcPath.resolve(child.getName());
+                        DcFile file = DcFileSystemProvider.this.
+                        buildChild(dirFile, maybeNext, child);
 
-                    if(file.isDirectory()){
-                        getCache().putFileIfAbsent(file);
+                        if(file.isDirectory()){
+                            getCache().putFileIfAbsent(file);
+                        }
+                        if(!file.isDirectory() && cacheDatasets){
+                            getCache().putFileIfAbsent(file);
+                            dsCount.incrementAndGet();
+                        }
+                        if(filter.accept(maybeNext)){
+                            setNext(maybeNext);
+                            return true;
+                        }
                     }
-                    if(!file.isDirectory() && cacheDatasets){
-                         getCache().putFileIfAbsent(file);
-                         dsCount.incrementAndGet();
-                    }
-                    if(filter.accept( maybeNext )){
-                        setNext( maybeNext );
-                        return true;
-                    }
+                    throw new NoSuchElementException();
                 }
-                throw new NoSuchElementException();
-            }
-        };
+            };
 
-        DirectoryStreamWrapper<DcPath> wrapper = 
-                new DirectoryStreamWrapper<DcPath>(stream, acceptor){
+        DirectoryStreamWrapper<DcPath> wrapper
+            = new DirectoryStreamWrapper<DcPath>(stream, acceptor) {
 
-            @Override
-            public void close() throws IOException{
-                if(dsCount.get() > 0){
-                    dirFile.getAttributeView( ContainerViewProvider.class)
-                            .setViewStats( viewPrefetch, dsCount.get());
+                @Override
+                public void close() throws IOException{
+                    if(dsCount.get() > 0){
+                        dirFile.getAttributeView(ContainerViewProvider.class)
+                            .setViewStats(viewPrefetch, dsCount.get());
+                    }
+                    super.close();
+                    dao.close();  // Make sure to close dao (and underlying connection)
                 }
-                super.close();
-                dao.close();  // Make sure to close dao (and underlying connection)
-            }
 
-        };
+            };
         return wrapper;
     }
 
@@ -210,60 +207,59 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
 
         final Iterator<DcPath> iter = view.getChildrenPaths().iterator();
-        DirectoryStreamWrapper<DcPath> wrapper = new DirectoryStreamWrapper<>(iter, 
+        DirectoryStreamWrapper<DcPath> wrapper = new DirectoryStreamWrapper<>(iter,
                 new DirectoryStreamWrapper.IteratorAcceptor() {
 
-            @Override
-            public boolean acceptNext() throws IOException{
-                while(iter.hasNext()){
-                    DcPath maybeNext = iter.next();
-                    if(filter.accept( maybeNext )){
-                        setNext( maybeNext );
-                        return true;
+                    @Override
+                    public boolean acceptNext() throws IOException{
+                        while(iter.hasNext()){
+                            DcPath maybeNext = iter.next();
+                            if(filter.accept(maybeNext)){
+                                setNext(maybeNext);
+                                return true;
+                            }
+                        }
+                        throw new NoSuchElementException();
                     }
-                }
-                throw new NoSuchElementException();
-            }
-        });
+                });
         return wrapper;
     }
-    
+
     /**
-     * This checks to see if a given view is cached and, if it is, if there is enough items
-     * in the cache to be worthwhile to use the cache.
+     * This checks to see if a given view is cached and, if it is, if there is enough items in the
+     * cache to be worthwhile to use the cache.
      */
     private boolean maybeUseCache(DcFile dirFile, DatasetView viewPrefetch) throws IOException{
-        //TODO: Fix caching of large results
+        // TODO: Fix caching of large results
         if(viewPrefetch == DatasetView.EMPTY){
             return true;
         }
-        ContainerViewProvider cstat = dirFile.getAttributeView( ContainerViewProvider.class);
-        DatasetContainer container = (DatasetContainer) cstat.withView( BasicStat.StatType.BASIC );
+        ContainerViewProvider cstat = dirFile.getAttributeView(ContainerViewProvider.class);
+        DatasetContainer container = (DatasetContainer) cstat.withView(BasicStat.StatType.BASIC);
         int count = container.getStat().getChildCount();
-        int cacheCount = cstat.getViewStats( viewPrefetch );
+        int cacheCount = cstat.getViewStats(viewPrefetch);
         if((count - cacheCount) < MAX_CHILD_CACHE){
             return true;
         }
         return false;
     }
-    
+
     /**
-     * This could tries to decide if we should even try to fit all the datasets in
-     * cache or not.
+     * Tries to decide if we should even try to fit all the datasets in cache or not.
      */
     private boolean canFitDatasetsInCache(DcFile dirFile, int max, DatasetView viewPrefetch) throws IOException{
-        //TODO: Improve logic
-        ContainerViewProvider cstat = dirFile.getAttributeView( ContainerViewProvider.class);
-        DatasetContainer container = (DatasetContainer) cstat.withView( BasicStat.StatType.BASIC );
+        // TODO: Improve logic
+        ContainerViewProvider cstat = dirFile.getAttributeView(ContainerViewProvider.class);
+        DatasetContainer container = (DatasetContainer) cstat.withView(BasicStat.StatType.BASIC);
         int count = max;
         if(count <= 0){
             count = container.getStat().getChildCount();
         }
-        /* 
-            The average upper bound of metadata size (in bytes) for a given dataset is about 
-            5kB. We want to make sure that we don't cache more than about 
-        */
-        long estimate = count*MAX_METADATA_STRING_BYTE_SIZE;
+        /*
+         The average upper bound of metadata size (in bytes) for a given dataset is about
+         5kB. We want to make sure that we don't cache more than about
+         */
+        long estimate = count * MAX_METADATA_STRING_BYTE_SIZE;
         if(estimate < MAX_DATASET_CACHE_SIZE){
             return true;
         }
@@ -274,85 +270,86 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     @Override
     public <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type,
             LinkOption... options){
-        DcPath dcPath = checkPath( path );
+        DcPath dcPath = checkPath(path);
         try {
             DcFile f = resolveFile(dcPath);
             checkPermission(dcPath.getUserName(), f, DcPermissions.READ);
-            return f.getAttributeView( type );
-        } catch(IOException ex) { 
-            // Do nothing, just return null;].
+            return f.getAttributeView(type);
+        } catch(IOException ex) {
+            // Do nothing, just return null
+            return null;
         }
-        return null;
     }
 
     @Override
     public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type,
             LinkOption... options) throws IOException{
-        DcPath dcPath = checkPath( path );
+        DcPath dcPath = checkPath(path);
         DcFile f = resolveFile(dcPath);
         checkPermission(dcPath.getUserName(), f, DcPermissions.READ);
-        if(f!=null){
+        if(f != null){
             if(type == BasicFileAttributes.class || type == DcFile.class){
                 return (A) f;
             }
         }
-        AfsException.NO_SUCH_FILE.throwError( dcPath,"Unable to resolve file");
+        AfsException.NO_SUCH_FILE.throwError(dcPath, "Unable to resolve file");
         return null; // Keep compiler happy
     }
-    
+
     /**
-     * Gets a file
+     * Gets a file.
+     *
      * @param path
      * @return
-     * @throws IOException 
+     * @throws IOException
      */
     public DcFile getFile(Path path) throws IOException{
-        DcPath dcPath = checkPath( path );
-        /*
-        TODO: When we have control over file creation, remove this and replace it with
-              some sort of distributed consensus stuff potentially.
-        */
+        DcPath dcPath = checkPath(path);
+        /* TODO: When we have control over file creation, remove this and replace it with
+         some sort of distributed consensus stuff potentially.
+         */
         DcFile f = resolveFile(dcPath);
         if((f.lastModifiedTime().toMillis() - System.currentTimeMillis()) > MAX_CACHE_TIME){
             getCache().removeFile(dcPath);
             f = resolveFile(dcPath);
         }
-        if(f!= null){
+        if(f != null){
             checkPermission(dcPath.getUserName(), f, DcPermissions.READ);
             return f;
         }
-        AfsException.NO_SUCH_FILE.throwError( dcPath,"Unable to resolve file");
+        AfsException.NO_SUCH_FILE.throwError(dcPath, "Unable to resolve file");
         return null; // Keep compiler happy
     }
-    
+
     /**
-     * Add metadata to a DatacatRecord at a given path
+     * Add metadata to a DatacatRecord at a given path.
+     *
      * @param path
      * @param record
      * @param metadata
      * @return
-     * @throws IOException 
+     * @throws IOException
      */
     public DcFile addMetadata(Path path, DatacatRecord record, Map metadata) throws IOException{
         DcPath dcPath = checkPath(path);
         DcFile f = getFile(dcPath);
         checkPermission(dcPath.getUserName(), f, DcPermissions.WRITE);
-        try (BaseDAO dao = daoFactory.newBaseDAO()){
+        try(BaseDAO dao = daoFactory.newBaseDAO()) {
             dao.addMetadata(record, metadata);
             dao.commit();
         }
         getCache().removeFile(dcPath);
         return getFile(dcPath);
     }
-    
+
     @Override
     public DcPath getPath(URI uri){
         return fileSystem.getPathProvider().getPath(uri);
     }
-    
+
     @Override
-    public void checkAccess(Path path, AccessMode... modes) throws IOException {
-        DcPath dcPath = checkPath( path );
+    public void checkAccess(Path path, AccessMode... modes) throws IOException{
+        DcPath dcPath = checkPath(path);
         DcFile file = resolveFile(dcPath);
         AclEntryPermission perm = DcPermissions.READ;
         if(modes.length > 0){
@@ -362,47 +359,46 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         checkPermission(dcPath.getUserName(), file, perm);
     }
-    
-    public boolean exists(Path path) {
+
+    public boolean exists(Path path){
         try {
-            readAttributes(path, BasicFileAttributes.class);
+            resolveFile(checkPath(path));
             // file exists
             return true;
-        } catch (IOException x) {
+        } catch(IOException x) {
             // does not exist or unable to determine if file exists
             return false;
         }
     }
-    
+
     private DcPath checkPath(Path path){
         if(path instanceof DcPath){
             return (DcPath) path;
         }
-        if(path instanceof AbstractPath){
-            return fileSystem.getPathProvider().getPath(((AbstractPath) path).getUserName(), path.toString());
-        }
-        return fileSystem.getPathProvider().getPath(null, path.toString());
+        String user = path instanceof AbstractPath ? ((AbstractPath) path).getUserName() : null;
+        return fileSystem.getPathProvider().getPath(user, path.toString());
     }
-    
+
     @Override
-    public DcFile retrieveFileAttributes(DcPath path, DcFile parent) throws IOException {
+    public DcFile retrieveFileAttributes(DcPath path, DcFile parent) throws IOException{
         // LOG: Checking database
-        try (BaseDAO dao = daoFactory.newBaseDAO()){
+        try(BaseDAO dao = daoFactory.newBaseDAO()) {
             DatacatRecord parentRecord = parent != null ? parent.asRecord() : null;
-            return buildChild(parent, path, dao.getObjectInParent(parentRecord, path.getFileName().toString()));
+            return buildChild(parent, path, dao.getObjectInParent(parentRecord, path.getFileName().
+                    toString()));
         }
     }
-    
+
     private DcFile buildChild(DcFile parent, DcPath childPath, DatacatObject child) throws IOException{
         DcAclFileAttributeView aclView;
         if(parent == null){
             aclView = new DcAclFileAttributeView(child.getAclAttributes());
         } else {
             if(child.getAclAttributes() != null){
-                /* 
-                  TODO: Come up with better strategy for global ADMIN privileges 
-                    Always inherit parent ADMIN permissions for now.
-                */
+                /*
+                 TODO: Come up with better strategy for global ADMIN privileges
+                 Always inherit parent ADMIN permissions for now.
+                 */
                 List<AclEntry> acl = new ArrayList<>(child.getAclAttributes().getAcl());
                 for(AclEntry e: parent.getAttributeView(DcAclFileAttributeView.class).getAcl()){
                     if(e.permissions().contains(DcPermissions.ADMIN)){
@@ -417,38 +413,39 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         return new DcFile(childPath, child, aclView);
     }
-    
+
     /**
      * This will fail if there already exists a Dataset record.
+     *
      * @param path Path of this new dataset
      * @param dsReq
      * @param options
      * @return Dataset, FlatDataset, or FullDataset
-     * @throws IOException 
+     * @throws IOException
      */
     public Dataset createDataset(Path path, Dataset dsReq, Set<DatasetOption> options) throws IOException{
         if(dsReq == null){
-            throw new IOException( "Not enough information to create create a Dataset node or view" );
+            throw new IOException("Not enough information to create create a Dataset node or view");
         }
         DcPath dsPath = checkPath(path);
-        
+
         DcFile dsParent = resolveFile(dsPath.getParent());
         String dsName = path.getFileName().toString();
         Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
-        
+
         Optional<Dataset> requestDataset = Optional.absent();
         Optional<DatasetViewInfo> requestView = Optional.absent();
-        
+
         boolean createNode = dsOptions.remove(DatasetOption.CREATE_NODE);
-        
+
         if(createNode){
             checkPermission(dsPath.getUserName(), dsParent, DcPermissions.INSERT);
             requestDataset = Optional.of(new Dataset(dsReq));
         }
-        HashSet<DatasetOption> viewWork = new HashSet<>( Arrays.asList( 
-                                            DatasetOption.CREATE_VERSION, 
-                                            DatasetOption.MERGE_VERSION, 
-                                            DatasetOption.CREATE_LOCATIONS));
+        HashSet<DatasetOption> viewWork = new HashSet<>(Arrays.asList(
+                DatasetOption.CREATE_VERSION,
+                DatasetOption.MERGE_VERSION,
+                DatasetOption.CREATE_LOCATIONS));
         viewWork.retainAll(dsOptions);
         if(!viewWork.isEmpty()){
             checkPermission(dsPath.getUserName(), dsParent, DcPermissions.WRITE);
@@ -458,51 +455,52 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                 throw new IllegalArgumentException("Unable to fulfill rquest");
             }
         }
-        try (DatasetDAO dao = daoFactory.newDatasetDAO(dsPath)){
-            Dataset ret = dao.createDataset(dsParent.asRecord(), dsName, requestDataset, requestView, dsOptions);
+        try(DatasetDAO dao = daoFactory.newDatasetDAO(dsPath)) {
+            Dataset ret = dao.
+                    createDataset(dsParent.asRecord(), dsName, requestDataset, requestView, dsOptions);
             dao.commit();
             dsParent.childAdded(dsPath, FileType.FILE);
             return ret;
         }
     }
-        
-    public DatasetViewInfo getDatasetViewInfo(DcFile file, DatasetView view) throws IOException, NoSuchFileException {
+
+    public DatasetViewInfo getDatasetViewInfo(DcFile file, DatasetView view) throws IOException, NoSuchFileException{
         try(DatasetDAO dsdao = daoFactory.newDatasetDAO()) {
             DatasetViewInfo ret = dsdao.getDatasetViewInfo(file.asRecord(), view);
             if(ret == null){
-                throw new NoSuchFileException(String.format("Invalid View. Version %d not found", view.getVersionId()));
+                String msg = String.format("Invalid View. Version %d not found", view.getVersionId());
+                throw new NoSuchFileException(msg);
             }
             return ret;
         }
     }
-    
+
     @Override
     public void createDirectory(Path dir,
-            FileAttribute<?>... attrs) throws IOException {
+            FileAttribute<?>... attrs) throws IOException{
         DcPath targetDir = checkPath(dir);
-        try {
-            resolveFile(targetDir);
-            AfsException.FILE_EXISTS.throwError(targetDir, "A group or folder already exists at this location");
-        } catch (NoSuchFileException ex){
-            // Do nothing.
+        if(exists(targetDir)){
+            String msg = "A group or folder already exists at this location";
+            AfsException.FILE_EXISTS.throwError(targetDir, msg);
         }
         DcFile parent = resolveFile(targetDir.getParent());
         if(parent.getType() != FileType.DIRECTORY){ // Use the constant instead of instanceof
-            AfsException.NOT_DIRECTORY.throwError( parent, "The parent file is not a folder");
+            AfsException.NOT_DIRECTORY.throwError(parent, "The parent file is not a folder");
         }
         checkPermission(targetDir.getUserName(), parent, DcPermissions.INSERT);
-        
+
         if(attrs.length != 1){
             throw new IOException("Only one attribute allowed for dataset creation");
         }
-        
-        if( !(attrs[0] instanceof ContainerCreationAttribute) ){
-                throw new IOException("Creation attribute not valid for creating a dataset");
+
+        if(!(attrs[0] instanceof ContainerCreationAttribute)){
+            throw new IOException("Creation attribute not valid for creating a dataset");
         }
         ContainerCreationAttribute dsAttr = (ContainerCreationAttribute) attrs[0];
         DatacatObject request = dsAttr.value();
-        try (ContainerDAO dao = daoFactory.newContainerDAO(targetDir)){
-            DatacatObject ret = dao.createNode(parent.asRecord(), targetDir.getFileName().toString(), request);
+        try(ContainerDAO dao = daoFactory.newContainerDAO(targetDir)){
+            String fileName = targetDir.getFileName().toString();
+            DatacatObject ret = dao.createNode(parent.asRecord(), fileName, request);
             dao.commit();
             parent.childAdded(targetDir, FileType.DIRECTORY);
             DcFile f = buildChild(parent, targetDir, ret);
@@ -515,19 +513,19 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             Map<String, ?> env) throws IOException{
         return getFileSystem(uri);
     }
-    
+
     @Override
     public DcFileSystem getFileSystem(URI uri){
-        if(uri.getScheme().equalsIgnoreCase( getScheme())){
+        if(uri.getScheme().equalsIgnoreCase(getScheme())){
             return fileSystem;
         }
-        throw new UnsupportedOperationException(); 
+        throw new UnsupportedOperationException();
     }
-    
+
     @Override
     public void delete(Path path) throws IOException{
         DcPath dcPath = checkPath(path);
-        try(BaseDAO dao = daoFactory.newBaseDAO()){
+        try(BaseDAO dao = daoFactory.newBaseDAO()) {
             DcFile file = resolveFile(dcPath);
             checkPermission(dcPath.getUserName(), file, DcPermissions.DELETE);
             dao.delete(file.asRecord());
@@ -537,8 +535,8 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         getCache().removeFile(dcPath);
         parentFile.childRemoved(dcPath);
     }
-    
-    public void checkPermission(String userName, DcFile file, AclEntryPermission permission) throws IOException {
+
+    public void checkPermission(String userName, DcFile file, AclEntryPermission permission) throws IOException{
         DcFileSystem fs = file.getPath().getFileSystem();
         DcUser user = fs.getUserPrincipalLookupService().lookupPrincipalByName(userName);
         Set<DcGroup> usersGroups = fs.getUserPrincipalLookupService().lookupGroupsForUser(user);
@@ -546,20 +544,22 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
 
         if(!permissionsCheck(usersGroups, aclView.getAcl(), permission)){
             String err = String.format("No Access Control Entries Found: User %s", user.getName());
-            AfsException.ACCESS_DENIED.throwError(file.getPath(), err );
+            AfsException.ACCESS_DENIED.throwError(file.getPath(), err);
         }
     }
-    
+
     /**
-     * usersGroups are all the groups the user is in. acls is t
+     * Do the actual permissions check.
+     *
      * @param usersGroups all the groups the user is in
      * @param acl the acl for the file
      * @param permission The permission requested
-     * @return 
+     * @return
      */
-    private boolean permissionsCheck(Set<DcGroup> usersGroups, List<AclEntry> acl, AclEntryPermission permission){
+    private boolean permissionsCheck(Set<DcGroup> usersGroups, List<AclEntry> acl,
+            AclEntryPermission permission){
         for(AclEntry entry: acl){
-            if(usersGroups.contains( (DcGroup)entry.principal() )){
+            if(usersGroups.contains((DcGroup) entry.principal())){
                 if(entry.permissions().contains(permission)){
                     return true;
                 }
@@ -567,43 +567,43 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         return false;
     }
-    
-    /*
-            NOT IMPLEMENTED
-    */
-    
-    @Override   
+
+    /* START NOT IMPLEMENTED */
+
+    @Override
     public SeekableByteChannel newByteChannel(Path path,
             Set<? extends OpenOption> options,
             FileAttribute<?>... attrs) throws IOException{
         throw new UnsupportedOperationException("Use createDataset method to create a dataset");
     }
-    
+
     @Override
     public boolean isSameFile(Path path, Path path2) throws IOException{
-        throw new UnsupportedOperationException(); 
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public FileStore getFileStore(Path path) throws IOException{
-        throw new UnsupportedOperationException(); 
+        throw new UnsupportedOperationException();
     }
-    
+
     @Override
     public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException{
-        throw new UnsupportedOperationException(); 
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException{
-        throw new UnsupportedOperationException(); 
+        throw new UnsupportedOperationException();
     }
-        
-    /*
-            / NOT IMPLEMENTED
-    */    
+
+    /* END NOT IMPLEMENTED */
+
+    /**
+     * Custom file exceptions/file exception helper.
+     */
     public static enum DcFsException {
-        
+
         NO_SUCH_VERSION,
         NO_SUCH_LOCATION,
         DATASET_EXISTS,
@@ -611,8 +611,8 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         LOCATION_EXISTS,
         VERSION_CONFLICT,
         NEWER_VERSION_EXISTS;
-        
-        public boolean throwError(String targetPath, String msg) throws FileSystemException {
+
+        public boolean throwError(String targetPath, String msg) throws FileSystemException{
             String path = targetPath;
             String reason = toString();
             switch(this){

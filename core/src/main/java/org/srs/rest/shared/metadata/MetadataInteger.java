@@ -23,7 +23,7 @@ public class MetadataInteger implements MetadataValue<Number> {
 
     public MetadataInteger(){}
     
-    public MetadataInteger(java.math.BigInteger value){this.value = value;}
+    public MetadataInteger(java.math.BigInteger value){this.value = value; }
     
     public MetadataInteger(Number value){
         if(value instanceof java.math.BigInteger){
@@ -38,12 +38,16 @@ public class MetadataInteger implements MetadataValue<Number> {
         return String.format( "integer(\"%d\")", value);
     }
     
+    @Override
     @XmlValue
     @JsonValue
     // TODO: Fix this to be BigInteger if https://github.com/FasterXML/jackson-databind/issues/466 gets fixed.
     @JsonSerialize(using=LongSerializer.class)
     public Long getValue(){return value.longValue(); }
     
+    /**
+     * Builder.
+     */
     @XmlTransient
     public static class Builder extends MetadataValue.Builder<MetadataInteger> {
         public Builder(){}
