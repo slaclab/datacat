@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -262,7 +263,7 @@ public class DatacatObject implements DatacatRecord {
     public static class Builder<U extends Builder> {
         public String name;
         public Long pk;
-        public Long parentPk = null;
+        public Long parentPk;
         public Type parentType = null;
         public String path;
         public Type type;
@@ -384,6 +385,10 @@ public class DatacatObject implements DatacatRecord {
             this.acl = DcPermissions.getOwnerAclAttributes(aclString).orNull();
             return (U) this;
         }
+        
+        protected Timestamp checkTime(Timestamp ts){
+            return ts != null ? new Timestamp(ts.getTime()) : null;
+        }
     }
-
+    
 }

@@ -364,15 +364,9 @@ public class BaseDAO implements org.srs.datacat.dao.BaseDAO {
                 stmt.executeUpdate();
             }
         } finally {
-            if(stmtMetaString != null){
-                stmtMetaString.close();
-            }
-            if(stmtMetaNumber != null){
-                stmtMetaNumber.close();
-            }
-            if(stmtMetaTimestamp != null){
-                stmtMetaTimestamp.close();
-            }
+            stmtMetaString.close();
+            stmtMetaNumber.close();
+            stmtMetaTimestamp.close();
         }
     }
 

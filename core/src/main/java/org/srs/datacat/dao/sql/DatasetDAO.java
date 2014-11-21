@@ -22,7 +22,7 @@ import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.DatasetViewInfo;
-import static org.srs.datacat.vfs.DcFileSystemProvider.DcFsException.*;
+import static org.srs.datacat.vfs.DcFileSystemProvider.DcFsExceptions.*;
 import org.srs.datacat.vfs.attribute.DatasetOption;
 import org.srs.vfs.PathUtils;
 
@@ -76,8 +76,8 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
             dsOptions.add(DatasetOption.SKIP_VERSION_CHECK); 
         }
 
-        if(target == null){
-            throw new IOException(new IllegalArgumentException("Unable to process request: no target found"));
+        if(target == null || !(target instanceof Dataset)){
+            throw new IOException(new IllegalArgumentException("Unable to process request: no Dataset target found"));
         }
 
         // Target must exist and also be a Dataset, from above
@@ -551,7 +551,7 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
             try(PreparedStatement stmt = getConnection().prepareStatement( nextLatest )) {
                 stmt.setString( 1, location.getSite() );
                 stmt.setLong( 2, datasetVersionPk );
-                stmt.executeQuery();
+                stmt.executeUpdate();
             }
         }
 

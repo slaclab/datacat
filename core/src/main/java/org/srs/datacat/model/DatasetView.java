@@ -36,7 +36,7 @@ public class DatasetView {
                 case "current":
                     return new VersionId(CURRENT_VER);
                 default:
-                    return new VersionId(Integer.valueOf(versionId));
+                    return new VersionId(Integer.parseInt(versionId));
             }
         }
     }

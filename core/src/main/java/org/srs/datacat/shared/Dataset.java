@@ -224,7 +224,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
 
         @JsonSetter
         public Builder created(Timestamp val){
-            this.created = val;
+            this.created = checkTime(val);
             dsType |= BASE;
             return this;
         }
@@ -299,14 +299,14 @@ public class Dataset extends DatacatObject implements DatasetModel {
 
         @JsonSetter
         public Builder versionCreated(Timestamp val){
-            this.versionCreated = val;
+            this.versionCreated = checkTime(val);
             dsType |= VERSION;
             return this;
         }
 
         @JsonSetter
         public Builder versionModified(Timestamp val){
-            this.versionModified = val;
+            this.versionModified = checkTime(val);
             dsType |= VERSION;
             return this;
         }
@@ -401,21 +401,21 @@ public class Dataset extends DatacatObject implements DatasetModel {
 
         @JsonSetter
         public Builder locationCreated(Timestamp val){
-            this.locationCreated = val;
+            this.locationCreated = checkTime(val);
             dsType |= LOCATION;
             return this;
         }
 
         @JsonSetter
         public Builder locationModified(Timestamp val){
-            this.locationModified = val;
+            this.locationModified = checkTime(val);
             dsType |= LOCATION;
             return this;
         }
 
         @JsonSetter
         public Builder locationScanned(Timestamp val){
-            this.locationScanned = val;
+            this.locationScanned = checkTime(val);
             dsType |= LOCATION;
             return this;
         }

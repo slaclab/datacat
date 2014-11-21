@@ -119,8 +119,6 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
     @XmlTransient
     public static class Builder extends DatacatObject.Builder<Builder>{
         public Boolean latest;
-        public String fileFormat;
-        public String datasetDataType;
         public Integer versionId;
         public String datasetSource;
         public Long processInstance;

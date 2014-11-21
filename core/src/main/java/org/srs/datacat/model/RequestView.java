@@ -26,7 +26,7 @@ public class RequestView extends HashMap<String, String>{
     public static final int CHILDREN = 1<<2;
     public static final int METADATA = 1<<3;
     
-    private static final String PRESENT = new String();
+    private static final String PRESENT = "";
     
     private static final HashSet<String> ALLOWABLE_ATTRIBUTES = new HashSet<String>(){
         {

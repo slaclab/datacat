@@ -54,7 +54,7 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
 
     private void initViews(DatacatObject orig){
         addAttributeViews(this);
-        if(isRegularFile()){
+        if(isRegularFile() && orig instanceof Dataset){
             addAttributeViews(new DatasetViewProvider(this, (Dataset) orig));
         }
         if(isDirectory()){

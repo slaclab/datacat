@@ -97,7 +97,7 @@ public class ContainerDAO extends BaseDAO implements org.srs.datacat.dao.Contain
             if(newType == DatacatObject.Type.FOLDER){
                 addFolderMetadata(retObject.getPk(), retObject.getMetadataMap());
             } else {
-                addFolderMetadata(retObject.getPk(), retObject.getMetadataMap());
+                addGroupMetadata(retObject.getPk(), retObject.getMetadataMap());
             }
         }
         return retObject;

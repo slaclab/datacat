@@ -287,10 +287,8 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         DcPath dcPath = checkPath(path);
         DcFile f = resolveFile(dcPath);
         checkPermission(dcPath.getUserName(), f, DcPermissions.READ);
-        if(f != null){
-            if(type == BasicFileAttributes.class || type == DcFile.class){
-                return (A) f;
-            }
+        if(type == BasicFileAttributes.class || type == DcFile.class){
+            return (A) f;
         }
         AfsException.NO_SUCH_FILE.throwError(dcPath, "Unable to resolve file");
         return null; // Keep compiler happy
@@ -602,7 +600,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     /**
      * Custom file exceptions/file exception helper.
      */
-    public static enum DcFsException {
+    public static enum DcFsExceptions {
 
         NO_SUCH_VERSION,
         NO_SUCH_LOCATION,
