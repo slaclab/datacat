@@ -30,10 +30,9 @@ import org.srs.datacat.shared.DatacatObject;
 
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.LogicalFolder;
-import org.srs.datacat.dao.sql.DatasetDAOTest;
+import org.srs.datacat.dao.sql.DatasetSqlDAOTest;
 import org.srs.datacat.security.DcUser;
 import org.srs.datacat.test.DbHarness;
-import org.srs.datacat.test.HSqlDbHarness;
 
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.DatasetOption;
@@ -51,15 +50,14 @@ public class DcFileSystemProviderTest {
     
     @BeforeClass
     public static void setUpDb() throws SQLException, IOException{
-        DatasetDAOTest.setUpDb();
+        DatasetSqlDAOTest.setUpDb();
         harness = DbHarness.getDbHarness();
         DataSource d = harness.getDataSource();
-        DatasetDAOTest.addRecords(d.getConnection());
+        DatasetSqlDAOTest.addRecords(d.getConnection());
     }
     
     @AfterClass
-    public static void tearDownDb() throws Exception{
-        DatasetDAOTest.removeRecords( harness.getDataSource().getConnection());
+    public static void tearDownDb() throws Exception{DatasetSqlDAOTest.removeRecords( harness.getDataSource().getConnection());
     }
     
     @Before

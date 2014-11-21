@@ -33,31 +33,34 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.sql.DataSource;
+
+import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetView;
 
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.container.BasicStat;
-
-import org.srs.datacat.dao.sql.ContainerDAO;
-import org.srs.vfs.AbstractFsProvider;
-import org.srs.vfs.AbstractPath;
-import org.srs.vfs.ChildrenView;
-import org.srs.datacat.dao.BaseDAO;
-import org.srs.datacat.dao.DatasetDAO;
-import org.srs.datacat.dao.DAOFactory;
-import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.shared.dataset.DatasetViewInfo;
 import org.srs.datacat.shared.dataset.DatasetWithView;
+
+import org.srs.datacat.dao.BaseDAO;
+import org.srs.datacat.dao.ContainerDAO;
+import org.srs.datacat.dao.DatasetDAO;
+import org.srs.datacat.dao.DAOFactory;
+
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
-
 import org.srs.datacat.vfs.attribute.DatasetOption;
 import org.srs.datacat.vfs.attribute.DcAclFileAttributeView;
+
 import org.srs.datacat.security.DcGroup;
 import org.srs.datacat.security.DcUserLookupService;
 import org.srs.datacat.security.DcUser;
+
+import org.srs.vfs.AbstractFsProvider;
+import org.srs.vfs.AbstractPath;
+import org.srs.vfs.ChildrenView;
 import org.srs.vfs.FileType;
 
 /**
@@ -77,7 +80,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
 
     public DcFileSystemProvider(DataSource dataSource, DcUserLookupService userLookupService) throws IOException{
         super();
-        this.daoFactory = new org.srs.datacat.dao.sql.DAOFactory(dataSource);
+        this.daoFactory = new org.srs.datacat.dao.sql.SqlDAOFactory(dataSource);
         fileSystem = new DcFileSystem(this, userLookupService);
     }
 
@@ -238,10 +241,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         DatasetContainer container = (DatasetContainer) cstat.withView(BasicStat.StatType.BASIC);
         int count = container.getStat().getChildCount();
         int cacheCount = cstat.getViewStats(viewPrefetch);
-        if((count - cacheCount) < MAX_CHILD_CACHE){
-            return true;
-        }
-        return false;
+        return (count - cacheCount) < MAX_CHILD_CACHE;
     }
 
     /**
@@ -260,11 +260,8 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
          5kB. We want to make sure that we don't cache more than about
          */
         long estimate = count * MAX_METADATA_STRING_BYTE_SIZE;
-        if(estimate < MAX_DATASET_CACHE_SIZE){
-            return true;
-        }
         // TODO: Check actual return size using the Data Access layer
-        return false;
+        return estimate < MAX_DATASET_CACHE_SIZE;
     }
 
     @Override

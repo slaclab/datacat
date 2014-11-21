@@ -2,8 +2,6 @@
 package org.srs.datacat.dao.sql;
 
 import com.google.common.base.Optional;
-import org.srs.datacat.dao.sql.DatasetDAO;
-import org.srs.datacat.dao.sql.ContainerDAO;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.sql.Connection;
@@ -23,7 +21,6 @@ import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.test.DbHarness;
-import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.TestUtils;
 import org.srs.vfs.PathUtils;
 
@@ -31,12 +28,12 @@ import org.srs.vfs.PathUtils;
  *
  * @author bvan
  */
-public class DatasetDAOTest {
+public class DatasetSqlDAOTest {
     
     static DbHarness harness;
     Connection conn;
     
-    public DatasetDAOTest(){ }
+    public DatasetSqlDAOTest(){ }
     
     @BeforeClass
     public static void setUpDb() throws SQLException, IOException{
@@ -52,7 +49,7 @@ public class DatasetDAOTest {
         removeRecords(d.getConnection());
     }
     
-    public static DatacatObject getDatacatObject(BaseDAO dao, String path) throws IOException, NoSuchFileException {
+    public static DatacatObject getDatacatObject(SqlBaseDAO dao, String path) throws IOException, NoSuchFileException {
         if(!PathUtils.isAbsolute( path )){
             path = "/" + path;
         }
@@ -66,7 +63,7 @@ public class DatasetDAOTest {
     }
 
     public static void addRecords(Connection c) throws SQLException, IOException{
-        ContainerDAO dao = new ContainerDAO(c);
+        SqlContainerDAO dao = new SqlContainerDAO(c);
         try {
             getDatacatObject(dao, TestUtils.TEST_BASE_PATH);
             c.close();
@@ -76,7 +73,7 @@ public class DatasetDAOTest {
         DatacatObject container = new LogicalFolder.Builder().name(TestUtils.TEST_BASE_NAME).build();
         DatacatObject rootRecord = new LogicalFolder.Builder().pk(0L).path( "/").build();
         dao.insertContainer(rootRecord, TestUtils.TEST_BASE_NAME, container);
-        DatasetDAO dsDao = new DatasetDAO( c );
+        SqlDatasetDAO dsDao = new SqlDatasetDAO( c );
         try {
             dsDao.insertDatasetSource(TestUtils.TEST_DATASET_SOURCE);
         } catch (SQLException ex){}
@@ -92,10 +89,10 @@ public class DatasetDAOTest {
     }
         
     public static void removeRecords(Connection conn) throws Exception {
-        ContainerDAO dao = new ContainerDAO(conn);
+        SqlContainerDAO dao = new SqlContainerDAO(conn);
         DatacatObject folder = getDatacatObject(dao, TestUtils.TEST_BASE_PATH);
         dao.deleteFolder(folder.getPk());
-        DatasetDAO dsDao = new DatasetDAO(conn);
+        SqlDatasetDAO dsDao = new SqlDatasetDAO(conn);
         dsDao.deleteDatasetDataType(TestUtils.TEST_DATATYPE_01);
         dsDao.deleteDatasetFileFormat(TestUtils.TEST_FILEFORMAT_01);
         conn.commit();
@@ -124,7 +121,7 @@ public class DatasetDAOTest {
     @Test
     public void testDeleteDatasetVersion() throws SQLException, IOException {
         String dsName = "testCaseDataset002";
-        DatasetDAO dao = new DatasetDAO(conn);
+        SqlDatasetDAO dao = new SqlDatasetDAO(conn);
         
         FlatDataset req =(FlatDataset) getRequest(dsName)
                 .versionId(DatasetView.NEW_VER)
@@ -139,7 +136,7 @@ public class DatasetDAOTest {
     }
     
     private Dataset create(String path, Dataset ds) throws SQLException, IOException {
-        DatasetDAO dao = new DatasetDAO(conn);
+        SqlDatasetDAO dao = new SqlDatasetDAO(conn);
         System.out.println(path);
         DatacatObject folder = getDatacatObject(dao, path);
         return dao.insertDataset(folder, PathUtils.resolve(path, ds.getName()), ds);

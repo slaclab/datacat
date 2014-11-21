@@ -187,10 +187,10 @@ public class DirectoryWalker {
     static class ContainerFilter implements DirectoryStream.Filter<Path> {
 
         private PathMatcher matcher;
-        private boolean searchGroups;
-        private boolean searchFolders;
+        private final boolean searchGroups;
+        private final boolean searchFolders;
 
-        public ContainerFilter(PathMatcher matcher, boolean searchGroups, boolean searchFolders){
+        ContainerFilter(PathMatcher matcher, boolean searchGroups, boolean searchFolders){
             this.matcher = matcher;
             this.searchGroups = searchGroups;
             this.searchFolders = searchFolders;

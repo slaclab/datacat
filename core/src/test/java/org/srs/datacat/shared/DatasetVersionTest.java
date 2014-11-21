@@ -2,7 +2,6 @@
 package org.srs.datacat.shared;
 
 
-import org.srs.datacat.shared.DatasetVersion;
 import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.AnnotationIntrospectorPair;
@@ -37,7 +36,6 @@ public class DatasetVersionTest extends TestCase {
         mapper.writeValue( writ, o );
         
         String actual = writ.toString();
-        System.out.println(actual.toString());
         
         
         assertEquals("JSON string representation mismatch",expectedJsonText,actual);

@@ -2,9 +2,6 @@
 package org.srs.datacat.dao;
 
 import java.io.IOException;
-import org.srs.datacat.dao.sql.BaseDAO;
-import org.srs.datacat.dao.sql.ContainerDAO;
-import org.srs.datacat.dao.sql.DatasetDAO;
 import org.srs.datacat.vfs.DcPath;
 
 /**

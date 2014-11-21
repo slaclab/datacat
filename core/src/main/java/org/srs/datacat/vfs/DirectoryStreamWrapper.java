@@ -12,8 +12,8 @@ import java.util.NoSuchElementException;
 public class DirectoryStreamWrapper<T> implements DirectoryStream<T> {
 
     private AutoCloseable closeable;
-    private Iterator iter;
-    private IteratorAcceptor acceptor;
+    private final Iterator iter;
+    private final IteratorAcceptor acceptor;
     T next = null;
     
     /**

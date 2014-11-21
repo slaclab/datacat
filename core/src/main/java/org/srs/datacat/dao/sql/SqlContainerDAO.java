@@ -30,16 +30,16 @@ import org.srs.vfs.PathUtils;
  *
  * @author bvan
  */
-public class ContainerDAO extends BaseDAO implements org.srs.datacat.dao.ContainerDAO {
+public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.ContainerDAO {
 
     public static final int FETCH_SIZE_CHILDREN = 5000;
     public static final int FETCH_SIZE_METADATA = 100000;
 
-    public ContainerDAO(Connection conn){
+    public SqlContainerDAO(Connection conn){
         super(conn);
     }
 
-    public ContainerDAO(Connection conn, ReentrantLock lock){
+    public SqlContainerDAO(Connection conn, ReentrantLock lock){
         super(conn, lock);
     }
 
@@ -382,7 +382,7 @@ public class ContainerDAO extends BaseDAO implements org.srs.datacat.dao.Contain
             builder.latest(dsVer.getBoolean("isLatest"));
             while(!dsVer.isClosed() && dsVer.getLong("dataset") == dsPk && dsVer.getLong("datasetversion") == verPk){
                 // Process all metadata entries first, 1 or more rows per version
-                BaseDAO.processMetadata(dsVer, metadata);
+                SqlBaseDAO.processMetadata(dsVer, metadata);
                 if(!dsVer.next()){
                     dsVer.close();
                 }
@@ -392,7 +392,7 @@ public class ContainerDAO extends BaseDAO implements org.srs.datacat.dao.Contain
             while(dsLoc != null && !dsLoc.isClosed() && dsLoc.getLong("datasetversion") == verPk){
                 // Assume one location per row. Row could be null (LEFT OUTER JOIN)
                 if(dsLoc.getString("datasetsite") != null){
-                    BaseDAO.processLocation(dsLoc, builder.pk, locations);
+                    SqlBaseDAO.processLocation(dsLoc, builder.pk, locations);
                 }
                 if(!dsLoc.next()){
                     dsLoc.close();

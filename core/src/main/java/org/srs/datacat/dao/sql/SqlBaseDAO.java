@@ -18,7 +18,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetView;
-import org.srs.vfs.PathUtils;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetGroup;
@@ -26,22 +25,23 @@ import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.vfs.AbstractFsProvider.AfsException;
+import org.srs.vfs.PathUtils;
 
 /**
  *
  * @author bvan
  */
-public class BaseDAO implements org.srs.datacat.dao.BaseDAO {
+public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
 
-    private Connection conn;
+    private final Connection conn;
     private final ReentrantLock lock;
 
-    public BaseDAO(Connection conn){
+    public SqlBaseDAO(Connection conn){
         this.conn = conn;
         this.lock = null;
     }
 
-    public BaseDAO(Connection conn, ReentrantLock lock){
+    public SqlBaseDAO(Connection conn, ReentrantLock lock){
         this.conn = conn;
         this.lock = lock;
     }
@@ -136,9 +136,10 @@ public class BaseDAO implements org.srs.datacat.dao.BaseDAO {
                 + "  ORDER BY name", parentClause);
 
         DatacatObject.Builder builder = null;
+        Long pk = parent != null ? parent.getPk() : null;
         try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
             if(nameParam != null){
-                stmt.setLong(1, parent != null ? parent.getPk() : null);
+                stmt.setLong(1, pk);
                 stmt.setString(2, nameParam);
             }
             ResultSet rs = stmt.executeQuery();
@@ -271,7 +272,7 @@ public class BaseDAO implements org.srs.datacat.dao.BaseDAO {
             String msg = "Unable to delete object: Not a Group or Folder" + record.getType();
             throw new IOException(msg);
         }
-        ContainerDAO dao = new ContainerDAO(getConnection());
+        SqlContainerDAO dao = new SqlContainerDAO(getConnection());
         // Verify directory is empty
         try(DirectoryStream ds = dao.getChildrenStream(record, DatasetView.EMPTY)) {
             if(ds.iterator().hasNext()){
@@ -285,7 +286,7 @@ public class BaseDAO implements org.srs.datacat.dao.BaseDAO {
         if(!(record.getType() == DatacatObject.Type.DATASET)){
             throw new IOException("Can only delete Datacat objects");
         }
-        DatasetDAO dao = new DatasetDAO(getConnection());
+        SqlDatasetDAO dao = new SqlDatasetDAO(getConnection());
         dao.deleteDataset(record);
     }
 
@@ -335,12 +336,15 @@ public class BaseDAO implements org.srs.datacat.dao.BaseDAO {
         String metaStringSql = String.format(metaSql, tablePrefix, "String", column);
         String metaNumberSql = String.format(metaSql, tablePrefix, "Number", column);
         String metaTimestampSql = String.format(metaSql, tablePrefix, "Timestamp", column);
-        PreparedStatement stmtMetaString = getConnection().prepareStatement(metaStringSql);
-        PreparedStatement stmtMetaNumber = getConnection().prepareStatement(metaNumberSql);
-        PreparedStatement stmtMetaTimestamp = getConnection().prepareStatement(metaTimestampSql);
+        PreparedStatement stmtMetaString = null;
+        PreparedStatement stmtMetaNumber = null;
+        PreparedStatement stmtMetaTimestamp = null;
         PreparedStatement stmt = null;
 
         try {
+            stmtMetaString = getConnection().prepareStatement(metaStringSql);
+            stmtMetaNumber = getConnection().prepareStatement(metaNumberSql);
+            stmtMetaTimestamp = getConnection().prepareStatement(metaTimestampSql);
             Iterator i = metaData.entrySet().iterator();
             while(i.hasNext()){
                 Map.Entry e = (Map.Entry) i.next();
@@ -364,9 +368,15 @@ public class BaseDAO implements org.srs.datacat.dao.BaseDAO {
                 stmt.executeUpdate();
             }
         } finally {
-            stmtMetaString.close();
-            stmtMetaNumber.close();
-            stmtMetaTimestamp.close();
+            if(stmtMetaString != null){
+                stmtMetaString.close();
+            }
+            if(stmtMetaNumber != null){
+                stmtMetaNumber.close();
+            }
+            if(stmtMetaTimestamp != null){
+                stmtMetaTimestamp.close();
+            }
         }
     }
 
@@ -450,11 +460,11 @@ public class BaseDAO implements org.srs.datacat.dao.BaseDAO {
     public <T extends DatacatObject> T createNode(DatacatRecord parent, String path,
             T request) throws IOException, FileSystemException{
         if(request instanceof Dataset){
-            DatasetDAO dao = new DatasetDAO(getConnection());
+            SqlDatasetDAO dao = new SqlDatasetDAO(getConnection());
             return (T) dao.createDatasetNode(parent, path, (Dataset) request);
         }
         // It should be a container
-        ContainerDAO dao = new ContainerDAO(getConnection());
+        SqlContainerDAO dao = new SqlContainerDAO(getConnection());
         return (T) dao.createContainer(parent, path, request);
     }
 

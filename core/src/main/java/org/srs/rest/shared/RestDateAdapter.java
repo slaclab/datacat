@@ -25,7 +25,7 @@ public class RestDateAdapter extends XmlAdapter<String, Timestamp> {
         this.tz = TimeZone.getTimeZone("America/Denver");
     }
     
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     @Override
     public String marshal(Timestamp date) throws Exception {

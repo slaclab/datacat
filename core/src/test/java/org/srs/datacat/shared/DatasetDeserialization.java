@@ -1,6 +1,5 @@
 package org.srs.datacat.shared;
 
-import org.srs.datacat.shared.Dataset;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,7 +56,6 @@ public class DatasetDeserialization extends TestCase {
         Dataset fds;
         
         fds = mapper.readValue( datasetWithType, Dataset.class);
-        System.out.println(fds.getFileFormat());
         //mapper.enableDefaultTyping();
         fds = mapper.readValue( datasetWithNoType, new TypeReference<FlatDataset>(){});
                 System.out.println(fds.getFileFormat());

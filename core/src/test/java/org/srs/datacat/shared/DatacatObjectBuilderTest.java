@@ -25,7 +25,7 @@ public class DatacatObjectBuilderTest extends TestCase {
         b.pk(1234L);
         b.name("hello");
         assertTrue(b.build().getPk() == 1234L);
-        assertTrue(b.build().getName() == "hello");
+        assertTrue("hello".equals( b.build().getName() ));
        
     }
     

@@ -50,10 +50,7 @@ public class DcGroup implements GroupPrincipal {
         if(!Objects.equals(this.name, other.name)){
             return false;
         }
-        if(!Objects.equals(this.experiment, other.experiment)){
-            return false;
-        }
-        return true;
+        return Objects.equals(this.experiment, other.experiment);
     }
 
 }

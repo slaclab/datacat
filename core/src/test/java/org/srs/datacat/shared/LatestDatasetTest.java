@@ -1,8 +1,6 @@
 
 package org.srs.datacat.shared;
 
-import org.srs.datacat.shared.DatacatObject;
-import org.srs.datacat.shared.Dataset;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.fasterxml.jackson.databind.JavaType;

@@ -30,15 +30,15 @@ import org.srs.vfs.PathUtils;
  *
  * @author bvan
  */
-public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDAO {
+public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.DatasetDAO {
     
     private static final String DEFAULT_DATA_SOURCE = "RESTFUL_API_v0.2";
 
-    public DatasetDAO(Connection conn){
+    public SqlDatasetDAO(Connection conn){
         super( conn );
     }
 
-    public DatasetDAO(Connection conn, ReentrantLock lock){
+    public SqlDatasetDAO(Connection conn, ReentrantLock lock){
         super(conn, lock);
     }
     
@@ -172,9 +172,11 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
     private DatasetViewInfo getDatasetViewInfoInternal(DatacatRecord dsRecord, DatasetView view) throws SQLException{
         String sqlWithMetadata = getVersionsSql( VersionParent.DATASET, view );
         String sqlLocations = getLocationsSql(VersionParent.DATASET, view );
-        PreparedStatement stmt1 = getConnection().prepareStatement( sqlWithMetadata );
-        PreparedStatement stmt2 = getConnection().prepareStatement( sqlLocations );
+        PreparedStatement stmt1 = null;
+        PreparedStatement stmt2 = null;
         try {
+            stmt1 = getConnection().prepareStatement(sqlWithMetadata);
+            stmt2 = getConnection().prepareStatement(sqlLocations);
             stmt1.setLong( 1, dsRecord.getPk());
             stmt2.setLong( 1, dsRecord.getPk());
             if(!view.isCurrent()){
@@ -207,8 +209,12 @@ public class DatasetDAO extends BaseDAO implements org.srs.datacat.dao.DatasetDA
             }
             return null;
         } finally {
-            stmt1.close();
-            stmt2.close();
+            if(stmt1 != null){
+                stmt1.close();
+            }
+            if(stmt2 != null){
+                stmt2.close();   
+            }
         }
     }
     

@@ -14,17 +14,12 @@ import java.io.IOException;
 import java.nio.file.attribute.AclEntry;
 import java.nio.file.attribute.AclEntryPermission;
 import java.nio.file.attribute.AclEntryType;
-import java.nio.file.attribute.AclFileAttributeView;
 import java.nio.file.attribute.UserPrincipal;
-import java.security.acl.Group;
 import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import org.srs.datacat.vfs.TestUtils;
-import org.srs.vfs.AbstractFs;
 import org.srs.vfs.AbstractFsProvider;
-import org.srs.vfs.AbstractPath;
 
 /**
  *

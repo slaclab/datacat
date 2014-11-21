@@ -13,7 +13,7 @@ import org.srs.datacat.vfs.DcPath;
  *
  * @author bvan
  */
-public class DAOFactory implements org.srs.datacat.dao.DAOFactory {
+public class SqlDAOFactory implements org.srs.datacat.dao.DAOFactory {
     private final DataSource dataSource;
     private final Locker locker = new Locker();
     
@@ -28,7 +28,7 @@ public class DAOFactory implements org.srs.datacat.dao.DAOFactory {
 
         class ReentrantLease extends ReentrantLock {
             protected final long initiallyAcquired;
-            public ReentrantLease(){
+            ReentrantLease(){
                 super();
                 this.initiallyAcquired = System.currentTimeMillis();
             }
@@ -85,43 +85,43 @@ public class DAOFactory implements org.srs.datacat.dao.DAOFactory {
 
     }
           
-    public DAOFactory(DataSource ds){
+    public SqlDAOFactory(DataSource ds){
         this.dataSource = ds;
     }
     
     @Override
-    public BaseDAO newBaseDAO() throws IOException{
+    public SqlBaseDAO newBaseDAO() throws IOException{
         try {
-            return new BaseDAO(dataSource.getConnection());
+            return new SqlBaseDAO(dataSource.getConnection());
         } catch(SQLException ex) {
             throw new IOException("Error connecting to data source", ex);
         }
     }
     
     @Override
-    public ContainerDAO newContainerDAO(DcPath lockPath) throws IOException{
+    public SqlContainerDAO newContainerDAO(DcPath lockPath) throws IOException{
         try {
             ReentrantLock lock = locker.prepareLease(lockPath);
             lock.lock();
-            return new ContainerDAO(dataSource.getConnection(), lock);
+            return new SqlContainerDAO(dataSource.getConnection(), lock);
         } catch(SQLException ex) {
             throw new IOException("Error connecting to data source", ex);
         }
     }
     
     @Override
-    public ContainerDAO newContainerDAO() throws IOException{
+    public SqlContainerDAO newContainerDAO() throws IOException{
         try {
-            return new ContainerDAO(dataSource.getConnection());
+            return new SqlContainerDAO(dataSource.getConnection());
         } catch(SQLException ex) {
             throw new IOException("Error connecting to data source", ex);
         }
     }
     
     @Override
-    public DatasetDAO newDatasetDAO() throws IOException{
+    public SqlDatasetDAO newDatasetDAO() throws IOException{
         try {
-            return new DatasetDAO(dataSource.getConnection());
+            return new SqlDatasetDAO(dataSource.getConnection());
         } catch(SQLException ex) {
             throw new IOException("Error connecting to data source", ex);
         }
@@ -135,11 +135,11 @@ public class DAOFactory implements org.srs.datacat.dao.DAOFactory {
      * @throws IOException 
      */
     @Override
-    public DatasetDAO newDatasetDAO(DcPath lockPath) throws IOException{
+    public SqlDatasetDAO newDatasetDAO(DcPath lockPath) throws IOException{
         try {
             ReentrantLock lock = locker.prepareLease(lockPath);
             lock.lock();
-            return new DatasetDAO(dataSource.getConnection(), lock);
+            return new SqlDatasetDAO(dataSource.getConnection(), lock);
         } catch(SQLException ex) {
             throw new IOException("Error connecting to data source", ex);
         }

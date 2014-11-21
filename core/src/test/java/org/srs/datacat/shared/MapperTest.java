@@ -2,8 +2,6 @@
 package org.srs.datacat.shared;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
-import org.srs.datacat.shared.LogicalFolder;
-import org.srs.datacat.shared.DatacatObject;
 import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.AnnotationIntrospectorPair;
