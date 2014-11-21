@@ -46,7 +46,7 @@ import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.DatasetViewInfo;
 import org.srs.datacat.shared.dataset.DatasetWithView;
 import org.srs.datacat.vfs.DcFile;
-import org.srs.datacat.vfs.DcFileSystemProvider.DcFsException;
+import org.srs.datacat.vfs.DcFileSystemProvider.DcFsExceptions;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;  
 import org.srs.datacat.vfs.attribute.DatasetOption;
@@ -256,7 +256,7 @@ public class DatasetsResource extends BaseResource  {
     private Response handleFileAlreadyExists(FileAlreadyExistsException ex, DcPath datasetPath, 
             Optional<DatasetViewInfo> viewOpt, Set<DatasetOption> options){
 
-        DcFsException exc = DcFsException.valueOf( ex.getReason() );
+        DcFsExceptions exc = DcFsExceptions.valueOf( ex.getReason() );
         DatasetView existingView = new DatasetView(DatasetView.CURRENT_VER, DatasetView.ALL_SITES);
         if(viewOpt.isPresent() && viewOpt.get().versionOpt().isPresent()){
             int vid = viewOpt.get().getVersion().getVersionId();
