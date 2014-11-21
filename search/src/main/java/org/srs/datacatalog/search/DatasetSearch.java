@@ -20,9 +20,9 @@ import org.freehep.commons.lang.AST;
 import org.freehep.commons.lang.bool.Lexer;
 import org.freehep.commons.lang.bool.Parser;
 import org.freehep.commons.lang.bool.sym;
+import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.vfs.DcFile;
 import org.srs.datacatalog.search.plugins.DatacatPlugin;
 import org.srs.datacatalog.search.tables.DatasetVersions;
 import org.zerorm.core.Column;
@@ -54,7 +54,7 @@ public class DatasetSearch {
         this.conn = conn;
     }
     
-    public void compile(LinkedList<DcFile> containers, DatasetView datasetView, 
+    public void compile(LinkedList<DatacatRecord> containers, DatasetView datasetView, 
             String queryString, String[] metaFieldsToRetrieve, String[] sortFields, 
             int offset, int max) throws ParseException, IOException {
         try {
@@ -77,7 +77,7 @@ public class DatasetSearch {
         }
     }
     
-    protected Select compileStatement(LinkedList<DcFile> containers, DatasetView datasetView, 
+    protected Select compileStatement(LinkedList<DatacatRecord> containers, DatasetView datasetView, 
             String queryString, String[] metaFieldsToRetrieve, String[] sortFields, 
             int offset, int max) throws ParseException, SQLException, IOException {
         this.datasetView = datasetView;

@@ -12,6 +12,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedList;
 import java.util.Objects;
+import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.vfs.DcFile.GroupType;
 import org.srs.datacat.vfs.attribute.SubdirectoryView;
 
@@ -100,7 +101,7 @@ public class DirectoryWalker {
     public static class ContainerVisitor extends SimpleFileVisitor<Path> {
         protected final ContainerFilter filter;
         private final LinkedList<DcFile> folderStack = new LinkedList<>();
-        public LinkedList<DcFile> files = new LinkedList<>();
+        public LinkedList<DatacatRecord> files = new LinkedList<>();
 
         public ContainerVisitor(FileSystem fs, String syntaxAndPattern){
             boolean searchGroups = true;
@@ -144,7 +145,7 @@ public class DirectoryWalker {
         }
 
         public void accept(DcFile file){
-            files.add(file);
+            files.add(file.asRecord());
         }
 
         @Override

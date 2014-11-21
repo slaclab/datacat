@@ -14,7 +14,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import org.freehep.commons.lang.AST;
+import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.dataset.FlatDataset;
@@ -254,7 +256,7 @@ public class SearchUtils {
         }
     }
     
-    public static void populateParentTempTable(Connection conn, LinkedList<DcFile> containers) throws SQLException {
+    public static void populateParentTempTable(Connection conn, LinkedList<DatacatRecord> containers) throws SQLException {
 
         if(conn.getMetaData().getDatabaseProductName().contains("MySQL")){
             String tableSql = 
@@ -272,11 +274,11 @@ public class SearchUtils {
         String sql = "INSERT INTO ContainerSearch (DatasetLogicalFolder, DatasetGroup, ContainerPath) VALUES (?,?,?)";
         try (PreparedStatement stmt  = conn.prepareStatement(sql)){
             while(containers.peek() != null){
-                DcFile file = containers.remove();
-                boolean isGroup = file.getType() instanceof DcFile.GroupType;
+                DatacatRecord file = containers.remove();
+                boolean isGroup = file.getType() == DatacatObject.Type.GROUP;
                 stmt.setNull( isGroup ? 1 : 2, Types.VARCHAR);
-                stmt.setLong( isGroup ? 2 : 1, file.fileKey());
-                stmt.setString( 3, file.getPath().toString());
+                stmt.setLong( isGroup ? 2 : 1, file.getPk());
+                stmt.setString( 3, file.getPath());
                 stmt.executeUpdate();
             }
         }
@@ -289,11 +291,11 @@ public class SearchUtils {
                 + " OR (DatasetGroup is not null AND DatasetGroup NOT IN (%s))";
         try (PreparedStatement stmt = conn.prepareStatement( sql )){
             while(visitor.files.peek() != null){
-                DcFile file = visitor.files.remove();
-                boolean isGroup = file.getType() instanceof DcFile.GroupType;
+                DatacatRecord file = visitor.files.remove();
+                boolean isGroup = file.getType() == DatacatObject.Type.GROUP;
                 stmt.setNull( isGroup ? 1 : 2, Types.VARCHAR);
-                stmt.setLong( isGroup ? 2 : 1, file.fileKey());
-                stmt.setString( 3, file.getPath().toString());
+                stmt.setLong( isGroup ? 2 : 1, file.getPk());
+                stmt.setString( 3, file.getPath());
                 stmt.executeUpdate();
             }
         }
