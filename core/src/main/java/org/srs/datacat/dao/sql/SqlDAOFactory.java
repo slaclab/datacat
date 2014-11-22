@@ -14,7 +14,7 @@ import org.srs.datacat.vfs.DcPath;
  * @author bvan
  */
 public class SqlDAOFactory implements org.srs.datacat.dao.DAOFactory {
-    private final DataSource dataSource;
+    protected final DataSource dataSource;
     private final Locker locker = new Locker();
     
     /**

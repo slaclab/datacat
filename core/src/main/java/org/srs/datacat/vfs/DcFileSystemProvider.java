@@ -80,7 +80,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
 
     public DcFileSystemProvider(DataSource dataSource, DcUserLookupService userLookupService) throws IOException{
         super();
-        this.daoFactory = new org.srs.datacat.dao.sql.SqlDAOFactory(dataSource);
+        this.daoFactory = new org.srs.datacat.dao.sql.mysql.DAOFactoryMySQL(dataSource);
         fileSystem = new DcFileSystem(this, userLookupService);
     }
 

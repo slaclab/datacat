@@ -119,21 +119,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             parentClause = " = ? and name = ?";
         }
 
-        String sql = String.format("WITH OBJECTS (type, pk, name, parent, acl) AS ( "
-                + "    SELECT 'F', datasetlogicalfolder, name, parent, acl "
-                + "      FROM datasetlogicalfolder "
-                + "  UNION ALL "
-                + "    SELECT 'G', datasetGroup, name, datasetLogicalFolder, acl "
-                + "      FROM DatasetGroup "
-                + "  UNION ALL "
-                + "    SELECT 'D', dataset, datasetName, "
-                + "      CASE WHEN datasetlogicalfolder is not null "
-                + "         THEN datasetlogicalfolder else datasetgroup END, acl "
-                + "      FROM VerDataset "
-                + ") "
-                + "SELECT type, pk, name, parent, acl FROM OBJECTS "
-                + "  WHERE parent %s "
-                + "  ORDER BY name", parentClause);
+        String sql = getChildSql(parentClause);
 
         DatacatObject.Builder builder = null;
         Long pk = parent != null ? parent.getPk() : null;
@@ -152,7 +138,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         completeObject(builder);
         return builder.build();
     }
-
+    
     protected void completeObject(org.srs.datacat.shared.DatacatObject.Builder builder) throws SQLException{
         if(builder instanceof Dataset.Builder){
             completeDataset((Dataset.Builder) builder);
@@ -194,18 +180,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
     }
 
     protected void setVersionMetadata(DatasetVersion.Builder builder) throws SQLException{
-        String sql= 
-                "WITH DSV (dsv) AS ( "
-                + "  SELECT ? FROM DUAL "
-                + ") "
-                + "SELECT type, metaname, metastring, metanumber FROM  "
-                + " ( SELECT 'N' mdtype, mn.metaname, null metastring, mn.metavalue metanumber  "
-                + "     FROM VerDatasetMetaNumber mn where mn.DatasetVersion = (SELECT dsv FROM DSV) "
-                + "   UNION ALL "
-                + "   SELECT 'S' mdtype, ms.metaname, ms.metavalue metastring, null metanumber  "
-                + "     FROM VerDatasetMetaString ms where ms.DatasetVersion = (SELECT dsv FROM DSV) "
-                + "  )";
-
+        String sql = getVersionMetadataSql();
         HashMap<String, Object> metadata = new HashMap<>();
         Long pk = builder.pk;
         try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
@@ -232,8 +207,8 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             tableType = "datasetgroup";
         }
         column = tableType;
-        String mdBase = "select metaname, metavalue from %smeta%s where %s = ?";
-        String sql = String.format(mdBase, tableType, "string", column);
+        String mdBase = "select Metaname, Metavalue from %sMeta%s where %s = ?";
+        String sql = String.format(mdBase, tableType, "String", column);
         try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
             stmt.setLong(1, pk);
             ResultSet rs = stmt.executeQuery();
@@ -242,7 +217,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             }
         }
 
-        sql = String.format(mdBase, tableType, "number", column);
+        sql = String.format(mdBase, tableType, "Number", column);
         try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
             stmt.setLong(1, pk);
             ResultSet rs = stmt.executeQuery();
@@ -522,7 +497,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
                 queryCondition = "vd.dataset = ? ";
                 break;
             case CONTAINER:
-                queryCondition = "vd.parent = ? ";
+                queryCondition = "vd.datasetLogicalFolder = ? ";
                 break;
             default:
                 break;
@@ -547,9 +522,43 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             + "  ORDER BY vd.name, dsv.versionid desc, vdl.registered";
         return datasetSqlLocations;
     }
+    
+    protected String getChildSql(String parentClause){
+        String sql = String.format("WITH OBJECTS (type, pk, name, parent, acl) AS ( "
+                + "    SELECT 'F', datasetlogicalfolder, name, parent, acl "
+                + "      FROM datasetlogicalfolder "
+                + "  UNION ALL "
+                + "    SELECT 'G', datasetGroup, name, datasetLogicalFolder, acl "
+                + "      FROM DatasetGroup "
+                + "  UNION ALL "
+                + "    SELECT 'D', dataset, datasetName, "
+                + "      CASE WHEN datasetlogicalfolder is not null "
+                + "         THEN datasetlogicalfolder else datasetgroup END, acl "
+                + "      FROM VerDataset "
+                + ") "
+                + "SELECT type, pk, name, parent, acl FROM OBJECTS "
+                + "  WHERE parent %s "
+                + "  ORDER BY name", parentClause);
+        return sql;
+    }
 
-    private String versionString(DatasetView view){
+    protected String versionString(DatasetView view){
         return view.isCurrent() ? " dsv.datasetversion = vd.latestversion " : " dsv.versionid = ? ";
+    }
+    
+    protected String getVersionMetadataSql(){
+        String sql= 
+                "WITH DSV (dsv) AS ( "
+                + "  SELECT ? FROM DUAL "
+                + ") "
+                + "SELECT type, metaname, metastring, metanumber FROM  "
+                + " ( SELECT 'N' mdtype, mn.metaname, null metastring, mn.metavalue metanumber  "
+                + "     FROM VerDatasetMetaNumber mn where mn.DatasetVersion = (SELECT dsv FROM DSV) "
+                + "   UNION ALL "
+                + "   SELECT 'S' mdtype, ms.metaname, ms.metavalue metastring, null metanumber  "
+                + "     FROM VerDatasetMetaString ms where ms.DatasetVersion = (SELECT dsv FROM DSV) "
+                + "  )";
+        return sql;
     }
 
 }

@@ -62,12 +62,12 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
         switch(newType){
             case FOLDER:
                 builder = new LogicalFolder.Builder(request);
-                tableName = "DATASETLOGICALFOLDER";
+                tableName = "DatasetLogicalFolder";
                 parentColumn = "PARENT";
                 break;
             case GROUP:
                 builder = new DatasetGroup.Builder(request);
-                tableName = "DATASETGROUP";
+                tableName = "DatasetGroup";
                 parentColumn = "DATASETLOGICALFOLDER";
                 break;
             default:
@@ -79,7 +79,7 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
         String description = request instanceof DatasetContainer ? ((DatasetContainer) request).
                 getDescription() : null;
 
-        try(PreparedStatement stmt = getConnection().prepareStatement(sql, new String[]{tableName})) {
+        try(PreparedStatement stmt = getConnection().prepareStatement(sql, new String[]{tableName.toUpperCase()})) {
             stmt.setString(1, name);
             stmt.setLong(2, parent.getPk());
             stmt.setString(3, description);
@@ -132,14 +132,14 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
     @Override
     public BasicStat getBasicStat(DatacatRecord container) throws IOException{
         boolean isFolder = container.getType() == DatacatObject.Type.FOLDER;
-        String parent = isFolder ? "datasetlogicalfolder" : "datasetgroup";
+        String parent = isFolder ? "DatasetLogicalFolder" : "DatasetGroup";
 
-        String statSQL = "select 'D' type, count(1) count from verdataset where " + parent + " = ? ";
+        String statSQL = "select 'D' type, count(1) count from VerDataset where " + parent + " = ? ";
         if(isFolder){
             statSQL = statSQL
-                    + "UNION ALL select 'G' type, count(1) count from datasetgroup where datasetlogicalfolder = ? ";
+                    + "UNION ALL select 'G' type, count(1) count from DatasetGroup where datasetlogicalfolder = ? ";
             statSQL = statSQL
-                    + "UNION ALL select 'F' type, count(1) count from datasetlogicalfolder where parent = ? ";
+                    + "UNION ALL select 'F' type, count(1) count from DatasetLogicalFolder where parent = ? ";
         }
         try(PreparedStatement stmt = getConnection().prepareStatement(statSQL)) {
             stmt.setLong(1, container.getPk());
@@ -176,18 +176,18 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
         String primaryTable;
         boolean isFolder = container.getType() == DatacatObject.Type.FOLDER;
         if(isFolder){
-            primaryTable = "datasetlogicalfolder";
+            primaryTable = "DatasetLogicalFolder";
         } else {
-            primaryTable = "datasetgroup";
+            primaryTable = "DatasetGroup";
         }
 
         String statSQL = 
             "select count(*) files, Sum(l.NumberEvents) events, "
             + "Sum(l.filesizebytes) totalsize, min(l.runMin) minrun, max(l.runmax) maxrun "
             + "from " + primaryTable + " g "
-            + "join verdataset d on (g." + primaryTable + " =d." + primaryTable + ") "
-            + "join datasetversion dv on (d.latestversion=dv.datasetversion) "
-            + "join verdatasetlocation l on (dv.masterLocation=l.datasetlocation) "
+            + "join VerDataset d on (g." + primaryTable + " =d." + primaryTable + ") "
+            + "join DatasetVersion dv on (d.latestversion=dv.datasetversion) "
+            + "join VerDatasetLocation l on (dv.masterLocation=l.datasetlocation) "
             + "where g." + primaryTable + " = ? ";
 
         try(PreparedStatement stmt = getConnection().prepareStatement(statSQL)) {
@@ -223,25 +223,11 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
         }
     }
 
-    private DirectoryStream<DatacatObject> getChildrenStreamInternal(Long parentPk,
+    protected DirectoryStream<DatacatObject> getChildrenStreamInternal(Long parentPk,
             final String parentPath,
             DatasetView viewPrefetch) throws SQLException, IOException{
-        String sql 
-            = "WITH OBJECTS (type, pk, name, parent, acl) AS ( "
-            + "    SELECT 'F', datasetlogicalfolder, name, parent, acl "
-            + "      FROM datasetlogicalfolder "
-            + "  UNION ALL "
-            + "    SELECT 'G', datasetGroup, name, datasetLogicalFolder, acl "
-            + "      FROM DatasetGroup "
-            + (viewPrefetch != null ? "  UNION ALL "
-            + "    SELECT   'D', dataset, datasetName, "
-            + "      CASE WHEN datasetlogicalfolder is not null THEN datasetlogicalfolder else datasetgroup END, acl "
-            + "      FROM VerDataset " : " ")
-            + ") "
-            + "SELECT type, pk, name, parent, acl FROM OBJECTS "
-            + "  WHERE parent = ? "
-            + "  ORDER BY name";
-
+        String sql = getChildrenSql(viewPrefetch);
+        
         final PreparedStatement stmt = getConnection().prepareStatement(sql);
         final PreparedStatement prefetchVer;
         final PreparedStatement prefetchLoc;
@@ -405,6 +391,25 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
             dsBuilder.view(views.get(0));
         }
         // TODO: Support multiple versions?
+    }
+    
+    protected String getChildrenSql(DatasetView viewPrefetch){
+        String sql 
+            = "SELECT objects.type, objects.pk, objects.name, objects.parent, objects.acl FROM ( "
+            + "    SELECT 'F' type, datasetlogicalfolder pk, name, parent, acl "
+            + "      FROM DatasetLogicalFolder "
+            + "  UNION ALL "
+            + "    SELECT 'G' type, datasetGroup pk, name, datasetLogicalFolder parent, acl "
+            + "      FROM DatasetGroup "
+            + (viewPrefetch != null ? "  UNION ALL "
+            + "    SELECT   'D' type, dataset pk, datasetName name, "
+            + "      CASE WHEN datasetlogicalfolder is not null "
+            + "        THEN datasetlogicalfolder else datasetgroup END parent, acl "
+            + "      FROM VerDataset " : " ")
+            + ") objects "
+            + "  WHERE objects.parent = ? "
+            + "  ORDER BY objects.name";
+        return sql;
     }
 
 }
