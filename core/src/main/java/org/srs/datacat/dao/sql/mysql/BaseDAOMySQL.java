@@ -84,5 +84,44 @@ public class BaseDAOMySQL extends org.srs.datacat.dao.sql.SqlBaseDAO {
             + "  WHERE md.datasetversion = ?";
         return sql;
     }
+    
+    @Override
+    protected String getVersionsSql(VersionParent condition, DatasetView view){
+        String queryCondition = "";
+        switch(condition){
+            case DATASET:
+                queryCondition = "vd.dataset = ? ";
+                break;
+            case CONTAINER:
+                queryCondition = "vd.parent = ? ";
+                break;
+            default:
+                break;
+        }
+
+        String datasetSqlWithMetadata = 
+            "SELECT dsv.dataset, dsv.datasetversion, dsv.versionid, dsv.datasetsource, dsv.islatest,  "
+            + "     md.mdtype, md.metaname, md.metastring, md.metanumber "
+            + "FROM ( "
+            + "      select vd.dataset, dsv.datasetversion, dsv.versionid, dsv.datasetsource, "
+            + "            CASE WHEN vd.latestversion = dsv.datasetversion THEN 1 ELSE 0 END isLatest "
+            + "            FROM ("
+            + "              SELECT ds.dataset, CASE WHEN ds.datasetlogicalfolder is not null "
+            + "                  THEN ds.datasetlogicalfolder else ds.datasetgroup END parent, "
+            + "                  ds.datasetname name, ds.latestversion "
+            + "              FROM VerDataset ds) vd "
+            + "            JOIN DatasetVersion dsv on (vd.latestversion = dsv.datasetversion) "
+            + "            WHERE " + queryCondition
+            + "                and " + versionString(view)
+            + "           ORDER BY vd.name, dsv.versionid desc ) dsv "
+            + " JOIN "
+            + " ( SELECT mn.datasetversion, 'N' mdtype, mn.metaname, null metastring, mn.metavalue metanumber   "
+            + "     FROM VerDatasetMetaNumber mn "
+            + "   UNION ALL  "
+            + "   SELECT ms.datasetversion, 'S' mdtype, ms.metaname, ms.metavalue metastring, null metanumber   "
+            + "     FROM VerDatasetMetaString ms "
+            + "  ) md on (md.datasetversion = dsv.datasetversion) ";
+        return datasetSqlWithMetadata;
+    }
 
 }
