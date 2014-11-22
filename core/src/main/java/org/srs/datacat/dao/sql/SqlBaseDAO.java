@@ -144,11 +144,11 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             completeDataset((Dataset.Builder) builder);
         } else if(builder instanceof DatasetGroup.Builder){
             completeContainer((DatasetGroup.Builder) builder,
-                    "select description from datasetgroup where datasetgroup = ?");
+                    "select description from DatasetGroup where datasetgroup = ?");
             setContainerMetadata(builder);
         } else if(builder instanceof LogicalFolder.Builder){
             completeContainer((LogicalFolder.Builder) builder,
-                    "select description from datasetlogicalfolder where datasetlogicalfolder = ?");
+                    "select description from DatasetLogicalFolder where datasetlogicalfolder = ?");
             setContainerMetadata(builder);
         }
 
@@ -158,7 +158,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         String sql = "select vd.datasetfileformat, "
                 + "vd.datasetdatatype, vd.latestversion, "
                 + "vd.registered vregistered "
-                + "from verdataset vd "
+                + "from VerDataset vd "
                 + "where vd.dataset = ? ";
 
         try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
@@ -202,9 +202,9 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         String column = null;
         Long pk = builder.pk;
         if(builder instanceof LogicalFolder.Builder){
-            tableType = "logicalfolder";
+            tableType = "LogicalFolder";
         } else if(builder instanceof DatasetGroup.Builder){
-            tableType = "datasetgroup";
+            tableType = "DatasetGroup";
         }
         column = tableType;
         String mdBase = "select Metaname, Metavalue from %sMeta%s where %s = ?";
@@ -472,7 +472,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             + "  select vd.dataset, dsv.datasetversion, dsv.versionid, dsv.datasetsource, "
             + "        CASE WHEN vd.latestversion = dsv.datasetversion THEN 1 ELSE 0 END isLatest "
             + "        FROM Dataset vd "
-            + "        JOIN datasetversion dsv on (vd.latestversion = dsv.datasetversion) "
+            + "        JOIN DatasetVersion dsv on (vd.latestversion = dsv.datasetversion) "
             + "        WHERE " + queryCondition
             + "            and " + versionString(view)
             + "       ORDER BY vd.name, dsv.versionid desc "
@@ -526,7 +526,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
     protected String getChildSql(String parentClause){
         String sql = String.format("WITH OBJECTS (type, pk, name, parent, acl) AS ( "
                 + "    SELECT 'F', datasetlogicalfolder, name, parent, acl "
-                + "      FROM datasetlogicalfolder "
+                + "      FROM DatasetLogicalFolder "
                 + "  UNION ALL "
                 + "    SELECT 'G', datasetGroup, name, datasetLogicalFolder, acl "
                 + "      FROM DatasetGroup "
