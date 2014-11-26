@@ -38,6 +38,7 @@ import org.srs.datacat.model.RequestView;
 import org.srs.datacat.rest.BaseResource;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.rest.FormParamConverter;
+import org.srs.datacat.rest.PATCH;
 import org.srs.datacat.rest.RestException;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
@@ -48,7 +49,7 @@ import org.srs.datacat.shared.dataset.DatasetWithView;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcFileSystemProvider.DcFsExceptions;
 import org.srs.datacat.vfs.DcPath;
-import org.srs.datacat.vfs.DcUriUtils;  
+import org.srs.datacat.vfs.DcUriUtils;
 import org.srs.datacat.vfs.attribute.DatasetOption;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 
@@ -184,7 +185,7 @@ public class DatasetsResource extends BaseResource  {
         return createDataset(targetPath, dsReq, viewRequestOpt, rv, options);
     }
             
-    public Response createDataset(DcPath datasetPath, Dataset reqDs, 
+    public Response createDataset(DcPath datasetPath, Dataset reqDs,
             Optional<DatasetViewInfo> viewRequestOpt, RequestView rv, Set<DatasetOption> options){
         Dataset.Builder requestBuilder = new Dataset.Builder(reqDs);
         if(viewRequestOpt.isPresent()){
@@ -289,6 +290,15 @@ public class DatasetsResource extends BaseResource  {
                 newUriBuilder.matrixParam("l", "all");
         }
         return Response.seeOther(newUriBuilder.build()).build();
+    }
+    
+    @PATCH
+    @Path(idRegex)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
+    public Response patchDataset(Dataset dsReq) throws IOException{
+        System.out.println(dsReq.toString());
+        return Response.ok().build();
     }
 
 }
