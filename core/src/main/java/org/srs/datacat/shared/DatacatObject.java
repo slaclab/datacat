@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.srs.datacat.model.DatacatNode;
-import org.srs.datacat.security.DcPermissions;
-import org.srs.datacat.security.OwnerAclAttributes;
 import org.srs.datacat.shared.DatacatObject.Builder;
 import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.shared.dataset.FullDataset;
@@ -47,7 +45,7 @@ public class DatacatObject implements DatacatNode {
     private Long parentPk;
     private String name;
     private String path;
-    private OwnerAclAttributes acl;
+    private String acl;
     private final HashMap<String, Object> metadata = new HashMap<>();
 
     /**
@@ -215,9 +213,10 @@ public class DatacatObject implements DatacatNode {
         JsonTypeName t = getClass().getAnnotation(JsonTypeName.class);
         return t.value();
     }
-
+    
+    @Override
     @JsonIgnore
-    public OwnerAclAttributes getAclAttributes(){
+    public String getAcl(){
         return this.acl;
     }
 
@@ -252,7 +251,7 @@ public class DatacatObject implements DatacatNode {
         public Type parentType = null;
         public String path;
         public Type type;
-        public OwnerAclAttributes acl;
+        public String acl;
         public HashMap<String, Object> metadata = new HashMap<>();
 
         public Builder(){
@@ -366,8 +365,8 @@ public class DatacatObject implements DatacatNode {
             return (U) this;
         }
 
-        public U acl(String aclString){
-            this.acl = DcPermissions.getOwnerAclAttributes(aclString).orNull();
+        public U acl(String acl){
+            this.acl = acl;
             return (U) this;
         }
         

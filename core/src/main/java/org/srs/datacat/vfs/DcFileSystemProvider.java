@@ -57,6 +57,7 @@ import org.srs.datacat.vfs.attribute.DcAclFileAttributeView;
 import org.srs.datacat.security.DcGroup;
 import org.srs.datacat.security.DcUserLookupService;
 import org.srs.datacat.security.DcUser;
+import org.srs.datacat.security.OwnerAclAttributes;
 
 import org.srs.vfs.AbstractFsProvider;
 import org.srs.vfs.AbstractPath;
@@ -386,21 +387,22 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
 
     private DcFile buildChild(DcFile parent, DcPath childPath, DatacatObject child) throws IOException{
         DcAclFileAttributeView aclView;
+        OwnerAclAttributes attr = DcPermissions.getOwnerAclAttributes(child.getAcl()).orNull();
         if(parent == null){
-            aclView = new DcAclFileAttributeView(child.getAclAttributes());
+            aclView = new DcAclFileAttributeView(attr);
         } else {
-            if(child.getAclAttributes() != null){
+            if(attr != null){
                 /*
                  TODO: Come up with better strategy for global ADMIN privileges
                  Always inherit parent ADMIN permissions for now.
                  */
-                List<AclEntry> acl = new ArrayList<>(child.getAclAttributes().getAcl());
+                List<AclEntry> acl = new ArrayList<>(attr.getAcl());
                 for(AclEntry e: parent.getAttributeView(DcAclFileAttributeView.class).getAcl()){
                     if(e.permissions().contains(DcPermissions.ADMIN)){
                         acl.add(e);
                     }
                 }
-                aclView = new DcAclFileAttributeView(child.getAclAttributes().getOwner(), acl);
+                aclView = new DcAclFileAttributeView(attr.getOwner(), acl);
             } else {
                 // Inherit parent's attributes
                 aclView = parent.getAttributeView(DcAclFileAttributeView.class);
@@ -408,7 +410,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         return new DcFile(childPath, child, aclView);
     }
-
+    
     /**
      * This will fail if there already exists a Dataset record.
      *
