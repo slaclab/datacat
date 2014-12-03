@@ -12,7 +12,7 @@ import org.srs.datacat.shared.container.BasicStat;
  * 
  * @author bvan
  */
-public interface DatasetContainer extends DatacatNode {
+public interface DatasetContainer extends DatacatNode, HasMetadata {
     
     BasicStat getStat();
     String getDescription();    

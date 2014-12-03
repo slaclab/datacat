@@ -101,9 +101,9 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     @JsonInclude(JsonInclude.Include.NON_NULL) @Override public String getResource() { return this.resource; }
     @JsonInclude(JsonInclude.Include.NON_NULL) @Override public Long getSize() { return this.size; }
     @JsonInclude(JsonInclude.Include.NON_NULL) @Override public String getSite() { return this.site; }
-    @JsonInclude(JsonInclude.Include.NON_NULL) @Override public Long getRunMin() { return this.runMin; }
-    @JsonInclude(JsonInclude.Include.NON_NULL) @Override public Long getRunMax() { return this.runMax; }
-    @JsonInclude(JsonInclude.Include.NON_NULL) @Override public Long getEventCount() { return this.eventCount; }
+    @JsonInclude(JsonInclude.Include.NON_NULL) public Long getRunMin() { return this.runMin; }
+    @JsonInclude(JsonInclude.Include.NON_NULL) public Long getRunMax() { return this.runMax; }
+    @JsonInclude(JsonInclude.Include.NON_NULL) public Long getEventCount() { return this.eventCount; }
     @JsonInclude(JsonInclude.Include.NON_NULL) @Override public Long getChecksum() { return this.checksum; }
    
     @Override 

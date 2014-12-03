@@ -9,13 +9,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import org.srs.datacat.model.DatacatNode;
+import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.HasMetadata;
 import org.srs.datacat.shared.DatacatObject.Builder;
 import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.datacat.shared.dataset.FullDataset;
@@ -39,7 +39,7 @@ import org.srs.rest.shared.metadata.MetadataEntry;
         }
     )
 @JsonDeserialize(builder = Builder.class)
-public class DatacatObject implements DatacatNode {
+public class DatacatObject implements DatacatNode, HasMetadata {
 
     private Long pk;
     private Long parentPk;
@@ -192,14 +192,7 @@ public class DatacatObject implements DatacatNode {
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public List<MetadataEntry> getMetadata(){
-        ArrayList<MetadataEntry> entries = new ArrayList<>();
-        for(Entry<String, Object> e: metadata.entrySet()){
-            if(e.getValue() instanceof Number){
-                entries.add(new MetadataEntry(e.getKey(), (Number) e.getValue()));
-            } else if(e.getValue() instanceof String){
-                entries.add(new MetadataEntry(e.getKey(), (String) e.getValue()));
-            }
-        }
+        List<MetadataEntry> entries = MetadataEntry.toList(metadata);
         return entries.size() > 0 ? entries : null;
     }
 
@@ -256,6 +249,23 @@ public class DatacatObject implements DatacatNode {
 
         public Builder(){
             super();
+        }
+        
+        public Builder(DatacatRecord object){
+            this();
+            
+            this.pk = object.getPk();
+            
+            this.path = object.getPath();
+            this.type = object.getType();
+            if(object instanceof DatacatNode){
+                this.name = ((DatacatNode) object).getName();
+                this.parentPk = ((DatacatNode) object).getParentPk();
+                this.acl = ((DatacatNode) object).getAcl();
+            }
+            if(object instanceof DatacatObject){
+                this.metadata = ((DatacatObject) object).getMetadataMap();
+            }
         }
 
         public Builder(DatacatObject object){

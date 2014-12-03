@@ -6,15 +6,14 @@ import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-
+import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.DatasetWithViewModel;
 import org.srs.datacat.model.RequestView;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.DatasetViewInfo;
-import org.srs.datacat.shared.dataset.DatasetWithView;
-import org.srs.datacat.shared.dataset.FullDataset;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 
@@ -33,12 +32,15 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
     public DatasetViewProvider(DcFile file, Dataset object){
         this.file = file;
         this.provider = file.getPath().getFileSystem().provider();
-        if(object instanceof FullDataset){
-            DatasetViewInfo viewInfo = ((DatasetWithView) object).getViewInfo();
-            if(viewInfo.getVersion().isLatest()){
-                versionCache.put( DatasetView.CURRENT_VER, viewInfo);
+        if(object instanceof DatasetWithViewModel){
+            DatasetWithViewModel objectWithView = ((DatasetWithViewModel) object);
+            if(objectWithView.getViewInfo().locationsOpt().isPresent()){
+                DatasetViewInfo viewInfo = objectWithView.getViewInfo();
+                if(viewInfo.getVersion().isLatest()){
+                    versionCache.put(DatasetView.CURRENT_VER, viewInfo);
+                }
+                versionCache.put(viewInfo.getVersion().getVersionId(), viewInfo);
             }
-            versionCache.put( viewInfo.getVersion().getVersionId(), viewInfo);
         }
     }
     
@@ -59,7 +61,7 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
             return (Dataset) file.getObject();
         }
         DatasetViewInfo dsv;
-        DatasetVersion retDsv;
+        DatasetVersionModel retDsv;
         Set<DatasetLocation> retLocations;
         synchronized(this) {
             if(!versionCache.containsKey(view.getVersionId())){

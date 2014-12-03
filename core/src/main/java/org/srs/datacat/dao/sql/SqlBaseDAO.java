@@ -199,14 +199,13 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         HashMap<String, Object> metadata = new HashMap<>();
 
         String tableType = null;
-        String column = null;
         Long pk = builder.pk;
         if(builder instanceof LogicalFolder.Builder){
             tableType = "LogicalFolder";
         } else if(builder instanceof DatasetGroup.Builder){
             tableType = "DatasetGroup";
         }
-        column = tableType;
+        String column = tableType;
         String mdBase = "select Metaname, Metavalue from %sMeta%s where %s = ?";
         String sql = String.format(mdBase, tableType, "String", column);
         try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
@@ -314,8 +313,8 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         PreparedStatement stmtMetaString = null;
         PreparedStatement stmtMetaNumber = null;
         PreparedStatement stmtMetaTimestamp = null;
-        PreparedStatement stmt = null;
-
+        PreparedStatement stmt;
+        
         try {
             stmtMetaString = getConnection().prepareStatement(metaStringSql);
             stmtMetaNumber = getConnection().prepareStatement(metaNumberSql);

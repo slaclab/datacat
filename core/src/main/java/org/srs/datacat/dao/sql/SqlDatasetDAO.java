@@ -235,12 +235,13 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
             }
             DatasetVersion maybeVersion = skipVersionCheck ? null : getCurrentVersion(dsRecord);
             Optional<DatasetVersion> versionOpt = Optional.fromNullable(maybeVersion);
-            curVersion = createOrMergeDatasetVersion(dsRecord, reqView.getVersion(), versionOpt, mergeVersion);
+            curVersion = createOrMergeDatasetVersion(dsRecord, (DatasetVersion) reqView.getVersion(),
+                    versionOpt, mergeVersion);
             skipLocationCheck = true;
         } else {
             /* We didn't create or merge a version, so we're only creating a location.
                If skipVersionCheck, use reqVersion otherwise get current version */
-            curVersion = skipVersionCheck ? reqView.getVersion() : getCurrentVersion(dsRecord);
+            curVersion = skipVersionCheck ? (DatasetVersion) reqView.getVersion() : getCurrentVersion(dsRecord);
         }
 
         if(createLocations){

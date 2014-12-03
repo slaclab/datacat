@@ -7,9 +7,9 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Set;
+import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
-import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.FullDataset.Builder;
 
 /**
@@ -36,7 +36,7 @@ public class FullDataset extends DatasetWithView {
     }
     
     @JsonIgnore
-    public DatasetVersion getVersion(){
+    public DatasetVersionModel getVersion(){
         return getViewInfo().getVersion();
     }
             

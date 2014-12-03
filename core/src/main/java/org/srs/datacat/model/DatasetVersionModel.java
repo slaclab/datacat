@@ -7,12 +7,10 @@ import java.sql.Timestamp;
  *
  * @author bvan
  */
-public interface DatasetVersionModel extends DatacatRecord {
+public interface DatasetVersionModel extends DatacatRecord, HasMetadata {
 
     String getDatasetSource();
     Boolean isLatest();
-    Long getProcessInstance();
-    String getTaskName();
     Integer getVersionId();
     Timestamp getDateCreated();
     Timestamp getDateModified();

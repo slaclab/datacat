@@ -9,6 +9,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.sql.Timestamp;
 import java.util.List;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetWithViewModel;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
@@ -33,7 +34,7 @@ public class DatasetWithView extends Dataset implements DatasetWithViewModel {
 
     public DatasetWithView(Dataset dataset, boolean flatten){
         super(dataset);
-        DatasetVersion dsVersion;
+        DatasetVersionModel dsVersion;
         DatasetLocation dsLocation;
         if(dataset instanceof DatasetWithView){
             DatasetViewInfo info = ((DatasetWithView) dataset).getViewInfo();
@@ -55,7 +56,7 @@ public class DatasetWithView extends Dataset implements DatasetWithViewModel {
 
     protected DatasetWithView(Dataset.Builder builder, boolean flatten){
         super(builder);
-        DatasetVersion viewVer = builder.version;
+        DatasetVersionModel viewVer = builder.version;
         if(viewVer == null && builder.checkType(Dataset.Builder.VERSION)){
             viewVer = new DatasetVersion.Builder(builder).build();
         }
@@ -89,7 +90,8 @@ public class DatasetWithView extends Dataset implements DatasetWithViewModel {
     @JacksonXmlProperty(localName="entry")
     public List<MetadataEntry> getVersionMetadata(){
         if(viewInfo.versionOpt().isPresent()){
-            return viewInfo.getVersion().getMetadata();
+            List<MetadataEntry> entries = MetadataEntry.toList(viewInfo.getVersion().getMetadataMap());
+            return entries.size() > 0 ? entries : null;
         }
         return null;
     }
@@ -112,20 +114,18 @@ public class DatasetWithView extends Dataset implements DatasetWithViewModel {
         return null;
     }
 
-    @Override
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getProcessInstance(){
         if(viewInfo.versionOpt().isPresent()){
-            return viewInfo.getVersion().getProcessInstance();
+            return ((DatasetVersion) viewInfo.getVersion()).getProcessInstance();
         }
         return null;
     }
 
-    @Override
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getTaskName(){
         if(viewInfo.versionOpt().isPresent()){
-            return viewInfo.getVersion().getTaskName();
+            return ((DatasetVersion) viewInfo.getVersion()).getTaskName();
         }
         return null;
     }

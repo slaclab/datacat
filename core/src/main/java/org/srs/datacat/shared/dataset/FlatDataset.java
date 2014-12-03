@@ -12,10 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.srs.datacat.model.DatasetLocationModel;
+import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
-import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.dataset.FlatDataset.Builder;
 import org.srs.rest.shared.RestDateAdapter;
 
@@ -53,7 +53,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     }
     
     @JsonIgnore
-    public DatasetVersion getVersion(){ 
+    public DatasetVersionModel getVersion(){ 
         return getViewInfo().getVersion();
     }
     
@@ -139,7 +139,6 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         return null; 
     }
     
-    @Override 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getEventCount(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
@@ -148,7 +147,6 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         return null; 
     }
     
-    @Override 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getRunMin(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
@@ -157,7 +155,6 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         return null; 
     }
     
-    @Override 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getRunMax(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){

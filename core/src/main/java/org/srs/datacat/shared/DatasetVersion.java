@@ -69,11 +69,9 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
     @JsonIgnore
     public String getDatasetSource() { return this.datasetSource; }
     
-    @Override
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getProcessInstance() { return this.processInstance; }
-    
-    @Override
+
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getTaskName() { return this.taskName; }
     
@@ -131,13 +129,16 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
             this.latest = builder.latest;
         }
         
-        public Builder(DatasetVersion version){
+        public Builder(DatasetVersionModel version){
             super(version);
-            this.versionId = version.versionId;
-            this.datasetSource = version.datasetSource;
-            this.processInstance = version.processInstance;
-            this.taskName = version.taskName;
-            this.latest = version.isLatest;
+            this.versionId = version.getVersionId();
+            this.datasetSource = version.getDatasetSource();
+            this.latest = version.isLatest();
+            
+            if(version instanceof DatasetVersion){
+                this.processInstance = ((DatasetVersion) version).processInstance;
+                this.taskName = ((DatasetVersion) version).taskName;
+            }
         }
 
         public Builder(Dataset.Builder builder){

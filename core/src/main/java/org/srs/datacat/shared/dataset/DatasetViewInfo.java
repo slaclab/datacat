@@ -6,9 +6,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatasetLocation;
-import org.srs.datacat.shared.DatasetVersion;
 
 /**
  *
@@ -16,10 +16,10 @@ import org.srs.datacat.shared.DatasetVersion;
  */
 public class DatasetViewInfo {
 
-    private final Optional<DatasetVersion> versionOpt;
+    private final Optional<DatasetVersionModel> versionOpt;
     private final Optional<Set<DatasetLocation>> locationOpt;
 
-    public DatasetViewInfo(DatasetVersion version, DatasetLocation location){
+    public DatasetViewInfo(DatasetVersionModel version, DatasetLocation location){
         this.versionOpt = Optional.fromNullable(version);
         if(location != null){
             Set<DatasetLocation> loc = new HashSet<>(Arrays.asList(location));
@@ -29,7 +29,7 @@ public class DatasetViewInfo {
         }
     }
 
-    public DatasetViewInfo(DatasetVersion version, Collection<DatasetLocation> locations){
+    public DatasetViewInfo(DatasetVersionModel version, Collection<DatasetLocation> locations){
         this.versionOpt = Optional.fromNullable(version);
         if(locations != null){
             Set<DatasetLocation> locs = new HashSet<>(locations);
@@ -50,7 +50,7 @@ public class DatasetViewInfo {
         return locationMap;
     }
 
-    public DatasetVersion getVersion(){
+    public DatasetVersionModel getVersion(){
         return versionOpt.orNull();
     }
 
@@ -75,7 +75,7 @@ public class DatasetViewInfo {
         return null;
     }
 
-    public Optional<DatasetVersion> versionOpt(){
+    public Optional<DatasetVersionModel> versionOpt(){
         return this.versionOpt;
     }
 
@@ -106,7 +106,7 @@ public class DatasetViewInfo {
     }
 
     public DatasetViewInfo fromView(DatasetView view){
-        DatasetVersion retVersion = null;
+        DatasetVersionModel retVersion = null;
         Collection<DatasetLocation> retLocations = null;
 
         if(versionOpt.isPresent()){

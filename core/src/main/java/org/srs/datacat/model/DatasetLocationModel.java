@@ -17,8 +17,5 @@ public interface DatasetLocationModel extends DatacatRecord {
     Timestamp getDateScanned();
     String getSite();
     String getScanStatus();
-    Long getEventCount();
-    Long getRunMax();
-    Long getRunMin();
     Boolean isMaster();
 }
