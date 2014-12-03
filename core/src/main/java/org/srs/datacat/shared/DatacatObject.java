@@ -365,8 +365,8 @@ public class DatacatObject implements DatacatNode {
             return (U) this;
         }
 
-        public U acl(String acl){
-            this.acl = acl;
+        public U acl(String val){
+            this.acl = val;
             return (U) this;
         }
         
