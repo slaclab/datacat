@@ -6,6 +6,7 @@ import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.shared.container.BasicStat;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.shared.LogicalFolder.Builder;
 
 /**
@@ -67,6 +68,7 @@ public class LogicalFolder extends DatacatObject implements DatasetContainer {
     public static class Builder extends DatasetContainer.Builder {
         public Builder(){ super(); }
         public Builder(DatacatObject o){ super(o); }
+        public Builder(DatacatNode o){ super(o); }
         public Builder(DatasetContainer.Builder o){ super(o); }
         
         @Override
