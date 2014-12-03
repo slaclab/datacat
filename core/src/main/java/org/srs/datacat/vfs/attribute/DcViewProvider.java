@@ -3,7 +3,7 @@ package org.srs.datacat.vfs.attribute;
 
 import java.io.IOException;
 import java.nio.file.attribute.FileAttributeView;
-import org.srs.datacat.shared.DatacatObject;
+import org.srs.datacat.model.DatacatNode;
 
 /**
  * Generic interface for view-providing classes that extend FileAttributeView.
@@ -11,6 +11,6 @@ import org.srs.datacat.shared.DatacatObject;
  */
 public interface DcViewProvider<T> extends FileAttributeView {
     
-    DatacatObject withView(T viewDescriptor) throws IOException;
+    DatacatNode withView(T viewDescriptor) throws IOException;
 
 }

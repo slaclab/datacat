@@ -30,6 +30,14 @@ public interface DatasetContainer extends DatacatNode, HasMetadata {
             super();
         }
         
+        public Builder(DatacatNode object){
+            super(object);
+            if(object instanceof DatasetContainer){
+                this.description = ((DatasetContainer) object).getDescription();
+                this.stat = ((DatasetContainer) object).getStat();
+            }
+        }
+        
         public Builder(DatacatObject object){
             super(object);
             if(object instanceof DatasetContainer){
@@ -44,7 +52,7 @@ public interface DatasetContainer extends DatacatNode, HasMetadata {
             this.description = builder.description;
         }
         
-        public static Builder create(DatacatObject container){
+        public static Builder create(DatacatNode container){
             if(container.getType() == null){
                 return new LogicalFolder.Builder(container);
             }

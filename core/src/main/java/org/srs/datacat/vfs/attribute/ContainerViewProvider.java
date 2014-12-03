@@ -8,11 +8,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.container.BasicStat;
 import org.srs.datacat.shared.container.BasicStat.StatType;
 import org.srs.datacat.dao.ContainerDAO;
 import org.srs.datacat.dao.DAOFactory;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.vfs.DcFile;
 
 /**
@@ -82,7 +82,7 @@ public class ContainerViewProvider implements DcViewProvider<StatType> {
     }
 
     @Override
-    public DatacatObject withView(StatType statType) throws NoSuchFileException, IOException{
+    public DatacatNode withView(StatType statType) throws NoSuchFileException, IOException{
         if(statType == StatType.NONE){
             return file.getObject();
         }

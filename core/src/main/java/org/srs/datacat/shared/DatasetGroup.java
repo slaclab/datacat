@@ -6,6 +6,7 @@ import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.shared.container.BasicStat;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.shared.DatasetGroup.Builder;
 
 /**
@@ -68,6 +69,7 @@ public class DatasetGroup extends DatacatObject implements DatasetContainer {
         
         public Builder(){ super(); }
         public Builder(DatacatObject object){ super(object); }
+        public Builder(DatacatNode object){ super(object); }
         public Builder(DatasetContainer.Builder builder){ super(builder); }
         
         @Override

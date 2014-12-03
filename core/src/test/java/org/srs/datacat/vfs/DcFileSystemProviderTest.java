@@ -31,6 +31,7 @@ import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.dao.sql.DatasetSqlDAOTest;
+import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.security.DcUser;
 import org.srs.datacat.test.DbHarness;
 
@@ -73,7 +74,7 @@ public class DcFileSystemProviderTest {
         
         provider  = new DcFileSystemProvider(harness.getDataSource(), TestUtils.getLookupService());
         
-        DatacatObject o = provider.resolveFile(rootPath.resolve("testpath")).getAttributeView(DcFile.class).getObject();
+        DatacatRecord o = provider.resolveFile(rootPath.resolve("testpath")).getAttributeView(DcFile.class).getObject();
         
         long t0 = System.currentTimeMillis();
         try(DirectoryStream<? extends AbstractPath> cstream = provider.unCachedDirectoryStream( rootPath.resolve("testpath") )){
