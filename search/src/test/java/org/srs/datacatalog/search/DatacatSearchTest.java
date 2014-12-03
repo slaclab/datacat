@@ -20,7 +20,6 @@ import org.srs.datacatalog.search.plugins.EXODatacatSearchPlugin;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.test.DbHarness;
 
-import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
