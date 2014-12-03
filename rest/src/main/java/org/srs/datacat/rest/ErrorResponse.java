@@ -1,32 +1,24 @@
 
 package org.srs.datacat.rest;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.List;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyWriter;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
-import org.srs.datacat.shared.DatacatObject;
 import org.srs.rest.shared.metadata.MetadataEntry;
 
 /**
  *
- * @author Brian Van Klaveren<bvan@slac.stanford.edu>
+ * @author bvan
  */
-@XmlRootElement(name="error")
-@XmlType(propOrder={"message","type", "code", "cause"})
 @JsonPropertyOrder({"message","type", "code", "cause"})
 @JsonDeserialize(builder=MetadataEntry.Builder.class)
 public class ErrorResponse {
@@ -45,27 +37,25 @@ public class ErrorResponse {
         this.cause = cause;
     }
     
-    @XmlElement
     public String getMessage(){
         return message;
     }
 
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getType(){
         return type;
     }
 
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getCode(){
         return code;
     }
 
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getCause(){
         return cause;
     }
   
-    @XmlTransient
     public static class Builder {
         private String message;
         private String type;
