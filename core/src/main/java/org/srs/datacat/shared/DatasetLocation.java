@@ -26,7 +26,7 @@ import org.srs.rest.shared.RestDateAdapter;
 @JsonDeserialize(builder = Builder.class)
 @JsonPropertyOrder({"_type", "name",  "path", "pk", "parentPk",
     "metadata", "site", "master", "resource", "size", "checksum", "scanStatus",
-    "registered", "modified", "scanned"}
+    "registered", "modified", "scanned", "runMin", "runMax", "eventCount"}
 )
 public class DatasetLocation extends DatacatObject implements DatasetLocationModel {
    
