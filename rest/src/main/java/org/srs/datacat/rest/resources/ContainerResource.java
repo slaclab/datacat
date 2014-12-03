@@ -28,6 +28,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.RequestView;
 import org.srs.datacat.rest.BaseResource;
@@ -187,7 +188,7 @@ public class ContainerResource extends BaseResource {
             withDs = Boolean.valueOf(rv.get("datasets"));
         }
         
-        ArrayList<DatacatObject> retList = new ArrayList<>();
+        ArrayList<DatacatNode> retList = new ArrayList<>();
         try (DirectoryStream<java.nio.file.Path> stream = getProvider().newDirectoryStream(containerPath)){
             Iterator<java.nio.file.Path> iter = stream.iterator();
             for(int i = 0; iter.hasNext() && retList.size() < max; i++){
@@ -199,7 +200,7 @@ public class ContainerResource extends BaseResource {
                 if(!withDs && file.isRegularFile()){
                     continue;
                 }
-                DatacatObject ret;
+                DatacatNode ret;
                 if(file.isRegularFile()){
                     ret = file.getAttributeView(DatasetViewProvider.class).withView(rv);
                 } else {
@@ -210,7 +211,7 @@ public class ContainerResource extends BaseResource {
         } catch (IOException ex){
             throw new RestException(ex, 500);
         }
-        return Response.ok( new GenericEntity<ArrayList<DatacatObject>>(retList){} ).build();
+        return Response.ok( new GenericEntity<ArrayList<DatacatNode>>(retList){} ).build();
     }
 
 }

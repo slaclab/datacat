@@ -12,9 +12,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.rest.BaseResource;
-import org.srs.datacat.shared.DatacatObject;
-import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
 import org.srs.datacat.rest.RestException;
@@ -42,11 +41,11 @@ public class RootResource extends BaseResource {
     
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public ArrayList<DatacatObject> getChildren(){
+    public ArrayList<DatacatNode> getChildren(){
         DcPath dcpath = getProvider().getPath( DcUriUtils.toFsUri("/", getUser(), "SRS"));
         DirectoryStream.Filter filter = AcceptAllFilter;
         try (DirectoryStream<java.nio.file.Path> ds = getProvider().newDirectoryStream(dcpath, filter)){
-            ArrayList<DatacatObject> retList = new ArrayList<>();
+            ArrayList<DatacatNode> retList = new ArrayList<>();
             for(java.nio.file.Path path : ds){
                 retList.add(getProvider().getFile(path).getObject());
             }
