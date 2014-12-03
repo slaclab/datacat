@@ -9,7 +9,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.sql.Timestamp;
 import java.util.List;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import org.srs.datacat.model.DatasetVersionModel;
+import org.srs.datacat.model.DatasetWithViewModel;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
@@ -26,7 +26,7 @@ import org.srs.rest.shared.metadata.MetadataEntry;
     "versionId", "latest", "versionCreated",
     "versionMetadata", "datasetSource", "taskName", "processInstance"}
 )
-public class DatasetWithView extends Dataset implements DatasetVersionModel {
+public class DatasetWithView extends Dataset implements DatasetWithViewModel {
     private DatasetViewInfo viewInfo;
 
     public DatasetWithView(){}

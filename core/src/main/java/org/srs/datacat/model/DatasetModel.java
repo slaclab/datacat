@@ -7,7 +7,7 @@ import java.sql.Timestamp;
  *
  * @author bvan
  */
-public interface DatasetModel {
+public interface DatasetModel extends DatacatNode {
 
     String getDataType();
     String getFileFormat();

@@ -2,7 +2,6 @@
 package org.srs.datacat.model;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
-import javax.xml.bind.annotation.XmlTransient;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.DatasetGroup;
 import org.srs.datacat.shared.LogicalFolder;
@@ -13,7 +12,7 @@ import org.srs.datacat.shared.container.BasicStat;
  * 
  * @author bvan
  */
-public interface DatasetContainer {
+public interface DatasetContainer extends DatacatNode {
     
     BasicStat getStat();
     String getDescription();    
@@ -23,7 +22,6 @@ public interface DatasetContainer {
      * 
      * @author bvan
      */
-    @XmlTransient
     public static class Builder extends DatacatObject.Builder<Builder> {
         public BasicStat stat = null;
         public String description = null;

@@ -7,7 +7,7 @@ import java.sql.Timestamp;
  *
  * @author bvan
  */
-public interface DatasetVersionModel {
+public interface DatasetVersionModel extends DatacatRecord {
 
     String getDatasetSource();
     Boolean isLatest();

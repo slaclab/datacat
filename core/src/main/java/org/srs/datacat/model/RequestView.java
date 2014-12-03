@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import javax.xml.bind.annotation.XmlTransient;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.dataset.FlatDataset;
 
@@ -15,7 +14,6 @@ import org.srs.datacat.shared.dataset.FlatDataset;
  * Class representing a view of a container or dataset.
  * @author bvan
  */
-@XmlTransient
 public class RequestView extends HashMap<String, String>{
     
     DatacatObject.Type type;

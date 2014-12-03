@@ -7,7 +7,7 @@ import java.sql.Timestamp;
  *
  * @author bvan
  */
-public interface DatasetLocationModel {
+public interface DatasetLocationModel extends DatacatRecord {
 
     String getResource();
     Long getSize();

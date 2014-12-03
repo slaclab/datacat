@@ -15,7 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.security.DcPermissions;
 import org.srs.datacat.security.OwnerAclAttributes;
 import org.srs.datacat.shared.DatacatObject.Builder;
@@ -41,7 +41,7 @@ import org.srs.rest.shared.metadata.MetadataEntry;
         }
     )
 @JsonDeserialize(builder = Builder.class)
-public class DatacatObject implements DatacatRecord {
+public class DatacatObject implements DatacatNode {
 
     private Long pk;
     private Long parentPk;
