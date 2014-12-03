@@ -1,14 +1,11 @@
 
 package org.srs.datacat.shared;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.shared.container.BasicStat;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import javax.xml.bind.annotation.XmlTransient;
 import org.srs.datacat.shared.LogicalFolder.Builder;
 
 /**
@@ -16,8 +13,6 @@ import org.srs.datacat.shared.LogicalFolder.Builder;
  * 
  * @author bvan
  */
-@XmlRootElement(name="folder")
-@XmlType(name="folder")
 @JsonTypeName(value="folder")
 @JsonDeserialize(builder=Builder.class)
 public class LogicalFolder extends DatacatObject implements DatasetContainer {
@@ -51,11 +46,11 @@ public class LogicalFolder extends DatacatObject implements DatasetContainer {
     private String description = null;
 
     @Override
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getDescription() { return description; }
 
     @Override
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public BasicStat getStat(){
         return this.stat;
     }
@@ -69,7 +64,6 @@ public class LogicalFolder extends DatacatObject implements DatasetContainer {
     /**
      * Builder.
      */
-    @XmlTransient
     public static class Builder extends DatasetContainer.Builder {
         public Builder(){ super(); }
         public Builder(DatacatObject o){ super(o); }

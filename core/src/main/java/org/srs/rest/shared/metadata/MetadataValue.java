@@ -1,14 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package org.srs.rest.shared.metadata;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import javax.xml.bind.annotation.XmlTransient;
 import org.srs.rest.shared.metadata.MetadataValue.Builder;
 
 /**
@@ -22,7 +18,6 @@ public interface MetadataValue<T> {
     /**
      * Builder.
      */
-    @XmlTransient
     public static class Builder<T extends MetadataValue> {
         protected Object rawValue;
         protected String type;
@@ -71,7 +66,7 @@ public interface MetadataValue<T> {
         @JsonSetter
         public Builder value(Object val){ this.rawValue = val; return this; }
 
-        @JsonSetter(value="$type")
+        @JsonSetter(value="type")
         public Builder type(String val){ this.type = val; return this; }
 
     }

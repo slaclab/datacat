@@ -1,16 +1,15 @@
 
 package org.srs.datacat.shared.dataset;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetView;
@@ -24,10 +23,8 @@ import org.srs.rest.shared.RestDateAdapter;
  * Dataset with a version. The location may not exist.
  * @author bvan
  */
-@XmlRootElement
-@XmlType(name="flatDataset")
+@JacksonXmlRootElement(localName="flatDataset")
 @JsonTypeName(value="dataset#flat")
-@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="$type", defaultImpl=DatasetVersion.class)
 @JsonDeserialize(builder = Builder.class)
 public class FlatDataset extends DatasetWithView implements DatasetLocationModel {
     
@@ -46,7 +43,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         super(builder, true);
     }
         
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getLocationPk(){ 
         
         if(getViewInfo().singularLocationOpt().isPresent()){
@@ -55,19 +52,19 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         return null; 
     }
     
-    @XmlTransient
+    @JsonIgnore
     public DatasetVersion getVersion(){ 
         return getViewInfo().getVersion();
     }
     
-    @XmlTransient
+    @JsonIgnore
     public DatasetLocation getLocation(){ 
         return getViewInfo().singularLocationOpt().orNull();
     }
     
     // Location info
     @Override 
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getResource(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getResource();
@@ -76,7 +73,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     }
     
     @Override 
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getSize(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getSize();
@@ -85,7 +82,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     }
     
     @Override 
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getChecksum(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getChecksum();
@@ -93,7 +90,8 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         return null; 
     }
     
-    @XmlElement(name="locationModified", required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("locationModified")
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
     public Timestamp getDateLocationModified(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
@@ -102,7 +100,8 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
         return null; 
     }
     
-    @XmlElement(name="locationRegistered", required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("locationRegistered")
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
     public Timestamp getDateLocationCreated(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
@@ -112,7 +111,8 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     }
     
     @Override 
-    @XmlElement(name="locationScanned", required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("locationScanned")
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
     public Timestamp getDateScanned(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
@@ -122,7 +122,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     }
     
     @Override 
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getSite(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getSite();
@@ -131,7 +131,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     }
     
     @Override 
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getScanStatus(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getScanStatus();
@@ -140,7 +140,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     }
     
     @Override 
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getEventCount(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getEventCount();
@@ -149,7 +149,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     }
     
     @Override 
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getRunMin(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getRunMin();
@@ -158,7 +158,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     }
     
     @Override 
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getRunMax(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getRunMax();
@@ -167,7 +167,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     }
     
     @Override
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Boolean isMaster(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().isMaster();
@@ -187,7 +187,6 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     /**
      * Builder.
      */
-    @XmlTransient
     public static class Builder extends Dataset.Builder{
         
         public Builder(){}
@@ -207,7 +206,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     }
 
     @Override
-    @XmlTransient
+    @JsonIgnore
     public List<DatasetView> getDatasetViews(){
         ArrayList<DatasetView> viewList = new ArrayList<>();
         viewList.add( new DatasetView(getVersionId(), getSite()));

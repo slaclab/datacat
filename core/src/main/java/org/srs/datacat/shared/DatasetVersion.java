@@ -2,18 +2,15 @@
 package org.srs.datacat.shared;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.srs.datacat.model.DatasetVersionModel;
 import java.sql.Timestamp;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.Objects;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.DatasetView.VersionId;
 import org.srs.datacat.shared.DatasetVersion.Builder;
@@ -25,10 +22,8 @@ import org.srs.rest.shared.RestDateAdapter;
  * 
  * @author bvan
  */
-@XmlRootElement
-@XmlType(name="version")
 @JsonTypeName(value="version")
-@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="$type", defaultImpl=DatasetVersion.class)
+@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="_type", defaultImpl=DatasetVersion.class)
 @JsonDeserialize(builder = Builder.class)
 public class DatasetVersion extends DatacatObject implements DatasetVersionModel {
     private Integer versionId;
@@ -71,28 +66,28 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
     public Integer getVersionId() { return this.versionId; }
 
     @Override
-    @XmlTransient
+    @JsonIgnore
     public String getDatasetSource() { return this.datasetSource; }
     
     @Override
-    @XmlElement(required=false) 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getProcessInstance() { return this.processInstance; }
     
     @Override
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getTaskName() { return this.taskName; }
     
     @Override
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Boolean isLatest() { return this.isLatest; }
 
     @Override
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
-    @XmlElement(name="created", required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Timestamp getDateCreated() { return this.versionRegistrationDate; }
 
     @Override
-    @XmlTransient
+    @JsonIgnore
     public Timestamp getDateModified(){ return null; }
     
     @Override
@@ -116,7 +111,6 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
     /**
      * Builder.
      */
-    @XmlTransient
     public static class Builder extends DatacatObject.Builder<Builder>{
         public Boolean latest;
         public Integer versionId;

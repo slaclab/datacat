@@ -1,8 +1,6 @@
 
 package org.srs.datacat.shared.container;
 
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
 /**
@@ -11,8 +9,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
  * Statistics are calculated and derived, and may take a long time.
  * @author bvan
  */
-@XmlRootElement
-@XmlType(name="dsStat")
 @JsonTypeName(value="dsStat")
 public class DatasetStat extends BasicStat {
     

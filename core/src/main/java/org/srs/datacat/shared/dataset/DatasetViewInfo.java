@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import javax.xml.bind.annotation.XmlTransient;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
@@ -15,7 +14,6 @@ import org.srs.datacat.shared.DatasetVersion;
  *
  * @author bvan
  */
-@XmlTransient
 public class DatasetViewInfo {
 
     private final Optional<DatasetVersion> versionOpt;

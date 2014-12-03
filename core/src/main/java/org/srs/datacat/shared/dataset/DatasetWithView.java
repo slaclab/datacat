@@ -1,11 +1,13 @@
 package org.srs.datacat.shared.dataset;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.sql.Timestamp;
 import java.util.List;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.shared.Dataset;
@@ -18,6 +20,12 @@ import org.srs.rest.shared.metadata.MetadataEntry;
  *
  * @author bvan
  */
+@JsonPropertyOrder({
+    "_type", "name", "path", "pk", "parentPk",
+    "metadata", "dataType", "fileFormat", "created",
+    "versionId", "latest", "versionCreated",
+    "versionMetadata", "datasetSource", "taskName", "processInstance"}
+)
 public class DatasetWithView extends Dataset implements DatasetVersionModel {
     private DatasetViewInfo viewInfo;
 
@@ -62,12 +70,12 @@ public class DatasetWithView extends Dataset implements DatasetVersionModel {
         }
     }
 
-    @XmlTransient
+    @JsonIgnore    
     public DatasetViewInfo getViewInfo(){
         return viewInfo;
     }
 
-    @XmlElement(required = false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getVersionPk(){
         if(viewInfo.versionOpt().isPresent()){
             return viewInfo.getVersion().getPk();
@@ -75,9 +83,10 @@ public class DatasetWithView extends Dataset implements DatasetVersionModel {
         return null;
     }
 
-    @XmlElementWrapper(name = "versionMetadata")
-    @XmlElement(required = false, name = "entry")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("versionMetadata")
+    @JacksonXmlElementWrapper(localName="versionMetadata")
+    @JacksonXmlProperty(localName="entry")
     public List<MetadataEntry> getVersionMetadata(){
         if(viewInfo.versionOpt().isPresent()){
             return viewInfo.getVersion().getMetadata();
@@ -86,7 +95,7 @@ public class DatasetWithView extends Dataset implements DatasetVersionModel {
     }
 
     @Override
-    @XmlElement(required = false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getDatasetSource(){
         if(viewInfo.versionOpt().isPresent()){
             return viewInfo.getVersion().getDatasetSource();
@@ -95,7 +104,7 @@ public class DatasetWithView extends Dataset implements DatasetVersionModel {
     }
 
     @Override
-    @XmlElement(required = false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Boolean isLatest(){
         if(viewInfo.versionOpt().isPresent()){
             return viewInfo.getVersion().isLatest();
@@ -104,7 +113,7 @@ public class DatasetWithView extends Dataset implements DatasetVersionModel {
     }
 
     @Override
-    @XmlElement(required = false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getProcessInstance(){
         if(viewInfo.versionOpt().isPresent()){
             return viewInfo.getVersion().getProcessInstance();
@@ -113,7 +122,7 @@ public class DatasetWithView extends Dataset implements DatasetVersionModel {
     }
 
     @Override
-    @XmlElement(required = false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getTaskName(){
         if(viewInfo.versionOpt().isPresent()){
             return viewInfo.getVersion().getTaskName();
@@ -122,7 +131,7 @@ public class DatasetWithView extends Dataset implements DatasetVersionModel {
     }
 
     @Override
-    @XmlElement(required = false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Integer getVersionId(){
         if(viewInfo.versionOpt().isPresent()){
             return viewInfo.getVersion().getVersionId();
@@ -130,8 +139,9 @@ public class DatasetWithView extends Dataset implements DatasetVersionModel {
         return null;
     }
 
-    @XmlElement(name = "versionCreated", required = false)
     @XmlJavaTypeAdapter(RestDateAdapter.class)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("versionCreated")
     public Timestamp getDateVersionCreated(){
         if(viewInfo.versionOpt().isPresent()){
             return viewInfo.getVersion().getDateCreated();

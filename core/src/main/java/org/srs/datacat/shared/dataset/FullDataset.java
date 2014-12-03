@@ -1,13 +1,12 @@
 
 package org.srs.datacat.shared.dataset;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Set;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
@@ -17,8 +16,7 @@ import org.srs.datacat.shared.dataset.FullDataset.Builder;
  * Dataset with a Version, which also must contain locations.
  * @author bvan
  */
-@XmlRootElement
-@XmlType(name="fullDataset")
+@JacksonXmlRootElement(localName="fullDataset")
 @JsonTypeName(value="dataset#full")
 @JsonDeserialize(builder = Builder.class)
 public class FullDataset extends DatasetWithView {
@@ -37,12 +35,12 @@ public class FullDataset extends DatasetWithView {
         super(builder, false);
     }
     
-    @XmlTransient
+    @JsonIgnore
     public DatasetVersion getVersion(){
         return getViewInfo().getVersion();
     }
             
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Set<DatasetLocation> getLocations(){
         return getViewInfo().getLocations();
     }
@@ -50,7 +48,6 @@ public class FullDataset extends DatasetWithView {
     /**
      * Builder.
      */
-    @XmlTransient
     public static class Builder extends Dataset.Builder{
         
         public Builder(){}

@@ -1,9 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.srs.rest.shared.metadata;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -13,18 +11,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementRef;
-import javax.xml.bind.annotation.XmlElementRefs;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import org.srs.rest.shared.metadata.MetadataEntry.Builder;
 
 /**
  *
  * @author bvan
  */
-@XmlRootElement(name = "entry")
 @JsonTypeName("metadata")
 @JsonPropertyOrder({"key", "value"})
 @JsonDeserialize(builder = Builder.class)
@@ -65,21 +57,17 @@ public class MetadataEntry {
         value = new MetadataString(v);
     }
 
-    @XmlElement
+    @JsonProperty
     public String getKey(){
         return key;
     }
 
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "$type", include = JsonTypeInfo.As.EXTERNAL_PROPERTY)
-    @XmlElementRefs({
-        @XmlElementRef(name = "decimal", type = MetadataDecimal.class),
-        @XmlElementRef(name = "integer", type = MetadataInteger.class),
-        @XmlElementRef(name = "string", type = MetadataString.class)})
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", include = JsonTypeInfo.As.EXTERNAL_PROPERTY)
     public MetadataValue getValue(){
         return value;
     }
 
-    @XmlTransient
+    @JsonIgnore
     public Object getRawValue(){
         return value.getValue();
     }
@@ -88,11 +76,10 @@ public class MetadataEntry {
     public String toString(){
         return String.format("\"%s\":%s", key, value);
     }
-
+    
     /**
      * Builder.
      */
-    @XmlTransient
     public static class Builder {
         protected String key;
         protected Object rawValue;
@@ -120,7 +107,7 @@ public class MetadataEntry {
             return this;
         }
 
-        @JsonSetter(value="$type")
+        @JsonSetter
         public Builder type(String val){
             this.type = val;
             return this;

@@ -1,9 +1,6 @@
 package org.srs.datacat.shared.container;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlType;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -12,10 +9,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  *
  * @author bvan
  */
-@XmlRootElement
-@XmlType(name = "stat")
-@XmlSeeAlso({DatasetStat.class})
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "$type", defaultImpl = BasicStat.class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "_type", defaultImpl = BasicStat.class)
 @JsonSubTypes(value = {@JsonSubTypes.Type(DatasetStat.class)})
 public class BasicStat {
 
@@ -45,27 +39,27 @@ public class BasicStat {
         this(stat.folderCount, stat.groupCount, stat.datasetCount);
     }
 
-    @XmlElement(required = true)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Integer getChildCount(){
         return folderCount + groupCount + datasetCount;
     }
 
-    @XmlElement(required = false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Integer getChildContainerCount(){
         return folderCount + groupCount;
     }
 
-    @XmlElement(required = true)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Integer getDatasetCount(){
         return datasetCount;
     }
 
-    @XmlElement(required = true)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Integer getGroupCount(){
         return groupCount;
     }
 
-    @XmlElement(required = true)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Integer getFolderCount(){
         return folderCount;
     }

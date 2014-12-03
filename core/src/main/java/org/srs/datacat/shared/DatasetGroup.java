@@ -1,14 +1,11 @@
 
 package org.srs.datacat.shared;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.shared.container.BasicStat;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import javax.xml.bind.annotation.XmlTransient;
 import org.srs.datacat.shared.DatasetGroup.Builder;
 
 /**
@@ -16,8 +13,6 @@ import org.srs.datacat.shared.DatasetGroup.Builder;
  * 
  * @author bvan
  */
-@XmlRootElement
-@XmlType(name="group")
 @JsonTypeName(value="group")
 @JsonDeserialize(builder=Builder.class)
 public class DatasetGroup extends DatacatObject implements DatasetContainer {
@@ -55,13 +50,13 @@ public class DatasetGroup extends DatacatObject implements DatasetContainer {
     
    
     @Override
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getDescription() {
         return description;
     }
     
     @Override
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public BasicStat getStat(){
         return stat;
     }
@@ -69,7 +64,6 @@ public class DatasetGroup extends DatacatObject implements DatasetContainer {
     /**
      * Builder.
      */
-    @XmlTransient
     public static class Builder extends DatasetContainer.Builder {
         
         public Builder(){ super(); }

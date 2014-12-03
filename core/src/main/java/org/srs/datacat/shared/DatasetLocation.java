@@ -1,18 +1,16 @@
 
 package org.srs.datacat.shared;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.srs.datacat.model.DatasetLocationModel;
 import java.sql.Timestamp;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.Objects;
-import javax.xml.bind.annotation.XmlTransient;
 import org.srs.datacat.shared.DatasetLocation.Builder;
 import org.srs.rest.shared.RestDateAdapter;
 
@@ -22,10 +20,8 @@ import org.srs.rest.shared.RestDateAdapter;
  * 
  * @author bvan
  */
-@XmlRootElement
-@XmlType(name="location")
 @JsonTypeName(value="location")
-@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="$type", defaultImpl=DatasetLocation.class)
+@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="_type", defaultImpl=DatasetLocation.class)
 @JsonDeserialize(builder = Builder.class)
 public class DatasetLocation extends DatacatObject implements DatasetLocationModel {
    
@@ -96,28 +92,31 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
         this.eventCount = builder.eventCount;
         this.master = builder.master;
     }
-   
-    @XmlElement(required=false) @Override public String getResource() { return this.resource; }
-    @XmlElement(required=false) @Override public Long getSize() { return this.size; }
-    @XmlElement(required=false) @Override public String getSite() { return this.site; }
-    @XmlElement(required=false) @Override public Long getRunMin() { return this.runMin; }
-    @XmlElement(required=false) @Override public Long getRunMax() { return this.runMax; }
-    @XmlElement(required=false) @Override public Long getEventCount() { return this.eventCount; }
-    @XmlElement(required=false) @Override public Long getChecksum() { return this.checksum; }
+    
+    @JsonInclude(JsonInclude.Include.NON_NULL) @Override public String getResource() { return this.resource; }
+    @JsonInclude(JsonInclude.Include.NON_NULL) @Override public Long getSize() { return this.size; }
+    @JsonInclude(JsonInclude.Include.NON_NULL) @Override public String getSite() { return this.site; }
+    @JsonInclude(JsonInclude.Include.NON_NULL) @Override public Long getRunMin() { return this.runMin; }
+    @JsonInclude(JsonInclude.Include.NON_NULL) @Override public Long getRunMax() { return this.runMax; }
+    @JsonInclude(JsonInclude.Include.NON_NULL) @Override public Long getEventCount() { return this.eventCount; }
+    @JsonInclude(JsonInclude.Include.NON_NULL) @Override public Long getChecksum() { return this.checksum; }
    
     @Override 
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
-    @XmlElement(name="modified", required=false)
+    @JsonProperty("modified")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Timestamp getDateModified() { return this.dateModified; }
    
     @Override 
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
-    @XmlElement(name="scanned", required=false)
+    @JsonProperty("scanned")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Timestamp getDateScanned() { return this.dateScanned; }
 
     @Override
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
-    @XmlElement(name="registered", required=false)
+    @JsonProperty("registered")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Timestamp getDateCreated() { return this.dateCreated; }
 
     @Override public String getScanStatus() { return this.scanStatus; }
@@ -146,7 +145,6 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     /**
      * Builder.
      */
-    @XmlTransient
     public static class Builder extends DatacatObject.Builder<Builder>{
         private String resource;
         private Long size;

@@ -1,5 +1,7 @@
 package org.srs.datacat.shared;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -13,12 +15,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.security.DcPermissions;
 import org.srs.datacat.security.OwnerAclAttributes;
@@ -32,14 +28,8 @@ import org.srs.rest.shared.metadata.MetadataEntry;
  *
  * @author bvan
  */
-@XmlRootElement
-@XmlSeeAlso({LogicalFolder.class, DatasetGroup.class,
-    Dataset.class, FlatDataset.class, FullDataset.class,
-    DatasetVersion.class, DatasetLocation.class})
-@XmlType(propOrder = {"name", "path", "pk", "parentPk", "metadata"})
-@JsonPropertyOrder({"name", "path", "pk", "parentPk", "metadata"})
-// Use default implementation of DatacatObject
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "$type", defaultImpl = DatacatObject.class)
+@JsonPropertyOrder({"_type", "name", "path", "pk", "parentPk", "metadata"})
+@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="_type", defaultImpl=DatacatObject.class)
 @JsonSubTypes(value = {
         @JsonSubTypes.Type(LogicalFolder.class),
         @JsonSubTypes.Type(DatasetGroup.class),
@@ -63,7 +53,7 @@ public class DatacatObject implements DatacatRecord {
     /**
      * The basic type of this DatacatObject.
      */
-    @XmlEnum(String.class)
+    //@XmlEnum(String.class)
     public enum Type {
         DATASET,
         DATASETLOCATION,
@@ -138,7 +128,7 @@ public class DatacatObject implements DatacatRecord {
         this.acl = builder.acl;
     }
 
-    @XmlElement(required = false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getName(){
         return name;
     }
@@ -149,7 +139,8 @@ public class DatacatObject implements DatacatRecord {
      *
      * @return The primary key for the given object in the database.
      */
-    @XmlElement(required = false)
+    @Override
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getPk(){
         return pk;
     }
@@ -166,7 +157,7 @@ public class DatacatObject implements DatacatRecord {
      *
      * @return The primary key for the given object's parent
      */
-    @XmlElement(required = false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getParentPk(){
         // TODO: Should we return -1 if the parent isn't set?
         return parentPk;
@@ -179,7 +170,8 @@ public class DatacatObject implements DatacatRecord {
      * @return The path of the object in the datacatalog as a string.
      * @return null
      */
-    @XmlElement(required = false)
+    @Override
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getPath(){
         return path;
     }
@@ -189,7 +181,7 @@ public class DatacatObject implements DatacatRecord {
      *
      * @return The metadata, each value should be the proper type (String,Number,etc..)
      */
-    @XmlTransient
+    @JsonIgnore
     public HashMap<String, Object> getMetadataMap(){
         return metadata;
     }
@@ -200,7 +192,7 @@ public class DatacatObject implements DatacatRecord {
      *
      * @return
      */
-    @XmlElement(required = false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public List<MetadataEntry> getMetadata(){
         ArrayList<MetadataEntry> entries = new ArrayList<>();
         for(Entry<String, Object> e: metadata.entrySet()){
@@ -213,24 +205,18 @@ public class DatacatObject implements DatacatRecord {
         return entries.size() > 0 ? entries : null;
     }
 
-    @XmlTransient
+    @JsonIgnore
     public Type getType(){
         return Type.typeOf(this);
     }
 
-    @XmlTransient
-    public String getXmlTypeName(){
-        XmlType t = getClass().getAnnotation(XmlType.class);
-        return t.name();
-    }
-
-    @XmlTransient
+    @JsonIgnore
     public String getJsonTypeName(){
         JsonTypeName t = getClass().getAnnotation(JsonTypeName.class);
         return t.value();
     }
 
-    @XmlTransient
+    @JsonIgnore
     public OwnerAclAttributes getAclAttributes(){
         return this.acl;
     }
@@ -259,7 +245,6 @@ public class DatacatObject implements DatacatRecord {
      *
      * @author bvan
      */
-    @XmlTransient
     public static class Builder<U extends Builder> {
         public String name;
         public Long pk;

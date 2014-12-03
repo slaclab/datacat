@@ -4,16 +4,12 @@ package org.srs.rest.shared.metadata;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlValue;
 import org.srs.rest.shared.metadata.MetadataDecimal.Builder;
 
 /**
  *
  * @author bvan
  */
-@XmlRootElement(name = "decimal")
 @JsonTypeName(value = "decimal")
 @JsonDeserialize(builder=Builder.class)
 public class MetadataDecimal implements MetadataValue<Number> {
@@ -36,7 +32,6 @@ public class MetadataDecimal implements MetadataValue<Number> {
         return String.format( "decimal(\"%s\")", value.toString());
     }
 
-    @XmlValue
     @JsonValue
     // TODO: Fix this to be BigDecimal if https://github.com/FasterXML/jackson-databind/issues/466 gets fixed.
     public Double getValue(){ return value.doubleValue(); }
@@ -44,7 +39,6 @@ public class MetadataDecimal implements MetadataValue<Number> {
     /**
      * Builder.
      */
-    @XmlTransient
     public static class Builder extends MetadataValue.Builder<MetadataDecimal> {
         public Builder(){}
         

@@ -24,15 +24,15 @@ public class DatasetDeserialization extends TestCase {
             + "    \"versionMetadata\": [{\n"
             + "        \"key\": \"nEnergyMaxLog10GeV\",\n"
             + "        \"value\": 4,\n"
-            + "        \"$type\": \"integer\"\n"
+            + "        \"type\": \"integer\"\n"
             + "    }, {\n"
             + "        \"key\": \"nPrimaryAzimuthDeg\",\n"
             + "        \"value\": 0,\n"
-            + "        \"$type\": \"integer\"\n"
+            + "        \"type\": \"integer\"\n"
             + "    }, {\n"
             + "        \"key\": \"nEnergyMinLog10GeV\",\n"
             + "        \"value\": 1,\n"
-            + "        \"$type\": \"integer\"\n"
+            + "        \"type\": \"integer\"\n"
             + "    }],\n"
             + "    \"versionId\": 0,\n"
             + "    \"resource\": \"/nfs/farm/g/agis/u01/CTASims/MC/MST61_B100_Z2000/corsika/gamma_E1000_4000_ZN200_AZ000_000007.dat.gz\",\n"
@@ -43,7 +43,7 @@ public class DatasetDeserialization extends TestCase {
             + "}";
 
     String datasetWithNoType = "{ " + datasetBase;
-    String datasetWithType = "{ \"$type\":\"dataset\", " + datasetBase;
+    String datasetWithType = "{ \"_type\":\"dataset\", " + datasetBase;
     
     public void testNoType() throws IOException{
         AnnotationIntrospector primary = new JacksonAnnotationIntrospector();

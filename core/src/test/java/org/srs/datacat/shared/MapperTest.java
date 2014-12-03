@@ -22,7 +22,7 @@ import org.srs.rest.shared.metadata.MetadataValue;
  * @author bvan
  */
 public class MapperTest extends TestCase {
-    String jsonText = "{\"$type\":\"folder\",\"name\":\"Flight\","
+    String jsonText = "{\"_type\":\"folder\",\"name\":\"Flight\","
             + "\"path\":\"/Data\",\"pk\":4321,\"parentPk\":1234}";
     
     public MapperTest(){ }

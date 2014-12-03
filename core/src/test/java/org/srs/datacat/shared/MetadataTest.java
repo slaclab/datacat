@@ -61,16 +61,16 @@ public class MetadataTest extends TestCase {
     public void testMetadataDeserialize() throws IOException{
         String jsonDecimal = "{\"key\":\"number1\",\"value\":1234.25}";
         //String jsonDecimalWithType = "{\"key\":\"number2\",\"value\":{\"decimal\":1234.25}}";
-        String jsonDecimalWithType = "{\"key\":\"number2\",\"value\":1234.25, \"$type\":\"decimal\"}";
-        String jsonDecimalStringWithType = "{\"key\":\"number2\",\"value\":\"1234.25\", \"$type\":\"decimal\"}";
+        String jsonDecimalWithType = "{\"key\":\"number2\",\"value\":1234.25, \"type\":\"decimal\"}";
+        String jsonDecimalStringWithType = "{\"key\":\"number2\",\"value\":\"1234.25\", \"type\":\"decimal\"}";
         
         String jsonInteger = "{\"key\":\"number1\",\"value\":1234}";
-        String jsonIntegerWithType = "{\"key\":\"number2\",\"value\":1234.25, \"$type\":\"integer\"}";
-        String jsonIntegerStringWithType = "{\"key\":\"number1\",\"value\":\"1234\", \"$type\":\"integer\"}";
-        String jsonIntegerWithBadType = "{\"key\":\"number2\",\"value\":1234.25, \"$type\":\"integer\"}";
+        String jsonIntegerWithType = "{\"key\":\"number2\",\"value\":1234.25, \"type\":\"integer\"}";
+        String jsonIntegerStringWithType = "{\"key\":\"number1\",\"value\":\"1234\", \"type\":\"integer\"}";
+        String jsonIntegerWithBadType = "{\"key\":\"number2\",\"value\":1234.25, \"type\":\"integer\"}";
         
         String jsonString = "{\"key\":\"hello\",\"value\":\"world\"}";
-        String jsonStringWithType = "{\"key\":\"hello\",\"value\":\"world\", \"$type\":\"string\"}";
+        String jsonStringWithType = "{\"key\":\"hello\",\"value\":\"world\", \"type\":\"string\"}";
         
         String compoundJson = 
                 "[{\"key\":\"numberDouble\",\"value\":1234.25},"
@@ -78,10 +78,10 @@ public class MetadataTest extends TestCase {
                 + "{\"key\":\"hello\",\"value\":\"world\"},"
                 + "{\"key\":\"how\",\"value\":\"doyoudo\"}]";
         String compoundJsonWithTypes = 
-                "[{\"key\":\"numberDouble\",\"value\":1234.25, \"$type\":\"decimal\"},"
-                + "{\"key\":\"numberInt\",\"value\":1234, \"$type\":\"integer\"},"
-                + "{\"key\":\"hello\",\"value\":\"world\", \"$type\":\"string\"},"
-                + "{\"key\":\"how\",\"value\":\"doyoudo\", \"$type\":\"string\"}]";
+                "[{\"key\":\"numberDouble\",\"value\":1234.25, \"type\":\"decimal\"},"
+                + "{\"key\":\"numberInt\",\"value\":1234, \"type\":\"integer\"},"
+                + "{\"key\":\"hello\",\"value\":\"world\", \"type\":\"string\"},"
+                + "{\"key\":\"how\",\"value\":\"doyoudo\", \"type\":\"string\"}]";
         
         AnnotationIntrospector primary = new JacksonAnnotationIntrospector();
         AnnotationIntrospector secondary = new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());

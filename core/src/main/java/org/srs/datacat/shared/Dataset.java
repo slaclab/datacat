@@ -2,13 +2,13 @@
 package org.srs.datacat.shared;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.srs.datacat.model.DatasetModel;
 import java.sql.Timestamp;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.xml.bind.annotation.XmlTransient;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset.Builder;
 import org.srs.datacat.shared.dataset.DatasetViewInfo;
@@ -30,11 +29,11 @@ import org.srs.rest.shared.metadata.MetadataEntry;
  * Represents an entire dataset. Subclasses may include information on all DatasetVersions.
  * @author bvan
  */
-@XmlRootElement
-@XmlType(name="dataset")
 @JsonTypeName(value="dataset")
-@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="$type", defaultImpl=Dataset.class)
+@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="_type", defaultImpl=Dataset.class)
 @JsonDeserialize(builder=Builder.class)
+@JsonPropertyOrder({"_type", "name",  "path", "pk", "parentPk",
+    "metadata", "dataType", "fileFormat", "created"})
 public class Dataset extends DatacatObject implements DatasetModel {
     
     private String fileFormat;
@@ -69,20 +68,21 @@ public class Dataset extends DatacatObject implements DatasetModel {
     }
     
     @Override
-    @XmlElement(required=false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getDataType() { return this.dataType; }
         
     @Override
-    @XmlElement(required=false)
+    
     public String getFileFormat() { return this.fileFormat; }
     
     @Override
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
-    @XmlElement(name="created", required=false)
+    @JsonProperty("created")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public Timestamp getDateCreated(){ return this.dateCreated; }
     
     @Override
-    @XmlTransient
+    @JsonIgnore
     public Timestamp getDateModified(){
         return null;
     }
@@ -92,7 +92,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         return super.toString() + "\tType: " + dataType + "\tCreated: " + dateCreated;
     }
    
-    @XmlTransient
+    @JsonIgnore
     public List<DatasetView> getDatasetViews(){
         return Collections.singletonList(DatasetView.EMPTY);
     }
@@ -102,7 +102,6 @@ public class Dataset extends DatacatObject implements DatasetModel {
      * 
      * @author bvan
      */
-    @XmlTransient
     public static class Builder extends DatacatObject.Builder<Builder> {
 
         public static final int NONE = 0;

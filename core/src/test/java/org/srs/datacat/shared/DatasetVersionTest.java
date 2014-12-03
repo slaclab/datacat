@@ -18,7 +18,7 @@ import static junit.framework.TestCase.assertEquals;
  * @author bvan
  */
 public class DatasetVersionTest extends TestCase {
-    String expectedJsonText = "{\"$type\":\"version\",\"versionId\":-2}";
+    String expectedJsonText = "{\"_type\":\"version\",\"versionId\":-2}";
     String jsonText = "{\"versionId\":\"next\"}";
     
     public DatasetVersionTest(){ }
