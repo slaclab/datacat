@@ -32,10 +32,7 @@ import org.srs.datacat.model.HasMetadata;
 import org.srs.datacat.rest.BaseResource;
 import org.srs.datacat.model.RequestView;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
-import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.container.BasicStat.StatType;
-import org.srs.datacat.shared.dataset.FlatDataset;
-import org.srs.datacat.shared.dataset.FullDataset;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
@@ -136,7 +133,7 @@ public class PathResource extends BaseResource {
                     }
                     return Response.ok( new GenericEntity<List<MetadataEntry>>(entries){} ).build();
                 default:
-                    return Response.ok( new GenericEntity(ret, DatacatObject.class) ).build();
+                    return Response.ok( new GenericEntity(ret, DatacatNode.class) ).build();
             }
         } catch (IllegalArgumentException ex){
             throw new RestException(ex, 400 , "Unable to correctly process view", ex.getMessage());
