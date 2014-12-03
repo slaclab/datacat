@@ -3,6 +3,7 @@ package org.srs.datacat.shared;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.srs.datacat.model.DatasetLocationModel;
@@ -23,6 +24,10 @@ import org.srs.rest.shared.RestDateAdapter;
 @JsonTypeName(value="location")
 @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="_type", defaultImpl=DatasetLocation.class)
 @JsonDeserialize(builder = Builder.class)
+@JsonPropertyOrder({"_type", "name",  "path", "pk", "parentPk",
+    "metadata", "site", "master", "resource", "size", "checksum", "scanStatus",
+    "registered", "modified", "scanned"}
+)
 public class DatasetLocation extends DatacatObject implements DatasetLocationModel {
    
     private String resource;
