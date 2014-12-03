@@ -24,7 +24,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.DatasetWithViewModel;
+import org.srs.datacat.model.HasMetadata;
 
 import org.srs.datacat.rest.BaseResource;
 import org.srs.datacat.model.RequestView;
@@ -110,7 +113,7 @@ public class PathResource extends BaseResource {
                 getProvider().getCache().removeFile(dcp);
             }
             DcFile file = getProvider().getFile(dcp);
-            DatacatObject ret;
+            DatacatNode ret;
             RequestView rv = new RequestView(file.getObject().getType(), matrixParams);
             if(file.isRegularFile()){
                 ret = file.getAttributeView(DatasetViewProvider.class).withView(rv);
@@ -122,14 +125,11 @@ public class PathResource extends BaseResource {
                     return getChildren( file, rv, extraQueryParams );
                 case RequestView.METADATA:
                     List<MetadataEntry> entries = null;
-                    if(rv.containsKey("metadata")){
-                        entries = ret.getMetadata();
-                    } else if(rv.containsKey( "versionMetadata")){
-                        if(ret instanceof FullDataset){
-                            entries = ((FullDataset) ret).getVersionMetadata();
-                        } else if(ret instanceof FlatDataset){
-                            entries = ((FlatDataset) ret).getVersionMetadata();
-                        }
+                    if(rv.containsKey("metadata") && ret instanceof HasMetadata){
+                        entries = MetadataEntry.toList(((HasMetadata) ret).getMetadataMap());
+                    } else if(rv.containsKey("versionMetadata") && ret instanceof DatasetWithViewModel){
+                        entries = MetadataEntry.toList(((DatasetWithViewModel) ret).getViewInfo()
+                                .getVersion().getMetadataMap());
                     }
                     if(entries == null){
                         return Response.noContent().build();
@@ -156,7 +156,7 @@ public class PathResource extends BaseResource {
         int offset = queryParams.containsKey("offset") ? Integer.valueOf( queryParams.get("offset").get(0)) :0;
         boolean showCount = queryParams.containsKey("showCount") ? Boolean.valueOf( queryParams.get("showCount").get(0)) :false;
     
-        List<DatacatObject> retList = new ArrayList<>();
+        List<DatacatNode> retList = new ArrayList<>();
         int count = 0;
         try (DirectoryStream<java.nio.file.Path> stream = getProvider()
                 .newOptimizedDirectoryStream(dirFile.getPath(), AbstractFsProvider.AcceptAllFilter, 
@@ -170,7 +170,7 @@ public class PathResource extends BaseResource {
                     continue;
                 }
                 if(count >= offset && retList.size() < max){
-                    DatacatObject ret;
+                    DatacatNode ret;
                     if(file.isRegularFile()){
                         try {
                             ret = file.getAttributeView(DatasetViewProvider.class).withView(requestView);
@@ -196,7 +196,7 @@ public class PathResource extends BaseResource {
         String end = Integer.toString(offset+ (retList.size() - 1));
         String len= showCount ? Integer.toString(count - 1) : "*";
         Response resp = Response
-                .ok( new GenericEntity<List<DatacatObject>>(retList) {})
+                .ok( new GenericEntity<List<DatacatNode>>(retList) {})
                 .header( "Content-Range", String.format("items %s-%s/%s", start, end, len))
                 .build();
         return resp;
