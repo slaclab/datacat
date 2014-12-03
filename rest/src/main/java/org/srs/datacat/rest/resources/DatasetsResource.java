@@ -33,6 +33,7 @@ import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RequestView;
 import org.srs.datacat.rest.BaseResource;
@@ -283,7 +284,7 @@ public class DatasetsResource extends BaseResource  {
                 return Response.seeOther(newUriBuilder.build()).build();
             case VERSION_EXISTS:
                 /* By definition, currentVer is non-null */
-                DatasetVersion currentVer = currentViewInfo.getVersion();
+                DatasetVersionModel currentVer = currentViewInfo.getVersion();
                 newUriBuilder.matrixParam("v", currentVer.getVersionId());
                 return Response.seeOther(newUriBuilder.build()).build();
             case LOCATION_EXISTS:
