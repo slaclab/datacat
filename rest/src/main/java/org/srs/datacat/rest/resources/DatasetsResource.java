@@ -49,6 +49,7 @@ import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.DatasetViewInfo;
 import org.srs.datacat.shared.DatasetWithView;
+import org.srs.datacat.shared.FlatDataset;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcFileSystemProvider.DcFsExceptions;
 import org.srs.datacat.vfs.DcPath;
@@ -95,14 +96,13 @@ public class DatasetsResource extends BaseResource  {
             @MatrixParam("l") List<String> locations) throws IOException{
         System.out.println(ui.getAbsolutePath());
         DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
-        DatacatObject.Type targetType = null;
         try {
             DcFile file = getProvider().getFile(targetPath);
             DatacatNode ret;
             RequestView rv = new RequestView(DatacatObject.Type.DATASET, requestMatrixParams);
             System.out.println(rv.getDatasetView().toString());
             if(file.isRegularFile()){
-                ret = file.getAttributeView(DatasetViewProvider.class).withView(rv.getDatasetView(DatasetView.CURRENT_ALL), true);
+                ret = file.getAttributeView(DatasetViewProvider.class).withView(rv.getDatasetView(DatasetView.CURRENT_ANY), true);
                 return Response.ok( new GenericEntity(ret, Dataset.class) ).build();
             }
             throw new NoSuchFileException(path, "Path is not a dataset","NO_SUCH_FILE");
@@ -179,17 +179,17 @@ public class DatasetsResource extends BaseResource  {
                     options.add(DatasetOption.CREATE_VERSION);
                 }
             case DATASETVERSION:
-                if(!viewRequestOpt.isPresent() && viewRequestOpt.get().locationsOpt().isPresent()){
+                if(viewRequestOpt.isPresent() && viewRequestOpt.get().locationsOpt().isPresent()){
                     options.add(DatasetOption.CREATE_LOCATIONS);
                 }
             break;
         }
         dsReq = new Dataset(dsReq);
-        return createDataset(targetPath, dsReq, viewRequestOpt, rv, options);
+        return createDataset(targetPath, dsReq, viewRequestOpt, options);
     }
             
     public Response createDataset(DcPath datasetPath, Dataset reqDs,
-            Optional<DatasetViewInfo> viewRequestOpt, RequestView rv, Set<DatasetOption> options){
+            Optional<DatasetViewInfo> viewRequestOpt, Set<DatasetOption> options){
         Dataset.Builder requestBuilder = new Dataset.Builder(reqDs);
         if(viewRequestOpt.isPresent()){
             requestBuilder.view(viewRequestOpt.get());
@@ -207,7 +207,7 @@ public class DatasetsResource extends BaseResource  {
              throw new RestException(ex, 403);
         } catch (NotDirectoryException ex){
             throw new RestException(ex, 404, "File exists, but Path is not a container");
-        } catch (IOException ex){
+        } catch (Exception ex){
             ex.printStackTrace();
             throw new RestException(ex, 500);
         }
@@ -261,11 +261,11 @@ public class DatasetsResource extends BaseResource  {
             Optional<DatasetViewInfo> viewOpt, Set<DatasetOption> options){
 
         DcFsExceptions exc = DcFsExceptions.valueOf( ex.getReason() );
-        DatasetView existingView = new DatasetView(DatasetView.CURRENT_VER, DatasetView.ALL_SITES);
+        DatasetView existingView = new DatasetView(DatasetView.CURRENT_VER, DatasetView.ANY_SITES);
         if(viewOpt.isPresent() && viewOpt.get().versionOpt().isPresent()){
             int vid = viewOpt.get().getVersion().getVersionId();
             if(vid >= 0){
-                 existingView = new DatasetView(vid, DatasetView.ALL_SITES );
+                 existingView = new DatasetView(vid, DatasetView.ANY_SITES );
             }
         }
         
@@ -300,8 +300,28 @@ public class DatasetsResource extends BaseResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response patchDataset(Dataset dsReq) throws IOException{
-        System.out.println(dsReq.toString());
-        return Response.ok().build();
+        DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
+        RequestView rv = null;
+        try {
+            rv = new RequestView(DatacatObject.Type.DATASET, requestMatrixParams);
+            DatasetView dv = rv.getDatasetView(DatasetView.CURRENT_ANY);
+            getProvider().getFile(targetPath)
+                    .getAttributeView(DatasetViewProvider.class)
+                    .withView(dv, false);
+            
+            getProvider().patchDataset(targetPath, dv, dsReq);
+            
+            DatasetModel m = getProvider().getFile(targetPath)
+                    .getAttributeView(DatasetViewProvider.class)
+                    .withView(dv, true);
+            return Response.ok(new GenericEntity(m, FlatDataset.class)).build();
+        } catch (NoSuchFileException ex) {
+            throw new RestException(ex ,404, "Dataset doesn't exist", ex.getMessage());
+        } catch (IllegalArgumentException ex){
+            throw new RestException(ex, 400, "Unable to validate request view", ex.getMessage());
+        } catch (IOException ex){
+            throw new RestException(ex, 500);
+        }
     }
 
 }

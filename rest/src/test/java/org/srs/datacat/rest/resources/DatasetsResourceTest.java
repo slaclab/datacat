@@ -183,19 +183,18 @@ public class DatasetsResourceTest extends JerseyTest {
     @Test
     public void testPatchJson() throws JsonProcessingException, IOException {
         ContainerResourceTest.generateFolders(this, 1);
-        String parent = "/testpath/folder00000 ";
         String name = "dataset0001";
+        String parent = "/testpath/folder00000";
+        String ds = "/testpath/folder00000/dataset0001";
         
         MultivaluedHashMap<String,String> entity = new MultivaluedHashMap<>();
         entity.add( "name", name);
         entity.add( "dataType",HSqlDbHarness.JUNIT_DATASET_DATATYPE);
         entity.add( "fileFormat", HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
         entity.add( "versionId", Integer.toString(DatasetView.NEW_VER) );
-        HashMap<String, Object> metadata = new HashMap<>();
-        metadata.put( numberName, numberMdValues[0]);
-        metadata.put( alphaName, alphaMdValues[0]);
+        entity.add("resource", "/nfs/fake/path");
+        entity.add("site", "SLAC");
 
-        entity.add("versionMetadata",mdMapper.writeValueAsString(MetadataEntry.toList( metadata )));
         Dataset req = FormParamConverter.getDatasetBuilder(entity).build();
         System.out.println(req.toString());
         
@@ -206,28 +205,37 @@ public class DatasetsResourceTest extends JerseyTest {
                 .request(MediaType.APPLICATION_JSON)
                 .header("authentication", TestUtils.TEST_USER)
                 .post(Entity.entity(req, MediaType.APPLICATION_JSON));
-       
-        
         
         printTrace( resp );
-        TestCase.assertEquals(201, resp.getStatus());
         System.out.println(resp.readEntity(String.class));
-        String ds = "/testpath/folder00000/dataset0001";
+        TestCase.assertEquals(201, resp.getStatus());
         
+        resp = target("/datasets.json" + ds)
+                .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
+                .register(JacksonFeature.class)
+                .property(ClientProperties.FOLLOW_REDIRECTS, "false")
+                .request(MediaType.APPLICATION_JSON)
+                .header("authentication", TestUtils.TEST_USER)
+                .get();
+        System.out.println(resp.readEntity(String.class));
+        
+        HashMap<String, Object> metadata = new HashMap<>();
+        metadata.put( numberName, numberMdValues[0]);
+        metadata.put( alphaName, alphaMdValues[0]);
         metadata = new HashMap<>();
         metadata.put("patch", "example");
                 
         req = new Dataset.Builder().checksum(12345L)
                 .versionMetadata(metadata)
                 .build();
-        resp = target("/datasets.json" + parent)
+        resp = target("/datasets.json" + ds)
             .register(JacksonFeature.class)
             .property(ClientProperties.FOLLOW_REDIRECTS, "false")
             .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
             .request(MediaType.APPLICATION_JSON)
             .header("authentication", TestUtils.TEST_USER)
             .method("PATCH", Entity.entity(req, MediaType.APPLICATION_JSON));
-        
+        System.out.println(resp.readEntity(String.class));
         TestCase.assertEquals(200, resp.getStatus());
         
     }
@@ -239,9 +247,10 @@ public class DatasetsResourceTest extends JerseyTest {
         Response resp = createOne();
         TestCase.assertEquals(201, resp.getStatus());
         resp = createOne();
-        TestCase.assertEquals(303, resp.getStatus());
-        resp.getLocation().getPath();
         printTrace(resp);
+        TestCase.assertEquals(resp.readEntity(String.class), 303, resp.getStatus());
+        
+        resp.getLocation().getPath();
         resp = target(resp.getLocation().getPath())
             .property( ClientProperties.FOLLOW_REDIRECTS, "false")
             .request()
