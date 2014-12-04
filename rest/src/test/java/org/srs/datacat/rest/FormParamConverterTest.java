@@ -19,8 +19,8 @@ import org.junit.Test;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
-import org.srs.datacat.shared.dataset.FlatDataset;
-import org.srs.datacat.shared.dataset.FullDataset;
+import org.srs.datacat.shared.FlatDataset;
+import org.srs.datacat.shared.FullDataset;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.rest.shared.metadata.MetadataEntry;
 

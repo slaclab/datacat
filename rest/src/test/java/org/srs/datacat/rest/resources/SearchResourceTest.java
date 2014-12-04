@@ -26,7 +26,7 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
 import org.srs.datacat.rest.App;
 import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.dataset.FlatDataset;
+import org.srs.datacat.shared.FlatDataset;
 import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.DcFileSystemProvider;

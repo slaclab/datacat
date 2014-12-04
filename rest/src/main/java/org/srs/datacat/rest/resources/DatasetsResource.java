@@ -33,6 +33,8 @@ import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import org.srs.datacat.model.DatacatNode;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RequestView;
@@ -45,8 +47,8 @@ import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
-import org.srs.datacat.shared.dataset.DatasetViewInfo;
-import org.srs.datacat.shared.dataset.DatasetWithView;
+import org.srs.datacat.shared.DatasetViewInfo;
+import org.srs.datacat.shared.DatasetWithView;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcFileSystemProvider.DcFsExceptions;
 import org.srs.datacat.vfs.DcPath;
@@ -96,7 +98,7 @@ public class DatasetsResource extends BaseResource  {
         DatacatObject.Type targetType = null;
         try {
             DcFile file = getProvider().getFile(targetPath);
-            DatacatObject ret;
+            DatacatNode ret;
             RequestView rv = new RequestView(DatacatObject.Type.DATASET, requestMatrixParams);
             System.out.println(rv.getDatasetView().toString());
             if(file.isRegularFile()){
@@ -194,7 +196,7 @@ public class DatasetsResource extends BaseResource  {
         }
         reqDs = requestBuilder.build();
         try {
-            Dataset ret = getProvider().createDataset(datasetPath, reqDs, options);
+            DatasetModel ret = getProvider().createDataset(datasetPath, reqDs, options);
             return Response.created(DcUriUtils.toFsUri(datasetPath.toString(), getUser(), "SRS"))
                     .entity(ret).build();
         } catch (FileAlreadyExistsException ex) {
@@ -267,7 +269,7 @@ public class DatasetsResource extends BaseResource  {
             }
         }
         
-        Dataset existing;
+        DatasetModel existing;
         try {
             existing = getProvider().getFile( datasetPath )
                     .getAttributeView(DatasetViewProvider.class).withView(existingView, true);
