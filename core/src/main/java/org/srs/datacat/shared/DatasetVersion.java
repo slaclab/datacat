@@ -69,9 +69,11 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
     @JsonIgnore
     public String getDatasetSource() { return this.datasetSource; }
     
+    @Patchable(column="ProcessInstance")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getProcessInstance() { return this.processInstance; }
 
+    @Patchable(column="TaskName")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getTaskName() { return this.taskName; }
     

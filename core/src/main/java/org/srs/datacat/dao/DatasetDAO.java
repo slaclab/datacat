@@ -22,6 +22,9 @@ public interface DatasetDAO extends BaseDAO {
     Dataset createDataset(DatacatRecord parent, String dsName, Optional<DatasetModel> dsReq, 
             Optional<DatasetViewInfo> viewInfo, Set options) throws IOException;
     
+    void patchDataset(DatacatRecord dataset, DatasetView view, Optional<DatasetModel> dsReq, 
+            Optional<DatasetViewInfo> viewInfo) throws IOException;
+    
     DatasetVersion createOrMergeDatasetVersion(DatacatRecord dsRecord, DatasetVersion request,
             Optional<DatasetVersion> curVersionOpt, boolean mergeVersion) throws IOException, FileSystemException;
     

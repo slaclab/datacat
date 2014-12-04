@@ -91,8 +91,14 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
         b.version(retDsv);
         
         if(!view.zeroSites()){                                 // Don't bother if zeroSites is true
-            if(view.allSites() && !retLocations.isEmpty()){      // We want all sites 
-                b.locations(retLocations);                         // retLocations is not null/empty
+            boolean multipleSites = view.allSites() || view.zeroOrMoreSites();
+            if(retLocations != null && !retLocations.isEmpty() && multipleSites){    // We want all/any sites 
+                // retLocations is not null/empty
+                if(retLocations.size() == 1){
+                    b.location(retLocations.iterator().next());       
+                } else {
+                    b.locations(retLocations);
+                }
             } else {
                 if(dsv.getLocation(view.getSite()) != null){     // If we find a site, use it
                     b.location(dsv.getLocation(view.getSite()));

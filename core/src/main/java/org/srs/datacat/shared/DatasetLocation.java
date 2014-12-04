@@ -99,11 +99,21 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     }
     
     @JsonInclude(JsonInclude.Include.NON_NULL) @Override public String getResource() { return this.resource; }
+    
+    @Patchable(column="FileSizeBytes")
     @JsonInclude(JsonInclude.Include.NON_NULL) @Override public Long getSize() { return this.size; }
     @JsonInclude(JsonInclude.Include.NON_NULL) @Override public String getSite() { return this.site; }
+    
+    @Patchable(column="RunMin")
     @JsonInclude(JsonInclude.Include.NON_NULL) public Long getRunMin() { return this.runMin; }
+    
+    @Patchable(column="RunMax")
     @JsonInclude(JsonInclude.Include.NON_NULL) public Long getRunMax() { return this.runMax; }
+    
+    @Patchable(column="NumberEvents")
     @JsonInclude(JsonInclude.Include.NON_NULL) public Long getEventCount() { return this.eventCount; }
+    
+    @Patchable(column="Checksum")
     @JsonInclude(JsonInclude.Include.NON_NULL) @Override public Long getChecksum() { return this.checksum; }
    
     @Override 
@@ -114,6 +124,7 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
    
     @Override 
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
+    @Patchable(column="LastScanned")
     @JsonProperty("scanned")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Timestamp getDateScanned() { return this.dateScanned; }
@@ -124,6 +135,7 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Timestamp getDateCreated() { return this.dateCreated; }
 
+    @Patchable(column="ScanStatus")
     @Override public String getScanStatus() { return this.scanStatus; }
     
     @Override public Boolean isMaster(){ return master; }

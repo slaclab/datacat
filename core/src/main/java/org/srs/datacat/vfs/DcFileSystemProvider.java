@@ -48,6 +48,8 @@ import org.srs.datacat.dao.BaseDAO;
 import org.srs.datacat.dao.ContainerDAO;
 import org.srs.datacat.dao.DatasetDAO;
 import org.srs.datacat.dao.DAOFactory;
+import org.srs.datacat.model.DatacatNode;
+import org.srs.datacat.model.DatasetWithViewModel;
 
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
@@ -337,6 +339,8 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         getCache().removeFile(dcPath);
         return getFile(dcPath);
     }
+    
+
 
     @Override
     public DcPath getPath(URI uri){
@@ -459,6 +463,36 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             dsParent.childAdded(dsPath, FileType.FILE);
             return ret;
         }
+    }
+    
+    /**
+     * Patch a dataset.
+     *
+     * @param path
+     * @param view
+     * @param request
+     * @return
+     * @throws IOException
+     */
+    public DcFile patchDataset(Path path, DatasetView view, DatasetModel request) throws IOException{
+        DcPath dsPath = checkPath(path);
+        DcFile f = getFile(dsPath);
+        checkPermission(dsPath.getUserName(), f, DcPermissions.WRITE);
+        DatacatNode ds = f.getObject();
+        
+        Optional<DatasetModel> requestDataset = Optional.of(request);
+        Optional<DatasetViewInfo> requestView = Optional.absent();
+
+        if(request instanceof DatasetWithViewModel){
+            requestView = Optional.of(((DatasetWithViewModel) request).getViewInfo());
+        }
+        
+        try(DatasetDAO dao = daoFactory.newDatasetDAO(dsPath)) {
+            dao.patchDataset(ds, view, requestDataset, requestView);
+            dao.commit();
+        }
+        getCache().removeFile(dsPath);
+        return getFile(dsPath);
     }
 
     public DatasetViewInfo getDatasetViewInfo(DcFile file, DatasetView view) throws IOException, NoSuchFileException{

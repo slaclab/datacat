@@ -397,6 +397,10 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
     }
 
     protected static void processMetadata(ResultSet rs, HashMap<String, Object> metadata) throws SQLException{
+        String mdType = rs.getString("mdtype");
+        if(mdType == null){
+            return;
+        }
         switch(rs.getString("mdtype")){
             case "N":
                 Number n;
@@ -515,7 +519,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             + "    CASE WHEN dsv.masterlocation = vdl.datasetlocation THEN 1 ELSE 0 END isMaster   "
             + "  FROM Dataset vd   "
             + "  JOIN DatasetVersion dsv on (vd.latestversion = dsv.datasetversion)   "
-            + "  LEFT OUTER JOIN VerDatasetLocation vdl on (dsv.datasetversion = vdl.datasetversion)  "
+            + "  JOIN VerDatasetLocation vdl on (dsv.datasetversion = vdl.datasetversion)  "
             + "  WHERE " + queryCondition
             + "            and " + versionString(view)
             + "  ORDER BY vd.name, dsv.versionid desc, vdl.registered";

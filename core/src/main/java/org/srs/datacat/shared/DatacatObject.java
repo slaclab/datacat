@@ -178,6 +178,7 @@ public class DatacatObject implements DatacatNode, HasMetadata {
      * @return The metadata, each value should be the proper type (String,Number,etc..)
      */
     @JsonIgnore
+    @Patchable
     public HashMap<String, Object> getMetadataMap(){
         return metadata;
     }
@@ -207,6 +208,7 @@ public class DatacatObject implements DatacatNode, HasMetadata {
     
     @Override
     @JsonIgnore
+    @Patchable(column="ACL")
     public String getAcl(){
         return this.acl;
     }

@@ -43,7 +43,7 @@ public class BaseDAOMySQL extends org.srs.datacat.dao.sql.SqlBaseDAO {
             + "          ds.datasetname name, ds.latestversion "
             + "      FROM VerDataset ds ) vd   "
             + "  JOIN DatasetVersion dsv on (vd.latestversion = dsv.datasetversion)   "
-            + "  LEFT OUTER JOIN VerDatasetLocation vdl on (dsv.datasetversion = vdl.datasetversion)  "
+            + "  JOIN VerDatasetLocation vdl on (dsv.datasetversion = vdl.datasetversion)  "
             + "  WHERE " + queryCondition
             + "            and " + versionString(view)
             + "  ORDER BY vd.name, dsv.versionid desc, vdl.registered";
@@ -114,7 +114,7 @@ public class BaseDAOMySQL extends org.srs.datacat.dao.sql.SqlBaseDAO {
             + "            WHERE " + queryCondition
             + "                and " + versionString(view)
             + "           ORDER BY vd.name, dsv.versionid desc ) dsv "
-            + " JOIN "
+            + " LEFT OUTER JOIN "
             + " ( SELECT mn.datasetversion, 'N' mdtype, mn.metaname, null metastring, mn.metavalue metanumber   "
             + "     FROM VerDatasetMetaNumber mn "
             + "   UNION ALL  "

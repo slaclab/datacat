@@ -2,6 +2,7 @@
 package org.srs.datacat.model;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.google.common.base.Optional;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,7 +18,7 @@ import org.srs.datacat.shared.FlatDataset;
 public class RequestView extends HashMap<String, String>{
     
     DatacatObject.Type type;
-    DatasetView datasetView;
+    Optional<DatasetView> datasetView = Optional.absent();
     boolean includeMetadata = true;
     
     public static final int OBJECT = 1<<1;
@@ -51,7 +52,7 @@ public class RequestView extends HashMap<String, String>{
     }
     
     public DatasetView getDatasetView(){
-        return this.datasetView;
+        return datasetView.or(DatasetView.EMPTY);
     }
     
     /**
@@ -60,10 +61,7 @@ public class RequestView extends HashMap<String, String>{
      * @return 
      */
     public DatasetView getDatasetView(DatasetView defaultView){
-        if(datasetView.getVersionId() != DatasetView.EMPTY_VER){
-            return datasetView;
-        }
-        return defaultView;
+        return datasetView.or(defaultView);
     }
     
     public int getPrimaryView(){
@@ -78,8 +76,9 @@ public class RequestView extends HashMap<String, String>{
     }
     
     private void validateView(Map<String, List<String>> params){
-        String site = DatasetView.ANY_SITES;
-        int vid = DatasetView.EMPTY_VER;
+        Integer vid = null;
+        String site = null;
+        
         HashMap<String, String> m = new HashMap<>();
         if(type == null){
             type = DatacatObject.Type.FOLDER; // Assume to be folder in this case.
@@ -120,8 +119,8 @@ public class RequestView extends HashMap<String, String>{
                     if(sites.size() > 1) {
                         throw new IllegalArgumentException("Only one site arguments is allowed");
                     }
-                    site = sites.get(0);
-                    switch(site.toLowerCase()){
+                    site = sites.get(0).toLowerCase();
+                    switch(site){
                         case "all":
                             site = DatasetView.ALL_SITES;
                             break;
@@ -140,8 +139,12 @@ public class RequestView extends HashMap<String, String>{
                 m.put(attr, params.get(attr).get(0));
             }
         }
-        datasetView = new DatasetView(vid, site);
-        putAll( m );
+        if(vid != null){
+            datasetView = Optional.of(new DatasetView(vid, site != null ? site : DatasetView.ANY_SITES));
+        } else if(site != null){
+            datasetView = Optional.of(new DatasetView(DatasetView.CURRENT_VER, site));
+        }
+        putAll(m);
     }
     
 }

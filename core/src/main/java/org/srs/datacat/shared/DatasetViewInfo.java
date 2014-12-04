@@ -30,7 +30,7 @@ public class DatasetViewInfo {
 
     public DatasetViewInfo(DatasetVersionModel version, Collection<DatasetLocation> locations){
         this.versionOpt = Optional.fromNullable(version);
-        if(locations != null){
+        if(locations != null && !locations.isEmpty()){
             Set<DatasetLocation> locs = new HashSet<>(locations);
             this.locationOpt = Optional.of(locs);
         } else {
