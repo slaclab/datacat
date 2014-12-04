@@ -80,7 +80,7 @@ public class BaseDAOMySQL extends org.srs.datacat.dao.sql.SqlBaseDAO {
             + "   UNION ALL "
             + "   SELECT ms.datasetversion, 'S' type, ms.metaname, ms.metavalue metastring, null metanumber  "
             + "     FROM VerDatasetMetaString ms "
-            + "  ) metadata "
+            + "  ) md "
             + "  WHERE md.datasetversion = ?";
         return sql;
     }
