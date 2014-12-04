@@ -6,6 +6,7 @@ import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.DatasetWithViewModel;
@@ -13,7 +14,7 @@ import org.srs.datacat.model.RequestView;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
-import org.srs.datacat.shared.dataset.DatasetViewInfo;
+import org.srs.datacat.shared.DatasetViewInfo;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 
@@ -29,7 +30,7 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
     
     private final HashMap<Integer, DatasetViewInfo> versionCache = new HashMap<>(4);
     
-    public DatasetViewProvider(DcFile file, Dataset object){
+    public DatasetViewProvider(DcFile file, DatasetModel object){
         this.file = file;
         this.provider = file.getPath().getFileSystem().provider();
         if(object instanceof DatasetWithViewModel){
@@ -52,13 +53,13 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
     }
 
     @Override
-    public Dataset withView(RequestView requestView) throws NoSuchFileException, IOException {
+    public DatasetModel withView(RequestView requestView) throws NoSuchFileException, IOException {
         return withView(requestView.getDatasetView(DatasetView.MASTER), requestView.includeMetadata());
     }
     
-    public Dataset withView(DatasetView view, boolean withMetadata) throws NoSuchFileException, IOException {
+    public DatasetModel withView(DatasetView view, boolean withMetadata) throws NoSuchFileException, IOException {
         if(view == DatasetView.EMPTY){
-            return (Dataset) file.getObject();
+            return (DatasetModel) file.getObject();
         }
         DatasetViewInfo dsv;
         DatasetVersionModel retDsv;

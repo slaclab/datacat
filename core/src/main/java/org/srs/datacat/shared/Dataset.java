@@ -20,9 +20,6 @@ import java.util.Map;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset.Builder;
-import org.srs.datacat.shared.dataset.DatasetViewInfo;
-import org.srs.datacat.shared.dataset.FlatDataset;
-import org.srs.datacat.shared.dataset.FullDataset;
 import org.srs.rest.shared.RestDateAdapter;
 import org.srs.rest.shared.metadata.MetadataEntry;
 

@@ -17,8 +17,6 @@ import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.HasMetadata;
 import org.srs.datacat.shared.DatacatObject.Builder;
-import org.srs.datacat.shared.dataset.FlatDataset;
-import org.srs.datacat.shared.dataset.FullDataset;
 import org.srs.rest.shared.metadata.MetadataEntry;
 
 /**

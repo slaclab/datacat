@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import java.io.IOException;
 import junit.framework.TestCase;
-import org.srs.datacat.shared.dataset.FlatDataset;
 
 /**
  *

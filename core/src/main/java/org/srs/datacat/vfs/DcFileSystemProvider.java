@@ -36,13 +36,13 @@ import javax.sql.DataSource;
 
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetContainer;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetView;
 
 import org.srs.datacat.shared.DatacatObject;
-import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.container.BasicStat;
-import org.srs.datacat.shared.dataset.DatasetViewInfo;
-import org.srs.datacat.shared.dataset.DatasetWithView;
+import org.srs.datacat.shared.BasicStat;
+import org.srs.datacat.shared.DatasetViewInfo;
+import org.srs.datacat.shared.DatasetWithView;
 
 import org.srs.datacat.dao.BaseDAO;
 import org.srs.datacat.dao.ContainerDAO;
@@ -420,7 +420,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
      * @return Dataset, FlatDataset, or FullDataset
      * @throws IOException
      */
-    public Dataset createDataset(Path path, Dataset dsReq, Set<DatasetOption> options) throws IOException{
+    public DatasetModel createDataset(Path path, DatasetModel dsReq, Set<DatasetOption> options) throws IOException{
         if(dsReq == null){
             throw new IOException("Not enough information to create create a Dataset node or view");
         }
@@ -430,14 +430,14 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         String dsName = path.getFileName().toString();
         Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
 
-        Optional<Dataset> requestDataset = Optional.absent();
+        Optional<DatasetModel> requestDataset = Optional.absent();
         Optional<DatasetViewInfo> requestView = Optional.absent();
 
         boolean createNode = dsOptions.remove(DatasetOption.CREATE_NODE);
 
         if(createNode){
             checkPermission(dsPath.getUserName(), dsParent, DcPermissions.INSERT);
-            requestDataset = Optional.of(new Dataset(dsReq));
+            requestDataset = Optional.of(dsReq);
         }
         HashSet<DatasetOption> viewWork = new HashSet<>(Arrays.asList(
                 DatasetOption.CREATE_VERSION,
@@ -453,7 +453,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             }
         }
         try(DatasetDAO dao = daoFactory.newDatasetDAO(dsPath)) {
-            Dataset ret = dao.
+            DatasetModel ret = dao.
                     createDataset(dsParent.asRecord(), dsName, requestDataset, requestView, dsOptions);
             dao.commit();
             dsParent.childAdded(dsPath, FileType.FILE);

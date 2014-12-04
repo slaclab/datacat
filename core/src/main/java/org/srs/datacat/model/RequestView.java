@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.srs.datacat.shared.DatacatObject;
-import org.srs.datacat.shared.dataset.FlatDataset;
+import org.srs.datacat.shared.FlatDataset;
 
 /**
  * Class representing a view of a container or dataset.

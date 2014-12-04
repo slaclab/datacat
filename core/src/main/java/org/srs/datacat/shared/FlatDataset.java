@@ -1,5 +1,5 @@
 
-package org.srs.datacat.shared.dataset;
+package org.srs.datacat.shared;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -14,9 +14,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.DatasetLocation;
-import org.srs.datacat.shared.dataset.FlatDataset.Builder;
+import org.srs.datacat.shared.FlatDataset.Builder;
 import org.srs.rest.shared.RestDateAdapter;
 
 /**

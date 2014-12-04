@@ -19,7 +19,7 @@ import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
-import org.srs.datacat.shared.dataset.FlatDataset;
+import org.srs.datacat.shared.FlatDataset;
 import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.vfs.TestUtils;
 import org.srs.vfs.PathUtils;

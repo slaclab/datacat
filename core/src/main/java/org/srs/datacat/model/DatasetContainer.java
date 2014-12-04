@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.DatasetGroup;
 import org.srs.datacat.shared.LogicalFolder;
-import org.srs.datacat.shared.container.BasicStat;
+import org.srs.datacat.shared.BasicStat;
 
 /**
  * An interface denoting either a folder or a group.

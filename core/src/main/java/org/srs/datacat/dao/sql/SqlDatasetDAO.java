@@ -16,12 +16,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
-import org.srs.datacat.shared.dataset.DatasetViewInfo;
+import org.srs.datacat.shared.DatasetViewInfo;
 import static org.srs.datacat.vfs.DcFileSystemProvider.DcFsExceptions.*;
 import org.srs.datacat.vfs.attribute.DatasetOption;
 import org.srs.vfs.PathUtils;
@@ -53,7 +54,7 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
     
     @Override
     public Dataset createDataset(DatacatRecord parent, String dsName,
-            Optional<Dataset> dsReq, Optional<DatasetViewInfo> viewInfo, Set options) throws IOException{
+            Optional<DatasetModel> dsReq, Optional<DatasetViewInfo> viewInfo, Set options) throws IOException{
         
         Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
         DatacatRecord target = null;
@@ -71,7 +72,7 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
                 String pathString = PathUtils.resolve( parent.getPath(), dsName);
                 DATASET_EXISTS.throwError(pathString, "A dataset node already exists at this location");
             }
-            target = createNode(parent, dsName, dsReq.get());
+            target = createNode(parent, dsName, (Dataset) dsReq.get());
             // If we added a node, skip version check
             dsOptions.add(DatasetOption.SKIP_VERSION_CHECK); 
         }

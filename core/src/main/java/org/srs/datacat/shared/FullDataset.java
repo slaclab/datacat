@@ -1,5 +1,5 @@
 
-package org.srs.datacat.shared.dataset;
+package org.srs.datacat.shared;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -8,9 +8,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Set;
 import org.srs.datacat.model.DatasetVersionModel;
-import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.DatasetLocation;
-import org.srs.datacat.shared.dataset.FullDataset.Builder;
+import org.srs.datacat.shared.FullDataset.Builder;
 
 /**
  * Dataset with a Version, which also must contain locations.

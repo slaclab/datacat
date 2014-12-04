@@ -13,7 +13,6 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import java.io.IOException;
 import java.io.StringWriter;
 import junit.framework.TestCase;
-import org.srs.datacat.shared.dataset.FlatDataset;
 import org.srs.rest.shared.metadata.MetadataEntry;
 import org.srs.rest.shared.metadata.MetadataValue;
 

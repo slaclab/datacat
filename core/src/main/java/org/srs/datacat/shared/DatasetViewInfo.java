@@ -1,4 +1,4 @@
-package org.srs.datacat.shared.dataset;
+package org.srs.datacat.shared;
 
 import com.google.common.base.Optional;
 import java.util.Arrays;
@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.Set;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.shared.DatasetLocation;
 
 /**
  *

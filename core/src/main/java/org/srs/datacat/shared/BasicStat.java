@@ -1,4 +1,4 @@
-package org.srs.datacat.shared.container;
+package org.srs.datacat.shared;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;

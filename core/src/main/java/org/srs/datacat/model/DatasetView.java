@@ -1,8 +1,6 @@
 
 package org.srs.datacat.model;
 
-import javax.xml.bind.annotation.XmlTransient;
-
 
 /**
  * A hash-able representation of a DatasetView.
@@ -14,7 +12,6 @@ public class DatasetView {
     /**
      * Helper class for understanding a VersionId.
      */
-    @XmlTransient
     public static final class VersionId {
         int id;
         private VersionId(int id){

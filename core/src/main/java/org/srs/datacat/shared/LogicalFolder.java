@@ -3,7 +3,6 @@ package org.srs.datacat.shared;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.srs.datacat.model.DatasetContainer;
-import org.srs.datacat.shared.container.BasicStat;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.srs.datacat.model.DatacatNode;

@@ -6,8 +6,8 @@ import java.nio.file.DirectoryStream;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
-import org.srs.datacat.shared.container.BasicStat;
-import org.srs.datacat.shared.container.DatasetStat;
+import org.srs.datacat.shared.BasicStat;
+import org.srs.datacat.shared.DatasetStat;
 
 /**
  *

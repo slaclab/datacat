@@ -1,7 +1,7 @@
 
 package org.srs.datacat.model;
 
-import org.srs.datacat.shared.dataset.DatasetViewInfo;
+import org.srs.datacat.shared.DatasetViewInfo;
 
 /**
  *

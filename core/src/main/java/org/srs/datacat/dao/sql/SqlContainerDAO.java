@@ -21,9 +21,9 @@ import org.srs.datacat.shared.DatasetGroup;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
-import org.srs.datacat.shared.container.BasicStat;
-import org.srs.datacat.shared.container.DatasetStat;
-import org.srs.datacat.shared.dataset.DatasetViewInfo;
+import org.srs.datacat.shared.BasicStat;
+import org.srs.datacat.shared.DatasetStat;
+import org.srs.datacat.shared.DatasetViewInfo;
 import org.srs.vfs.PathUtils;
 
 /**
