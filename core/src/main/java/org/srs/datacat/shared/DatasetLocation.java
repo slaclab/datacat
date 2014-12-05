@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.Objects;
 import org.srs.datacat.shared.DatasetLocation.Builder;
-import org.srs.rest.shared.RestDateAdapter;
+import org.srs.datacat.shared.adapters.RestDateAdapter;
 
 
 /**

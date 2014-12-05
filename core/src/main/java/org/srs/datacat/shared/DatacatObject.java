@@ -17,7 +17,7 @@ import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.HasMetadata;
 import org.srs.datacat.shared.DatacatObject.Builder;
-import org.srs.rest.shared.metadata.MetadataEntry;
+import org.srs.datacat.shared.metadata.MetadataEntry;
 
 /**
  * The generalized base object for most of the database derived objects.

@@ -15,7 +15,7 @@ import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.FlatDataset.Builder;
-import org.srs.rest.shared.RestDateAdapter;
+import org.srs.datacat.shared.adapters.RestDateAdapter;
 
 /**
  * Dataset with a version. The location may not exist.

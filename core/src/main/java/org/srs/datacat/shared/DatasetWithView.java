@@ -12,8 +12,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetWithViewModel;
-import org.srs.rest.shared.RestDateAdapter;
-import org.srs.rest.shared.metadata.MetadataEntry;
+import org.srs.datacat.shared.adapters.RestDateAdapter;
+import org.srs.datacat.shared.metadata.MetadataEntry;
 
 /**
  *

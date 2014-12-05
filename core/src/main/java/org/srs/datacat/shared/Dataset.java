@@ -21,8 +21,8 @@ import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset.Builder;
-import org.srs.rest.shared.RestDateAdapter;
-import org.srs.rest.shared.metadata.MetadataEntry;
+import org.srs.datacat.shared.adapters.RestDateAdapter;
+import org.srs.datacat.shared.metadata.MetadataEntry;
 
 /**
  * Represents an entire dataset. Subclasses may include information on all DatasetVersions.

@@ -14,7 +14,7 @@ import java.util.Objects;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.DatasetView.VersionId;
 import org.srs.datacat.shared.DatasetVersion.Builder;
-import org.srs.rest.shared.RestDateAdapter;
+import org.srs.datacat.shared.adapters.RestDateAdapter;
 
 /**
  * A DatasetVersion represents a specific version for a given Dataset.

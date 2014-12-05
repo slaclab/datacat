@@ -12,10 +12,10 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.List;
 import junit.framework.TestCase;
-import org.srs.rest.shared.metadata.MetadataDecimal;
-import org.srs.rest.shared.metadata.MetadataEntry;
-import org.srs.rest.shared.metadata.MetadataInteger;
-import org.srs.rest.shared.metadata.MetadataValue;
+import org.srs.datacat.shared.metadata.MetadataDecimal;
+import org.srs.datacat.shared.metadata.MetadataEntry;
+import org.srs.datacat.shared.metadata.MetadataInteger;
+import org.srs.datacat.shared.metadata.MetadataValue;
 
 /**
  *
