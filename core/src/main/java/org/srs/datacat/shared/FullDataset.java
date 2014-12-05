@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Set;
+import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.shared.FullDataset.Builder;
 
@@ -39,7 +40,7 @@ public class FullDataset extends DatasetWithView {
     }
             
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public Set<DatasetLocation> getLocations(){
+    public Set<DatasetLocationModel> getLocations(){
         return getViewInfo().getLocations();
     }
 

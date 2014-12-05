@@ -196,7 +196,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
             HashMap<String, Object> metadata = new HashMap<>();
             
             DatasetVersion.Builder builder = new DatasetVersion.Builder();
-            List<DatasetLocation> locations = new ArrayList<>();
+            List<DatasetLocationModel> locations = new ArrayList<>();
             if(rs1.next()){
                 builder.pk(rs1.getLong("datasetversion"));
                 builder.parentPk(dsRecord.getPk());
@@ -233,7 +233,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         boolean createLocations = dsOptions.remove(DatasetOption.CREATE_LOCATIONS);
         boolean skipVersionCheck = dsOptions.remove(DatasetOption.SKIP_VERSION_CHECK);
         boolean skipLocationCheck = dsOptions.remove(DatasetOption.SKIP_LOCATION_CHECK);
-        List<DatasetLocation> retLocations = new ArrayList<>();
+        List<DatasetLocationModel> retLocations = new ArrayList<>();
         DatasetVersion curVersion = null;
         
         if(createVersion || mergeVersion) {
@@ -258,8 +258,8 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
             if(!reqView.locationsOpt().isPresent() || reqView.getLocations().isEmpty()){
                 throw new IllegalArgumentException("Unable to create the view specified without locations");
             }
-            for(DatasetLocation reqLocation: reqView.getLocations()){
-                DatasetLocation l = createDatasetLocation(curVersion, reqLocation, skipLocationCheck);
+            for(DatasetLocationModel reqLocation: reqView.getLocations()){
+                DatasetLocationModel l = createDatasetLocation(curVersion, reqLocation, skipLocationCheck);
                 retLocations.add(l);
             }
         }

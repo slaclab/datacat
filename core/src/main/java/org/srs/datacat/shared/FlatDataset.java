@@ -56,7 +56,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     }
     
     @JsonIgnore
-    public DatasetLocation getLocation(){ 
+    public DatasetLocationModel getLocation(){ 
         return getViewInfo().singularLocationOpt().orNull();
     }
     
@@ -140,7 +140,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getEventCount(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
-            return getViewInfo().singularLocationOpt().get().getEventCount();
+            return ((DatasetLocation) getViewInfo().singularLocationOpt().get()).getEventCount();
         }
         return null; 
     }
@@ -148,7 +148,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getRunMin(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
-            return getViewInfo().singularLocationOpt().get().getRunMin();
+            return ((DatasetLocation) getViewInfo().singularLocationOpt().get()).getRunMin();
         }
         return null; 
     }
@@ -156,7 +156,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Long getRunMax(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
-            return getViewInfo().singularLocationOpt().get().getRunMax();
+            return ((DatasetLocation) getViewInfo().singularLocationOpt().get()).getRunMax();
         }
         return null; 
     }

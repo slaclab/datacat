@@ -9,6 +9,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.sql.Timestamp;
 import java.util.List;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetWithViewModel;
 import org.srs.rest.shared.RestDateAdapter;
@@ -32,7 +33,7 @@ public class DatasetWithView extends Dataset implements DatasetWithViewModel {
     public DatasetWithView(Dataset dataset, boolean flatten){
         super(dataset);
         DatasetVersionModel dsVersion;
-        DatasetLocation dsLocation;
+        DatasetLocationModel dsLocation;
         if(dataset instanceof DatasetWithView){
             DatasetViewInfo info = ((DatasetWithView) dataset).getViewInfo();
             dsVersion = info.getVersion();
@@ -58,7 +59,7 @@ public class DatasetWithView extends Dataset implements DatasetWithViewModel {
             viewVer = new DatasetVersion.Builder(builder).build();
         }
         if(flatten){
-            DatasetLocation viewLoc = builder.location;
+            DatasetLocationModel viewLoc = builder.location;
             if(viewLoc == null && builder.checkType(Dataset.Builder.LOCATION)){
                 viewLoc = new DatasetLocation(builder);
             }

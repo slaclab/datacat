@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset.Builder;
@@ -113,10 +114,10 @@ public class Dataset extends DatacatObject implements DatasetModel {
         //public static final int MULTI = BASE | VERSIONS | LOCATIONS;
         public int dsType = BASE;
         public DatasetVersionModel version;
-        public DatasetLocation location;
+        public DatasetLocationModel location;
         public HashMap<String, Object> versionMetadata = new HashMap<>();
         public List<DatasetVersion> versions;
-        public Collection<DatasetLocation> locations;
+        public Collection<DatasetLocationModel> locations;
         // mixins
         public Timestamp created;
         public Long versionPk;
@@ -213,7 +214,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
-        public Builder location(DatasetLocation val){
+        public Builder location(DatasetLocationModel val){
             this.location = val;
             dsType |= LOCATION;
             return this;
@@ -309,7 +310,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
-        public Builder locations(Collection<DatasetLocation> val){
+        public Builder locations(Collection<DatasetLocationModel> val){
             this.locations = val;
             dsType |= LOCATIONS;
             return this;

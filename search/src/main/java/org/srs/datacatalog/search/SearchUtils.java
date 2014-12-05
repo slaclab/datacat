@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.freehep.commons.lang.AST;
 import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
@@ -92,7 +93,7 @@ public class SearchUtils {
         builder.versionId(rs.getInt("versionid"));
         builder.latest(rs.getBoolean( "latest"));
         
-        ArrayList<DatasetLocation> locations = new ArrayList<>();
+        ArrayList<DatasetLocationModel> locations = new ArrayList<>();
         HashMap<String, Object> metadata = new HashMap<>();
         
         for(String s: includedMetadata){

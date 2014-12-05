@@ -15,11 +15,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetContainer;
+import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetGroup;
-import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.BasicStat;
@@ -361,7 +361,7 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
 
         while(!dsVer.isClosed() && dsVer.getLong("dataset") == dsPk && dsVer.getLong("datasetversion") == verPk){
             HashMap<String, Object> metadata = new HashMap<>();
-            List<DatasetLocation> locations = new ArrayList<>();
+            List<DatasetLocationModel> locations = new ArrayList<>();
             builder.pk(verPk);
             builder.parentPk(dsPk);
             builder.versionId(dsVer.getInt("versionid"));

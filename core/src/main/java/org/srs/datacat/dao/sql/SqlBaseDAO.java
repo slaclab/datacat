@@ -18,6 +18,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetContainer;
+import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
@@ -416,7 +417,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
     }
 
     protected static void processLocation(ResultSet rs, Long versionPk, 
-            List<DatasetLocation> locations) throws SQLException{
+            List<DatasetLocationModel> locations) throws SQLException{
         DatasetLocation.Builder builder = new DatasetLocation.Builder();
         builder.pk(rs.getLong("datasetlocation"));
         builder.parentPk(versionPk);

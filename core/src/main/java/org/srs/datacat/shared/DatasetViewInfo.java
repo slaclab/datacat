@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
 
@@ -16,31 +17,31 @@ import org.srs.datacat.model.DatasetView;
 public class DatasetViewInfo {
 
     private final Optional<DatasetVersionModel> versionOpt;
-    private final Optional<Set<DatasetLocation>> locationOpt;
+    private final Optional<Set<DatasetLocationModel>> locationOpt;
 
-    public DatasetViewInfo(DatasetVersionModel version, DatasetLocation location){
+    public DatasetViewInfo(DatasetVersionModel version, DatasetLocationModel location){
         this.versionOpt = Optional.fromNullable(version);
         if(location != null){
-            Set<DatasetLocation> loc = new HashSet<>(Arrays.asList(location));
+            Set<DatasetLocationModel> loc = new HashSet<>(Arrays.asList(location));
             this.locationOpt = Optional.of(loc);
         } else {
             this.locationOpt = Optional.absent();
         }
     }
 
-    public DatasetViewInfo(DatasetVersionModel version, Collection<DatasetLocation> locations){
+    public DatasetViewInfo(DatasetVersionModel version, Collection<DatasetLocationModel> locations){
         this.versionOpt = Optional.fromNullable(version);
         if(locations != null && !locations.isEmpty()){
-            Set<DatasetLocation> locs = new HashSet<>(locations);
+            Set<DatasetLocationModel> locs = new HashSet<>(locations);
             this.locationOpt = Optional.of(locs);
         } else {
             this.locationOpt = Optional.absent();
         }
     }
 
-    private HashMap<String, DatasetLocation> toMap(Collection<DatasetLocation> locations){
-        HashMap<String, DatasetLocation> locationMap = new HashMap<>();
-        for(DatasetLocation l: locations){
+    private HashMap<String, DatasetLocationModel> toMap(Collection<DatasetLocationModel> locations){
+        HashMap<String, DatasetLocationModel> locationMap = new HashMap<>();
+        for(DatasetLocationModel l: locations){
             if(l.isMaster() != null && l.isMaster()){
                 locationMap.put(DatasetView.CANONICAL_SITE, l);
             }
@@ -53,21 +54,21 @@ public class DatasetViewInfo {
         return versionOpt.orNull();
     }
 
-    public DatasetLocation getLocation(DatasetView view){
+    public DatasetLocationModel getLocation(DatasetView view){
         if(locationOpt.isPresent()){
             return getLocation(view.getSite());
         }
         return null;
     }
 
-    public DatasetLocation getLocation(String site){
+    public DatasetLocationModel getLocation(String site){
         if(locationOpt.isPresent()){
             return toMap(locationOpt.get()).get(site);
         }
         return null;
     }
 
-    public Set<DatasetLocation> getLocations(){
+    public Set<DatasetLocationModel> getLocations(){
         if(locationOpt.isPresent()){
             return locationOpt.get();
         }
@@ -78,26 +79,26 @@ public class DatasetViewInfo {
         return this.versionOpt;
     }
 
-    public Optional<DatasetLocation> singularLocationOpt(){
+    public Optional<DatasetLocationModel> singularLocationOpt(){
         if(locationOpt.isPresent()){
             if(locationOpt.get().size() == 1){
                 return Optional.fromNullable(locationOpt.get()
-                        .toArray(new DatasetLocation[0])[0]);
+                        .toArray(new DatasetLocationModel[0])[0]);
             }
         }
         return Optional.absent();
     }
 
-    public Optional<DatasetLocation> canonicalLocationOpt(){
+    public Optional<DatasetLocationModel> canonicalLocationOpt(){
         DatasetView view = new DatasetView(DatasetView.EMPTY_VER, DatasetView.CANONICAL_SITE);
-        Optional<Set<DatasetLocation>> maybeLocations = fromView(view).locationsOpt();
+        Optional<Set<DatasetLocationModel>> maybeLocations = fromView(view).locationsOpt();
         if(maybeLocations.isPresent() && !maybeLocations.get().isEmpty()){
-            return Optional.fromNullable(maybeLocations.get().toArray(new DatasetLocation[0])[0]);
+            return Optional.fromNullable(maybeLocations.get().toArray(new DatasetLocationModel[0])[0]);
         }
         return Optional.absent();
     }
 
-    public Optional<Set<DatasetLocation>> locationsOpt(){
+    public Optional<Set<DatasetLocationModel>> locationsOpt(){
         if(locationOpt.isPresent()){
             return locationOpt;
         }
@@ -106,7 +107,7 @@ public class DatasetViewInfo {
 
     public DatasetViewInfo fromView(DatasetView view){
         DatasetVersionModel retVersion = null;
-        Collection<DatasetLocation> retLocations = null;
+        Collection<DatasetLocationModel> retLocations = null;
 
         if(versionOpt.isPresent()){
             switch(view.getVersionId()){
