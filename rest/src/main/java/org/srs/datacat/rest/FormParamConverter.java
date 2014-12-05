@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import javax.ws.rs.core.MultivaluedMap;
 import org.srs.datacat.model.DatasetContainer;
+import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
@@ -96,7 +97,7 @@ public class FormParamConverter {
         buildFromParams(mapper, builder, datasetSetters, datasetInfo);
         if(!locationInfo.isEmpty()){
             HashMap<String,HashMap<String,List<String>>> locationsEntries = new LinkedHashMap<>();
-            List<DatasetLocation> locations = new ArrayList<>();
+            List<DatasetLocationModel> locations = new ArrayList<>();
             for(String locParam: locationInfo.keySet()){ // locationInfo.keySet() is sorted
                 String[] keys = locParam.split( "\\.");
                 String locEntry = keys[0];

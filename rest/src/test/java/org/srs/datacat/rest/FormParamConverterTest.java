@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
 import org.junit.Test;
+import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
@@ -98,7 +99,7 @@ public class FormParamConverterTest {
     
     public void testFullDataset(){
         HashMap<String, List<String>> dsMap = null;
-        List<DatasetLocation> locations = null;
+        List<DatasetLocationModel> locations = null;
         Dataset.Builder b = null;
         FullDataset ds = null;
         String locationId = null;
@@ -120,11 +121,11 @@ public class FormParamConverterTest {
         
         TestCase.assertEquals("test1", ds.getName());
         
-        DatasetLocation loc1 = locations.get(0);
+        DatasetLocationModel loc1 = locations.get(0);
         TestCase.assertEquals("file:///afs/slac/fakeFile1.txt", loc1.getResource());
         TestCase.assertEquals("SLAC1", loc1.getSite());
         TestCase.assertTrue(loc1.isMaster());
-        DatasetLocation loc2 = locations.get(1);
+        DatasetLocationModel loc2 = locations.get(1);
         TestCase.assertEquals("file:///afs/slac/fakeFile2.txt", loc2.getResource());
         TestCase.assertEquals("SLAC2", loc2.getSite());
         
