@@ -25,7 +25,7 @@ import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
-import org.srs.rest.shared.metadata.MetadataEntry;
+import org.srs.datacat.shared.metadata.MetadataEntry;
 
 /**
  *

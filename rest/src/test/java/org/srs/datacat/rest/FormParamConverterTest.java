@@ -23,7 +23,7 @@ import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.FlatDataset;
 import org.srs.datacat.shared.FullDataset;
 import org.srs.datacat.test.HSqlDbHarness;
-import org.srs.rest.shared.metadata.MetadataEntry;
+import org.srs.datacat.shared.metadata.MetadataEntry;
 
 
 /**

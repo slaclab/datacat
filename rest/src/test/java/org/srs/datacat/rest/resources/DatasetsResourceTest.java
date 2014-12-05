@@ -50,7 +50,7 @@ import static org.srs.datacat.vfs.TestUtils.alphaName;
 import static org.srs.datacat.vfs.TestUtils.numberMdValues;
 import static org.srs.datacat.vfs.TestUtils.numberName;
 import org.srs.datacat.vfs.attribute.DatasetOption;
-import org.srs.rest.shared.metadata.MetadataEntry;
+import org.srs.datacat.shared.metadata.MetadataEntry;
 import org.srs.vfs.PathUtils;
 
 /**
