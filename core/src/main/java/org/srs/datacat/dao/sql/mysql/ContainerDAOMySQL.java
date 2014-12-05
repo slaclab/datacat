@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.locks.ReentrantLock;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetLocationModel;
@@ -209,12 +210,12 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
     }
 
     @Override
-    public DirectoryStream<DatacatObject> getSubdirectoryStream(DatacatRecord parent) throws IOException{
+    public DirectoryStream<DatacatNode> getSubdirectoryStream(DatacatRecord parent) throws IOException{
         return getChildrenStream(parent, null);
     }
 
     @Override
-    public DirectoryStream<DatacatObject> getChildrenStream(DatacatRecord parent,
+    public DirectoryStream<DatacatNode> getChildrenStream(DatacatRecord parent,
             DatasetView viewPrefetch) throws IOException{
         try {
             return getChildrenStreamInternal(parent.getPk(), parent.getPath(), viewPrefetch);
@@ -223,7 +224,7 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
         }
     }
 
-    protected DirectoryStream<DatacatObject> getChildrenStreamInternal(Long parentPk,
+    protected DirectoryStream<DatacatNode> getChildrenStreamInternal(Long parentPk,
             final String parentPath,
             DatasetView viewPrefetch) throws SQLException, IOException{
         String sql = getChildrenSql(viewPrefetch);
@@ -259,13 +260,13 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
         rs.setFetchSize(FETCH_SIZE_CHILDREN);
         final ResultSet rsVer = prefetchVer != null ? prefetchVer.executeQuery() : null;
         final ResultSet rsLoc = prefetchLoc != null ? prefetchLoc.executeQuery() : null;
-        DirectoryStream<DatacatObject> stream = new DirectoryStream<DatacatObject>() {
-            Iterator<DatacatObject> iter = null;
+        DirectoryStream<DatacatNode> stream = new DirectoryStream<DatacatNode>() {
+            Iterator<DatacatNode> iter = null;
 
             @Override
-            public Iterator<DatacatObject> iterator(){
+            public Iterator<DatacatNode> iterator(){
                 if(iter == null){
-                    iter = new Iterator<DatacatObject>() {
+                    iter = new Iterator<DatacatNode>() {
 
                         boolean beforeStart = true;
                         boolean wasOkay = false;

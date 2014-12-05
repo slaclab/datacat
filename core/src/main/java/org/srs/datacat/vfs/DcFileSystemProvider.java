@@ -37,9 +37,10 @@ import javax.sql.DataSource;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.DatasetWithViewModel;
 
-import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.BasicStat;
 import org.srs.datacat.shared.DatasetViewInfo;
 import org.srs.datacat.shared.DatasetWithView;
@@ -48,8 +49,6 @@ import org.srs.datacat.dao.BaseDAO;
 import org.srs.datacat.dao.ContainerDAO;
 import org.srs.datacat.dao.DatasetDAO;
 import org.srs.datacat.dao.DAOFactory;
-import org.srs.datacat.model.DatacatNode;
-import org.srs.datacat.model.DatasetWithViewModel;
 
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
@@ -148,14 +147,14 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
 
         // !IMPORTANT!: This object is closed when the stream is closed
         final ContainerDAO dao = daoFactory.newContainerDAO();
-        DirectoryStream<DatacatObject> stream;
+        DirectoryStream<DatacatNode> stream;
         if(viewPrefetch != null){
             stream = dao.getChildrenStream(dirFile.asRecord(), viewPrefetch);
         } else {
             stream = dao.getSubdirectoryStream(dirFile.asRecord());
         }
 
-        final Iterator<DatacatObject> iter = stream.iterator();
+        final Iterator<DatacatNode> iter = stream.iterator();
         final AtomicInteger dsCount = new AtomicInteger();
         DirectoryStreamWrapper.IteratorAcceptor acceptor
             = new DirectoryStreamWrapper.IteratorAcceptor() {
@@ -163,7 +162,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                 @Override
                 public boolean acceptNext() throws IOException{
                     while(iter.hasNext()){
-                        DatacatObject child = iter.next();
+                        DatacatNode child = iter.next();
                         DcPath maybeNext = dcPath.resolve(child.getName());
                         DcFile file = DcFileSystemProvider.this.
                         buildChild(dirFile, maybeNext, child);
@@ -528,10 +527,10 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             throw new IOException("Creation attribute not valid for creating a dataset");
         }
         ContainerCreationAttribute dsAttr = (ContainerCreationAttribute) attrs[0];
-        DatacatObject request = dsAttr.value();
+        DatacatNode request = dsAttr.value();
         try(ContainerDAO dao = daoFactory.newContainerDAO(targetDir)){
             String fileName = targetDir.getFileName().toString();
-            DatacatObject ret = dao.createNode(parent.asRecord(), fileName, request);
+            DatacatNode ret = dao.createNode(parent.asRecord(), fileName, request);
             dao.commit();
             parent.childAdded(targetDir, FileType.DIRECTORY);
             DcFile f = buildChild(parent, targetDir, ret);
