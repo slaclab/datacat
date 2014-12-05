@@ -14,6 +14,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
@@ -128,7 +129,7 @@ public class DatasetSqlDAOTest {
                 .datasetSource(TestUtils.TEST_DATASET_SOURCE)
                 .build();
         Dataset ds = create(TestUtils.TEST_BASE_PATH, req);
-        Optional<DatasetVersion> versionOpt = Optional.absent();
+        Optional<DatasetVersionModel> versionOpt = Optional.absent();
         DatasetVersion newVer = dao.createOrMergeDatasetVersion(ds, (DatasetVersion) req.getVersion(), versionOpt, false);
         System.out.println("Registered: " + newVer.toString());
         System.out.println(new Dataset.Builder(ds).version(newVer).build().toString());

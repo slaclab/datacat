@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.nio.file.FileSystemException;
 import java.nio.file.NoSuchFileException;
 import java.util.Map;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
-import org.srs.datacat.shared.DatacatObject;
 
 /**
  *
@@ -30,7 +30,7 @@ public interface BaseDAO extends AutoCloseable {
      * @throws IOException
      * @throws FileSystemException 
      */
-    <T extends DatacatObject> T createNode(DatacatRecord parent, String name, 
+    <T extends DatacatNode> T createNode(DatacatRecord parent, String name, 
             T request) throws IOException, FileSystemException;
     
     /**
@@ -42,7 +42,7 @@ public interface BaseDAO extends AutoCloseable {
      * @throws IOException
      * @throws NoSuchFileException 
      */
-    DatacatObject getObjectInParent(DatacatRecord parent, String name) throws IOException, NoSuchFileException;
+    DatacatNode getObjectInParent(DatacatRecord parent, String name) throws IOException, NoSuchFileException;
     
     /**
      * Add metadata to an existing record.

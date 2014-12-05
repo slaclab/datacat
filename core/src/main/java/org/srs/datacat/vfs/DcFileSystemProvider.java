@@ -389,7 +389,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
     }
 
-    private DcFile buildChild(DcFile parent, DcPath childPath, DatacatObject child) throws IOException{
+    private DcFile buildChild(DcFile parent, DcPath childPath, DatacatNode child) throws IOException{
         DcAclFileAttributeView aclView;
         OwnerAclAttributes attr = DcPermissions.getOwnerAclAttributes(child.getAcl()).orNull();
         if(parent == null){

@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetView;
@@ -435,7 +436,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
     }
 
     @Override
-    public <T extends DatacatObject> T createNode(DatacatRecord parent, String path,
+    public <T extends DatacatNode> T createNode(DatacatRecord parent, String path,
             T request) throws IOException, FileSystemException{
         if(request instanceof Dataset){
             SqlDatasetDAO dao = new SqlDatasetDAO(getConnection());

@@ -10,10 +10,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.vfs.AbstractVirtualFile;
 import org.srs.vfs.ChildrenView;
-import org.srs.datacat.shared.DatacatObject;
-import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 import org.srs.datacat.vfs.attribute.SubdirectoryView;
@@ -42,21 +41,17 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     private final DatacatNode dcObject;
     private final long dcObjectCreation = System.currentTimeMillis();
 
-    public DcFile(DcPath path, DatacatObject object, DcAclFileAttributeView aclView){
+    public DcFile(DcPath path, DatacatNode object, DcAclFileAttributeView aclView){
         super(path, fileType(object));
-        if(object instanceof Dataset){
-            this.dcObject = new Dataset(object); // make a copy of base object
-        } else {
-            this.dcObject = object;
-        }
+        this.dcObject = object;
         addAttributeViews(aclView);
         initViews(object);
     }
 
-    private void initViews(DatacatObject orig){
+    private void initViews(DatacatNode orig){
         addAttributeViews(this);
-        if(isRegularFile() && orig instanceof Dataset){
-            addAttributeViews(new DatasetViewProvider(this, (Dataset) orig));
+        if(isRegularFile() && orig instanceof DatasetModel){
+            addAttributeViews(new DatasetViewProvider(this, (DatasetModel) orig));
         }
         if(isDirectory()){
             addAttributeViews(new ChildrenView<>(getPath()));
@@ -65,7 +60,7 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
         }
     }
 
-    protected static FileType fileType(DatacatObject o){
+    protected static FileType fileType(DatacatNode o){
         switch(Type.typeOf(o)){
             case GROUP:
                 return new GroupType();

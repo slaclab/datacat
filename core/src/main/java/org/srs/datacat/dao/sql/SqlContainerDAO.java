@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.locks.ReentrantLock;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetView;
@@ -43,9 +44,9 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
         super(conn, lock);
     }
 
-    public DatacatObject createContainer(DatacatRecord parent, String name, DatacatObject request) throws IOException{
+    public DatacatObject createContainer(DatacatRecord parent, String name, DatacatNode request) throws IOException{
         try {
-            return insertContainer(parent, name, request);
+            return insertContainer(parent, name, (DatacatObject) request);
         } catch(SQLException ex) {
             throw new IOException("Unable to create container: " + PathUtils.resolve(parent.
                     getPath(), name), ex);

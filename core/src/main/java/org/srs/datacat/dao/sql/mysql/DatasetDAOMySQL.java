@@ -115,14 +115,14 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
     }
     
     @Override
-    public DatasetVersion createOrMergeDatasetVersion(DatacatRecord dsRecord, DatasetVersion request, 
-            Optional<DatasetVersion> curVersionOpt, boolean mergeVersion) throws IOException, FileSystemException{
+    public DatasetVersion createOrMergeDatasetVersion(DatacatRecord dsRecord, DatasetVersionModel request, 
+            Optional<DatasetVersionModel> curVersionOpt, boolean mergeVersion) throws IOException, FileSystemException{
         try {
             int newId = request.getVersionId();
             boolean isCurrent = true;
             // If there exists a version already and we aren't skipping the check...
             if(curVersionOpt.isPresent()){
-                DatasetVersion currentVersion = curVersionOpt.get();
+                DatasetVersionModel currentVersion = curVersionOpt.get();
                 int currentId = currentVersion.getVersionId();
                 if(mergeVersion){
                     newId = getMergeVersionId(dsRecord.getPath(), currentId, newId);
@@ -141,7 +141,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
     }
     
     @Override
-    public DatasetLocation createDatasetLocation(DatacatRecord versionRecord, DatasetLocation newLoc, 
+    public DatasetLocation createDatasetLocation(DatacatRecord versionRecord, DatasetLocationModel newLoc, 
             boolean skipCheck) throws IOException, FileSystemException{
         try {
             if(!skipCheck){
@@ -240,8 +240,8 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
             if(!reqView.versionOpt().isPresent()){
                 throw new IllegalArgumentException("Missing version from request");
             }
-            DatasetVersion maybeVersion = skipVersionCheck ? null : getCurrentVersion(dsRecord);
-            Optional<DatasetVersion> versionOpt = Optional.fromNullable(maybeVersion);
+            DatasetVersionModel maybeVersion = skipVersionCheck ? null : getCurrentVersion(dsRecord);
+            Optional<DatasetVersionModel> versionOpt = Optional.fromNullable(maybeVersion);
             curVersion = createOrMergeDatasetVersion(dsRecord, (DatasetVersion) reqView.getVersion(),
                     versionOpt, mergeVersion);
             skipLocationCheck = true;
@@ -429,7 +429,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
     }*/
     
     protected DatasetVersion insertDatasetVersion(DatacatRecord dsRecord, int newVersionId, 
-            boolean isCurrent, DatasetVersion request) throws SQLException {
+            boolean isCurrent, DatasetVersionModel request) throws SQLException {
         // One last integrity check
         newVersionId = newVersionId < 0 ? 0 : newVersionId;
         
@@ -444,12 +444,12 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
             stmt.setLong(1, dsRecord.getPk());
             stmt.setInt(2, newVersionId );
             stmt.setString(3, datasetSource);
-            if(request.getProcessInstance() != null){
-                stmt.setLong(4, request.getProcessInstance() );
+            if(((DatasetVersion) request).getProcessInstance() != null){
+                stmt.setLong(4, ((DatasetVersion) request).getProcessInstance() );
             } else {
                 stmt.setNull(4, java.sql.Types.BIGINT);
             }
-            stmt.setString(5, request.getTaskName());
+            stmt.setString(5, ((DatasetVersion) request).getTaskName());
             stmt.executeUpdate();   // will throw exception if required parameter is empty...
             
             DatasetVersion.Builder builder = new DatasetVersion.Builder(request);
@@ -466,7 +466,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
             }
             retVersion = builder.build();
         }
-        if(request.getMetadata() != null){
+        if(request.getMetadataMap() != null && !request.getMetadataMap().isEmpty()){
             addDatasetVersionMetadata(retVersion.getPk(), request.getMetadataMap());
         }
         // Update isLatest
@@ -481,7 +481,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         return retVersion;
     }
     
-    protected void deleteDatasetVersion(long datasetPk, DatasetVersion version) throws SQLException{
+    protected void deleteDatasetVersion(long datasetPk, DatasetVersionModel version) throws SQLException{
         if(version.isLatest()){
             // Will set to NULL if there is no other dataset version
             String nextLatest = 
@@ -508,7 +508,8 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         delete1(deleteSql, version.getPk());
     }
 
-    protected DatasetLocation insertDatasetLocation(Long datasetVersionPk, DatasetLocation request) throws SQLException{
+    protected DatasetLocation insertDatasetLocation(Long datasetVersionPk,
+            DatasetLocationModel request) throws SQLException{
         String insertSql = 
               "insert into VerDataSetLocation (DatasetVersion, DatasetSite, Path, RunMin, RunMax, "
               + " NumberEvents, FileSizeBytes) values (?, ?, ?, ?, ?, ?, ?)";
@@ -522,12 +523,12 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
             stmt.setString(++i, request.getSite() );
             stmt.setString(++i, request.getResource() );
             
-            stmt.setObject(++i, request.getRunMin() );
-            stmt.setObject(++i, request.getRunMax() );
-            stmt.setObject(++i, request.getEventCount() );
+            stmt.setObject(++i, ((DatasetLocation) request).getRunMin() );
+            stmt.setObject(++i, ((DatasetLocation) request).getRunMax() );
+            stmt.setObject(++i, ((DatasetLocation) request).getEventCount() );
             stmt.setObject(++i, request.getSize() );
             stmt.executeUpdate();   // will throw exception if required parameter is empty...
-            DatasetLocation.Builder builder = new DatasetLocation.Builder(request);
+            DatasetLocation.Builder builder = new DatasetLocation.Builder((DatasetLocation) request);
             // now retrieve the primary key:
 
             try(ResultSet rs = stmt.getGeneratedKeys()){
@@ -616,7 +617,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
     }
     
     protected void assertCanCreateLocation(DatacatRecord versionRecord, 
-            DatasetLocation newLoc) throws SQLException, FileSystemException{
+            DatasetLocationModel newLoc) throws SQLException, FileSystemException{
         for(DatasetLocation l: getDatasetLocations(versionRecord.getPk())){
             if(l.getSite().equals(newLoc.getSite())){
                 String msg = "Location entry for site " + newLoc.getSite() + " already exists";
