@@ -61,7 +61,7 @@ public class DatacatObject implements DatacatNode, HasMetadata {
             return this == FOLDER || this == GROUP;
         }
 
-        public static Type typeOf(DatacatObject object){
+        public static Type typeOf(DatacatNode object){
             if(object instanceof LogicalFolder) {
                 return FOLDER;
             }
