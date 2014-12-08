@@ -43,6 +43,7 @@ import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 import org.srs.datacat.rest.RestException;
+import org.srs.datacat.model.RecordType;
 
 /**
  *
@@ -70,9 +71,9 @@ public class ContainerResource extends BaseResource {
             matrixParams.putAll(s.getMatrixParameters());
         }
         
-        DatacatObject.Type type = DatacatObject.Type.FOLDER; // Folder by default
+        RecordType type = RecordType.FOLDER; // Folder by default
         if(contType.equalsIgnoreCase("groups")){
-            type = DatacatObject.Type.GROUP;
+            type = RecordType.GROUP;
         }
         
         RequestView rv = null;
@@ -117,9 +118,9 @@ public class ContainerResource extends BaseResource {
             @PathParam("id") String parent,
             MultivaluedMap<String, String> formParams) throws IOException{
         String sParentPath = "/" + parent;
-        DatacatObject.Type type = DatacatObject.Type.FOLDER; // Folder by default
+        RecordType type = RecordType.FOLDER; // Folder by default
         if(contType.equalsIgnoreCase( "groups")){
-            type = DatacatObject.Type.GROUP;
+            type = RecordType.GROUP;
         }
 
         DatasetContainer.Builder builder = FormParamConverter.getContainerBuilder( type, formParams );

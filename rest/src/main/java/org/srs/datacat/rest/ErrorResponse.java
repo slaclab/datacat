@@ -1,4 +1,3 @@
-
 package org.srs.datacat.rest;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -13,20 +12,20 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyWriter;
-import org.srs.rest.shared.metadata.MetadataEntry;
+import org.srs.datacat.shared.metadata.MetadataEntry;
 
 /**
  *
  * @author bvan
  */
-@JsonPropertyOrder({"message","type", "code", "cause"})
-@JsonDeserialize(builder=MetadataEntry.Builder.class)
+@JsonPropertyOrder({"message", "type", "code", "cause"})
+@JsonDeserialize(builder = MetadataEntry.Builder.class)
 public class ErrorResponse {
     private String message;
     private String type;
     private String code;
     private String cause;
-    
+
     public ErrorResponse(){
     }
 
@@ -36,7 +35,7 @@ public class ErrorResponse {
         this.code = code;
         this.cause = cause;
     }
-    
+
     public String getMessage(){
         return message;
     }
@@ -55,7 +54,7 @@ public class ErrorResponse {
     public String getCause(){
         return cause;
     }
-  
+
     public static class Builder {
         private String message;
         private String type;
@@ -84,12 +83,12 @@ public class ErrorResponse {
             this.cause = cause;
             return this;
         }
-        
+
         public ErrorResponse build(){
-            return new ErrorResponse( message, type, code, cause );
+            return new ErrorResponse(message, type, code, cause);
         }
     }
-    
+
     @Override
     public String toString(){
         return "ErrorResponse{" + "message=" + message + ", type=" + type + ", code=" + code + ", cause=" + cause + '}';
@@ -98,11 +97,11 @@ public class ErrorResponse {
     // TODO: Hack because grizzly doesn't handle text/plain so great
     @Produces("text/plain")
     public static class ErrorTextProvider implements MessageBodyWriter<ErrorResponse> {
- 
+
         @Override
         public boolean isWriteable(Class<?> type, Type genericType,
-                                   Annotation[] annotations, MediaType mediaType) {
-            return type.isAssignableFrom( ErrorResponse.class );
+                Annotation[] annotations, MediaType mediaType){
+            return type.isAssignableFrom(ErrorResponse.class);
         }
 
         @Override
@@ -111,16 +110,15 @@ public class ErrorResponse {
                 MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
                 throws IOException, WebApplicationException{
             System.out.println("writing");
-            entityStream.write( t.toString().getBytes());
-            entityStream.write( "\n".getBytes() );
+            entityStream.write(t.toString().getBytes());
+            entityStream.write("\n".getBytes());
         }
-
 
         @Override
         public long getSize(ErrorResponse t,
                 Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType){
-            throw new UnsupportedOperationException( "Not supported yet." );
+            throw new UnsupportedOperationException("Not supported yet.");
         }
     }
-    
+
 }

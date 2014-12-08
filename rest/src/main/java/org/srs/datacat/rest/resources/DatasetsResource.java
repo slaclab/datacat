@@ -50,6 +50,7 @@ import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.DatasetViewInfo;
 import org.srs.datacat.shared.DatasetWithView;
 import org.srs.datacat.shared.FlatDataset;
+import org.srs.datacat.model.RecordType;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcFileSystemProvider.DcFsExceptions;
 import org.srs.datacat.vfs.DcPath;
@@ -99,7 +100,7 @@ public class DatasetsResource extends BaseResource  {
         try {
             DcFile file = getProvider().getFile(targetPath);
             DatacatNode ret;
-            RequestView rv = new RequestView(DatacatObject.Type.DATASET, requestMatrixParams);
+            RequestView rv = new RequestView(RecordType.DATASET, requestMatrixParams);
             System.out.println(rv.getDatasetView().toString());
             if(file.isRegularFile()){
                 ret = file.getAttributeView(DatasetViewProvider.class).withView(rv.getDatasetView(DatasetView.CURRENT_ANY), true);
@@ -142,7 +143,7 @@ public class DatasetsResource extends BaseResource  {
     public Response createDataset(Dataset dsReq) throws IOException{
         DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
         DcFile parentFile = null;
-        DatacatObject.Type targetType = null;
+        RecordType targetType = null;
         RequestView rv = null;
         try {
             parentFile = getProvider().getFile(targetPath);
@@ -242,14 +243,14 @@ public class DatasetsResource extends BaseResource  {
                are equivalent, and there is no new information, send a 302 - Found
     */
     
-    private DatacatObject.Type getTargetType(DcFile parentFile, RequestView rv){
+    private RecordType getTargetType(DcFile parentFile, RequestView rv){
         if(parentFile.isDirectory()){
             return parentFile.getObject().getType();
         } else {
             if(rv.getDatasetView().getVersionId() != DatasetView.EMPTY_VER){
-                return DatacatObject.Type.DATASETVERSION;
+                return RecordType.DATASETVERSION;
             } else {
-                return DatacatObject.Type.DATASET;
+                return RecordType.DATASET;
             }
         }
     }
@@ -303,7 +304,7 @@ public class DatasetsResource extends BaseResource  {
         DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
         RequestView rv = null;
         try {
-            rv = new RequestView(DatacatObject.Type.DATASET, requestMatrixParams);
+            rv = new RequestView(RecordType.DATASET, requestMatrixParams);
             DatasetView dv = rv.getDatasetView(DatasetView.CURRENT_ANY);
             getProvider().getFile(targetPath)
                     .getAttributeView(DatasetViewProvider.class)

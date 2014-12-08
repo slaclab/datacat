@@ -36,6 +36,7 @@ import org.srs.datacat.vfs.DirectoryWalker;
 import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
 import org.srs.datacatalog.search.DatasetSearch;
 import org.srs.datacat.rest.RestException;
+import org.srs.datacat.model.RecordType;
 import org.srs.vfs.GlobToRegex;
 import org.srs.vfs.PathUtils;
 
@@ -89,7 +90,7 @@ public class SearchResource extends BaseResource {
         
         DatasetView dv = null;
         try {
-            RequestView rv = new RequestView(DatacatObject.Type.DATASET, requestMatrixParams);
+            RequestView rv = new RequestView(RecordType.DATASET, requestMatrixParams);
             if(rv.getPrimaryView() == RequestView.CHILDREN || rv.getPrimaryView() == RequestView.METADATA){
                 throw new IllegalArgumentException("Children and Metadata views not available when searching");
             }

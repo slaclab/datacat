@@ -25,6 +25,7 @@ import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
+import org.srs.datacat.model.RecordType;
 import org.srs.datacat.shared.metadata.MetadataEntry;
 
 /**
@@ -68,7 +69,7 @@ public class FormParamConverter {
 
     }
     
-    public static DatasetContainer.Builder getContainerBuilder(DatacatObject.Type type, MultivaluedMap<String,String> formParams){
+    public static DatasetContainer.Builder getContainerBuilder(RecordType type, MultivaluedMap<String,String> formParams){
         DatasetContainer.Builder builder = new DatasetContainer.Builder();
         builder.jsonType(type.toString());
         ObjectMapper mapper = new ObjectMapper();
