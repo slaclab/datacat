@@ -26,6 +26,7 @@ import org.srs.datacat.shared.DatasetGroup;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.LogicalFolder;
+import org.srs.datacat.model.RecordType;
 import org.srs.vfs.AbstractFsProvider.AfsException;
 import org.srs.vfs.PathUtils;
 
@@ -259,7 +260,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
     }
 
     protected void doDeleteDataset(DatacatRecord record) throws IOException{
-        if(!(record.getType() == DatacatObject.Type.DATASET)){
+        if(!(record.getType() == RecordType.DATASET)){
             throw new IOException("Can only delete Datacat objects");
         }
         SqlDatasetDAO dao = new SqlDatasetDAO(getConnection());
@@ -356,21 +357,21 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         }
     }
 
-    protected static DatacatObject.Type getType(String typeChar){
+    protected static RecordType getType(String typeChar){
         switch(typeChar){
             case "F":
-                return DatacatObject.Type.FOLDER;
+                return RecordType.FOLDER;
             case "G":
-                return DatacatObject.Type.GROUP;
+                return RecordType.GROUP;
             case "D":
-                return DatacatObject.Type.DATASET;
+                return RecordType.DATASET;
             default:
                 return null;
         }
     }
 
     protected static DatacatObject.Builder getBuilder(ResultSet rs, String parentPath) throws SQLException{
-        DatacatObject.Type type = getType(rs.getString("type"));
+        RecordType type = getType(rs.getString("type"));
         DatacatObject.Builder o;
         switch(type){
             case DATASET:

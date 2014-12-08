@@ -1,6 +1,7 @@
 
 package org.srs.datacat.shared;
 
+import org.srs.datacat.model.DatasetModelBuilder;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -101,16 +102,8 @@ public class Dataset extends DatacatObject implements DatasetModel {
      * 
      * @author bvan
      */
-    public static class Builder extends DatacatObject.Builder<Builder> {
+    public static class Builder extends DatacatObject.Builder<Builder> implements DatasetModelBuilder {
 
-        public static final int NONE = 0;
-        public static final int BASE = 1 << 1;
-        public static final int VERSION = 1 << 2;
-        //public static final int VERSIONS = 1 << 3;
-        public static final int LOCATION = 1 << 4;
-        public static final int LOCATIONS = 1 << 5;
-        public static final int FLAT = BASE | VERSION | LOCATION;
-        public static final int FULL = BASE | VERSION | LOCATIONS;
         //public static final int MULTI = BASE | VERSIONS | LOCATIONS;
         public int dsType = BASE;
         public DatasetVersionModel version;
@@ -194,6 +187,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
             this.created = ds.dateCreated;
         }
         
+        @Override
         public Builder view(DatasetViewInfo view){
             if(view.versionOpt().isPresent()){
                 version(view.getVersion());
@@ -207,6 +201,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder version(DatasetVersionModel val){
             this.version = val;
             dsType |= VERSION;
@@ -214,6 +209,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder location(DatasetLocationModel val){
             this.location = val;
             dsType |= LOCATION;
@@ -221,6 +217,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder created(Timestamp val){
             this.created = checkTime(val);
             dsType |= BASE;
@@ -228,6 +225,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder fileFormat(String val){
             this.fileFormat = val;
             dsType |= BASE;
@@ -235,6 +233,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder dataType(String val){
             this.dataType = val;
             dsType |= BASE;
@@ -242,6 +241,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder versionPk(Long val){
             this.versionPk = val;
             dsType |= BASE;
@@ -249,6 +249,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder locationPk(Long val){
             this.locationPk = val;
             dsType |= VERSION;
@@ -256,6 +257,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonIgnore
+        @Override
         public Builder versionId(Integer val){
             this.versionId = val;
             dsType |= VERSION;
@@ -263,11 +265,13 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder versionId(DatasetView.VersionId val){
             return versionId( val.getId() );
         }
 
         @JsonSetter
+        @Override
         public Builder datasetSource(String val){
             this.datasetSource = val;
             dsType |= VERSION;
@@ -289,6 +293,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder latest(Boolean val){
             this.latest = val;
             dsType |= VERSION;
@@ -296,6 +301,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder versionCreated(Timestamp val){
             this.versionCreated = checkTime(val);
             dsType |= VERSION;
@@ -303,6 +309,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder versionModified(Timestamp val){
             this.versionModified = checkTime(val);
             dsType |= VERSION;
@@ -332,6 +339,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
             return this;
         }
 
+        @Override
         public Builder versionMetadata(Map<String, Object> val){
             this.versionMetadata = new HashMap<>();
             if(val != null){
@@ -342,6 +350,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder size(Long val){
             this.size = val;
             dsType |= LOCATION;
@@ -349,6 +358,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder resource(String val){
             this.resource = val;
             dsType |= LOCATION;
@@ -363,6 +373,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder site(String val){
             this.site = val;
             dsType |= LOCATION;
@@ -384,6 +395,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder checksum(Long val){
             this.checksum = val;
             dsType |= LOCATION;
@@ -391,6 +403,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder master(Boolean val){
             this.master = val;
             dsType |= LOCATION;
@@ -398,6 +411,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder locationCreated(Timestamp val){
             this.locationCreated = checkTime(val);
             dsType |= LOCATION;
@@ -405,6 +419,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder locationModified(Timestamp val){
             this.locationModified = checkTime(val);
             dsType |= LOCATION;
@@ -412,6 +427,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder locationScanned(Timestamp val){
             this.locationScanned = checkTime(val);
             dsType |= LOCATION;
@@ -419,6 +435,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         }
 
         @JsonSetter
+        @Override
         public Builder scanStatus(String val){
             this.scanStatus = val;
             dsType |= LOCATION;

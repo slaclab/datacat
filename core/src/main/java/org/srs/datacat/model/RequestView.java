@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.FlatDataset;
 
 /**
@@ -17,7 +16,7 @@ import org.srs.datacat.shared.FlatDataset;
  */
 public class RequestView extends HashMap<String, String>{
     
-    DatacatObject.Type type;
+    RecordType type;
     Optional<DatasetView> datasetView = Optional.absent();
     boolean includeMetadata = true;
     
@@ -42,7 +41,7 @@ public class RequestView extends HashMap<String, String>{
         }
     };
     
-    public RequestView(DatacatObject.Type type, Map<String, List<String>> params){
+    public RequestView(RecordType type, Map<String, List<String>> params){
         this.type = type;
         validateView(params != null? params : new HashMap<String, List<String>>(0));
     }
@@ -81,7 +80,7 @@ public class RequestView extends HashMap<String, String>{
         
         HashMap<String, String> m = new HashMap<>();
         if(type == null){
-            type = DatacatObject.Type.FOLDER; // Assume to be folder in this case.
+            type = RecordType.FOLDER; // Assume to be folder in this case.
         }
         switch(type){
             case GROUP:

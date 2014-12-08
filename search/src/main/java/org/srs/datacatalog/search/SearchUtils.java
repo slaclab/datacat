@@ -22,6 +22,7 @@ import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.FlatDataset;
 import org.srs.datacat.shared.FullDataset;
+import org.srs.datacat.model.RecordType;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DirectoryWalker;
 import org.srs.vfs.PathUtils;
@@ -276,7 +277,7 @@ public class SearchUtils {
         try (PreparedStatement stmt  = conn.prepareStatement(sql)){
             while(containers.peek() != null){
                 DatacatRecord file = containers.remove();
-                boolean isGroup = file.getType() == DatacatObject.Type.GROUP;
+                boolean isGroup = file.getType() == RecordType.GROUP;
                 stmt.setNull( isGroup ? 1 : 2, Types.VARCHAR);
                 stmt.setLong( isGroup ? 2 : 1, file.getPk());
                 stmt.setString( 3, file.getPath());
@@ -293,7 +294,7 @@ public class SearchUtils {
         try (PreparedStatement stmt = conn.prepareStatement( sql )){
             while(visitor.files.peek() != null){
                 DatacatRecord file = visitor.files.remove();
-                boolean isGroup = file.getType() == DatacatObject.Type.GROUP;
+                boolean isGroup = file.getType() == RecordType.GROUP;
                 stmt.setNull( isGroup ? 1 : 2, Types.VARCHAR);
                 stmt.setLong( isGroup ? 2 : 1, file.getPk());
                 stmt.setString( 3, file.getPath());

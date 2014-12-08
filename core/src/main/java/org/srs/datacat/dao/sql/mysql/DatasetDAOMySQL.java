@@ -23,12 +23,13 @@ import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.DatasetViewInfoModel;
 import org.srs.datacat.shared.Patchable;
-import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.DatasetViewInfo;
+import org.srs.datacat.model.RecordType;
 import static org.srs.datacat.vfs.DcFileSystemProvider.DcFsExceptions.*;
 import org.srs.datacat.vfs.attribute.DatasetOption;
 import org.srs.vfs.PathUtils;
@@ -60,7 +61,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
     
     @Override
     public Dataset createDataset(DatacatRecord parent, String dsName,
-            Optional<DatasetModel> dsReq, Optional<DatasetViewInfo> viewInfo, Set options) throws IOException{
+            Optional<DatasetModel> dsReq, Optional<DatasetViewInfoModel> viewInfo, Set options) throws IOException{
         
         Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
         DatacatRecord target = null;
@@ -225,7 +226,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         }
     }
     
-    public DatasetViewInfo createOrMergeDatasetView(DatacatRecord dsRecord, DatasetViewInfo reqView, 
+    public DatasetViewInfo createOrMergeDatasetView(DatacatRecord dsRecord, DatasetViewInfoModel reqView, 
             Set<DatasetOption> options) throws IOException {        
         Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
         boolean mergeVersion = dsOptions.remove(DatasetOption.MERGE_VERSION);
@@ -332,7 +333,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
     
     protected Dataset insertDataset(DatacatRecord parent, String name, Dataset request) throws SQLException {
         Long parentPk = parent.getPk();
-        DatacatObject.Type parentType = parent.getType();
+        RecordType parentType = parent.getType();
         String insertSql = "insert into VerDataset (DatasetName, DataSetFileFormat, DataSetDataType, "
                 + "DatasetLogicalFolder, DatasetGroup) values (?, ?, ?, ?, ?)";
         try(PreparedStatement stmt = getConnection().prepareStatement(insertSql, 
@@ -628,7 +629,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
     
     @Override
     public void patchDataset(DatacatRecord dataset, DatasetView view, Optional<DatasetModel> dsReq,
-            Optional<DatasetViewInfo> viewInfo) throws IOException{
+            Optional<DatasetViewInfoModel> viewInfo) throws IOException{
         try {
             patchDatasetInternal(dataset, view, dsReq, viewInfo);
         } catch (SQLException ex){
@@ -640,7 +641,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
     
     protected void patchDatasetInternal(DatacatRecord dataset, DatasetView view,
             Optional<DatasetModel> dsReq,
-            Optional<DatasetViewInfo> viewInfo) throws SQLException, IllegalAccessException,
+            Optional<DatasetViewInfoModel> viewInfo) throws SQLException, IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, IOException{
 
         if(dsReq.isPresent()){
@@ -674,7 +675,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         }
 
         if(viewInfo.isPresent()){
-            DatasetViewInfo requestView = viewInfo.get();
+            DatasetViewInfoModel requestView = viewInfo.get();
             System.out.println(view.toString());
             DatasetViewInfo currentView = getDatasetViewInfo(dataset, view);
 

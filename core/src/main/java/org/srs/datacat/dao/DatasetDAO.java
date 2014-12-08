@@ -10,6 +10,7 @@ import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.DatasetViewInfoModel;
 import org.srs.datacat.shared.DatasetViewInfo;
 
 /**
@@ -19,10 +20,10 @@ import org.srs.datacat.shared.DatasetViewInfo;
 public interface DatasetDAO extends BaseDAO {
     
     DatasetModel createDataset(DatacatRecord parent, String dsName, Optional<DatasetModel> dsReq, 
-            Optional<DatasetViewInfo> viewInfo, Set options) throws IOException;
+            Optional<DatasetViewInfoModel> viewInfo, Set options) throws IOException;
     
     void patchDataset(DatacatRecord dataset, DatasetView view, Optional<DatasetModel> dsReq, 
-            Optional<DatasetViewInfo> viewInfo) throws IOException;
+            Optional<DatasetViewInfoModel> viewInfo) throws IOException;
     
     DatasetVersionModel createOrMergeDatasetVersion(DatacatRecord dsRecord, DatasetVersionModel request,
             Optional<DatasetVersionModel> curVersionOpt, boolean mergeVersion) throws IOException, FileSystemException;

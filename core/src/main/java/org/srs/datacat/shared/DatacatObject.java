@@ -1,5 +1,7 @@
 package org.srs.datacat.shared;
 
+import org.srs.datacat.model.RecordType;
+import org.srs.datacat.model.DatacatNodeBuilder;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -46,50 +48,6 @@ public class DatacatObject implements DatacatNode, HasMetadata {
     private String acl;
     private final HashMap<String, Object> metadata = new HashMap<>();
 
-    /**
-     * The basic type of this DatacatObject.
-     */
-    //@XmlEnum(String.class)
-    public enum Type {
-        DATASET,
-        DATASETLOCATION,
-        DATASETVERSION,
-        FOLDER,
-        GROUP;
-
-        public boolean isContainer(){
-            return this == FOLDER || this == GROUP;
-        }
-
-        public static Type typeOf(DatacatNode object){
-            if(object instanceof LogicalFolder) {
-                return FOLDER;
-            }
-            if(object instanceof Dataset) {
-                return DATASET;
-            }
-            if(object instanceof DatasetGroup) {
-                return GROUP;
-            }
-            return null;
-        }
-
-        public static Type fromJsonType(String jsonType){
-            jsonType = jsonType == null ? "" : jsonType;
-            switch(jsonType){
-                case "folder":
-                    return Type.FOLDER;
-                case "group":
-                    return Type.GROUP;
-                case "dataset":
-                case "dataset#flat":
-                case "dataset#full":
-                    return Type.DATASET;
-                default:
-                    return null;
-            }
-        }
-    }
 
     // Default no-arg constructor needed for jaxb
     public DatacatObject(){
@@ -196,8 +154,8 @@ public class DatacatObject implements DatacatNode, HasMetadata {
     }
 
     @JsonIgnore
-    public Type getType(){
-        return Type.typeOf(this);
+    public RecordType getType(){
+        return RecordType.typeOf(this);
     }
 
     @JsonIgnore
@@ -237,13 +195,13 @@ public class DatacatObject implements DatacatNode, HasMetadata {
      *
      * @author bvan
      */
-    public static class Builder<U extends Builder> {
+    public static class Builder<U extends Builder> implements DatacatNodeBuilder<U> {
         public String name;
         public Long pk;
         public Long parentPk;
-        public Type parentType = null;
+        public RecordType parentType = null;
         public String path;
-        public Type type;
+        public RecordType type;
         public String acl;
         public HashMap<String, Object> metadata = new HashMap<>();
 
@@ -290,11 +248,12 @@ public class DatacatObject implements DatacatNode, HasMetadata {
             this.acl = builder.acl;
         }
 
-        public Builder(Type type){
+        public Builder(RecordType type){
             this();
             this.type = type;
         }
 
+        @Override
         public DatacatObject build(){
             if(type == null){
                 return new DatacatObject(this);
@@ -312,41 +271,46 @@ public class DatacatObject implements DatacatNode, HasMetadata {
         }
 
         @JsonSetter
+        @Override
         public U name(String val){
             this.name = val;
             return (U) this;
         }
 
-        public U type(Type dType){
+        @Override
+        public U type(RecordType dType){
             this.type = dType;  
             return (U) this;
         }
 
         @JsonSetter(value = "type")
         public U jsonType(String val){
-            this.type = Type.fromJsonType(val);
+            this.type = RecordType.fromJsonType(val);
             return (U) this;
         }
 
         @JsonSetter
+        @Override
         public U pk(Long val){
             this.pk = val;
             return (U) this;
         }
 
         @JsonSetter
+        @Override
         public U parentPk(Long val){
             this.parentPk = val;
             return (U) this;
         }
 
         @JsonSetter
-        public U parentType(Type val){
+        public U parentType(RecordType val){
             this.parentType = val;
             return (U) this;
         }
 
         @JsonSetter
+        @Override
         public U path(String val){
             this.path = val;
             return (U) this;
@@ -367,6 +331,7 @@ public class DatacatObject implements DatacatNode, HasMetadata {
             return (U) this;
         }
 
+        @Override
         public U metadata(Map<String, Object> val){
             this.metadata = new HashMap<>();
             if(val != null){
@@ -375,6 +340,7 @@ public class DatacatObject implements DatacatNode, HasMetadata {
             return (U) this;
         }
 
+        @Override
         public U acl(String val){
             this.acl = val;
             return (U) this;

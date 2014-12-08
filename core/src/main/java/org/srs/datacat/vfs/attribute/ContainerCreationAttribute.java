@@ -2,16 +2,17 @@
 package org.srs.datacat.vfs.attribute;
 
 import java.nio.file.attribute.FileAttribute;
-import org.srs.datacat.shared.DatacatObject;
+import org.srs.datacat.model.DatacatNode;
+
 
 /**
  * 
  * @author bvan
  */
-public class ContainerCreationAttribute implements FileAttribute<DatacatObject>{
-    DatacatObject request;
+public class ContainerCreationAttribute implements FileAttribute<DatacatNode>{
+    DatacatNode request;
     
-    public ContainerCreationAttribute(DatacatObject request){
+    public ContainerCreationAttribute(DatacatNode request){
         this.request = request;
     }
 
@@ -21,7 +22,7 @@ public class ContainerCreationAttribute implements FileAttribute<DatacatObject>{
     }
 
     @Override
-    public DatacatObject value(){
+    public DatacatNode value(){
         return request;
     }
 

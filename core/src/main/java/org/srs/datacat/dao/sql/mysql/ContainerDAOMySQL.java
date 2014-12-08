@@ -25,6 +25,7 @@ import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.shared.BasicStat;
 import org.srs.datacat.shared.DatasetStat;
 import org.srs.datacat.shared.DatasetViewInfo;
+import org.srs.datacat.model.RecordType;
 import org.srs.vfs.PathUtils;
 
 /**
@@ -57,7 +58,7 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
             DatacatObject request) throws SQLException{
         String tableName;
         String parentColumn;
-        DatacatObject.Type newType = request.getType();
+        RecordType newType = request.getType();
         DatacatObject retObject;
         DatasetContainer.Builder builder;
         switch(newType){
@@ -95,7 +96,7 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
         }
 
         if(request.getMetadataMap() != null && !request.getMetadataMap().isEmpty()){
-            if(newType == DatacatObject.Type.FOLDER){
+            if(newType == RecordType.FOLDER){
                 addFolderMetadata(retObject.getPk(), retObject.getMetadataMap());
             } else {
                 addGroupMetadata(retObject.getPk(), retObject.getMetadataMap());
@@ -132,7 +133,7 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
 
     @Override
     public BasicStat getBasicStat(DatacatRecord container) throws IOException{
-        boolean isFolder = container.getType() == DatacatObject.Type.FOLDER;
+        boolean isFolder = container.getType() == RecordType.FOLDER;
         String parent = isFolder ? "DatasetLogicalFolder" : "DatasetGroup";
 
         String statSQL = "select 'D' type, count(1) count from VerDataset where " + parent + " = ? ";
@@ -175,7 +176,7 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
     @Override
     public DatasetStat getDatasetStat(DatacatRecord container) throws IOException{
         String primaryTable;
-        boolean isFolder = container.getType() == DatacatObject.Type.FOLDER;
+        boolean isFolder = container.getType() == RecordType.FOLDER;
         if(isFolder){
             primaryTable = "DatasetLogicalFolder";
         } else {

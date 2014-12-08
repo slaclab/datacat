@@ -68,7 +68,7 @@ public interface DatasetContainer extends DatacatNode, HasMetadata {
 
         @Override
         public DatacatObject build(){
-            if(type == DatacatObject.Type.GROUP){
+            if(type == RecordType.GROUP){
                 return new DatasetGroup.Builder(this).build();
             }
             return new LogicalFolder.Builder(this).build();    

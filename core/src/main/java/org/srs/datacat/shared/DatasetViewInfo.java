@@ -1,5 +1,6 @@
 package org.srs.datacat.shared;
 
+import org.srs.datacat.model.DatasetViewInfoModel;
 import com.google.common.base.Optional;
 import java.util.Arrays;
 import java.util.Collection;
@@ -14,7 +15,7 @@ import org.srs.datacat.model.DatasetView;
  *
  * @author bvan
  */
-public class DatasetViewInfo {
+public class DatasetViewInfo implements DatasetViewInfoModel {
 
     private final Optional<DatasetVersionModel> versionOpt;
     private final Optional<Set<DatasetLocationModel>> locationOpt;
@@ -50,10 +51,12 @@ public class DatasetViewInfo {
         return locationMap;
     }
 
+    @Override
     public DatasetVersionModel getVersion(){
         return versionOpt.orNull();
     }
 
+    @Override
     public DatasetLocationModel getLocation(DatasetView view){
         if(locationOpt.isPresent()){
             return getLocation(view.getSite());
@@ -61,6 +64,7 @@ public class DatasetViewInfo {
         return null;
     }
 
+    @Override
     public DatasetLocationModel getLocation(String site){
         if(locationOpt.isPresent()){
             return toMap(locationOpt.get()).get(site);
@@ -68,6 +72,7 @@ public class DatasetViewInfo {
         return null;
     }
 
+    @Override
     public Set<DatasetLocationModel> getLocations(){
         if(locationOpt.isPresent()){
             return locationOpt.get();
@@ -75,10 +80,12 @@ public class DatasetViewInfo {
         return null;
     }
 
+    @Override
     public Optional<DatasetVersionModel> versionOpt(){
         return this.versionOpt;
     }
 
+    @Override
     public Optional<DatasetLocationModel> singularLocationOpt(){
         if(locationOpt.isPresent()){
             if(locationOpt.get().size() == 1){
@@ -89,6 +96,7 @@ public class DatasetViewInfo {
         return Optional.absent();
     }
 
+    @Override
     public Optional<DatasetLocationModel> canonicalLocationOpt(){
         DatasetView view = new DatasetView(DatasetView.EMPTY_VER, DatasetView.CANONICAL_SITE);
         Optional<Set<DatasetLocationModel>> maybeLocations = fromView(view).locationsOpt();
@@ -98,6 +106,7 @@ public class DatasetViewInfo {
         return Optional.absent();
     }
 
+    @Override
     public Optional<Set<DatasetLocationModel>> locationsOpt(){
         if(locationOpt.isPresent()){
             return locationOpt;
@@ -105,6 +114,7 @@ public class DatasetViewInfo {
         return Optional.absent();
     }
 
+    @Override
     public DatasetViewInfo fromView(DatasetView view){
         DatasetVersionModel retVersion = null;
         Collection<DatasetLocationModel> retLocations = null;

@@ -42,13 +42,12 @@ import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.DatasetWithViewModel;
 
 import org.srs.datacat.shared.BasicStat;
-import org.srs.datacat.shared.DatasetViewInfo;
-import org.srs.datacat.shared.DatasetWithView;
 
 import org.srs.datacat.dao.BaseDAO;
 import org.srs.datacat.dao.ContainerDAO;
 import org.srs.datacat.dao.DatasetDAO;
 import org.srs.datacat.dao.DAOFactory;
+import org.srs.datacat.model.DatasetViewInfoModel;
 
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
@@ -434,7 +433,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
 
         Optional<DatasetModel> requestDataset = Optional.absent();
-        Optional<DatasetViewInfo> requestView = Optional.absent();
+        Optional<DatasetViewInfoModel> requestView = Optional.absent();
 
         boolean createNode = dsOptions.remove(DatasetOption.CREATE_NODE);
 
@@ -449,8 +448,8 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         viewWork.retainAll(dsOptions);
         if(!viewWork.isEmpty()){
             checkPermission(dsPath.getUserName(), dsParent, DcPermissions.WRITE);
-            if(dsReq instanceof DatasetWithView){
-                requestView = Optional.of(((DatasetWithView) dsReq).getViewInfo());
+            if(dsReq instanceof DatasetWithViewModel){
+                requestView = Optional.of(((DatasetWithViewModel) dsReq).getViewInfo());
             } else {
                 throw new IllegalArgumentException("Unable to fulfill rquest");
             }
@@ -480,7 +479,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         DatacatNode ds = f.getObject();
         
         Optional<DatasetModel> requestDataset = Optional.of(request);
-        Optional<DatasetViewInfo> requestView = Optional.absent();
+        Optional<DatasetViewInfoModel> requestView = Optional.absent();
 
         if(request instanceof DatasetWithViewModel){
             requestView = Optional.of(((DatasetWithViewModel) request).getViewInfo());
@@ -494,9 +493,10 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         return getFile(dsPath);
     }
 
-    public DatasetViewInfo getDatasetViewInfo(DcFile file, DatasetView view) throws IOException, NoSuchFileException{
+    public DatasetViewInfoModel getDatasetViewInfo(DcFile file, 
+            DatasetView view) throws IOException, NoSuchFileException{
         try(DatasetDAO dsdao = daoFactory.newDatasetDAO()) {
-            DatasetViewInfo ret = dsdao.getDatasetViewInfo(file.asRecord(), view);
+            DatasetViewInfoModel ret = dsdao.getDatasetViewInfo(file.asRecord(), view);
             if(ret == null){
                 String msg = String.format("Invalid View. Version %d not found", view.getVersionId());
                 throw new NoSuchFileException(msg);

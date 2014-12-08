@@ -1,7 +1,6 @@
 
 package org.srs.datacat.model;
 
-import org.srs.datacat.shared.DatasetViewInfo;
 
 /**
  *
@@ -9,5 +8,5 @@ import org.srs.datacat.shared.DatasetViewInfo;
  */
 public interface DatasetWithViewModel extends DatasetModel, DatasetVersionModel {
 
-    DatasetViewInfo getViewInfo();
+    DatasetViewInfoModel getViewInfo();
 }

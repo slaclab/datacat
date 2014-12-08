@@ -1,7 +1,7 @@
 package org.srs.datacat.vfs;
 
 import java.io.IOException;
-import org.srs.datacat.shared.DatacatObject.Type;
+import org.srs.datacat.model.RecordType;
 
 import java.nio.file.attribute.AttributeView;
 import java.nio.file.attribute.BasicFileAttributeView;
@@ -61,7 +61,7 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     }
 
     protected static FileType fileType(DatacatNode o){
-        switch(Type.typeOf(o)){
+        switch(RecordType.typeOf(o)){
             case GROUP:
                 return new GroupType();
             case FOLDER:
