@@ -2,6 +2,7 @@ package org.srs.datacat.rest;
 
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import com.fasterxml.jackson.jaxrs.xml.JacksonJaxbXMLProvider;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -43,6 +44,8 @@ public class App extends ResourceConfig {
                     + context.getConfiguration().getRuntimeType().name().toLowerCase();
             context.property( disableMoxy, true );
             context.register( JacksonJaxbJsonProvider.class, MessageBodyReader.class, 
+                    MessageBodyWriter.class );
+            context.register( JacksonJaxbXMLProvider.class, MessageBodyReader.class, 
                     MessageBodyWriter.class );
             return true;
         }
