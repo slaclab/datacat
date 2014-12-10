@@ -1,8 +1,24 @@
 import requests
 from config import ENDPOINTS, DATATYPES
+import json
+from .model import *
+
+
+class DcException(Exception):
+    def __init__(self, resp):
+        try:
+            err = resp.json()
+            for k, v in err.items():
+                setattr(self, k, v)
+        except Exception:
+            self.content = resp.content
 
 
 class Client(object):
+
+    '''
+    HTTP-level abstraction over
+    '''
 
     ALLOWABLE_VERSIONS = "curr current latest new".split(" ")
     ALLOWABLE_SITES = "master canonical all".split(" ")
@@ -16,11 +32,11 @@ class Client(object):
         param_map = dict([i.split(":") for i in param_list])
         params = {param_map[k]:v for k,v in locals().items() if k in param_map and v is not None}
         target = self._target(endpoint, path, version, site, accept) + ";children"
-        return self._get(target, params, **kwargs)
+        return self._req("get", target, params, **kwargs)
     
     def path(self, path, version=None, site=None, accept="json", **kwargs):
         endpoint = "path"
-        return self._get(self._target(endpoint, path, version, site, accept), **kwargs)
+        return self._req("get", self._target(endpoint, path, version, site, accept), **kwargs)
     
     def search(self, target, version=None, site=None, query=None, sort=None, show=None, offset=None, max_num=None,
                accept="json", **kwargs):
@@ -45,11 +61,51 @@ class Client(object):
         param_list = "query:filter sort:sort show:show offset:offset max_num:max".split(" ")
         param_map = dict([i.split(":") for i in param_list])
         params = {param_map[k]:v for k,v in locals().items() if k in param_map and v is not None}
-        return self._get(self._target(endpoint, target, version, site, accept), params, **kwargs)
-    
-    def _get(self, target, params=None, **kwargs):
+        return self._req("get",self._target(endpoint, target, version, site, accept), params, **kwargs)
+
+    def create_dataset(self, path, name, dataType, fileFormat,
+                       versionId="new", versionMetadata=None, site=None, resource=None,
+                       datasetExtras=None, versionExtras=None, locationExtras=None,
+                       **kwargs):
+        endpoint = "datasets"
+        has_version = versionId is not None
+        has_location = site is not None and resource is not None
+        if not has_version and has_location:
+            versionId = "new"
+        version = None
+        location = None
+        if has_version:
+            version = DatasetVersion(versionId, versionMetadata, versionExtras)
+        if has_location:
+            location = DatasetLocation(site, resource, locationExtras)
+        view = DatasetView(version, [location])
+        ds = DatasetWithView(name, dataType, fileFormat, view)
+        payload = ds.pack()
+        return self._req("post",self._target(endpoint, path), data=json.dumps(payload), **kwargs)
+
+    def patch_dataset(self, path, versionId="new", versionMetadata=None, site=None, resource=None,
+                       datasetExtras=None, versionExtras=None, locationExtras=None,
+                       **kwargs):
+        endpoint = "datasets"
+        has_version = versionId is not None
+        has_location = site is not None and resource is not None
+        if not has_version and has_location:
+            versionId = "new"
+        version = None
+        location = None
+        if has_version:
+            version = DatasetVersion(versionId, versionMetadata, versionExtras)
+        if has_location:
+            location = DatasetLocation(site, resource, locationExtras)
+        view = DatasetView(version, [location])
+        ds = DatasetWithView(name=None, dataType=None, fileFormat=None, view)
+        payload = ds.pack()
+        return self._req("patch",self._target(endpoint, path), data=json.dumps(payload), **kwargs)
+
+    def _req(self, http_method, target, params=None, data=None, **kwargs):
         headers = kwargs["headers"] if "headers" in kwargs else None
-        resp = requests.get(target, params=params, headers=headers)
+        requests_method = getattr(requests, http_method)
+        resp = requests_method(target, params=params, headers=headers, data=data)
         if kwargs.get('show_request', False):
             print("Request")
             print(resp.request.url)
@@ -65,6 +121,8 @@ class Client(object):
             print(kwargs["show_raw_response"])
             print("Response:")
             print(resp.content)
+        if resp.status_code >= 300:
+            raise DcException(resp)
         return resp
 
     def _target(self, endpoint, path, version=None, site=None, accept="json"):

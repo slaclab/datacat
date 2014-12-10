@@ -5,7 +5,7 @@ import pprint
 import argparse
 
 from model import unpack, DatacatObject
-from client import Client
+from client import Client, DcException
 from config import *
 
 def build_argparser():
@@ -83,43 +83,34 @@ def main():
     client = Client(base_url)
     client_method = getattr(client, command)
 
-    if len(params) > 0:
-        resp = client_method(target, **params)
-    else:
-        resp = client_method(target)
+    resp = None
+    try:
+        if len(params) > 0:
+            resp = client_method(target, **params)
+        else:
+            resp = client_method(target)
+    except DcException as error:
+        if hasattr(error, "message"):
+            print("Error occurred:\nMessage: %s" %(error["message"]))
+            if "type" in error:
+                print("Type: %s" %(error["type"]))
+            if "cause" in error:
+                print("Cause: %s" %(error["cause"]))
+        else:
+            # Should have content
+            print(error.content)
+        sys.exit(1)
 
     pp = pprint.PrettyPrinter(indent=2)
 
     if(args.accept != 'json'):
         sys.stderr.write("Response: %d\n" %(resp.status_code))
-        if(resp.status_code >= 400):
-            print(resp.content)
         if(args.accept == 'xml'):
             from xml.dom.minidom import parseString
             xml= parseString(resp.content)
             print(xml.toprettyxml())
-
         if(args.accept == 'txt'):
             print(resp.text)
-
-        sys.exit(1)
-
-    if(resp.status_code >= 400):
-        print(args)
-        if args.show_response:
-            print resp.content
-
-        if resp.status_code >= 500:
-            print("Error processing request: %d" %resp.status_code)
-            if args.show_response:
-                print resp.content
-            sys.exit(1)
-        error = resp.json()
-        print("Error occurred:\nMessage: %s" %(error["message"]))
-        if "type" in error:
-            print("Type: %s" %(error["type"]))
-        if "cause" in error:
-            print("Cause: %s" %(error["cause"]))
         sys.exit(1)
 
     retObjects = []
@@ -130,7 +121,7 @@ def main():
 
     json = resp.json()
 
-    dcObject = lambda d: '$type' in d and d['$type'].split("#")[0] in 'dataset group folder'.split(" ")
+    dcObject = lambda d: '_type' in d and d['_type'].split("#")[0] in 'dataset group folder'.split(" ")
 
     if isinstance(json, dict):
         retObjects.append(unpack(json) if dcObject(json) else json)
