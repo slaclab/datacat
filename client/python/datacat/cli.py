@@ -91,11 +91,11 @@ def main():
             resp = client_method(target)
     except DcException as error:
         if hasattr(error, "message"):
-            print("Error occurred:\nMessage: %s" %(error["message"]))
-            if "type" in error:
-                print("Type: %s" %(error["type"]))
-            if "cause" in error:
-                print("Cause: %s" %(error["cause"]))
+            print("Error occurred:\nMessage: %s" %(error.message))
+            if hasattr(error, "type"):
+                print("Type: %s" %(error.type))
+            if hasattr(error, "cause"):
+                print("Cause: %s" %(error.cause))
         else:
             # Should have content
             print(error.content)
