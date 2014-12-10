@@ -1,8 +1,8 @@
 package org.srs.datacat.rest;
 
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import com.fasterxml.jackson.jaxrs.xml.JacksonJaxbXMLProvider;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.fasterxml.jackson.jaxrs.xml.JacksonXMLProvider;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -43,9 +43,9 @@ public class App extends ResourceConfig {
             final String disableMoxy = CommonProperties.MOXY_JSON_FEATURE_DISABLE + '.'
                     + context.getConfiguration().getRuntimeType().name().toLowerCase();
             context.property( disableMoxy, true );
-            context.register( JacksonJaxbJsonProvider.class, MessageBodyReader.class, 
+            context.register( JacksonJsonProvider.class, MessageBodyReader.class, 
                     MessageBodyWriter.class );
-            context.register( JacksonJaxbXMLProvider.class, MessageBodyReader.class, 
+            context.register( JacksonXMLProvider.class, MessageBodyReader.class, 
                     MessageBodyWriter.class );
             return true;
         }
