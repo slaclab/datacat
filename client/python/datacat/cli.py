@@ -63,10 +63,17 @@ def build_argparser():
         parser_children.add_argument('-S', '--stat', dest="stat",
                                  help="Type of stat to return", choices=("none","basic","dataset"))
         parser_children.set_defaults(command=cmd)
+
+    def add_mkds(subparsers):
+        cmd = "create_dataset"
+        parser_children = subparsers.add_parser(cmd, help="Help with the children command")
+        parser_children.add_argument('path', help="Dataset path")
+        parser_children.set_defaults(command=cmd)
     
     add_path(subparsers)
     add_children(subparsers)
     add_search(subparsers)
+    add_mkds(subparsers)
     
     return parser
 
