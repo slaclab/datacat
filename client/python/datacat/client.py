@@ -98,7 +98,7 @@ class Client(object):
         if has_location:
             location = DatasetLocation(site, resource, locationExtras)
         view = DatasetView(version, [location])
-        ds = DatasetWithView(name=None, dataType=None, fileFormat=None, view)
+        ds = DatasetWithView(None, None, None, view)
         payload = ds.pack()
         return self._req("patch",self._target(endpoint, path), data=json.dumps(payload), **kwargs)
 
