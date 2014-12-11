@@ -119,7 +119,7 @@ class DatasetWithView(Dataset):
 
         if self.view.locations is not None:
             if len(self.view.locations) == 1:   # Flat
-                ret.extend(self.view.locations[0].pack())
+                ret.update(self.view.locations[0].pack())
             elif len(self.view.locations) > 1:
                 ret['locations'] = [i.pack() for i in self.view.locations] # Full
         return ret
