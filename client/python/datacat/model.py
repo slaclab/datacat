@@ -65,8 +65,8 @@ class Dataset(DatacatObject):
     def pack(self):
         ret = {}
         for name in self.REQ_JSON_ALLOWED:
-            if name in self:
-                ret[name] = self[name]
+            if hasattr(self, name):
+                ret[name] = self.__dict__[name]
         return ret
 
 class DatasetVersion(DatacatObject):
@@ -84,14 +84,13 @@ class DatasetVersion(DatacatObject):
     def pack(self):
         ret = {}
         for name in self.REQ_JSON_ALLOWED:
-            if name in self:
-
-                ret[name] = self[name]
+            if hasattr(self, name):
+                ret[name] = self.__dict__[name]
         return ret
 
 
 class DatasetLocation(DatacatObject):
-    REQ_JSON_ALLOWED = "site resource".split(" ")
+    REQ_JSON_ALLOWED = "site resource checksum size".split(" ")
 
     def __init__(self, site=None, resource=None, locationExtras=None, **kwargs):
         if site:
@@ -102,10 +101,17 @@ class DatasetLocation(DatacatObject):
             for k, v in locationExtras.items():
                 setattr(k, v)
 
+    def pack(self):
+        ret = {}
+        for name in self.REQ_JSON_ALLOWED:
+            if hasattr(self, name):
+                ret[name] = self.__dict__[name]
+        return ret
+
 
 class DatasetWithView(Dataset):
     def __init__(self, name, dataType, fileFormat, view, **kwargs):
-        super(DatasetWithView, self).__init__(name, dataType,fileFormat, **kwargs)
+        super(DatasetWithView, self).__init__(name, dataType, fileFormat, **kwargs)
         self.view = view
 
     def pack(self):
@@ -113,12 +119,9 @@ class DatasetWithView(Dataset):
 
         if self.view.locations is not None:
             if len(self.view.locations) == 1:   # Flat
-                loc = self.view.locations[0]
-                for name in DatasetLocation.REQ_JSON_ALLOWED:
-                    if name in loc:
-                        ret[name] = loc[name]
+                ret.extend(self.view.locations[0].pack())
             elif len(self.view.locations) > 1:
-                ret['locations'] = self.view.locations # Full
+                ret['locations'] = [i.pack() for i in self.view.locations] # Full
         return ret
 
 class DatasetView:

@@ -68,6 +68,7 @@ def build_argparser():
         cmd = "create_dataset"
         parser_children = subparsers.add_parser(cmd, help="Help with the children command")
         parser_children.add_argument('path', help="Dataset path")
+        parser_children.add_argument('name', help="Dataset name")
         parser_children.add_argument('dataType', help="Dataset data type")
         parser_children.add_argument('fileFormat', help="Dataset file format")
         parser_children.add_argument('site', help="Location site")
