@@ -108,6 +108,8 @@ class Client(object):
         resp = requests_method(target, params=params, headers=headers, data=data)
         if kwargs.get('show_request', False):
             print("Request")
+            if data:
+                print("Data:\n" + str(data))
             print(resp.request.url)
         if kwargs.get('request_headers', False):
             print("Request Headers:")

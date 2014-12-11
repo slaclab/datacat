@@ -109,7 +109,7 @@ class DatasetWithView(Dataset):
         self.view = view
 
     def pack(self):
-        ret = super.pack()
+        ret = super(DatasetWithView, self).pack()
 
         if self.view.locations is not None:
             if len(self.view.locations) == 1:   # Flat
