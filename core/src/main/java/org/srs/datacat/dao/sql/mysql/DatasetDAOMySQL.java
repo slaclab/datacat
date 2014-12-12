@@ -272,8 +272,8 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         String sql = 
                 "select dsv.datasetversion, dsv.versionid, dsv.datasetsource, " 
                 + "CASE WHEN vd.latestversion = dsv.datasetversion THEN 1 ELSE 0 END isLatest "
-                + "FROM verdataset vd "
-                + "JOIN datasetversion dsv on (vd.latestversion = dsv.datasetversion) "
+                + "FROM VerDataset vd "
+                + "JOIN DatasetVersion dsv on (vd.latestversion = dsv.datasetversion) "
                 + "WHERE vd.dataset = ? ";
 
         try (PreparedStatement stmt = getConnection().prepareStatement( sql )){
@@ -291,7 +291,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
                 builder.path( dsRecord.getPath() + ";v=" + rs.getInt("versionid"));
                 setVersionMetadata( builder );
                 versions.add( builder.build());
-            }
+            }   
             return versions;
         }
     }
@@ -415,7 +415,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
     }
     
     protected void deleteDatasetFileFormat(String fileFormat) throws SQLException {
-        String deleteSql = "DELETE FROM DatasetDataType where DatasetDataType=?";
+        String deleteSql = "DELETE FROM DatasetFileFormat where DatasetDataType=?";
         delete1(deleteSql.toLowerCase(), fileFormat);
     }
     
@@ -514,7 +514,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
     protected DatasetLocation insertDatasetLocation(Long datasetVersionPk,
             DatasetLocationModel request) throws SQLException{
         String insertSql = 
-              "insert into VerDataSetLocation (DatasetVersion, DatasetSite, Path, RunMin, RunMax, "
+              "insert into VerDatasetLocation (DatasetVersion, DatasetSite, Path, RunMin, RunMax, "
               + " NumberEvents, FileSizeBytes) values (?, ?, ?, ?, ?, ?, ?)";
         
         int i = 0;
@@ -578,7 +578,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
             }
         }
 
-        String deleteSql = "delete from DatasetLocation where DatasetLocation=?";
+        String deleteSql = "delete from VerDatasetLocation where DatasetLocation=?";
         delete1(deleteSql, location.getPk() );
     }
 
