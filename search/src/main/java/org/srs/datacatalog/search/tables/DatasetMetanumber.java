@@ -7,7 +7,7 @@ import org.zerorm.core.interfaces.Schema;
  *
  * @author bvan
  */
-@Schema(name = "VerDatasetMetanumber")
+@Schema(name = "VerDatasetMetaNumber")
 public class DatasetMetanumber extends Metatable<Number> {
 
     public DatasetMetanumber(){

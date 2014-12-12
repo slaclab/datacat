@@ -9,7 +9,7 @@ import org.zerorm.core.interfaces.Schema;
  *
  * @author bvan
  */
-@Schema(name = "VerdatasetLocation")
+@Schema(name = "VerDatasetLocation")
 public class Location extends Table {
     @Schema public Column datasetLocation;
     @Schema public Column datasetVersion;

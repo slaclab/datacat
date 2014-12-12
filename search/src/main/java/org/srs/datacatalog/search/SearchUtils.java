@@ -149,12 +149,12 @@ public class SearchUtils {
     public static MetanameContext buildMetanameGlobalContext(Connection conn) throws SQLException {
         
         String sql = "select metaname, prefix " +
-                        "    from datasetmetaname vx " +
+                        "    from DatasetMetaName vx " +
                         "    left outer join ( " +
                         "            select substr(v1.metaname,0,4) prefix,  " +
                         "                    count(v1.metaname) prefixcount " +
                         "            from  " +
-                        "            datasetmetaname v1 " +
+                        "            DatasetMetaName v1 " +
                         "            group by substr(v1.metaname,0,4) " +
                         "            having count(v1.metaname) > 5 " +
                         "    ) v0 on substr(vx.metaname,0,4) = prefix " +
@@ -186,12 +186,12 @@ public class SearchUtils {
     public static MetanameContext buildMetaInfoGlobalContext(Connection conn) throws SQLException {
         
         String sql = "select metaname, ValueType, prefix " +
-                        "    from datasetmetainfo vx " +
+                        "    from DatasetMetaInfo vx " +
                         "    left outer join ( " +
                         "            select substr(v1.metaname,0,4) prefix,  " +
                         "                    count(v1.metaname) prefixcount " +
                         "            from  " +
-                        "            datasetmetainfo v1 " +
+                        "            DatasetMetaInfo v1 " +
                         "            group by substr(v1.metaname,0,4) " +
                         "            having count(v1.metaname) > 5 " +
                         "    ) v0 on substr(vx.metaname,0,4) = prefix " +
@@ -237,12 +237,12 @@ public class SearchUtils {
     }
     
     public static MetanameContext buildGroupMetanameContext(Connection conn) throws SQLException{
-        String sql = "select metaname from datasetgroupmetaname";
+        String sql = "select metaname from DatasetGroupMetaName";
         return buildContainerMetanameContext( conn, sql );
     }
 
     public static MetanameContext buildFolderMetanameContext(Connection conn) throws SQLException{
-        String sql = "select metaname from logicalfoldermetaname";
+        String sql = "select metaname from LogicalFolderMetaName";
         return buildContainerMetanameContext( conn, sql );
     }
 
