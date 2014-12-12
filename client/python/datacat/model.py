@@ -116,18 +116,26 @@ class DatasetWithView(Dataset):
 
     def pack(self):
         ret = super(DatasetWithView, self).pack()
-
-        if self.view.locations is not None:
-            if len(self.view.locations) == 1:   # Flat
-                ret.update(self.view.locations[0].pack())
-            elif len(self.view.locations) > 1:
-                ret['locations'] = [i.pack() for i in self.view.locations] # Full
+        ret.update(self.view.pack())
         return ret
+
 
 class DatasetView:
     def __init__(self, version=None, locations=None):
         self.version = version
         self.locations = locations
+
+    def pack(self):
+        ret = {}
+        if self.version is not None:
+            ret.update(self.version.pack())
+        if self.locations is not None:
+            if len(self.locations) == 1:   # Flat
+                ret.update(self.locations[0].pack())
+            elif len(self.locations) > 1:
+                ret['locations'] = [i.pack() for i in self.locations] # Full
+        return ret
+
 
 def unpack(raw):
     dctype = raw["_type"]
