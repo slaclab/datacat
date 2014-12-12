@@ -27,7 +27,12 @@ class Group(Container):
 class Dataset(DatacatObject):
     REQ_JSON_ALLOWED = "name dataType fileFormat".split(" ")
 
-    def __init__(self, name, dataType, fileFormat):
+    def __init__(self, **kwargs):
+        self.name = kwargs['name']
+        self.dataType = kwargs['dataType']
+        self.fileFormat = kwargs['fileFormat']
+
+    def __init__(self, name, dataType, fileFormat, **kwargs):
         self.name = name
         self.dataType = dataType
         self.fileFormat = fileFormat
@@ -110,6 +115,11 @@ class DatasetLocation(DatacatObject):
 
 
 class DatasetWithView(Dataset):
+
+    def __init__(self, **kwargs):
+        super(DatasetWithView, self).__init__(**kwargs)
+        self.view = view
+
     def __init__(self, name, dataType, fileFormat, view, **kwargs):
         super(DatasetWithView, self).__init__(name, dataType, fileFormat, **kwargs)
         self.view = view
@@ -121,6 +131,13 @@ class DatasetWithView(Dataset):
 
 
 class DatasetView:
+    def __init__(self, **kwargs):
+        self.version = DatasetVersion(**kwargs)
+        if 'locations' in kwargs:
+            self.locations = [DatasetLocation(**raw_loc) for raw_loc in kwargs['locations']]
+        else:
+            self.locations = [DatasetLocation(**kwargs)]
+
     def __init__(self, version=None, locations=None):
         self.version = version
         self.locations = locations
@@ -140,7 +157,7 @@ class DatasetView:
 def unpack(raw):
     dctype = raw["_type"]
     if dctype.startswith("dataset"):
-        return Dataset(raw)
+        return DatasetWithView(raw)
     elif dctype.startswith("folder"):
         return Folder(raw)
     elif dctype.startswith("group"):
