@@ -302,8 +302,8 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
                 + "vdl.numberevents, vdl.filesizebytes, vdl.checksum, vdl.lastmodified, "
                 + "vdl.lastscanned, vdl.scanstatus, vdl.registered, "
                 + "CASE WHEN dsv.masterlocation = vdl.datasetlocation THEN 1 ELSE 0 END isMaster "
-                + "FROM datasetversion dsv "
-                + "JOIN verdatasetlocation vdl on (dsv.masterlocation = vdl.datasetlocation) "
+                + "FROM DatasetVersion dsv "
+                + "JOIN VerDatasetLocation vdl on (dsv.masterlocation = vdl.datasetlocation) "
                 + "WHERE dsv.datasetversion = ? ";
         try (PreparedStatement stmt = getConnection().prepareStatement( sql )){
             stmt.setLong( 1, versionPk );
