@@ -81,6 +81,9 @@ class Client(object):
         view = DatasetView(version, [location])
         ds = DatasetWithView(name, dataType, fileFormat, view)
         payload = ds.pack()
+        headers = kwargs.get("headers", {})
+        headers["content-type"] = "application/json"
+        kwargs["headers"] = headers
         return self._req("post",self._target(endpoint, path), data=json.dumps(payload), **kwargs)
 
     def patch_dataset(self, path, versionId="new", versionMetadata=None, site=None, resource=None,
@@ -100,6 +103,9 @@ class Client(object):
         view = DatasetView(version, [location])
         ds = DatasetWithView(None, None, None, view)
         payload = ds.pack()
+        headers = kwargs.get("headers", {})
+        headers["content-type"] = "application/json"
+        kwargs["headers"] = headers
         return self._req("patch",self._target(endpoint, path), data=json.dumps(payload), **kwargs)
 
     def _req(self, http_method, target, params=None, data=None, **kwargs):
