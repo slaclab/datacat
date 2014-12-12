@@ -61,7 +61,7 @@ class Client(object):
         param_list = "query:filter sort:sort show:show offset:offset max_num:max".split(" ")
         param_map = dict([i.split(":") for i in param_list])
         params = {param_map[k]:v for k,v in locals().items() if k in param_map and v is not None}
-        return self._req("get",self._target(endpoint, target, version, site, accept), params, **kwargs)
+        return self._req("get",self._target(endpoint, target, versionId, site, accept), params, **kwargs)
 
     def create_dataset(self, path, name, dataType, fileFormat,
                        versionId="new", site=None, versionMetadata=None, resource=None,
