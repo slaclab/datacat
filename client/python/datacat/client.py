@@ -20,25 +20,25 @@ class Client(object):
     HTTP-level abstraction over
     '''
 
-    ALLOWABLE_VERSIONS = "curr current latest new".split(" ")
+    ALLOWABLE_VERSIONS = "curr current latest new next".split(" ")
     ALLOWABLE_SITES = "master canonical all".split(" ")
 
     def __init__(self, base_url, *args, **kwargs):
         self.base_url = base_url
     
-    def children(self, path, version=None, site=None, offset=None, max_num=None, accept="json", **kwargs):
+    def children(self, path, versionId=None, site=None, offset=None, max_num=None, accept="json", **kwargs):
         endpoint = "path"
         param_list = "offset:offset max_num:max".split(" ")
         param_map = dict([i.split(":") for i in param_list])
         params = {param_map[k]:v for k,v in locals().items() if k in param_map and v is not None}
-        target = self._target(endpoint, path, version, site, accept) + ";children"
+        target = self._target(endpoint, path, versionId, site, accept) + ";children"
         return self._req("get", target, params, **kwargs)
     
-    def path(self, path, version=None, site=None, accept="json", **kwargs):
+    def path(self, path, versionId=None, site=None, accept="json", **kwargs):
         endpoint = "path"
-        return self._req("get", self._target(endpoint, path, version, site, accept), **kwargs)
+        return self._req("get", self._target(endpoint, path, versionId, site, accept), **kwargs)
     
-    def search(self, target, version=None, site=None, query=None, sort=None, show=None, offset=None, max_num=None,
+    def search(self, target, versionId=None, site=None, query=None, sort=None, show=None, offset=None, max_num=None,
                accept="json", **kwargs):
         """Search a target. A target is a Container of some sort. It may also be specified as a glob, as in:
          1. /path/to - target /path/to _only_
@@ -64,7 +64,7 @@ class Client(object):
         return self._req("get",self._target(endpoint, target, version, site, accept), params, **kwargs)
 
     def create_dataset(self, path, name, dataType, fileFormat,
-                       versionId="new", versionMetadata=None, site=None, resource=None,
+                       versionId="new", site=None, versionMetadata=None, resource=None,
                        datasetExtras=None, versionExtras=None, locationExtras=None,
                        **kwargs):
         endpoint = "datasets"
@@ -86,7 +86,7 @@ class Client(object):
         kwargs["headers"] = headers
         return self._req("post",self._target(endpoint, path), data=json.dumps(payload), **kwargs)
 
-    def patch_dataset(self, path, versionId="new", versionMetadata=None, site=None, resource=None,
+    def patch_dataset(self, path, versionId="current", site=None, versionMetadata=None, resource=None,
                        datasetExtras=None, versionExtras=None, locationExtras=None,
                        **kwargs):
         endpoint = "datasets"

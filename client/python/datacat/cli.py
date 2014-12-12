@@ -29,7 +29,7 @@ def build_argparser():
         parser_search = subparsers.add_parser("search", help="Search command help",
                                               formatter_class=argparse.RawTextHelpFormatter)
         parser_search.add_argument('path', help="Container Search path (or pattern)")
-        parser_search.add_argument('-v', '--version', dest="version",
+        parser_search.add_argument('-v', '--version', dest="versionId",
                                    help="Version to query (default equivalent to 'current' for latest version)")
         parser_search.add_argument('-s', '--site', dest="site",
                                    help="Site to query (default equivalent to 'canonical' for master site)")
@@ -44,7 +44,7 @@ def build_argparser():
         cmd = "path"
         parser_path = subparsers.add_parser(cmd, help="search help")
         parser_path.add_argument('path', help="Path to stat")
-        parser_path.add_argument('-v', '--version', dest="version",
+        parser_path.add_argument('-v', '--version', dest="versionId",
                                  help="Version to query (default equivalent to 'current' for latest version)")
         parser_path.add_argument('-s', '--site', dest="site",
                                  help="Site to query (default equivalent to 'canonical' for master site)")
@@ -56,7 +56,7 @@ def build_argparser():
         cmd = "children"
         parser_children = subparsers.add_parser(cmd, help="Help with the children command")
         parser_children.add_argument('path', help="Container to query")
-        parser_children.add_argument('-v', '--version', dest="version",
+        parser_children.add_argument('-v', '--version', dest="versionId",
                                      help="Version to query (default equivalent to 'current' for latest version)")
         parser_children.add_argument('-s', '--site', dest="site",
                                      help="Site to query (default equivalent to 'canonical' for master site)")
@@ -71,6 +71,8 @@ def build_argparser():
         parser_children.add_argument('name', help="Dataset name")
         parser_children.add_argument('dataType', help="Dataset data type")
         parser_children.add_argument('fileFormat', help="Dataset file format")
+        parser_children.add_argument('version', dest="versionId",
+                                     help="Version to query (default equivalent to 'current' for latest version)")
         parser_children.add_argument('site', help="Location site")
         parser_children.add_argument('resource', help="Location resource")
         parser_children.set_defaults(command=cmd)
@@ -85,7 +87,7 @@ def build_argparser():
 
 def main():
     parser = build_argparser()
-    args = parser.parse_args()
+    args = parser.parse_known_args()
 
     command = args.command
     target = args.__dict__.pop("path")
