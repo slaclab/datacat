@@ -1,8 +1,13 @@
 package org.srs.datacat.dao.sql.mysql;
 
+import java.io.IOException;
+import java.nio.file.FileSystemException;
 import java.sql.Connection;
 import java.util.concurrent.locks.ReentrantLock;
+import org.srs.datacat.model.DatacatNode;
+import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.shared.Dataset;
 
 /**
  *
@@ -16,6 +21,18 @@ public class BaseDAOMySQL extends org.srs.datacat.dao.sql.SqlBaseDAO {
 
     public BaseDAOMySQL(Connection conn, ReentrantLock lock){
         super(conn, lock);
+    }
+    
+    @Override
+    public <T extends DatacatNode> T createNode(DatacatRecord parent, String path,
+            T request) throws IOException, FileSystemException{
+        if(request instanceof Dataset){
+            DatasetDAOMySQL dao = new DatasetDAOMySQL(getConnection());
+            return (T) dao.createDatasetNode(parent, path, (Dataset) request);
+        }
+        // It should be a container
+        ContainerDAOMySQL dao = new ContainerDAOMySQL(getConnection());
+        return (T) dao.createContainer(parent, path, request);
     }
     
     @Override

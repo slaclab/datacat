@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -337,7 +338,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         String insertSql = "insert into VerDataset (DatasetName, DataSetFileFormat, DataSetDataType, "
                 + "DatasetLogicalFolder, DatasetGroup) values (?, ?, ?, ?, ?)";
         try(PreparedStatement stmt = getConnection().prepareStatement(insertSql, 
-                new String[]{"DATASET", "REGISTERED"})) {
+                new String[]{"DATASET"/*, "REGISTERED"*/})) {
             stmt.setString(1, name);
             stmt.setString(2, request.getFileFormat() );
             stmt.setString(3, request.getDataType().toUpperCase());
@@ -360,7 +361,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
                 builder.parentPk(parentPk);
                 builder.parentType(parentType);
                 builder.path(PathUtils.resolve(parent.getPath(), name));
-                builder.created(rs.getTimestamp(2));
+                builder.created(new Timestamp(System.currentTimeMillis()));
             }
             return builder.build();
         }
@@ -441,7 +442,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         String datasetSource = request.getDatasetSource() != null ? request.getDatasetSource() : DEFAULT_DATA_SOURCE;
         DatasetVersion retVersion = null;
         try(PreparedStatement stmt = getConnection().prepareStatement(sql, 
-                new String[]{"DATASETVERSION", "REGISTERED"})) {
+                new String[]{"DATASETVERSION"/*, "REGISTERED"*/})) {
             stmt.setLong(1, dsRecord.getPk());
             stmt.setInt(2, newVersionId );
             stmt.setString(3, datasetSource);
@@ -462,7 +463,8 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
                 rs.next();
                 builder.pk(rs.getLong(1));
                 builder.parentPk(dsRecord.getPk());
-                builder.created(rs.getTimestamp(2));
+                //builder.created(rs.getTimestamp(2));
+                builder.created(new Timestamp(System.currentTimeMillis()));
                 builder.metadata(request.getMetadataMap());
             }
             retVersion = builder.build();
@@ -519,7 +521,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         DatasetLocation retLoc;
         boolean isMaster = getDatasetLocations(datasetVersionPk).isEmpty();
         try(PreparedStatement stmt = getConnection().prepareStatement(insertSql, 
-                new String[]{"DATASETLOCATION", "REGISTERED"})) {
+                new String[]{"DATASETLOCATION"/*, "REGISTERED"*/})) {
             stmt.setLong(++i, datasetVersionPk );
             stmt.setString(++i, request.getSite() );
             stmt.setString(++i, request.getResource() );
@@ -536,7 +538,8 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
                 rs.next();
                 builder.pk(rs.getLong(1));
                 builder.parentPk(datasetVersionPk);
-                builder.created(rs.getTimestamp(2));
+                //builder.created(rs.getTimestamp(2))
+                builder.created(new Timestamp(System.currentTimeMillis()));
                 builder.master(isMaster);
             }
             retLoc = builder.build();
