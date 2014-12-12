@@ -27,6 +27,7 @@ public class DatasetView {
                 return new VersionId(CURRENT_VER);
             }
             switch(versionId.toLowerCase()){
+                case "new":
                 case "next":
                     return new VersionId(NEW_VER);
                 case "curr":
