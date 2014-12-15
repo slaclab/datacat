@@ -225,7 +225,7 @@ public class DatasetsResourceTest extends JerseyTest {
         metadata = new HashMap<>();
         metadata.put("patch", "example");
                 
-        req = new Dataset.Builder().checksum(12345L)
+        req = new Dataset.Builder().checksum(Long.toHexString(12345L))
                 .versionMetadata(metadata)
                 .build();
         resp = target("/datasets.json" + ds)
@@ -239,6 +239,69 @@ public class DatasetsResourceTest extends JerseyTest {
         TestCase.assertEquals(200, resp.getStatus());
         
     }
+    
+    /*@Test
+    public void testCreateJson() throws JsonProcessingException, IOException {
+        ContainerResourceTest.generateFolders(this, 1);
+        String name = "dataset0001";
+        String parent = "/testpath/folder00000";
+        String ds = "/testpath/folder00000/dataset0001";
+        
+        String k_s = "\"%s\":\"%s\"";
+        String k_n = "\"%s\":%f";
+        StringBuilder json = new StringBuilder("{");
+        json.append(String.format(k_s, "name", name))
+            .append(String.format(k_s, "dataType", HSqlDbHarness.JUNIT_DATASET_DATATYPE)).append(",")
+            .append(String.format(k_s, "fileFormat",  HSqlDbHarness.JUNIT_DATASET_FILEFORMAT)).append(",")
+            .append(String.format(k_s, "versionId",  "new")).append(",")
+            .append(String.format(k_s, "site",  "SLAC")).append(",")
+            .append(String.format(k_s, "resource",  "/nfs/fake/path"))
+            .append("}");
+
+        Dataset req = FormParamConverter.getDatasetBuilder(entity).build();
+        System.out.println(req.toString());
+        
+        Response resp = target("/datasets.json" + parent)
+                .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
+                .register(JacksonFeature.class)
+                .property(ClientProperties.FOLLOW_REDIRECTS, "false")
+                .request(MediaType.APPLICATION_JSON)
+                .header("authentication", TestUtils.TEST_USER)
+                .post(Entity.entity(req, MediaType.APPLICATION_JSON));
+        
+        printTrace( resp );
+        System.out.println(resp.readEntity(String.class));
+        TestCase.assertEquals(201, resp.getStatus());
+        
+        resp = target("/datasets.json" + ds)
+                .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
+                .register(JacksonFeature.class)
+                .property(ClientProperties.FOLLOW_REDIRECTS, "false")
+                .request(MediaType.APPLICATION_JSON)
+                .header("authentication", TestUtils.TEST_USER)
+                .get();
+        System.out.println(resp.readEntity(String.class));
+        
+        HashMap<String, Object> metadata = new HashMap<>();
+        metadata.put( numberName, numberMdValues[0]);
+        metadata.put( alphaName, alphaMdValues[0]);
+        metadata = new HashMap<>();
+        metadata.put("patch", "example");
+                
+        req = new Dataset.Builder().checksum(12345L)
+                .versionMetadata(metadata)
+                .build();
+        resp = target("/datasets.json" + ds)
+            .register(JacksonFeature.class)
+            .property(ClientProperties.FOLLOW_REDIRECTS, "false")
+            .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
+            .request(MediaType.APPLICATION_JSON)
+            .header("authentication", TestUtils.TEST_USER)
+            .method("PATCH", Entity.entity(req, MediaType.APPLICATION_JSON));
+        System.out.println(resp.readEntity(String.class));
+        TestCase.assertEquals(200, resp.getStatus());
+        
+    }*/
 
     
     @Test
