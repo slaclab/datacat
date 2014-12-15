@@ -81,7 +81,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     
     @Override 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public Long getChecksum(){ 
+    public String getChecksum(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getChecksum();
         }

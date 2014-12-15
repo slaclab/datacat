@@ -36,7 +36,7 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     private Long runMin;
     private Long runMax;
     private Long eventCount;
-    private Long checksum;
+    private String checksum;
     private Timestamp dateModified;
     private Timestamp dateScanned;
     private Timestamp dateCreated;
@@ -114,7 +114,7 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     @JsonInclude(JsonInclude.Include.NON_NULL) public Long getEventCount() { return this.eventCount; }
     
     @Patchable(column="Checksum")
-    @JsonInclude(JsonInclude.Include.NON_NULL) @Override public Long getChecksum() { return this.checksum; }
+    @JsonInclude(JsonInclude.Include.NON_NULL) @Override public String getChecksum() { return this.checksum; }
    
     @Override 
     @XmlJavaTypeAdapter(RestDateAdapter.class) 
@@ -169,7 +169,7 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
         private Long runMin;
         private Long runMax;
         private Long eventCount;
-        private Long checksum;
+        private String checksum;
         private Timestamp dateModified;
         private Timestamp dateScanned;
         private Timestamp dateCreated;
@@ -226,7 +226,7 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
         @JsonSetter public Builder site(String val){ this.site = val;  return this; }
         @JsonSetter public Builder runMin(Long val){ this.runMin = val; return this; }
         @JsonSetter public Builder runMax(Long val){ this.runMax = val; return this; }
-        @JsonSetter public Builder checksum(Long val){ this.checksum = val; return this; }
+        @JsonSetter public Builder checksum(String val){ this.checksum = val; return this; }
         @JsonSetter public Builder master(Boolean val){ this.master = val; return this; }
         @JsonSetter public Builder created(Timestamp val) { this.dateCreated = val; return this; }
         @JsonSetter public Builder modified(Timestamp val) { this.dateModified = val; return this; }

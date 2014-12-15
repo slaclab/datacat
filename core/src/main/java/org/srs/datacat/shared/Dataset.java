@@ -131,7 +131,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
         public Long eventCount;
         public Long runMin;
         public Long runMax;
-        public Long checksum;
+        public String checksum;
         public Timestamp locationCreated;
         public Timestamp locationModified;
         public Timestamp locationScanned;
@@ -396,7 +396,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
 
         @JsonSetter
         @Override
-        public Builder checksum(Long val){
+        public Builder checksum(String val){
             this.checksum = val;
             dsType |= LOCATION;
             return this;

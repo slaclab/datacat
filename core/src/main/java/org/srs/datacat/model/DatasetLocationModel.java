@@ -11,7 +11,7 @@ public interface DatasetLocationModel extends DatacatRecord {
 
     String getResource();
     Long getSize();
-    Long getChecksum();
+    String getChecksum();
     Timestamp getDateModified();
     Timestamp getDateCreated();
     Timestamp getDateScanned();

@@ -1,6 +1,7 @@
 package org.srs.datacat.dao.sql;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystemException;
@@ -428,7 +429,10 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         builder.runMax(rs.getLong("runmax"));
         builder.eventCount(rs.getLong("numberevents"));
         builder.size(rs.getLong("filesizebytes"));
-        builder.checksum(rs.getLong("checksum"));
+        BigDecimal bd = rs.getBigDecimal("checksum");
+        if(bd != null){
+            builder.checksum(bd.unscaledValue().toString(16));
+        }
         builder.modified(rs.getTimestamp("lastmodified"));
         builder.scanned(rs.getTimestamp("lastscanned"));
         builder.scanStatus(rs.getString("scanstatus"));

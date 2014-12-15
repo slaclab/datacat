@@ -27,7 +27,7 @@ public interface DatasetModelBuilder extends Builder {
     
     DatasetModel build();
 
-    DatasetModelBuilder checksum(Long val);
+    DatasetModelBuilder checksum(String val);
 
     DatasetModelBuilder created(Timestamp val);
 

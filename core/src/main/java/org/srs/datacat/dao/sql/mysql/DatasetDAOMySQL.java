@@ -5,6 +5,8 @@ import com.google.common.base.Optional;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.file.FileSystemException;
 import java.nio.file.NoSuchFileException;
 import java.sql.Connection;
@@ -320,7 +322,10 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
                 builder.runMax(rs.getLong( "runmax"));
                 builder.eventCount(rs.getLong( "numberevents"));
                 builder.size(rs.getLong( "filesizebytes"));
-                builder.checksum(rs.getLong( "checksum"));
+                BigDecimal bd = rs.getBigDecimal("checksum");
+                if(bd != null){
+                    builder.checksum(bd.unscaledValue().toString(16));
+                }
                 builder.modified(rs.getTimestamp( "lastmodified"));
                 builder.scanned(rs.getTimestamp( "lastscanned"));
                 builder.scanStatus( rs.getString( "scanstatus"));
@@ -742,7 +747,9 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
                         String baseSql = "UPDATE VerDatasetLocation SET %s=? WHERE DatasetLocation = ?";
                         Patchable p = method.getAnnotation(Patchable.class);
                         String sql = String.format(baseSql, p.column());
-
+                        if("checksum".equalsIgnoreCase(p.column())){
+                            patchedValue = new BigInteger(patchedValue.toString(), 16);
+                        }
                         try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
                             stmt.setObject(1, patchedValue);
                             stmt.setLong(2, currentLocation.getPk());

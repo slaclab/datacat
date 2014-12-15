@@ -141,8 +141,11 @@ public class SearchUtils {
         builder.runMax(rs.getLong("runmax"));
         builder.eventCount(rs.getLong("eventCount"));
         builder.size(rs.getLong("fileSizeBytes"));
-        builder.checksum(rs.getLong("checksum"));
-        builder.master( rs.getBoolean( "master"));
+        BigDecimal bd = rs.getBigDecimal("checksum");
+        if(bd != null){
+            builder.checksum(bd.unscaledValue().toString(16));
+        }
+        builder.master(rs.getBoolean( "master"));
         return builder.build();
     }
     
@@ -261,13 +264,16 @@ public class SearchUtils {
     public static void populateParentTempTable(Connection conn, LinkedList<DatacatRecord> containers) throws SQLException {
 
         if(conn.getMetaData().getDatabaseProductName().contains("MySQL")){
+            String dropSql = "drop temporary table if exists ContainerSearch";
             String tableSql = 
-                    "drop temporary table if exists ContainerSearch; "
-                    + "create temporary table ContainerSearch ( "
+                    "create temporary table ContainerSearch ( "
                     + "    DatasetLogicalFolder	bigint, "
                     + "    DatasetGroup		bigint, "
                     + "    ContainerPath varchar(500) "
                     + ")";
+            try (PreparedStatement stmt  = conn.prepareStatement(dropSql)){
+                stmt.execute();
+            }
             try (PreparedStatement stmt  = conn.prepareStatement(tableSql)){
                 stmt.execute();
             }

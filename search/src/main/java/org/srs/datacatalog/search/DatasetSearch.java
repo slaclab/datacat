@@ -3,6 +3,7 @@ package org.srs.datacatalog.search;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -264,6 +265,11 @@ public class DatasetSearch {
                     if(n.getType() == sym.NOT_MATCHES || n.getType() == sym.MATCHES){
                         AST.Node r = n.getRight();
                         r.setValue(sqlEscape((String) r.getValue()));
+                    }
+                    // If we are searching the checksum, make sure to convert a string back to a number
+                    if("checksum".equals(n.getLeft().getValue()) && n.getRight().getValue() instanceof String){
+                        AST.Node r = n.getRight();
+                        r.setValue(new BigInteger(n.getRight().getValue().toString(), 16));
                     }
                     changed |= visit(n.getRight());
                 }
