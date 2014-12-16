@@ -76,7 +76,9 @@ class Crawler:
             scan_result = {}
             scan_result["size"] = stat.st_size
             scan_result["checksum"] = str(cksum)
-            scan_result["versionMetadata"] = self.get_metadata()
+            md = self.get_metadata(file_path)
+            if md:
+                scan_result["versionMetadata"] = md
 
             try:
                 print(scan_result)
