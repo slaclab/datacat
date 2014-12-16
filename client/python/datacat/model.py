@@ -28,9 +28,9 @@ class Dataset(DatacatObject):
     REQ_JSON_ALLOWED = "name dataType fileFormat".split(" ")
 
     def __init__(self, **kwargs):
-        self.name = kwargs['name']
-        self.dataType = kwargs['dataType']
-        self.fileFormat = kwargs['fileFormat']
+        self.name = kwargs.get('name', None)
+        self.dataType = kwargs.get('dataType', None)
+        self.fileFormat = kwargs.get('fileFormat', None)
 
     def __init__(self, name, dataType, fileFormat, **kwargs):
         self.name = name
@@ -118,7 +118,7 @@ class DatasetWithView(Dataset):
 
     def __init__(self, **kwargs):
         super(DatasetWithView, self).__init__(**kwargs)
-        self.view = view
+        self.view = kwargs.get("view", None)
 
     def __init__(self, name, dataType, fileFormat, view, **kwargs):
         super(DatasetWithView, self).__init__(name, dataType, fileFormat, **kwargs)
