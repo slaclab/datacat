@@ -89,7 +89,6 @@ class Client(object):
     def patch_dataset(self, path, versionId="current", site=None, versionMetadata=None, resource=None,
                        datasetExtras=None, versionExtras=None, locationExtras=None,
                        **kwargs):
-        endpoint = "datasets"
         has_version = versionId is not None
         has_location = site is not None and resource is not None
         if not has_version and has_location:
@@ -102,11 +101,15 @@ class Client(object):
             location = DatasetLocation(site, resource, locationExtras)
         view = DatasetView(version, [location])
         ds = DatasetWithView(None, None, None, view)
-        payload = ds.pack()
+        return self.patch_dataset(path, ds, versionId, **kwargs)
+
+    def patch_dataset(self, path, dataset, versionId="current", site=None, **kwargs):
+        endpoint = "datasets"
+        payload = dataset.pack()
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
-        return self._req("patch",self._target(endpoint, path), data=json.dumps(payload), **kwargs)
+        return self._req("patch",self._target(endpoint, path, versionId, site), data=json.dumps(payload), **kwargs)
 
     def _req(self, http_method, target, params=None, data=None, **kwargs):
         headers = kwargs["headers"] if "headers" in kwargs else None

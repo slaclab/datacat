@@ -81,8 +81,7 @@ class Crawler:
                 scan_result["versionMetadata"] = md
 
             try:
-                print(scan_result)
-                #result = self.client.patch_dataset().patchDataset(dataset_path, scan_result)
+                patch_resp = self.client.patch_dataset(dataset_path, versionId = dataset.versionId, site=dataset.site, scan_result)
             except DcException as error:
                 print("Encountered error while updating dataset")
 
