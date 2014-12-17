@@ -23,7 +23,7 @@ public interface DatasetModel extends DatacatNode {
      * Standard interface for building a DatasetModel object.
      * @author bvan
      */
-    public interface Builder extends org.srs.datacat.model.Builder {
+    public interface Builder extends DatacatNodeBuilder<Builder> {
         int LOCATION = 1 << 4;
         int LOCATIONS = 1 << 5;
         int NONE = 0;
