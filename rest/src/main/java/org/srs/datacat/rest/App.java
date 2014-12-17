@@ -1,6 +1,8 @@
 package org.srs.datacat.rest;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.fasterxml.jackson.jaxrs.xml.JacksonXMLProvider;
 import java.io.IOException;
@@ -8,6 +10,7 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -21,6 +24,9 @@ import org.glassfish.jersey.CommonProperties;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spi.Container;
 import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
+import org.srs.datacat.dao.DAOFactory;
+import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.rest.security.GroupManagerLookupService;
 import org.srs.datacat.security.DcUserLookupService;
 import org.srs.datacat.vfs.DcFileSystemProvider;
@@ -37,15 +43,34 @@ public class App extends ResourceConfig {
     private DcUserLookupService lookup;
 
     public static class JacksonFeature implements Feature {
+        static JacksonJsonProvider jsonProvider;
+        static JacksonXMLProvider xmlProvider;
+        
+        public JacksonFeature(){
+            if(jsonProvider == null){
+                ObjectMapper jsonMapper = new ObjectMapper();
+                XmlMapper xmlMapper = new XmlMapper();
+                for(Entry<Class<? extends DatacatRecord>, Class<? extends DatacatRecord>> e
+                        : fsProvider.getModelProvider().modelProviders().entrySet()){
+                    jsonMapper.addMixIn(e.getKey(), e.getValue());
+                    xmlMapper.addMixIn(e.getKey(), e.getValue());
+                }
+
+                jsonProvider = new JacksonJsonProvider(jsonMapper);
+                xmlProvider = new JacksonXMLProvider(xmlMapper);
+            }
+        }
 
         @Override
         public boolean configure(final FeatureContext context){
             final String disableMoxy = CommonProperties.MOXY_JSON_FEATURE_DISABLE + '.'
                     + context.getConfiguration().getRuntimeType().name().toLowerCase();
             context.property( disableMoxy, true );
-            context.register( JacksonJsonProvider.class, MessageBodyReader.class, 
+
+            context.register( xmlProvider, MessageBodyReader.class, 
                     MessageBodyWriter.class );
-            context.register( JacksonXMLProvider.class, MessageBodyReader.class, 
+            
+            context.register( jsonProvider, MessageBodyReader.class, 
                     MessageBodyWriter.class );
             return true;
         }

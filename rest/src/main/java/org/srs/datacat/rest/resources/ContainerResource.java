@@ -29,13 +29,10 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import org.srs.datacat.model.DatacatNode;
-import org.srs.datacat.model.DatasetContainer;
-import org.srs.datacat.model.RequestView;
+import org.srs.datacat.shared.RequestView;
 import org.srs.datacat.rest.BaseResource;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.rest.FormParamConverter;
-import org.srs.datacat.shared.DatacatObject;
-import org.srs.datacat.shared.BasicStat.StatType;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
@@ -44,6 +41,8 @@ import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 import org.srs.datacat.rest.RestException;
 import org.srs.datacat.model.RecordType;
+import org.srs.datacat.model.container.ContainerStat;
+import org.srs.datacat.model.container.DatasetContainerBuilder;
 
 /**
  *
@@ -99,9 +98,9 @@ public class ContainerResource extends BaseResource {
             throw new RestException(ex, 500);
         }
         
-        StatType statType = StatType.NONE;
+        Class<? extends ContainerStat> statType = null;
         if(rv.containsKey( "stat" )){
-            statType = StatType.valueOf(rv.get("stat").toUpperCase());
+            statType = getProvider().getModelProvider().getStatByName(rv.get("stat").toLowerCase());
         }
         if(rv.containsKey("children")){
             return childrenView(containerPath, rv, offset, max, statType);
@@ -123,9 +122,9 @@ public class ContainerResource extends BaseResource {
             type = RecordType.GROUP;
         }
 
-        DatasetContainer.Builder builder = FormParamConverter.getContainerBuilder( type, formParams );
+        DatasetContainerBuilder builder = FormParamConverter.getContainerBuilder( type, formParams );
         DcPath parentPath = getProvider().getPath(DcUriUtils.toFsUri(sParentPath, getUser(), "SRS"));
-        DcPath targetPath = parentPath.resolve(builder.name);
+        DcPath targetPath = parentPath.resolve(builder.build().getName());
         builder.path(targetPath.toString());
         
         ContainerCreationAttribute request = new ContainerCreationAttribute(builder.build());
@@ -175,14 +174,14 @@ public class ContainerResource extends BaseResource {
         return null;
     }
     
-    public Response objectView(DcPath containerPath, RequestView rv, StatType statType) throws IOException{
+    public Response objectView(DcPath containerPath, RequestView rv, Class<? extends ContainerStat> statType) throws IOException{
         DcFile file = Files.readAttributes(containerPath, DcFile.class);
         return Response
                 .ok(file.getAttributeView(ContainerViewProvider.class)
                 .withView(statType)).build();
     }
 
-    public Response childrenView(DcPath containerPath, RequestView rv, int offset, int max, StatType statType){
+    public Response childrenView(DcPath containerPath, RequestView rv, int offset, int max, Class<? extends ContainerStat> statType){
         
         boolean withDs = true;
         if(rv.containsKey("datasets")){
@@ -203,7 +202,7 @@ public class ContainerResource extends BaseResource {
                 }
                 DatacatNode ret;
                 if(file.isRegularFile()){
-                    ret = file.getAttributeView(DatasetViewProvider.class).withView(rv);
+                    ret = file.getAttributeView(DatasetViewProvider.class).withView(rv.getDatasetView(), rv.includeMetadata());
                 } else {
                     ret = file.getAttributeView(ContainerViewProvider.class).withView(statType);
                 }

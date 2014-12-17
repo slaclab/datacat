@@ -6,7 +6,7 @@
 
 package org.srs.datacat.rest;
 
-import org.srs.datacat.model.RequestView;
+import org.srs.datacat.shared.RequestView;
 import java.util.List;
 import java.util.Map;
 import junit.framework.TestCase;

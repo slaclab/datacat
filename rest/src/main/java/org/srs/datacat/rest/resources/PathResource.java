@@ -26,11 +26,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.model.DatasetWithViewModel;
+import org.srs.datacat.model.dataset.DatasetWithViewModel;
 import org.srs.datacat.model.HasMetadata;
+import org.srs.datacat.model.container.ContainerStat;
 
 import org.srs.datacat.rest.BaseResource;
-import org.srs.datacat.model.RequestView;
+import org.srs.datacat.shared.RequestView;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.shared.BasicStat.StatType;
 import org.srs.datacat.vfs.DcFile;
@@ -103,7 +104,10 @@ public class PathResource extends BaseResource {
             HashMap<String, List<String>> extraQueryParams, boolean refresh) throws IOException{
         List<String> stl = matrixParams.get( "stat");
         String st = stl != null && !stl.isEmpty() ? stl.get(0).toUpperCase() : null;
-        StatType statType = st != null ? StatType.valueOf(st) : StatType.BASIC;
+        Class<? extends ContainerStat> statType = ContainerStat.class;
+        if(st != null){
+            statType = getProvider().getModelProvider().getStatByName(st);
+        }
         DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(path, getUser(), "SRS"));
         try {
             if(refresh){
@@ -113,7 +117,7 @@ public class PathResource extends BaseResource {
             DatacatNode ret;
             RequestView rv = new RequestView(file.getObject().getType(), matrixParams);
             if(file.isRegularFile()){
-                ret = file.getAttributeView(DatasetViewProvider.class).withView(rv);
+                ret = file.getAttributeView(DatasetViewProvider.class).withView(rv.getDatasetView(), rv.includeMetadata());
             } else {
                 ret = file.getAttributeView(ContainerViewProvider.class).withView(statType);
             }
@@ -148,7 +152,10 @@ public class PathResource extends BaseResource {
  
     public Response getChildren(DcFile dirFile, RequestView requestView, HashMap<String, List<String>> queryParams){
         boolean withDs = queryParams.containsKey("datasets") ? Boolean.valueOf( queryParams.get("datasets").get(0)) : true;
-        StatType statType = queryParams.containsKey("stat") ? StatType.valueOf( queryParams.get("stat").get(0).toUpperCase()): StatType.NONE;
+        Class<? extends ContainerStat> statType = null;
+        if(queryParams.containsKey("stat")){
+            statType = getProvider().getModelProvider().getStatByName(queryParams.get("stat").get(0).toLowerCase());
+        }
         int max = queryParams.containsKey("max") ? Integer.valueOf( queryParams.get("max").get(0)) :100000;
         int offset = queryParams.containsKey("offset") ? Integer.valueOf( queryParams.get("offset").get(0)) :0;
         boolean showCount = queryParams.containsKey("showCount") ? Boolean.valueOf( queryParams.get("showCount").get(0)) :false;
@@ -170,7 +177,7 @@ public class PathResource extends BaseResource {
                     DatacatNode ret;
                     if(file.isRegularFile()){
                         try {
-                            ret = file.getAttributeView(DatasetViewProvider.class).withView(requestView);
+                            ret = file.getAttributeView(DatasetViewProvider.class).withView(requestView.getDatasetView(), requestView.includeMetadata());
                         } catch (NoSuchFileException ex){
                             continue;
                         }

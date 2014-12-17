@@ -33,29 +33,29 @@ import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import org.srs.datacat.model.DatacatNode;
-import org.srs.datacat.model.DatasetModel;
-import org.srs.datacat.model.DatasetVersionModel;
-import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.model.RequestView;
+
 import org.srs.datacat.rest.BaseResource;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.rest.FormParamConverter;
 import org.srs.datacat.rest.PATCH;
 import org.srs.datacat.rest.RestException;
-import org.srs.datacat.shared.DatacatObject;
-import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.DatasetLocation;
+
+import org.srs.datacat.model.DatacatNode;
+import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.model.dataset.DatasetVersionModel;
+import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.RecordType;
+import org.srs.datacat.model.DcExceptions;
+import org.srs.datacat.model.dataset.DatasetOption;
+import org.srs.datacat.model.dataset.DatasetViewInfoModel;
+import org.srs.datacat.model.dataset.DatasetWithViewModel;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.DatasetViewInfo;
-import org.srs.datacat.shared.DatasetWithView;
-import org.srs.datacat.shared.FlatDataset;
-import org.srs.datacat.model.RecordType;
+import org.srs.datacat.shared.RequestView;
+
 import org.srs.datacat.vfs.DcFile;
-import org.srs.datacat.vfs.DcFileSystemProvider.DcFsExceptions;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
-import org.srs.datacat.vfs.attribute.DatasetOption;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 
 /**
@@ -104,7 +104,7 @@ public class DatasetsResource extends BaseResource  {
             System.out.println(rv.getDatasetView().toString());
             if(file.isRegularFile()){
                 ret = file.getAttributeView(DatasetViewProvider.class).withView(rv.getDatasetView(DatasetView.CURRENT_ANY), true);
-                return Response.ok( new GenericEntity(ret, Dataset.class) ).build();
+                return Response.ok( new GenericEntity(ret, DatasetModel.class) ).build();
             }
             throw new NoSuchFileException(path, "Path is not a dataset","NO_SUCH_FILE");
         } catch (IllegalArgumentException ex){
@@ -131,8 +131,8 @@ public class DatasetsResource extends BaseResource  {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response createDatasetFromForm(MultivaluedMap<String, String> formParams) throws IOException{
-        Dataset.Builder builder = FormParamConverter.getDatasetBuilder(formParams);
-        Dataset dsReq = builder.build();
+        DatasetModel.Builder builder = FormParamConverter.getDatasetBuilder(formParams);
+        DatasetModel dsReq = builder.build();
         return createDataset(dsReq);
     }
     
@@ -140,7 +140,7 @@ public class DatasetsResource extends BaseResource  {
     @Path(idRegex)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public Response createDataset(Dataset dsReq) throws IOException{
+    public Response createDataset(DatasetModel dsReq) throws IOException{
         DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
         DcFile parentFile = null;
         RecordType targetType = null;
@@ -155,9 +155,9 @@ public class DatasetsResource extends BaseResource  {
             throw new RestException(ex, 400, "Unable to validate request view", ex.getMessage());
         }
                         
-        Optional<DatasetViewInfo> viewRequestOpt;
-        if(dsReq instanceof DatasetWithView){
-            viewRequestOpt = Optional.of(((DatasetWithView) dsReq).getViewInfo());
+        Optional<DatasetViewInfoModel> viewRequestOpt;
+        if(dsReq instanceof DatasetWithViewModel){
+            viewRequestOpt = Optional.of(((DatasetWithViewModel) dsReq).getViewInfo());
         } else {
             viewRequestOpt = Optional.absent();
         }
@@ -172,8 +172,8 @@ public class DatasetsResource extends BaseResource  {
                         && !viewRequestOpt.get().versionOpt().isPresent() 
                         && viewRequestOpt.get().locationsOpt().isPresent()){
                     // The user omitted versionId, but included locations
-                    viewRequestOpt = Optional.of(new DatasetViewInfo(DatasetVersion.NEW_VERSION, 
-                            viewRequestOpt.get().getLocations()));
+                    viewRequestOpt = Optional.of((DatasetViewInfoModel) 
+                        new DatasetViewInfo(DatasetVersion.NEW_VERSION, viewRequestOpt.get().getLocations()));
                 }
             case DATASET:
                 if(viewRequestOpt.isPresent() && viewRequestOpt.get().versionOpt().isPresent()){
@@ -185,13 +185,14 @@ public class DatasetsResource extends BaseResource  {
                 }
             break;
         }
-        dsReq = new Dataset(dsReq);
+        dsReq = getProvider().getModelProvider().getDatasetBuilder().create(dsReq).build();
         return createDataset(targetPath, dsReq, viewRequestOpt, options);
     }
             
-    public Response createDataset(DcPath datasetPath, Dataset reqDs,
-            Optional<DatasetViewInfo> viewRequestOpt, Set<DatasetOption> options){
-        Dataset.Builder requestBuilder = new Dataset.Builder(reqDs);
+    public Response createDataset(DcPath datasetPath, DatasetModel reqDs,
+            Optional<DatasetViewInfoModel> viewRequestOpt, Set<DatasetOption> options){
+        DatasetModel.Builder requestBuilder = getProvider().getModelProvider()
+                .getDatasetBuilder().create(reqDs);
         if(viewRequestOpt.isPresent()){
             requestBuilder.view(viewRequestOpt.get());
         }
@@ -259,9 +260,9 @@ public class DatasetsResource extends BaseResource  {
       Return an appropriate response in the case where a file alredy exists
      */
     private Response handleFileAlreadyExists(FileAlreadyExistsException ex, DcPath datasetPath, 
-            Optional<DatasetViewInfo> viewOpt, Set<DatasetOption> options){
+            Optional<DatasetViewInfoModel> viewOpt, Set<DatasetOption> options){
 
-        DcFsExceptions exc = DcFsExceptions.valueOf( ex.getReason() );
+        DcExceptions exc = DcExceptions.valueOf( ex.getReason() );
         DatasetView existingView = new DatasetView(DatasetView.CURRENT_VER, DatasetView.ANY_SITES);
         if(viewOpt.isPresent() && viewOpt.get().versionOpt().isPresent()){
             int vid = viewOpt.get().getVersion().getVersionId();
@@ -277,8 +278,8 @@ public class DatasetsResource extends BaseResource  {
         } catch(IOException ex2) {
             throw new RestException(ex2, 500, "Unable to check current dataset", ex2.getMessage());
         }
-        DatasetViewInfo currentViewInfo = existing instanceof DatasetWithView
-                ? ((DatasetWithView) existing).getViewInfo() : null;
+        DatasetViewInfoModel currentViewInfo = existing instanceof DatasetWithViewModel
+                ? ((DatasetWithViewModel) existing).getViewInfo() : null;
 
         UriBuilder newUriBuilder = ui.getAbsolutePathBuilder();
         switch(exc){
@@ -300,7 +301,7 @@ public class DatasetsResource extends BaseResource  {
     @Path(idRegex)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public Response patchDataset(Dataset dsReq) throws IOException{
+    public Response patchDataset(DatasetModel dsReq) throws IOException{
         DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
         RequestView rv = null;
         try {
@@ -315,7 +316,7 @@ public class DatasetsResource extends BaseResource  {
             DatasetModel m = getProvider().getFile(targetPath)
                     .getAttributeView(DatasetViewProvider.class)
                     .withView(dv, true);
-            return Response.ok(new GenericEntity(m, FlatDataset.class)).build();
+            return Response.ok(new GenericEntity(m, DatasetWithViewModel.class)).build();
         } catch (NoSuchFileException ex) {
             throw new RestException(ex ,404, "Dataset doesn't exist", ex.getMessage());
         } catch (IllegalArgumentException ex){

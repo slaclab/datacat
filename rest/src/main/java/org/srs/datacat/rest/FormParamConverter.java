@@ -21,11 +21,12 @@ import java.util.List;
 import java.util.Map;
 import javax.ws.rs.core.MultivaluedMap;
 import org.srs.datacat.model.DatasetContainer;
-import org.srs.datacat.model.DatasetLocationModel;
+import org.srs.datacat.model.dataset.DatasetLocationModel;
+import org.srs.datacat.model.RecordType;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
+import org.srs.datacat.shared.DatasetContainerBuilder;
 import org.srs.datacat.shared.DatasetLocation;
-import org.srs.datacat.model.RecordType;
 import org.srs.datacat.shared.metadata.MetadataEntry;
 
 /**
@@ -38,7 +39,7 @@ public class FormParamConverter {
     final static HashMap<String, Method> datasetSetters = new HashMap<>();
     final static HashMap<String, Method> locationSetters = new HashMap<>();
     final static ObjectMapper mdMapper = new ObjectMapper();
-
+    
     static {
         
         AnnotationIntrospector primary = new JacksonAnnotationIntrospector();
@@ -60,7 +61,7 @@ public class FormParamConverter {
             }
         }
         
-        DatasetContainer.Builder builder = new DatasetContainer.Builder();
+        DatasetContainerBuilder builder = new DatasetContainerBuilder();
         for(Method m: builder.getClass().getMethods()){
             if(m.getAnnotation( JsonSetter.class ) != null){
                 containerSetters.put( m.getName(), m );
@@ -69,8 +70,8 @@ public class FormParamConverter {
 
     }
     
-    public static DatasetContainer.Builder getContainerBuilder(RecordType type, MultivaluedMap<String,String> formParams){
-        DatasetContainer.Builder builder = new DatasetContainer.Builder();
+    public static DatasetContainerBuilder getContainerBuilder(RecordType type, MultivaluedMap<String,String> formParams){
+        DatasetContainerBuilder builder = new DatasetContainerBuilder();
         builder.jsonType(type.toString());
         ObjectMapper mapper = new ObjectMapper();
         buildFromParams(mapper, builder, containerSetters, formParams);
