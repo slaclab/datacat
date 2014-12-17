@@ -11,8 +11,9 @@ import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.security.DcGroup;
 import org.srs.datacat.security.DcUserLookupService;
 import org.srs.datacat.security.DcUser;
-import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.LogicalFolder;
+import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.model.RecordType;
+import org.srs.datacat.model.container.DatasetContainerBuilder;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.model.dataset.DatasetOption;
@@ -37,7 +38,8 @@ public class TestUtils {
     
     public static void generateDatasets(DcPath root, DcFileSystemProvider provider, int folders, int datasets) throws IOException{
         DcPath parent = root.resolve( "/testpath");
-        LogicalFolder.Builder builder = new LogicalFolder.Builder();
+        DatasetContainerBuilder builder = (DatasetContainerBuilder) provider.getModelProvider()
+                .getContainerBuilder().type(RecordType.FOLDER);
 
         /*
             The following is faster:
@@ -58,7 +60,7 @@ public class TestUtils {
             String name =String.format("folder%05d", i);
             DcPath newPath = parent.resolve(name);
             for(int j = 0; j < datasets; j++){
-            Dataset.Builder dsBuilder = new Dataset.Builder();
+            DatasetModel.Builder dsBuilder = provider.getModelProvider().getDatasetBuilder();
                 name = String.format("dataset%05d", j);
                 dsBuilder.name(name);
                 dsBuilder.dataType(HSqlDbHarness.JUNIT_DATASET_DATATYPE);

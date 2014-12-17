@@ -26,12 +26,14 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.srs.datacat.shared.DatacatObject;
+import org.srs.datacat.model.DatacatNode;
 
-import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.LogicalFolder;
+import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.dao.sql.DatasetSqlDAOTest;
 import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.RecordType;
+import org.srs.datacat.model.container.DatasetContainerBuilder;
 import org.srs.datacat.security.DcUser;
 import org.srs.datacat.test.DbHarness;
 
@@ -137,13 +139,13 @@ public class DcFileSystemProviderTest {
     public void testCreateDataset() throws IOException{
         DcFileSystemProvider provider  = new DcFileSystemProvider(harness.getDataSource(), TestUtils.getLookupService());
         
-        Dataset.Builder builder = new Dataset.Builder();
+        DatasetModel.Builder builder = provider.getModelProvider().getDatasetBuilder();
         builder.name("testCaseDataset001");
         builder.dataType(TestUtils.TEST_DATATYPE_01);
         builder.fileFormat(TestUtils.TEST_FILEFORMAT_01);
         builder.datasetSource( TestUtils.TEST_DATASET_SOURCE);
         
-        Dataset request = builder.build();
+        DatasetModel request = builder.build();
         DcPath parentPath = provider.getPath( DcUriUtils.toFsUri(TestUtils.TEST_BASE_PATH, TestUtils.TEST_USER, "SRS"));
         DcPath filePath = parentPath.resolve(request.getName());
         HashSet<DatasetOption> options = new HashSet<>(Arrays.asList( DatasetOption.CREATE_NODE));
@@ -155,7 +157,12 @@ public class DcFileSystemProviderTest {
         DcFileSystemProvider provider  = new DcFileSystemProvider(harness.getDataSource(), TestUtils.getLookupService());
         
         String folderName = "createFolderTest";
-        LogicalFolder request = new LogicalFolder(new DatacatObject(0L, 0L, folderName));
+        DatasetContainer request = (DatasetContainer) provider.getModelProvider().getContainerBuilder()
+                .name(folderName)
+                .parentPk(0L)
+                .type(RecordType.FOLDER)
+                .build();
+
         ContainerCreationAttribute attr = new ContainerCreationAttribute(request);
         URI uri = DcUriUtils.toFsUri(TestUtils.TEST_BASE_PATH, TestUtils.TEST_USER, "SRS");
         DcPath path =  provider.getPath(uri);
