@@ -52,6 +52,7 @@
       <module>search</module>
       <module>vfs</module>
       <module>test</module>
+      <module>model</module>
     </modules>
 
     <dependencies>
