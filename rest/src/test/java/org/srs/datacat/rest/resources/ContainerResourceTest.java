@@ -41,7 +41,7 @@ public class ContainerResourceTest extends JerseyTest {
             System.out.println("/folders.txt" + newPath);
             Response resp = testInstance.target("/folders.txt" + parent)
                     .request()
-                    .header("authentication", TestUtils.TEST_USER)
+                    .header("authentication", DbHarness.TEST_USER)
                     .post( Entity.form(new Form("name",name)));
             TestCase.assertEquals(resp.readEntity(String.class), expectedStatus, resp.getStatus());
         }
@@ -82,7 +82,7 @@ public class ContainerResourceTest extends JerseyTest {
                 
         resp = target("/folders.txt/testpath")
                 .request()
-                .header("authentication", TestUtils.TEST_USER)
+                .header("authentication", DbHarness.TEST_USER)
                 .post(Entity.form( entity ));
         TestCase.assertEquals( Status.CREATED, Status.fromStatusCode(resp.getStatus()));
         
@@ -90,13 +90,13 @@ public class ContainerResourceTest extends JerseyTest {
         entity.add( "name", "dispatchTest2");
         resp = target("/folders.txt/testpath/dispatchTest")
                 .request()
-                .header("authentication", TestUtils.TEST_USER)
+                .header("authentication", DbHarness.TEST_USER)
                 .post(Entity.form(entity));
         TestCase.assertEquals( Status.CREATED, Status.fromStatusCode(resp.getStatus()));
         
         resp = target("/folders.txt/testpath/dispatchTest/dispatchTest2")
                 .request()
-                .header("authentication", TestUtils.TEST_USER)
+                .header("authentication", DbHarness.TEST_USER)
                 .get();
         TestCase.assertEquals( Status.OK, Status.fromStatusCode(resp.getStatus()));
         
@@ -143,7 +143,7 @@ public class ContainerResourceTest extends JerseyTest {
                 
         resp = target("/folders.txt/testpath")
                 .request()
-                .header("authentication", TestUtils.TEST_USER)
+                .header("authentication", DbHarness.TEST_USER)
                 .post(Entity.form( entity ));
         TestCase.assertEquals( Status.CREATED, Status.fromStatusCode(resp.getStatus()));
         
@@ -155,31 +155,31 @@ public class ContainerResourceTest extends JerseyTest {
         
         resp = target("/folders.txt/testpath/createFolderTest")
                 .request()
-                .header("authentication", TestUtils.TEST_USER)
+                .header("authentication", DbHarness.TEST_USER)
                 .post(Entity.form( entity ));
         TestCase.assertEquals( Status.CREATED, Status.fromStatusCode(resp.getStatus()));
         
         resp = target("/folders.txt/testpath/createFolderTest")
             .request()
-            .header("authentication", TestUtils.TEST_USER)
+            .header("authentication", DbHarness.TEST_USER)
             .delete();
         TestCase.assertEquals( Status.CONFLICT, Status.fromStatusCode(resp.getStatus()));
         
         resp = target("/folders.txt/testpath/createFolderTest/createFolderTest")
             .request()
-            .header("authentication", TestUtils.TEST_USER)
+            .header("authentication", DbHarness.TEST_USER)
             .delete();
         TestCase.assertEquals( Status.NO_CONTENT, Status.fromStatusCode(resp.getStatus()));
         
         resp = target("/folders.txt/testpath/createFolderTest")
             .request()
-            .header("authentication", TestUtils.TEST_USER)
+            .header("authentication", DbHarness.TEST_USER)
             .delete();
         TestCase.assertEquals( Status.NO_CONTENT, Status.fromStatusCode(resp.getStatus()));
         
         resp = target("/folders.txt/testpath/createFolderTest")
             .request()
-            .header("authentication", TestUtils.TEST_USER)
+            .header("authentication", DbHarness.TEST_USER)
             .delete();
         TestCase.assertEquals( Status.NOT_FOUND, Status.fromStatusCode(resp.getStatus()));
         
@@ -213,7 +213,7 @@ public class ContainerResourceTest extends JerseyTest {
             String newPath = PathUtils.resolve(parent, name);
             resp = target("/folders.txt" + newPath)
                     .request()
-                    .header("authentication", TestUtils.TEST_USER)
+                    .header("authentication", DbHarness.TEST_USER)
                     .delete();
             TestCase.assertEquals(expectedStatus, resp.getStatus());
         }
