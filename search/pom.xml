@@ -87,6 +87,12 @@
         </dependency>
         <dependency>
             <groupId>srs</groupId>
+            <artifactId>org-srs-datacat-impl</artifactId>
+            <version>0.2-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>srs</groupId>
             <artifactId>org-srs-datacat-test</artifactId>
             <version>0.2-SNAPSHOT</version>
             <scope>test</scope>

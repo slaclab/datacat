@@ -1,10 +1,6 @@
  
 package org.srs.datacat.vfs;
 
-import org.srs.datacat.vfs.DcPath;
-import org.srs.datacat.vfs.DcFileSystemProvider;
-import org.srs.datacat.vfs.DcUriUtils;
-import org.srs.datacat.vfs.DcFile;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.DirectoryNotEmptyException;
@@ -19,27 +15,31 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
-import javax.sql.DataSource;
 import junit.framework.TestCase;
 import org.junit.AfterClass;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.srs.datacat.dao.BaseDAO;
+import org.srs.datacat.dao.ContainerDAO;
+import org.srs.datacat.dao.DAOFactory;
+import org.srs.datacat.dao.sql.mysql.DAOFactoryMySQL;
 import org.srs.datacat.model.DatacatNode;
 
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetContainer;
-import org.srs.datacat.dao.sql.DatasetSqlDAOTest;
 import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.model.RecordType;
-import org.srs.datacat.model.container.DatasetContainerBuilder;
 import org.srs.datacat.security.DcUser;
 import org.srs.datacat.test.DbHarness;
 
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.model.dataset.DatasetOption;
+import org.srs.datacat.shared.Provider;
 import org.srs.vfs.AbstractPath;
+import org.srs.vfs.PathUtils;
 
 /**
  *
@@ -48,24 +48,68 @@ import org.srs.vfs.AbstractPath;
 public class DcFileSystemProviderTest {
     
     static DbHarness harness;
+    public DcFileSystemProvider provider;
     
-    public DcFileSystemProviderTest(){ }
+    public DcFileSystemProviderTest() throws IOException{ 
+        DAOFactory factory = new DAOFactoryMySQL(harness.getDataSource());
+        ModelProvider modelProvider = new Provider();
+        this.provider  = new DcFileSystemProvider(factory, modelProvider, TestUtils.getLookupService());
+    }
     
     @BeforeClass
     public static void setUpDb() throws SQLException, IOException{
-        DatasetSqlDAOTest.setUpDb();
         harness = DbHarness.getDbHarness();
-        DataSource d = harness.getDataSource();
-        DatasetSqlDAOTest.addRecords(d.getConnection());
+        DAOFactory factory = new DAOFactoryMySQL(harness.getDataSource());
+        ModelProvider modelProvider = new Provider();
+        addRecords(factory, modelProvider);
     }
     
     @AfterClass
-    public static void tearDownDb() throws Exception{DatasetSqlDAOTest.removeRecords( harness.getDataSource().getConnection());
+    public static void tearDownDb() throws Exception{
+        harness = DbHarness.getDbHarness();
+        DAOFactory factory = new DAOFactoryMySQL(harness.getDataSource());
+        removeRecords(factory.newContainerDAO());
+    }
+    
+    public static void addRecords(DAOFactory factory, ModelProvider provider) throws SQLException, IOException{
+        try (BaseDAO dao = factory.newBaseDAO()){
+            getDatacatObject(dao, DbHarness.TEST_BASE_PATH);
+            return;
+        } catch (NoSuchFileException x){ }
+        
+        try(ContainerDAO dao = factory.newContainerDAO()) {
+            DatacatNode container = (DatacatNode) provider.getContainerBuilder()
+                    .name(DbHarness.TEST_BASE_NAME).type(RecordType.FOLDER)
+                    .build();
+            DatasetContainer rootRecord = (DatasetContainer) provider
+                    .getContainerBuilder().pk(0L).path("/").build();
+            dao.createNode(rootRecord, DbHarness.TEST_BASE_NAME, container);
+            dao.commit();            
+        }
+    }
+    
+    public static void removeRecords(ContainerDAO dao) throws Exception {
+        /*DatacatNode folder = getDatacatObject(dao, DbHarness.TEST_BASE_PATH);
+        dao.deleteFolder(folder.getPk());
+        dao.commit();
+        dao.close();*/
+    }
+    
+    public static DatacatNode getDatacatObject(BaseDAO dao, String path) throws IOException, NoSuchFileException {
+        if(!PathUtils.isAbsolute( path )){
+            path = "/" + path;
+        }
+        path = PathUtils.normalize( path );
+        DatacatNode next = dao.getObjectInParent(null, "/");
+        int offsets[] = PathUtils.offsets(path);
+        for(int i = 1; i <= offsets.length; i++){
+            next = dao.getObjectInParent(next, PathUtils.getFileName(PathUtils.absoluteSubpath(path, i, offsets)));
+        }
+        return next;
     }
     
     @Before
     public void setUp() throws IOException, SQLException{
-        DcFileSystemProvider provider  = new DcFileSystemProvider(harness.getDataSource(), TestUtils.getLookupService());
         URI uri = DcUriUtils.toFsUri( "/", (DcUser) null, "SRS");
         DcPath rootPath = provider.getPath( uri );
         try(DirectoryStream<Path> s = provider.newDirectoryStream( rootPath )){
@@ -73,8 +117,6 @@ public class DcFileSystemProviderTest {
                 System.out.println(p.toString());
             }
         }
-        
-        provider  = new DcFileSystemProvider(harness.getDataSource(), TestUtils.getLookupService());
         
         DatacatRecord o = provider.resolveFile(rootPath.resolve("testpath")).getAttributeView(DcFile.class).getObject();
         
@@ -136,17 +178,15 @@ public class DcFileSystemProviderTest {
     }
 
     @Test
-    public void testCreateDataset() throws IOException{
-        DcFileSystemProvider provider  = new DcFileSystemProvider(harness.getDataSource(), TestUtils.getLookupService());
-        
+    public void testCreateDataset() throws IOException{        
         DatasetModel.Builder builder = provider.getModelProvider().getDatasetBuilder();
         builder.name("testCaseDataset001");
-        builder.dataType(TestUtils.TEST_DATATYPE_01);
-        builder.fileFormat(TestUtils.TEST_FILEFORMAT_01);
-        builder.datasetSource( TestUtils.TEST_DATASET_SOURCE);
+        builder.dataType(DbHarness.TEST_DATATYPE_01);
+        builder.fileFormat(DbHarness.TEST_FILEFORMAT_01);
+        builder.datasetSource( DbHarness.TEST_DATASET_SOURCE);
         
         DatasetModel request = builder.build();
-        DcPath parentPath = provider.getPath( DcUriUtils.toFsUri(TestUtils.TEST_BASE_PATH, TestUtils.TEST_USER, "SRS"));
+        DcPath parentPath = provider.getPath( DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, DbHarness.TEST_USER, "SRS"));
         DcPath filePath = parentPath.resolve(request.getName());
         HashSet<DatasetOption> options = new HashSet<>(Arrays.asList( DatasetOption.CREATE_NODE));
         provider.createDataset( filePath, request, options);
@@ -154,7 +194,6 @@ public class DcFileSystemProviderTest {
     
     @Test
     public void testCreateDeleteDirectory() throws IOException {
-        DcFileSystemProvider provider  = new DcFileSystemProvider(harness.getDataSource(), TestUtils.getLookupService());
         
         String folderName = "createFolderTest";
         DatasetContainer request = (DatasetContainer) provider.getModelProvider().getContainerBuilder()
@@ -164,7 +203,7 @@ public class DcFileSystemProviderTest {
                 .build();
 
         ContainerCreationAttribute attr = new ContainerCreationAttribute(request);
-        URI uri = DcUriUtils.toFsUri(TestUtils.TEST_BASE_PATH, TestUtils.TEST_USER, "SRS");
+        URI uri = DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, DbHarness.TEST_USER, "SRS");
         DcPath path =  provider.getPath(uri);
         provider.createDirectory(path.resolve(folderName), attr);
         provider.createDirectory(path.resolve(folderName).resolve(folderName), attr);

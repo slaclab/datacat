@@ -11,10 +11,14 @@ import javax.sql.DataSource;
 import junit.framework.TestCase;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.srs.datacat.dao.DAOFactory;
+import org.srs.datacat.dao.sql.mysql.DAOFactoryMySQL;
 import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.ModelProvider;
 import org.srs.datacatalog.search.plugins.DatacatPlugin;
 import org.srs.datacatalog.search.plugins.EXODatacatSearchPlugin;
 import org.srs.datacat.shared.Dataset;
+import org.srs.datacat.shared.Provider;
 import org.srs.datacat.test.DbHarness;
 
 import org.srs.datacat.vfs.DcFileSystemProvider;
@@ -51,8 +55,10 @@ public class DatacatSearchTest {
 
     public DatacatSearchTest() throws SQLException, IOException {
         ds = harness.getDataSource();
-        provider = new DcFileSystemProvider(ds, TestUtils.getLookupService());
-        root = provider.getPath(DcUriUtils.toFsUri( "/", TestUtils.TEST_USER, "SRS"));
+        DAOFactory factory = new DAOFactoryMySQL(ds);
+        ModelProvider modelProvider = new Provider();
+        provider = new DcFileSystemProvider(factory, modelProvider, TestUtils.getLookupService());
+        root = provider.getPath(DcUriUtils.toFsUri( "/", DbHarness.TEST_USER, "SRS"));
         
         pluginMap = new HashMap<>();
         DatacatPlugin exoPlugin = new EXODatacatSearchPlugin();

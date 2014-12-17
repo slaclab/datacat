@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.sql.DataSource;
 
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetContainer;
@@ -56,7 +55,6 @@ import org.srs.datacat.security.DcGroup;
 import org.srs.datacat.security.DcUserLookupService;
 import org.srs.datacat.security.DcUser;
 import org.srs.datacat.security.OwnerAclAttributes;
-import org.srs.datacat.shared.Provider;
 
 import org.srs.vfs.AbstractFsProvider;
 import org.srs.vfs.AbstractPath;
@@ -78,11 +76,12 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     private final DcFileSystem fileSystem;
     private final DAOFactory daoFactory;
     private final ModelProvider modelProvider;
-
-    public DcFileSystemProvider(DataSource dataSource, DcUserLookupService userLookupService) throws IOException{
+    
+    public DcFileSystemProvider(DAOFactory daoFactory, 
+            ModelProvider modelProvider, DcUserLookupService userLookupService) throws IOException{
         super();
-        this.daoFactory = new org.srs.datacat.dao.sql.mysql.DAOFactoryMySQL(dataSource);
-        this.modelProvider = new Provider();
+        this.daoFactory = daoFactory;
+        this.modelProvider = modelProvider;
         fileSystem = new DcFileSystem(this, userLookupService);
     }
 

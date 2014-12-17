@@ -17,6 +17,7 @@ import org.srs.datacat.model.container.DatasetContainerBuilder;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.model.dataset.DatasetOption;
+import org.srs.datacat.test.DbHarness;
 
 /**
  *
@@ -24,17 +25,6 @@ import org.srs.datacat.model.dataset.DatasetOption;
  */
 public class TestUtils {
     
-    public static String alphaMdValues[] = {"abc","def","ghi","jkl"};
-    public static Number numberMdValues[] = {0, 3.14159f, 4294967296L, -1.0000000001d};
-    public static String alphaName = "alpha";
-    public static String numberName = "num";
-    
-    public static final String TEST_BASE_NAME = "junit";
-    public static final String TEST_USER = "test_user";
-    public static final String TEST_BASE_PATH = "/" + TEST_BASE_NAME;
-    public static final String TEST_FILEFORMAT_01 = "junit.test";
-    public static final String TEST_DATASET_SOURCE = "JUNIT";
-    public static final String TEST_DATATYPE_01 = "JUNIT_TEST01";
     
     public static void generateDatasets(DcPath root, DcFileSystemProvider provider, int folders, int datasets) throws IOException{
         DcPath parent = root.resolve( "/testpath");
@@ -68,8 +58,8 @@ public class TestUtils {
                 dsBuilder.fileFormat(HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
                 dsBuilder.versionId( DatasetView.NEW_VER );
                 HashMap<String, Object> metadata = new HashMap<>();
-                metadata.put( numberName, numberMdValues[i % 4]);
-                metadata.put( alphaName, alphaMdValues[j % 4]);
+                metadata.put(DbHarness.numberName, DbHarness.numberMdValues[i % 4]);
+                metadata.put(DbHarness.alphaName, DbHarness.alphaMdValues[j % 4]);
                 dsBuilder.versionMetadata( metadata );
                 provider.createDataset(newPath.resolve(name), dsBuilder.build(), options );
             }

@@ -11,7 +11,11 @@ import org.apache.commons.dbcp2.DelegatingConnection;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.BeforeClass;
+import org.srs.datacat.dao.DAOFactory;
+import org.srs.datacat.dao.sql.mysql.DAOFactoryMySQL;
+import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.security.DcUser;
+import org.srs.datacat.shared.Provider;
 import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
 import org.srs.vfs.PathUtils;
@@ -25,7 +29,10 @@ public class DirectoryWalkerTest {
     DcFileSystemProvider provider;
     DcPath root;
     
-    public DirectoryWalkerTest(){
+    public DirectoryWalkerTest() throws IOException{
+        DAOFactory factory = new DAOFactoryMySQL(harness.getDataSource());
+        ModelProvider modelProvider = new Provider();
+        this.provider  = new DcFileSystemProvider(factory, modelProvider, TestUtils.getLookupService());
     }
     
     @BeforeClass
@@ -39,7 +46,6 @@ public class DirectoryWalkerTest {
     @Before
     public void setUp() throws IOException{
         URI uri = DcUriUtils.toFsUri( "/", (DcUser) null, "SRS");
-        provider = new DcFileSystemProvider(harness.getDataSource(), TestUtils.getLookupService());
         root = provider.getPath( uri );
     }
 
