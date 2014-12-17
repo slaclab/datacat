@@ -194,7 +194,7 @@ public class DatacatObject implements DatacatNode, HasMetadata {
      *
      * @author bvan
      */
-    public static class Builder<U extends Builder> implements DatacatNodeBuilder<U> {
+    public static class Builder<U extends DatacatNodeBuilder> implements DatacatNodeBuilder<U> {
         public String name;
         public Long pk;
         public Long parentPk;

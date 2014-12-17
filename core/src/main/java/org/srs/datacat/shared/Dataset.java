@@ -103,7 +103,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
      * 
      * @author bvan
      */
-    public static class Builder extends DatacatObject.Builder<Builder> 
+    public static class Builder extends DatacatObject.Builder<org.srs.datacat.model.DatasetModel.Builder> 
         implements org.srs.datacat.model.DatasetModel.Builder {
 
         //public static final int MULTI = BASE | VERSIONS | LOCATIONS;
@@ -188,13 +188,18 @@ public class Dataset extends DatacatObject implements DatasetModel {
             this.dataType = ds.dataType;
             this.created = ds.dateCreated;
         }
+        
+        public Builder(DatacatNode ds){
+            super(ds);
+        }
+
 
         @Override
         public Builder create(DatacatNode val){
             if(val instanceof Dataset){
                 return new Builder((Dataset) val);
             }
-            return super.create(val);
+            return new Builder(val);
         }
         
         @Override
