@@ -25,10 +25,12 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spi.Container;
 import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
 import org.srs.datacat.dao.DAOFactory;
+import org.srs.datacat.dao.sql.mysql.DAOFactoryMySQL;
 import org.srs.datacat.model.DatacatRecord;
-import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.rest.security.GroupManagerLookupService;
 import org.srs.datacat.security.DcUserLookupService;
+import org.srs.datacat.shared.Provider;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacatalog.search.plugins.EXODatacatSearchPlugin;
 
@@ -192,7 +194,9 @@ public class App extends ResourceConfig {
     }
     
     void initPlugins() throws IOException {
-        fsProvider = new DcFileSystemProvider(dataSource, lookup);
+        DAOFactory factory = new DAOFactoryMySQL(dataSource);
+        ModelProvider modelProvider = new Provider();
+        fsProvider = new DcFileSystemProvider(factory, modelProvider, lookup);
         register(new DataSourceBinder(dataSource));
         register(new FsBinder(fsProvider));
         

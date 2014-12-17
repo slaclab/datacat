@@ -67,7 +67,7 @@ public class SearchResourceTest extends JerseyTest{
     @Test
     public void testBasicSearch() throws IOException {
         DcFileSystemProvider provider = app.getFsProvider();
-        DcPath root = provider.getPath(DcUriUtils.toFsUri( "/", TestUtils.TEST_USER, "SRS"));
+        DcPath root = provider.getPath(DcUriUtils.toFsUri( "/", DbHarness.TEST_USER, "SRS"));
         TestUtils.generateDatasets( root, provider, 10, 100 );
         
         AnnotationIntrospector primary = new JacksonAnnotationIntrospector();
@@ -138,7 +138,7 @@ public class SearchResourceTest extends JerseyTest{
         pathPattern = "/testpath/folder0000*$";
         expected = 25*10;
         for(int j = 0; j < 10; j++){
-            Number num = TestUtils.numberMdValues[j%4];
+            Number num = DbHarness.numberMdValues[j%4];
             if(num.equals( 3.14159f) || num.equals(0)){
                 expected += 75;
             }

@@ -45,10 +45,6 @@ import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.TestUtils;
-import static org.srs.datacat.vfs.TestUtils.alphaMdValues;
-import static org.srs.datacat.vfs.TestUtils.alphaName;
-import static org.srs.datacat.vfs.TestUtils.numberMdValues;
-import static org.srs.datacat.vfs.TestUtils.numberName;
 import org.srs.datacat.model.dataset.DatasetOption;
 import org.srs.datacat.shared.metadata.MetadataEntry;
 import org.srs.vfs.PathUtils;
@@ -129,14 +125,14 @@ public class DatasetsResourceTest extends JerseyTest {
         entity.add( "fileFormat", HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
         entity.add( "versionId", Integer.toString(DatasetView.NEW_VER) );
         HashMap<String, Object> metadata = new HashMap<>();
-        metadata.put( numberName, numberMdValues[0]);
-        metadata.put( alphaName, alphaMdValues[0]);
+        metadata.put(DbHarness.numberName, DbHarness.numberMdValues[0]);
+        metadata.put(DbHarness.alphaName, DbHarness.alphaMdValues[0]);
 
         entity.add("versionMetadata",mdMapper.writeValueAsString(MetadataEntry.toList( metadata )));
         Response resp = target("/datasets.json" + parent)
                 .property( ClientProperties.FOLLOW_REDIRECTS, "false")
                 .request()
-                .header("authentication", TestUtils.TEST_USER)
+                .header("authentication", DbHarness.TEST_USER)
                 .post(Entity.form(entity));
         
         return resp;
@@ -161,8 +157,8 @@ public class DatasetsResourceTest extends JerseyTest {
         entity.add( "fileFormat", HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
         entity.add( "versionId", Integer.toString(DatasetView.NEW_VER) );
         HashMap<String, Object> metadata = new HashMap<>();
-        metadata.put( numberName, numberMdValues[0]);
-        metadata.put( alphaName, alphaMdValues[0]);
+        metadata.put(DbHarness.numberName, DbHarness.numberMdValues[0]);
+        metadata.put(DbHarness.alphaName, DbHarness.alphaMdValues[0]);
 
         entity.add("versionMetadata",mdMapper.writeValueAsString(MetadataEntry.toList( metadata )));
         Dataset req = FormParamConverter.getDatasetBuilder(entity).build();
@@ -172,7 +168,7 @@ public class DatasetsResourceTest extends JerseyTest {
                 .register(JacksonFeature.class)
                 .property(ClientProperties.FOLLOW_REDIRECTS, "false")
                 .request(MediaType.APPLICATION_JSON)
-                .header("authentication", TestUtils.TEST_USER)
+                .header("authentication", DbHarness.TEST_USER)
                 .post(Entity.entity(req, MediaType.APPLICATION_JSON));
 
         printTrace( resp );
@@ -203,7 +199,7 @@ public class DatasetsResourceTest extends JerseyTest {
                 .register(JacksonFeature.class)
                 .property(ClientProperties.FOLLOW_REDIRECTS, "false")
                 .request(MediaType.APPLICATION_JSON)
-                .header("authentication", TestUtils.TEST_USER)
+                .header("authentication", DbHarness.TEST_USER)
                 .post(Entity.entity(req, MediaType.APPLICATION_JSON));
         
         printTrace( resp );
@@ -215,13 +211,13 @@ public class DatasetsResourceTest extends JerseyTest {
                 .register(JacksonFeature.class)
                 .property(ClientProperties.FOLLOW_REDIRECTS, "false")
                 .request(MediaType.APPLICATION_JSON)
-                .header("authentication", TestUtils.TEST_USER)
+                .header("authentication", DbHarness.TEST_USER)
                 .get();
         System.out.println(resp.readEntity(String.class));
         
         HashMap<String, Object> metadata = new HashMap<>();
-        metadata.put( numberName, numberMdValues[0]);
-        metadata.put( alphaName, alphaMdValues[0]);
+        metadata.put(DbHarness.numberName, DbHarness.numberMdValues[0]);
+        metadata.put(DbHarness.alphaName, DbHarness.alphaMdValues[0]);
         metadata = new HashMap<>();
         metadata.put("patch", "example");
                 
@@ -233,7 +229,7 @@ public class DatasetsResourceTest extends JerseyTest {
             .property(ClientProperties.FOLLOW_REDIRECTS, "false")
             .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
             .request(MediaType.APPLICATION_JSON)
-            .header("authentication", TestUtils.TEST_USER)
+            .header("authentication", DbHarness.TEST_USER)
             .method("PATCH", Entity.entity(req, MediaType.APPLICATION_JSON));
         System.out.println(resp.readEntity(String.class));
         TestCase.assertEquals(200, resp.getStatus());
@@ -346,13 +342,13 @@ public class DatasetsResourceTest extends JerseyTest {
                 entity.add( "fileFormat", HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
                 entity.add( "versionId", Integer.toString(DatasetView.NEW_VER) );
                 HashMap<String, Object> metadata = new HashMap<>();
-                metadata.put( numberName, numberMdValues[i % 4]);
-                metadata.put( alphaName, alphaMdValues[j % 4]);
+                metadata.put(DbHarness.numberName, DbHarness.numberMdValues[i % 4]);
+                metadata.put(DbHarness.alphaName, DbHarness.alphaMdValues[j % 4]);
 
                 entity.add("versionMetadata",mdMapper.writeValueAsString(MetadataEntry.toList( metadata )));
                 Response resp = testCase.target("/datasets.txt" + parent)
                     .request()
-                    .header("authentication", TestUtils.TEST_USER)
+                    .header("authentication", DbHarness.TEST_USER)
                     .post(Entity.form(entity));
                 if(resp.getStatus() == 200){
                     System.out.println("duplicate: datasets" + parent + "/" + name);
