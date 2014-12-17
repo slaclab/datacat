@@ -1,4 +1,3 @@
-
 package org.srs.datacat.model.container;
 
 import java.util.Map;
