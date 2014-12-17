@@ -1,7 +1,6 @@
 
 package org.srs.datacat.shared;
 
-import org.srs.datacat.model.DatasetModelBuilder;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -18,9 +17,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.srs.datacat.model.DatasetLocationModel;
-import org.srs.datacat.model.DatasetVersionModel;
+import org.srs.datacat.model.DatacatNode;
+import org.srs.datacat.model.dataset.DatasetLocationModel;
+import org.srs.datacat.model.dataset.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.dataset.DatasetViewInfoModel;
 import org.srs.datacat.shared.Dataset.Builder;
 import org.srs.datacat.shared.adapters.RestDateAdapter;
 import org.srs.datacat.shared.metadata.MetadataEntry;
@@ -102,7 +103,8 @@ public class Dataset extends DatacatObject implements DatasetModel {
      * 
      * @author bvan
      */
-    public static class Builder extends DatacatObject.Builder<Builder> implements DatasetModelBuilder {
+    public static class Builder extends DatacatObject.Builder<Builder> 
+        implements org.srs.datacat.model.DatasetModel.Builder {
 
         //public static final int MULTI = BASE | VERSIONS | LOCATIONS;
         public int dsType = BASE;
@@ -186,9 +188,17 @@ public class Dataset extends DatacatObject implements DatasetModel {
             this.dataType = ds.dataType;
             this.created = ds.dateCreated;
         }
+
+        @Override
+        public Builder create(DatacatNode val){
+            if(val instanceof Dataset){
+                return new Builder((Dataset) val);
+            }
+            return super.create(val);
+        }
         
         @Override
-        public Builder view(DatasetViewInfo view){
+        public Builder view(DatasetViewInfoModel view){
             if(view.versionOpt().isPresent()){
                 version(view.getVersion());
             }

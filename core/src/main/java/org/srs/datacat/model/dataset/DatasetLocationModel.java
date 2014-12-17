@@ -1,7 +1,8 @@
 
-package org.srs.datacat.model;
+package org.srs.datacat.model.dataset;
 
 import java.sql.Timestamp;
+import org.srs.datacat.model.DatacatRecord;
 
 /**
  *

@@ -36,7 +36,7 @@ import org.srs.datacat.security.DcUser;
 import org.srs.datacat.test.DbHarness;
 
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
-import org.srs.datacat.vfs.attribute.DatasetOption;
+import org.srs.datacat.model.dataset.DatasetOption;
 import org.srs.vfs.AbstractPath;
 
 /**

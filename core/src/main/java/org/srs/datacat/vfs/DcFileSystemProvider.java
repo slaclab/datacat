@@ -7,10 +7,8 @@ import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystemException;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
@@ -39,25 +37,26 @@ import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.model.DatasetWithViewModel;
-
-import org.srs.datacat.shared.BasicStat;
+import org.srs.datacat.model.dataset.DatasetWithViewModel;
+import org.srs.datacat.model.dataset.DatasetOption;
+import org.srs.datacat.model.container.ContainerStat;
 
 import org.srs.datacat.dao.BaseDAO;
 import org.srs.datacat.dao.ContainerDAO;
 import org.srs.datacat.dao.DatasetDAO;
 import org.srs.datacat.dao.DAOFactory;
-import org.srs.datacat.model.DatasetViewInfoModel;
+import org.srs.datacat.model.ModelProvider;
+import org.srs.datacat.model.dataset.DatasetViewInfoModel;
 
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
-import org.srs.datacat.vfs.attribute.DatasetOption;
 import org.srs.datacat.vfs.attribute.DcAclFileAttributeView;
 
 import org.srs.datacat.security.DcGroup;
 import org.srs.datacat.security.DcUserLookupService;
 import org.srs.datacat.security.DcUser;
 import org.srs.datacat.security.OwnerAclAttributes;
+import org.srs.datacat.shared.Provider;
 
 import org.srs.vfs.AbstractFsProvider;
 import org.srs.vfs.AbstractPath;
@@ -78,10 +77,12 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
 
     private final DcFileSystem fileSystem;
     private final DAOFactory daoFactory;
+    private final ModelProvider modelProvider;
 
     public DcFileSystemProvider(DataSource dataSource, DcUserLookupService userLookupService) throws IOException{
         super();
         this.daoFactory = new org.srs.datacat.dao.sql.mysql.DAOFactoryMySQL(dataSource);
+        this.modelProvider = new Provider();
         fileSystem = new DcFileSystem(this, userLookupService);
     }
 
@@ -92,6 +93,10 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
 
     public DAOFactory getDaoFactory(){
         return daoFactory;
+    }
+    
+    public ModelProvider getModelProvider(){
+        return modelProvider;
     }
 
     @Override
@@ -239,7 +244,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             return true;
         }
         ContainerViewProvider cstat = dirFile.getAttributeView(ContainerViewProvider.class);
-        DatasetContainer container = (DatasetContainer) cstat.withView(BasicStat.StatType.BASIC);
+        DatasetContainer container = (DatasetContainer) cstat.withView(ContainerStat.class);
         int count = container.getStat().getChildCount();
         int cacheCount = cstat.getViewStats(viewPrefetch);
         return (count - cacheCount) < MAX_CHILD_CACHE;
@@ -251,7 +256,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     private boolean canFitDatasetsInCache(DcFile dirFile, int max, DatasetView viewPrefetch) throws IOException{
         // TODO: Improve logic
         ContainerViewProvider cstat = dirFile.getAttributeView(ContainerViewProvider.class);
-        DatasetContainer container = (DatasetContainer) cstat.withView(BasicStat.StatType.BASIC);
+        DatasetContainer container = (DatasetContainer) cstat.withView(ContainerStat.class);
         int count = max;
         if(count <= 0){
             count = container.getStat().getChildCount();
@@ -627,31 +632,4 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         throw new UnsupportedOperationException();
     }
 
-    /* END NOT IMPLEMENTED */
-
-    /**
-     * Custom file exceptions/file exception helper.
-     */
-    public static enum DcFsExceptions {
-
-        NO_SUCH_VERSION,
-        NO_SUCH_LOCATION,
-        DATASET_EXISTS,
-        VERSION_EXISTS,
-        LOCATION_EXISTS,
-        VERSION_CONFLICT,
-        NEWER_VERSION_EXISTS;
-
-        public boolean throwError(String targetPath, String msg) throws FileSystemException{
-            String path = targetPath;
-            String reason = toString();
-            switch(this){
-                case NO_SUCH_VERSION:
-                case NO_SUCH_LOCATION:
-                    throw new NoSuchFileException(path, msg, reason);
-                default:
-                    throw new FileAlreadyExistsException(path, msg, reason);
-            }
-        }
-    }
 }

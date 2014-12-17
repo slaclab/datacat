@@ -1,9 +1,10 @@
 
-package org.srs.datacat.model;
+package org.srs.datacat.model.dataset;
 
 import com.google.common.base.Optional;
 import java.util.Set;
-import org.srs.datacat.shared.DatasetViewInfo;
+import org.srs.datacat.model.DatasetView;
+
 
 /**
  *
@@ -13,7 +14,7 @@ public interface DatasetViewInfoModel {
 
     Optional<DatasetLocationModel> canonicalLocationOpt();
 
-    DatasetViewInfo fromView(DatasetView view);
+    DatasetViewInfoModel fromView(DatasetView view);
 
     DatasetLocationModel getLocation(DatasetView view);
 

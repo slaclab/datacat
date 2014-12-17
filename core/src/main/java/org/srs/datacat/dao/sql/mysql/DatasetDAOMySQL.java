@@ -22,19 +22,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatacatRecord;
-import org.srs.datacat.model.DatasetLocationModel;
+import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.DatasetModel;
-import org.srs.datacat.model.DatasetVersionModel;
+import org.srs.datacat.model.dataset.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.model.DatasetViewInfoModel;
+import org.srs.datacat.model.dataset.DatasetViewInfoModel;
 import org.srs.datacat.shared.Patchable;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
 import org.srs.datacat.shared.DatasetVersion;
 import org.srs.datacat.shared.DatasetViewInfo;
 import org.srs.datacat.model.RecordType;
-import static org.srs.datacat.vfs.DcFileSystemProvider.DcFsExceptions.*;
-import org.srs.datacat.vfs.attribute.DatasetOption;
+import static org.srs.datacat.model.DcExceptions.*;
+import org.srs.datacat.model.dataset.DatasetOption;
 import org.srs.vfs.PathUtils;
 
 /**

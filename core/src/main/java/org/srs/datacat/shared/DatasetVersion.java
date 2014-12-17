@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.srs.datacat.model.DatasetVersionModel;
+import org.srs.datacat.model.dataset.DatasetVersionModel;
 import java.sql.Timestamp;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -111,7 +111,7 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
     /**
      * Builder.
      */
-    public static class Builder extends DatacatObject.Builder<Builder>{
+    public static class Builder extends DatacatObject.Builder<Builder> implements DatasetVersionModel.Builder<Builder> {
         public Boolean latest;
         public Integer versionId;
         public String datasetSource;
@@ -172,6 +172,11 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
         @Override
         public DatasetVersion build(){
             return new DatasetVersion(this);
+        }        
+
+        @Override
+        public Builder create(DatasetVersionModel val){
+            return new Builder(val);
         }
     }
     

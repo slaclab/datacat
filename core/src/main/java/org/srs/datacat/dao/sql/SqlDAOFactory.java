@@ -2,12 +2,12 @@
 package org.srs.datacat.dao.sql;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.sql.DataSource;
-import org.srs.datacat.vfs.DcPath;
 
 /**
  *
@@ -22,8 +22,8 @@ public class SqlDAOFactory implements org.srs.datacat.dao.DAOFactory {
      */
     public static class Locker {
 
-        private final HashMap<DcPath, ReentrantLease> locks = new HashMap<>();
-        private final HashMap<ReentrantLease, DcPath> reverseLocks = new HashMap<>();
+        private final HashMap<Path, ReentrantLease> locks = new HashMap<>();
+        private final HashMap<ReentrantLease, Path> reverseLocks = new HashMap<>();
         private final ReentrantLock mapLock = new ReentrantLock();
 
         class ReentrantLease extends ReentrantLock {
@@ -46,7 +46,7 @@ public class SqlDAOFactory implements org.srs.datacat.dao.DAOFactory {
          * @param lockPath
          * @return 
          */
-        public ReentrantLock prepareLease(DcPath lockPath){
+        public ReentrantLock prepareLease(Path lockPath){
             mapLock.lock();
             try {
                 ReentrantLease newLock = locks.get(lockPath);
@@ -74,7 +74,7 @@ public class SqlDAOFactory implements org.srs.datacat.dao.DAOFactory {
                 if(lease.getQueueLength() > 0){
                     return;
                 }
-                DcPath lockPath = reverseLocks.remove(lease);
+                Path lockPath = reverseLocks.remove(lease);
                 if(lockPath != null){
                     locks.remove(lockPath);
                 }
@@ -99,7 +99,7 @@ public class SqlDAOFactory implements org.srs.datacat.dao.DAOFactory {
     }
     
     @Override
-    public SqlContainerDAO newContainerDAO(DcPath lockPath) throws IOException{
+    public SqlContainerDAO newContainerDAO(Path lockPath) throws IOException{
         try {
             ReentrantLock lock = locker.prepareLease(lockPath);
             lock.lock();
@@ -135,7 +135,7 @@ public class SqlDAOFactory implements org.srs.datacat.dao.DAOFactory {
      * @throws IOException 
      */
     @Override
-    public SqlDatasetDAO newDatasetDAO(DcPath lockPath) throws IOException{
+    public SqlDatasetDAO newDatasetDAO(Path lockPath) throws IOException{
         try {
             ReentrantLock lock = locker.prepareLease(lockPath);
             lock.lock();

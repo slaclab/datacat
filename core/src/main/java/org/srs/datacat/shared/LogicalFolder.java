@@ -1,11 +1,10 @@
 
 package org.srs.datacat.shared;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import org.srs.datacat.model.DatasetContainer;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.srs.datacat.model.DatacatNode;
+import org.srs.datacat.model.DatasetContainer.Folder;
 import org.srs.datacat.shared.LogicalFolder.Builder;
 
 /**
@@ -15,9 +14,7 @@ import org.srs.datacat.shared.LogicalFolder.Builder;
  */
 @JsonTypeName(value="folder")
 @JsonDeserialize(builder=Builder.class)
-public class LogicalFolder extends DatacatObject implements DatasetContainer {
-
-    private BasicStat stat;
+public class LogicalFolder extends DatasetContainer implements Folder {
     
     public LogicalFolder(){
         super();
@@ -29,46 +26,24 @@ public class LogicalFolder extends DatacatObject implements DatasetContainer {
     
     public LogicalFolder(LogicalFolder folder){
         super(folder);
-        this.stat = folder.stat;
-        this.description = folder.description;
     }
     
     public LogicalFolder(DatacatObject.Builder builder){
         super(builder);
     }
     
-    public LogicalFolder(DatasetContainer.Builder builder){
+    public LogicalFolder(DatasetContainerBuilder builder){
         super(builder);
-        this.stat = builder.stat;
-        this.description = builder.description;
-    }
-    
-    private String description = null;
-
-    @Override
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public String getDescription() { return description; }
-
-    @Override
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public BasicStat getStat(){
-        return this.stat;
-    }
-    
-    public void setDescription(String desc){ this.description = desc; }
-    
-    public void setStat(BasicStat stat){
-        this.stat = stat;
     }
     
     /**
      * Builder.
      */
-    public static class Builder extends DatasetContainer.Builder {
+    public static class Builder extends DatasetContainerBuilder {
         public Builder(){ super(); }
         public Builder(DatacatObject o){ super(o); }
         public Builder(DatacatNode o){ super(o); }
-        public Builder(DatasetContainer.Builder o){ super(o); }
+        public Builder(DatasetContainerBuilder o){ super(o); }
         
         @Override
         public LogicalFolder build(){

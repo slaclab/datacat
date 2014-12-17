@@ -1,14 +1,14 @@
 package org.srs.datacat.shared;
 
-import org.srs.datacat.model.DatasetViewInfoModel;
+import org.srs.datacat.model.dataset.DatasetViewInfoModel;
 import com.google.common.base.Optional;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import org.srs.datacat.model.DatasetLocationModel;
-import org.srs.datacat.model.DatasetVersionModel;
+import org.srs.datacat.model.dataset.DatasetLocationModel;
+import org.srs.datacat.model.dataset.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
 
 /**

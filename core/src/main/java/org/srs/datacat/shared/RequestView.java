@@ -1,5 +1,5 @@
 
-package org.srs.datacat.model;
+package org.srs.datacat.shared;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.google.common.base.Optional;
@@ -8,7 +8,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import org.srs.datacat.shared.FlatDataset;
+import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.RecordType;
 
 /**
  * Class representing a view of a container or dataset.
@@ -33,7 +34,7 @@ public class RequestView extends HashMap<String, String>{
                     add(m.getName());
                 }
             }
-            for(Method m: DatasetContainer.Builder.class.getMethods()){
+            for(Method m: DatasetContainerBuilder.class.getMethods()){
                 if(m.isAnnotationPresent(JsonSetter.class)){
                     add(m.getName());
                 }

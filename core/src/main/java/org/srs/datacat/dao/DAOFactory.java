@@ -2,7 +2,7 @@
 package org.srs.datacat.dao;
 
 import java.io.IOException;
-import org.srs.datacat.vfs.DcPath;
+import java.nio.file.Path;
 
 /**
  *
@@ -12,7 +12,7 @@ public interface DAOFactory {
 
     BaseDAO newBaseDAO() throws IOException;
 
-    ContainerDAO newContainerDAO(DcPath lockPath) throws IOException;
+    ContainerDAO newContainerDAO(Path lockPath) throws IOException;
 
     ContainerDAO newContainerDAO() throws IOException;
 
@@ -25,6 +25,6 @@ public interface DAOFactory {
      * @return
      * @throws IOException
      */
-    DatasetDAO newDatasetDAO(DcPath lockPath) throws IOException;
+    DatasetDAO newDatasetDAO(Path lockPath) throws IOException;
     
 }

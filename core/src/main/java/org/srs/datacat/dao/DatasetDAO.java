@@ -6,12 +6,11 @@ import java.io.IOException;
 import java.nio.file.FileSystemException;
 import java.util.Set;
 import org.srs.datacat.model.DatacatRecord;
-import org.srs.datacat.model.DatasetLocationModel;
 import org.srs.datacat.model.DatasetModel;
-import org.srs.datacat.model.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.model.DatasetViewInfoModel;
-import org.srs.datacat.shared.DatasetViewInfo;
+import org.srs.datacat.model.dataset.DatasetLocationModel;
+import org.srs.datacat.model.dataset.DatasetVersionModel;
+import org.srs.datacat.model.dataset.DatasetViewInfoModel;
 
 /**
  *
@@ -33,6 +32,6 @@ public interface DatasetDAO extends BaseDAO {
 
     DatasetVersionModel getCurrentVersion(DatacatRecord dsRecord) throws IOException;
 
-    DatasetViewInfo getDatasetViewInfo(DatacatRecord dsRecord, DatasetView view) throws IOException;
+    DatasetViewInfoModel getDatasetViewInfo(DatacatRecord dsRecord, DatasetView view) throws IOException;
     
 }

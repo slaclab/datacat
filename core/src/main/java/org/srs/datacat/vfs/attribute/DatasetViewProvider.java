@@ -4,18 +4,14 @@ package org.srs.datacat.vfs.attribute;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import org.srs.datacat.model.DatasetLocationModel;
+import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.DatasetModel;
-import org.srs.datacat.model.DatasetModelBuilder;
-import org.srs.datacat.model.DatasetVersionModel;
+import org.srs.datacat.model.dataset.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.model.DatasetViewInfoModel;
-import org.srs.datacat.model.DatasetWithViewModel;
-import org.srs.datacat.model.RequestView;
-import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.DatasetVersion;
+import org.srs.datacat.model.dataset.DatasetViewInfoModel;
+import org.srs.datacat.model.dataset.DatasetWithViewModel;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 
@@ -23,7 +19,7 @@ import org.srs.datacat.vfs.DcFileSystemProvider;
  *
  * @author bvan
  */
-public class DatasetViewProvider implements DcViewProvider<RequestView> {
+public class DatasetViewProvider implements DcViewProvider<DatasetView> {
 
     private final DcFile file;
     private final DcFileSystemProvider provider;
@@ -53,10 +49,10 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
     }
 
     @Override
-    public DatasetModel withView(RequestView requestView) throws NoSuchFileException, IOException {
-        return withView(requestView.getDatasetView(DatasetView.MASTER), requestView.includeMetadata());
+    public DatasetModel withView(DatasetView requestView) throws NoSuchFileException, IOException {
+        return withView(requestView, false);
     }
-    
+   
     public DatasetModel withView(DatasetView view, boolean withMetadata) throws NoSuchFileException, IOException {
         if(view == DatasetView.EMPTY){
             return (DatasetModel) file.getObject();
@@ -84,9 +80,9 @@ public class DatasetViewProvider implements DcViewProvider<RequestView> {
             String msg = "No locations found for dataset version %d";
             throw new NoSuchFileException(String.format( msg, view.getVersionId()));
         }
-        DatasetModelBuilder b = new Dataset.Builder((Dataset) file.getObject());
+        DatasetModel.Builder b = provider.getModelProvider().getDatasetBuilder().create(file.getObject());
         if(!withMetadata){ // mask metadata
-            retDsv = new DatasetVersion.Builder(retDsv).metadata((List)null).build();
+            retDsv = provider.getModelProvider().getVersionBuilder().create(retDsv).metadata((Map)null).build();
         }
         b.version(retDsv);
         

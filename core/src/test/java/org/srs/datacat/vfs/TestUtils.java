@@ -15,7 +15,7 @@ import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.LogicalFolder;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
-import org.srs.datacat.vfs.attribute.DatasetOption;
+import org.srs.datacat.model.dataset.DatasetOption;
 
 /**
  *

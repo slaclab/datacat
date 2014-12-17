@@ -1,7 +1,6 @@
 package org.srs.datacat.shared;
 
 import org.srs.datacat.model.RecordType;
-import org.srs.datacat.model.DatacatNodeBuilder;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -252,7 +251,7 @@ public class DatacatObject implements DatacatNode, HasMetadata {
             this();
             this.type = type;
         }
-
+        
         @Override
         public DatacatObject build(){
             if(type == null){
@@ -268,6 +267,10 @@ public class DatacatObject implements DatacatNode, HasMetadata {
                 default:
                     return new DatacatObject(this);
             }
+        }
+        
+        public U create(DatacatNode val){
+            return (U) new Builder(val);
         }
 
         @JsonSetter

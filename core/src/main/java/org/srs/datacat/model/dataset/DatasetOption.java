@@ -1,5 +1,5 @@
 
-package org.srs.datacat.vfs.attribute;
+package org.srs.datacat.model.dataset;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -22,6 +22,7 @@ public enum DatasetOption {
     
     public static final Collection<DatasetOption> VERSION_WORK = 
             Collections.unmodifiableCollection(Arrays.asList(CREATE_VERSION, MERGE_VERSION));
+    
     public static final Collection<DatasetOption> VIEW_WORK = 
             Collections.unmodifiableCollection(Arrays.asList(CREATE_VERSION, MERGE_VERSION, CREATE_LOCATIONS));
 

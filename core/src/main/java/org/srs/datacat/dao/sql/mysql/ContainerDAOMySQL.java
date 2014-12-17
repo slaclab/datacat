@@ -12,10 +12,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.locks.ReentrantLock;
+import org.srs.datacat.model.container.ContainerStat;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetContainer;
-import org.srs.datacat.model.DatasetLocationModel;
+import org.srs.datacat.shared.DatasetContainerBuilder;
+import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
@@ -45,22 +47,22 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
         super(conn, lock);
     }
 
-    public DatacatObject createContainer(DatacatRecord parent, String name, DatacatNode request) throws IOException{
+    public DatasetContainer createContainer(DatacatRecord parent, String name, DatacatNode request) throws IOException{
         try {
-            return insertContainer(parent, name, (DatacatObject) request);
+            return insertContainer(parent, name, (DatasetContainer) request);
         } catch(SQLException ex) {
             throw new IOException("Unable to create container: " + PathUtils.resolve(parent.
                     getPath(), name), ex);
         }
     }
-
-    protected DatacatObject insertContainer(DatacatRecord parent, String name,
-            DatacatObject request) throws SQLException{
+    
+    protected DatasetContainer insertContainer(DatacatRecord parent, String name,
+            DatasetContainer request) throws SQLException{
         String tableName;
         String parentColumn;
         RecordType newType = request.getType();
-        DatacatObject retObject;
-        DatasetContainer.Builder builder;
+        DatasetContainer retObject;
+        DatasetContainerBuilder builder;
         switch(newType){
             case FOLDER:
                 builder = new LogicalFolder.Builder(request);
@@ -130,8 +132,18 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
         String deleteSql = "delete from DatasetGroup where DatasetGroup=?";
         delete1(deleteSql, groupPk);
     }
-
+    
     @Override
+    public <V extends ContainerStat> V getStat(DatacatRecord container, Class<V> statType) throws IOException{
+        if(statType == BasicStat.class || statType == ContainerStat.class){
+            return (V) getBasicStat(container);
+        }
+        if(statType == DatasetStat.class){
+            return (V) getDatasetStat(container);
+        }
+        throw new UnsupportedOperationException("Unsupported stat type");
+    }
+
     public BasicStat getBasicStat(DatacatRecord container) throws IOException{
         boolean isFolder = container.getType() == RecordType.FOLDER;
         String parent = isFolder ? "DatasetLogicalFolder" : "DatasetGroup";
@@ -173,7 +185,6 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
         }
     }
 
-    @Override
     public DatasetStat getDatasetStat(DatacatRecord container) throws IOException{
         String primaryTable;
         boolean isFolder = container.getType() == RecordType.FOLDER;
@@ -292,7 +303,7 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
                         }
 
                         @Override
-                        public DatacatObject next(){
+                        public DatacatNode next(){
                             if(!hasNext()){
                                 throw new NoSuchElementException();
                             }

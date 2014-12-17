@@ -14,7 +14,9 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.srs.datacat.model.DatasetVersionModel;
+import org.srs.datacat.model.DatacatNode;
+import org.srs.datacat.model.DatasetContainer;
+import org.srs.datacat.model.dataset.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
@@ -50,12 +52,12 @@ public class DatasetSqlDAOTest {
         removeRecords(d.getConnection());
     }
     
-    public static DatacatObject getDatacatObject(SqlBaseDAO dao, String path) throws IOException, NoSuchFileException {
+    public static DatacatNode getDatacatObject(SqlBaseDAO dao, String path) throws IOException, NoSuchFileException {
         if(!PathUtils.isAbsolute( path )){
             path = "/" + path;
         }
         path = PathUtils.normalize( path );
-        DatacatObject next = dao.getDatacatObject(null, "/");
+        DatacatNode next = dao.getDatacatObject(null, "/");
         int offsets[] = PathUtils.offsets(path);
         for(int i = 1; i <= offsets.length; i++){
             next = dao.getDatacatObject(next, PathUtils.getFileName(PathUtils.absoluteSubpath(path, i, offsets)));
@@ -71,8 +73,8 @@ public class DatasetSqlDAOTest {
             return;
         } catch (NoSuchFileException x){ }
         
-        DatacatObject container = new LogicalFolder.Builder().name(TestUtils.TEST_BASE_NAME).build();
-        DatacatObject rootRecord = new LogicalFolder.Builder().pk(0L).path( "/").build();
+        DatasetContainer container = new LogicalFolder.Builder().name(TestUtils.TEST_BASE_NAME).build();
+        DatasetContainer rootRecord = new LogicalFolder.Builder().pk(0L).path( "/").build();
         dao.insertContainer(rootRecord, TestUtils.TEST_BASE_NAME, container);
         SqlDatasetDAO dsDao = new SqlDatasetDAO( c );
         try {
@@ -91,7 +93,7 @@ public class DatasetSqlDAOTest {
         
     public static void removeRecords(Connection conn) throws Exception {
         SqlContainerDAO dao = new SqlContainerDAO(conn);
-        DatacatObject folder = getDatacatObject(dao, TestUtils.TEST_BASE_PATH);
+        DatacatNode folder = getDatacatObject(dao, TestUtils.TEST_BASE_PATH);
         dao.deleteFolder(folder.getPk());
         SqlDatasetDAO dsDao = new SqlDatasetDAO(conn);
         dsDao.deleteDatasetDataType(TestUtils.TEST_DATATYPE_01);
@@ -139,7 +141,7 @@ public class DatasetSqlDAOTest {
     private Dataset create(String path, Dataset ds) throws SQLException, IOException {
         SqlDatasetDAO dao = new SqlDatasetDAO(conn);
         System.out.println(path);
-        DatacatObject folder = getDatacatObject(dao, path);
+        DatacatNode folder = getDatacatObject(dao, path);
         return dao.insertDataset(folder, PathUtils.resolve(path, ds.getName()), ds);
     }
     

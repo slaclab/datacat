@@ -18,8 +18,8 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
-import org.srs.datacat.model.DatasetContainer;
-import org.srs.datacat.model.DatasetLocationModel;
+import org.srs.datacat.shared.DatasetContainerBuilder;
+import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
@@ -98,11 +98,11 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
     }
 
     @Override
-    public DatacatObject getObjectInParent(DatacatRecord parent, String name) throws IOException, NoSuchFileException{
+    public DatacatNode getObjectInParent(DatacatRecord parent, String name) throws IOException, NoSuchFileException{
         return getDatacatObject(parent, name);
     }
 
-    protected DatacatObject getDatacatObject(DatacatRecord parent, String name) throws IOException, NoSuchFileException{
+    protected DatacatNode getDatacatObject(DatacatRecord parent, String name) throws IOException, NoSuchFileException{
         try {
             return getChild(parent, name);
         } catch(SQLException ex) {
@@ -110,7 +110,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         }
     }
 
-    private DatacatObject getChild(DatacatRecord parent, String name) throws SQLException, NoSuchFileException{
+    private DatacatNode getChild(DatacatRecord parent, String name) throws SQLException, NoSuchFileException{
         String parentPath = parent != null ? parent.getPath() : null;
         String nameParam = null;
 
@@ -174,7 +174,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         }
     }
 
-    protected void completeContainer(DatasetContainer.Builder builder, String sql) throws SQLException{
+    protected void completeContainer(DatasetContainerBuilder builder, String sql) throws SQLException{
         try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
             stmt.setLong(1, builder.pk);
             ResultSet rs = stmt.executeQuery();

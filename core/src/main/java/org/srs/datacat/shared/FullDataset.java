@@ -7,8 +7,8 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Set;
-import org.srs.datacat.model.DatasetLocationModel;
-import org.srs.datacat.model.DatasetVersionModel;
+import org.srs.datacat.model.dataset.DatasetLocationModel;
+import org.srs.datacat.model.dataset.DatasetVersionModel;
 import org.srs.datacat.shared.FullDataset.Builder;
 
 /**

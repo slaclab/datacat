@@ -3,6 +3,7 @@ package org.srs.datacat.shared;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.srs.datacat.model.container.ContainerStat;
 
 /**
  * Basic stat info for a group or a folder.
@@ -11,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "_type", defaultImpl = BasicStat.class)
 @JsonSubTypes(value = {@JsonSubTypes.Type(DatasetStat.class)})
-public class BasicStat {
+public class BasicStat implements ContainerStat {
 
     /**
      * Type of Stat.

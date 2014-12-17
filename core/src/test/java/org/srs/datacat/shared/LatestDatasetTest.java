@@ -29,6 +29,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import junit.framework.TestCase;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.shared.metadata.MetadataEntry;
 
 /**

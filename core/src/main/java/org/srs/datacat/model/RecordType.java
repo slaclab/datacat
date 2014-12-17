@@ -1,18 +1,12 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package org.srs.datacat.model;
 
-import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.DatasetGroup;
-import org.srs.datacat.shared.LogicalFolder;
+import org.srs.datacat.model.DatasetContainer.Folder;
+import org.srs.datacat.model.DatasetContainer.Group;
 
 /**
  * The basic type of this DatacatObject.
  */
-//@XmlEnum(String.class)
 public enum RecordType {
     DATASET, DATASETLOCATION, DATASETVERSION, FOLDER, GROUP;
 
@@ -21,13 +15,13 @@ public enum RecordType {
     }
 
     public static RecordType typeOf(DatacatNode object){
-        if(object instanceof LogicalFolder){
+        if(object instanceof Folder){
             return FOLDER;
         }
-        if(object instanceof Dataset){
+        if(object instanceof DatasetModel){
             return DATASET;
         }
-        if(object instanceof DatasetGroup){
+        if(object instanceof Group){
             return GROUP;
         }
         return null;
