@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>srs</groupId>
+        <artifactId>org-srs-datacat</artifactId>
+        <version>0.2-SNAPSHOT</version>
+    </parent>
+    <artifactId>org-srs-datacat-impl</artifactId>
+    <packaging>jar</packaging>
+    
+    <name>SRS DataCatalog Default Implementation</name>
+    
+    <dependencies>
+        <dependency>
+            <groupId>srs</groupId>
+            <artifactId>org-srs-datacat-model</artifactId>
+            <version>0.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>srs</groupId>
+            <artifactId>org-srs-datacat-vfs</artifactId>
+            <version>0.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>srs</groupId>
+            <artifactId>org-srs-datacat-test</artifactId>
+            <version>0.2-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- For the model -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-jsonSchema</artifactId>
+            <version>2.4.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+            <version>2.4.4</version>
+        </dependency>
+        
+        <!-- For testing the xml model -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-xml-provider</artifactId>
+            <version>2.4.4</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    
+    <build>
+        <plugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-checkstyle-plugin</artifactId>
+              <version>2.12.1</version>
+              <configuration>
+                <configLocation>checkstyle.xml</configLocation>
+                <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+                <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+                <encoding>UTF-8</encoding>
+                <consoleOutput>true</consoleOutput>
+                <failsOnError>false</failsOnError>
+                <linkXRef>false</linkXRef>
+                <includeTestSourceDirectory>false</includeTestSourceDirectory>
+              </configuration>
+              <executions>
+                <execution>
+                  <id>validate</id>
+                  <phase>validate</phase>
+                  <goals>
+                    <goal>check</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+</project>
