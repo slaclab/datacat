@@ -17,7 +17,8 @@ public interface DatacatNode extends DatacatRecord {
      * Builder interface.
      * @author bvan
      */
-    public interface DatacatNodeBuilder<U extends DatacatNodeBuilder> extends DatacatRecordBuilder<U>, Builder {
+    public interface DatacatNodeBuilder<U extends DatacatNodeBuilder> extends DatacatRecordBuilder<U> {
+        
         U create(DatacatNode val);
 
         U acl(String val);
