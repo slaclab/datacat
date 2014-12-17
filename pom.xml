@@ -53,6 +53,7 @@
       <module>vfs</module>
       <module>test</module>
       <module>model</module>
+      <module>datacat-impl</module>
     </modules>
 
     <dependencies>
