@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.freehep.commons.lang.AST;
 import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset;
@@ -307,8 +308,8 @@ public class SearchUtils {
         }
     }
     
-    public static List<Dataset> getResults(final Connection conn, final Select sel, DatasetView dsView, List<String> metadataNames) throws SQLException{
-        ArrayList<Dataset> datasets = new ArrayList<>();        
+    public static List<DatasetModel> getResults(final Connection conn, final Select sel, DatasetView dsView, List<String> metadataNames) throws SQLException{
+        ArrayList<DatasetModel> datasets = new ArrayList<>();        
         try(PreparedStatement stmt = sel.prepareAndBind( conn )){
             ResultSet rs = stmt.executeQuery();
             if(!rs.next()){

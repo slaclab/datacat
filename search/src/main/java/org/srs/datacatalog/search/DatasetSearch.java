@@ -22,8 +22,8 @@ import org.freehep.commons.lang.bool.Lexer;
 import org.freehep.commons.lang.bool.Parser;
 import org.freehep.commons.lang.bool.sym;
 import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.shared.Dataset;
 import org.srs.datacatalog.search.plugins.DatacatPlugin;
 import org.srs.datacatalog.search.tables.DatasetVersions;
 import org.zerorm.core.Column;
@@ -70,7 +70,7 @@ public class DatasetSearch {
         
     }
     
-    public List<Dataset> retrieveDatasets() throws IOException {
+    public List<DatasetModel> retrieveDatasets() throws IOException {
         try {
             return SearchUtils.getResults(conn, selectStatement, datasetView, metadataFields);
         } catch (SQLException ex) {

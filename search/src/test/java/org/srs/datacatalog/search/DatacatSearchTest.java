@@ -13,11 +13,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.srs.datacat.dao.DAOFactory;
 import org.srs.datacat.dao.sql.mysql.DAOFactoryMySQL;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.ModelProvider;
 import org.srs.datacatalog.search.plugins.DatacatPlugin;
 import org.srs.datacatalog.search.plugins.EXODatacatSearchPlugin;
-import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.Provider;
 import org.srs.datacat.test.DbHarness;
 
@@ -116,7 +116,7 @@ public class DatacatSearchTest {
         
         ContainerVisitor visitor;
         Select statement;
-        List<Dataset> datasets;
+        List<DatasetModel> datasets;
         DcPath searchPath;
         String pathPattern;
         
@@ -300,7 +300,7 @@ public class DatacatSearchTest {
         conn.close();
     }
     
-    private List<Dataset> doSearch(Connection conn, DcPath root, String pathPattern, Boolean searchFolders, Boolean searchGroups, String queryString, int expected) throws SQLException, ParseException, IOException{
+    private List<DatasetModel> doSearch(Connection conn, DcPath root, String pathPattern, Boolean searchFolders, Boolean searchGroups, String queryString, int expected) throws SQLException, ParseException, IOException{
         String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern,"/"));
         DcPath searchPath = root.resolve(searchBase);
         String[] metaFieldsToRetrieve = null;
@@ -313,16 +313,16 @@ public class DatacatSearchTest {
         DirectoryWalker walker = new DirectoryWalker(provider, visitor, 100);
         walker.walk(searchPath);
         Select statement = datacatSearch.compileStatement(visitor.files, dsView, queryString, metaFieldsToRetrieve, sortFields,0,-1);
-        List<Dataset> datasets = datacatSearch.retrieveDatasets();
+        List<DatasetModel> datasets = datacatSearch.retrieveDatasets();
         int ii = 0;
-        for(Dataset d: datasets){
+        for(DatasetModel d: datasets){
             ii++;
         }
         TestCase.assertEquals("Should have found "+ expected + " datasets out of 20000",expected, ii);
         return datasets;
     }
     
-    private List<Dataset> doSearch(Connection conn, DcPath root, String pathPattern, Boolean searchFolders, Boolean searchGroups, String queryString, String[] sortFields, int expected) throws SQLException, ParseException, IOException{
+    private List<DatasetModel> doSearch(Connection conn, DcPath root, String pathPattern, Boolean searchFolders, Boolean searchGroups, String queryString, String[] sortFields, int expected) throws SQLException, ParseException, IOException{
         String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern,"/"));
         DcPath searchPath = root.resolve(searchBase);
         String[] metaFieldsToRetrieve = null;
@@ -334,9 +334,9 @@ public class DatacatSearchTest {
         walker.walk(searchPath);
         Select statement = datacatSearch.compileStatement(visitor.files, dsView, queryString, metaFieldsToRetrieve, sortFields,0,-1);
         System.out.println("With statement" + statement.formatted());
-        List<Dataset> datasets = datacatSearch.retrieveDatasets();
+        List<DatasetModel> datasets = datacatSearch.retrieveDatasets();
         int ii = 0;
-        for(Dataset d: datasets){
+        for(DatasetModel d: datasets){
             ii++;
         }
         TestCase.assertEquals("Should have found "+ expected + " datasets out of 20000",expected, ii);
