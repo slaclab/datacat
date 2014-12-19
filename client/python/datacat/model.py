@@ -1,19 +1,12 @@
 
+import collections
+import json
 
-class DatacatObject(dict):
+class DatacatObject(object):
     def __init__(self, raw):
-        self.type = raw["_type"]
-        self["_type"] = self.type
-        fields = [f for f in raw.keys() if "$" not in f]
-        for k,v in self.fix_metadata(raw.copy()).items():
-            if k in fields:
+        for k,v in raw.items():
+            if k != "_type":
                 self.__dict__[k] = v
-                self[k] = v
-
-    def fix_metadata(self, data_dict):
-        if "metadata" in data_dict:
-            data_dict["metadata"] = _unpack_metadata(data_dict["metadata"])
-        return data_dict
 
 class Container(DatacatObject):
     pass
@@ -28,23 +21,9 @@ class Dataset(DatacatObject):
     REQ_JSON_ALLOWED = "name dataType fileFormat".split(" ")
 
     def __init__(self, **kwargs):
-        self.name = kwargs.get('name', None)
+        super(Dataset, self).__init__(kwargs)
         self.dataType = kwargs.get('dataType', None)
         self.fileFormat = kwargs.get('fileFormat', None)
-
-    def __init__(self, name, dataType, fileFormat, **kwargs):
-        self.name = name
-        self.dataType = dataType
-        self.fileFormat = fileFormat
-
-    def fix_metadata(self, data_dict):
-        super(Dataset, self).fix_metadata(data_dict)
-        if "versionMetadata" in data_dict:
-            data_dict["versionMetadata"] = _unpack_metadata(data_dict["versionMetadata"])
-        if "locations" in data_dict:
-            locations = [unpack(loc) for loc in data_dict["locations"]]
-            data_dict["locations"] = locations
-        return data_dict
 
     def flattened_by_status(self, status="OK"):
         from copy import copy
@@ -67,12 +46,6 @@ class Dataset(DatacatObject):
                     return location
         return None
 
-    def pack(self):
-        ret = {}
-        for name in self.REQ_JSON_ALLOWED:
-            if hasattr(self, name):
-                ret[name] = self.__dict__[name]
-        return ret
 
 class DatasetVersion(DatacatObject):
     REQ_JSON_ALLOWED = "versionId processInstance taskName versionMetadata".split(" ")
@@ -86,14 +59,6 @@ class DatasetVersion(DatacatObject):
             for k, v in versionExtras.items():
                 setattr(k, v)
 
-    def pack(self):
-        ret = {}
-        for name in self.REQ_JSON_ALLOWED:
-            if hasattr(self, name):
-                ret[name] = self.__dict__[name]
-        return ret
-
-
 class DatasetLocation(DatacatObject):
     REQ_JSON_ALLOWED = "site resource checksum size".split(" ")
 
@@ -106,72 +71,101 @@ class DatasetLocation(DatacatObject):
             for k, v in locationExtras.items():
                 setattr(k, v)
 
-    def pack(self):
-        ret = {}
-        for name in self.REQ_JSON_ALLOWED:
-            if hasattr(self, name):
-                ret[name] = self.__dict__[name]
-        return ret
-
-
 class DatasetWithView(Dataset):
-
-    def __init__(self, **kwargs):
-        super(DatasetWithView, self).__init__(**kwargs)
-        self.view = kwargs.get("view", None)
-
     def __init__(self, name, dataType, fileFormat, view, **kwargs):
-        super(DatasetWithView, self).__init__(name, dataType, fileFormat, **kwargs)
+        super(DatasetWithView, self).__init__(name=name, dataType=dataType, fileFormat=fileFormat, **kwargs)
         self.view = view
-
-    def pack(self):
-        ret = super(DatasetWithView, self).pack()
-        ret.update(self.view.pack())
-        return ret
-
 
 class DatasetView:
     def __init__(self, **kwargs):
-        self.version = DatasetVersion(**kwargs)
+        if "version" in kwargs:
+            self.version = kwargs["version"]
+        else:
+            self.version = DatasetVersion(**kwargs)
         if 'locations' in kwargs:
             self.locations = [DatasetLocation(**raw_loc) for raw_loc in kwargs['locations']]
-        else:
-            self.locations = [DatasetLocation(**kwargs)]
 
-    def __init__(self, version=None, locations=None):
-        self.version = version
-        self.locations = locations
 
-    def pack(self):
-        ret = {}
-        if self.version is not None:
-            ret.update(self.version.pack())
-        if self.locations is not None:
-            if len(self.locations) == 1:   # Flat
-                ret.update(self.locations[0].pack())
-            elif len(self.locations) > 1:
-                ret['locations'] = [i.pack() for i in self.locations] # Full
+class Metadata(collections.MutableMapping):
+    def __init__(self, seq=None):
+        self.dct = dict(seq) if seq else dict()
+
+    def __getitem__(self, key):
+        return self.dct.__getitem__(key)
+
+    def __setitem__(self, key, value):
+        self.dct.__setitem__(key, value)
+
+    def __delitem__(self, key):
+        return self.dct.__delitem__(key)
+
+    def __iter__(self):
+        return self.dct.__iter__()
+
+    def __len__(self):
+        return self.dct.__len__()
+
+    def __encode__(self):
+        ret = []
+        for k,v in self.dct.items():
+            ret.append({"key":k, "value": v})
         return ret
 
+def unpack(content):
+    return json.loads(content, object_hook=datacat_hook)
 
-def unpack(raw):
-    dctype = raw["_type"]
-    if dctype.startswith("dataset"):
-        return DatasetWithView(raw)
-    elif dctype.startswith("folder"):
+def default(obj):
+    try:
+        if isinstance(obj, DatasetWithView):
+            ret = {}
+            if obj.version is not None:
+                ret.update(default(obj.version))
+            if obj.locations is not None:
+                if len(obj.locations) == 1:   # Flat
+                    ret.update(default(obj.locations[0]))
+                elif len(obj.locations) > 1:
+                    ret['locations'] = [default(obj.locations)] # Full
+            return ret
+
+        if isinstance(obj, DatacatObject):
+            ret = {}
+            for k,v in obj.__dict__.items():
+                if v:
+                    ret[k] = v
+            return ret
+        if isinstance(obj, Metadata):
+            ret = obj.__encode__()
+            return ret
+        iterable = iter(obj)
+    except TypeError:
+        pass
+    else:
+        return list(iterable)
+    return json.JSONEncoder.default(obj)
+
+
+def datacat_hook(raw):
+    def fix_md(mdname, d):
+        if mdname in d:
+            d[mdname] = Metadata(d[mdname])
+    fix_md("metadata", raw)
+    fix_md("versionMetadata", raw)
+    if '_type' in raw:
+        _type = raw['_type']
+    if _type.startswith("dataset"):
+        return Dataset(**raw)
+    elif _type.startswith("folder"):
         return Folder(raw)
-    elif dctype.startswith("group"):
+    elif _type.startswith("group"):
         return Group(raw)
-    elif dctype.startswith("location"):
+    elif _type.startswith("location"):
         return DatasetLocation(raw)
-    elif dctype.startswith("version"):
+    elif _type.startswith("version"):
         return DatasetVersion(raw)
+    elif _type in ("integer","decimal","string"): # Must be metadata k:value pair
+      value_mapping = {"integer":long, "decimal":float, "string":unicode}
+      return (raw["key"], value_mapping[raw["_type"]](raw["value"]))
 
 def _pack_metadata(md_dict):
     return [{"key":k, "value":v} for k,v in md_dict.items()]
 
-def _unpack_metadata(md_list):
-    value_mapping = {"integer":long, "decimal":float, "string":str}
-    def translate_value(val):
-        return value_mapping[val["type"]](val["value"])
-    return {item["key"]:translate_value(item) for item in md_list}

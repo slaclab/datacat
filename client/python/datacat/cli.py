@@ -133,15 +133,7 @@ def main():
         print("No Content")
         sys.exit(1)
 
-    json = resp.json()
-
-    dcObject = lambda d: '_type' in d and d['_type'].split("#")[0] in 'dataset group folder'.split(" ")
-
-    if isinstance(json, dict):
-        retObjects.append(unpack(json) if dcObject(json) else json)
-    elif isinstance(json, list):
-        for item in json:
-            retObjects.append(unpack(item) if dcObject(item) else item)
+    retObjects = unpack(resp.content)
 
     if args.show_response:
         print("Object Response:")

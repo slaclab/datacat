@@ -105,11 +105,11 @@ class Client(object):
 
     def patch_dataset(self, path, dataset, versionId="current", site=None, **kwargs):
         endpoint = "datasets"
-        payload = dataset.pack()
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
-        return self._req("patch",self._target(endpoint, path, versionId, site), data=json.dumps(payload), **kwargs)
+        return self._req("patch",self._target(endpoint, path, versionId, site),
+                         data=json.dumps(dataset, default=default), **kwargs)
 
     def _req(self, http_method, target, params=None, data=None, **kwargs):
         headers = kwargs["headers"] if "headers" in kwargs else None
