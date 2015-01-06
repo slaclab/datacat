@@ -176,7 +176,7 @@ create index IDX_VDSL_ScanStatus_LastScan on VerDatasetLocation(ScanStatus, Last
 
 create table VerDatasetMetaString (
 	DatasetVersion		bigint unsigned not null,
-	MetaName		varchar(20) not null,
+	MetaName		varchar(64) not null,
 	MetaValue		varchar(256),
 	constraint FK_VDSMS_DSVersion foreign key (DatasetVersion)
 		references DatasetVersion (DatasetVersion)
@@ -188,7 +188,7 @@ create index IDX_VDSMS_NameValue on VerDatasetMetaString(MetaName, MetaValue);
 
 create table VerDatasetMetaNumber (
 	DatasetVersion		bigint unsigned not null,
-	MetaName		varchar(20) not null,
+	MetaName		varchar(64) not null,
 	MetaValue		numeric,
 	constraint FK_VDSMN_DSVersion foreign key (DatasetVersion)
 		references DatasetVersion (DatasetVersion)
@@ -200,7 +200,7 @@ create index IDX_VDSMN_NameValue on VerDatasetMetaNumber(MetaName, MetaValue);
 
 create table VerDatasetMetaTimestamp (
 	DatasetVersion		bigint unsigned not null,
-	MetaName		varchar(20) not null,
+	MetaName		varchar(64) not null,
 	MetaValue		timestamp,
 	constraint FK_VDSMT_DSVersion foreign key (DatasetVersion)
 		references DatasetVersion (DatasetVersion)
@@ -211,13 +211,13 @@ create index IDX_FK_VDSMT_DSVersion on VerDatasetMetaTimestamp(DatasetVersion);
 create index IDX_VDSMT_NameValue on VerDatasetMetaTimestamp(MetaName, MetaValue);
 
 create table DatasetMetaName (
-     MetaName      varchar(20),
+     MetaName      varchar(64),
 --      MetaType      varchar(1),
      constraint    UNQ_DatasetMetaName unique (MetaName)
 );
 
 create table DatasetMetaInfo (
-     MetaName      varchar(20),
+     MetaName      varchar(64),
      ValueType      varchar(1),
      constraint    UNQ_DatasetMetaInfo unique (MetaName, ValueType)
 );
@@ -242,7 +242,7 @@ create index IDX_VDSMRoot_TTreeName on VerDatasetMetaRoot(TTreeName);
 
 create table DatasetGroupMetaString (
 	DatasetGroup		bigint unsigned not null,
-	MetaName		varchar(20) not null,
+	MetaName		varchar(64) not null,
 	MetaValue		varchar(256),
 	constraint FK_DSGMS_DatasetGroup foreign key (DatasetGroup)
 		references DatasetGroup (DatasetGroup)
@@ -255,7 +255,7 @@ create index IDX_DSGMS_MetaName on DatasetGroupMetaString (MetaName);
 
 create table DatasetGroupMetaNumber (
 	DatasetGroup		bigint unsigned not null,
-	MetaName		varchar(20) not null,
+	MetaName		varchar(64) not null,
 	MetaValue		numeric,
 	constraint FK_DSGMN_DatasetGroup foreign key (DatasetGroup)
 		references DatasetGroup (DatasetGroup)
@@ -268,7 +268,7 @@ create index IDX_DSGMN_MetaName on DatasetGroupMetaNumber (MetaName);
 
 create table DatasetGroupMetaTimestamp (
 	DatasetGroup		bigint unsigned not null,
-	MetaName		varchar(20) not null,
+	MetaName		varchar(64) not null,
 	MetaValue		timestamp,
 	constraint FK_DSGMT_DatasetGroup foreign key (DatasetGroup)
 		references DatasetGroup (DatasetGroup)
@@ -280,7 +280,7 @@ create index IDX_DSGMT_MetaName on DatasetGroupMetaTimestamp (MetaName);
 
 
 create table DatasetGroupMetaName (
-     MetaName      varchar(20),
+     MetaName      varchar(64),
      constraint    UNQ_DatasetGroupMetaName unique (MetaName)
 );
 
@@ -290,7 +290,7 @@ create table DatasetGroupMetaName (
 
 create table LogicalFolderMetaString (
 	LogicalFolder		bigint unsigned not null,
-	MetaName		varchar(20) not null,
+	MetaName		varchar(64) not null,
 	MetaValue		varchar(256),
 	constraint FK_LFMS_LogicalFolder foreign key (LogicalFolder)
 		references DatasetLogicalFolder (DatasetLogicalFolder)
@@ -303,7 +303,7 @@ create index IDX_LFMS_MetaName on LogicalFolderMetaString (MetaName);
 
 create table LogicalFolderMetaNumber (
 	LogicalFolder		bigint unsigned not null,
-	MetaName		varchar(20) not null,
+	MetaName		varchar(64) not null,
 	MetaValue		numeric,
 	constraint FK_LFMN_LogicalFolder foreign key (LogicalFolder)
 		references DatasetLogicalFolder (DatasetLogicalFolder)
@@ -316,7 +316,7 @@ create index IDX_LFMN_MetaName on LogicalFolderMetaNumber (MetaName);
 
 create table LogicalFolderMetaTimestamp (
 	LogicalFolder		bigint unsigned not null,
-	MetaName		varchar(20) not null,
+	MetaName		varchar(64) not null,
 	MetaValue		timestamp,
 	constraint FK_LFMT_LogicalFolder foreign key (LogicalFolder)
 		references DatasetLogicalFolder (DatasetLogicalFolder)
@@ -327,7 +327,7 @@ create index IDX_LFMT_LogicalFolder on LogicalFolderMetaTimestamp (LogicalFolder
 create index IDX_LFMT_MetaName on LogicalFolderMetaTimestamp (MetaName);
 
 create table LogicalFolderMetaName (
-     MetaName      varchar(20),
+     MetaName      varchar(64),
      constraint    UNQ_LogicalFolderMetaName unique (MetaName)
 );
 
