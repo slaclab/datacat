@@ -4,6 +4,8 @@ package org.srs.datacat.shared.metadata;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.srs.datacat.shared.adapters.LongSerializer;
 import org.srs.datacat.shared.metadata.MetadataDecimal.Builder;
 
 /**
@@ -34,7 +36,8 @@ public class MetadataDecimal implements MetadataValue<Number> {
 
     @JsonValue
     // TODO: Fix this to be BigDecimal if https://github.com/FasterXML/jackson-databind/issues/466 gets fixed.
-    public Double getValue(){ return value.doubleValue(); }
+    @JsonSerialize(using=LongSerializer.class)
+    public java.math.BigDecimal getValue(){ return value; }
     
     /**
      * Builder.

@@ -1,5 +1,6 @@
 package org.srs.datacat.shared.metadata;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -110,6 +111,16 @@ public class MetadataEntry {
         @JsonSetter
         public Builder type(String val){
             this.type = val;
+            return this;
+        }
+        
+        @JsonAnySetter
+        public Builder set(String k, Object v){
+            if(this.key != null && this.rawValue != null){
+                throw new IllegalArgumentException("Using the any setter is only allowed once.");
+            }
+            this.key = k;
+            this.rawValue = v;
             return this;
         }
 

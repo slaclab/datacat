@@ -18,6 +18,8 @@ import com.fasterxml.jackson.databind.ser.ContextualSerializer;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlTransient;
 
 /**
@@ -25,12 +27,12 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author bvan
  */
 @XmlTransient
-public final class LongSerializer extends StdScalarSerializer<Long> implements ContextualSerializer {
+public final class LongSerializer extends StdScalarSerializer<Number> implements ContextualSerializer {
     private final JsonParser.NumberType numberType;
     private final String schemaType;
 
     public LongSerializer(){
-        super(Long.class);
+        super(Number.class);
         this.numberType = JsonParser.NumberType.BIG_INTEGER;
         this.schemaType = "number";
     }
@@ -47,9 +49,20 @@ public final class LongSerializer extends StdScalarSerializer<Long> implements C
     }
 
     @Override
-    public void serialize(Long value, JsonGenerator jgen, 
+    public void serialize(Number value, JsonGenerator jgen, 
             SerializerProvider provider) throws IOException, JsonGenerationException{
-        jgen.writeNumber(value.longValue());
+        if(value instanceof Long || value instanceof Integer){
+            jgen.writeNumber(value.longValue());
+        }
+        if(value instanceof Float || value instanceof Double){
+            jgen.writeNumber(value.doubleValue());
+        }
+        if(value instanceof BigDecimal){
+            jgen.writeNumber((BigDecimal) value);
+        }
+        if(value instanceof BigInteger){
+            jgen.writeNumber((BigInteger) value);
+        }
     }
 
     public JsonNode getSchema(SerializerProvider provider, JsonSubTypes.Type typeHint){

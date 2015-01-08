@@ -43,15 +43,15 @@ public class MetadataTest extends TestCase {
         MetadataEntry entry;
         
         entry = mapper.readValue( jsonDecimal, singleRef);
-        System.out.println("MetadataDecimal: " + entry.getValue().getClass().getSimpleName());
+        assertEquals("MetadataDecimal", entry.getValue().getClass().getSimpleName());
         
         
         entry = mapper.readValue( jsonInteger, singleRef);
-        System.out.println("MetadataInteger: " + entry.getValue().getClass().getSimpleName());
+        assertEquals("MetadataInteger", entry.getValue().getClass().getSimpleName());
         
         
         entry = mapper.readValue( jsonString, singleRef);
-        System.out.println("MetadataString: " + entry.getValue().getClass().getSimpleName());
+        assertEquals("MetadataString", entry.getValue().getClass().getSimpleName());
 
         List<MetadataEntry> entries;
         entries = mapper.readValue( jsonListStringNoType, compoundRef);
@@ -96,31 +96,31 @@ public class MetadataTest extends TestCase {
         MetadataEntry entry;
         
         entry = mapper.readValue( jsonDecimal, singleRef);
-        System.out.println("MetadataDecimal: " + entry.getValue().getClass().getSimpleName());
+        assertEquals("MetadataDecimal", entry.getValue().getClass().getSimpleName());
         
         entry = mapper.readValue( jsonDecimalWithType, singleRef);
-        System.out.println("MetadataDecimal: " + entry.getValue().getClass().getSimpleName());
+        assertEquals("MetadataDecimal", entry.getValue().getClass().getSimpleName());
         
         entry = mapper.readValue( jsonDecimalStringWithType, singleRef);
-        System.out.println("MetadataDecimal: " + entry.getValue().getClass().getSimpleName());
+        assertEquals("MetadataDecimal", entry.getValue().getClass().getSimpleName());
         
         entry = mapper.readValue( jsonInteger, singleRef);
-        System.out.println("MetadataInteger: " + entry.getValue().getClass().getSimpleName());
+        assertEquals("MetadataInteger", entry.getValue().getClass().getSimpleName());
                 
         entry = mapper.readValue( jsonIntegerWithType, singleRef);
-        System.out.println("MetadataInteger: " + entry.getValue().getClass().getSimpleName());
+        assertEquals("MetadataInteger", entry.getValue().getClass().getSimpleName());
         
         entry = mapper.readValue( jsonIntegerStringWithType, singleRef);
-        System.out.println("MetadataInteger: " + entry.getValue().getClass().getSimpleName());
+        assertEquals("MetadataInteger", entry.getValue().getClass().getSimpleName());
         
         entry = mapper.readValue( jsonIntegerWithBadType, singleRef);
-        System.out.println("MetadataInteger: " + entry.getValue().getClass().getSimpleName());
+        assertEquals("MetadataInteger", entry.getValue().getClass().getSimpleName());
         
         entry = mapper.readValue( jsonString, singleRef);
-        System.out.println("MetadataString: " + entry.getValue().getClass().getSimpleName());
+        assertEquals("MetadataString", entry.getValue().getClass().getSimpleName());
         
         entry = mapper.readValue( jsonStringWithType, singleRef);
-        System.out.println("MetadataString: " + entry.getValue().getClass().getSimpleName());
+        assertEquals("MetadataString", entry.getValue().getClass().getSimpleName());
         
         List<MetadataEntry> entries;
         entries = mapper.readValue( compoundJson, compoundRef);
@@ -131,6 +131,89 @@ public class MetadataTest extends TestCase {
         for(MetadataEntry e: entries){
             System.out.println(e.getValue().getClass().getSimpleName());
         }
+    }
+    
+    public void testMetadataDeserializeRawMap() throws IOException{
+        String jsonDecimal = "{\"number1\":1234.25}";
+        //String jsonDecimalWithType = "{\"key\":\"number2\",\"value\":{\"decimal\":1234.25}}";
+        String jsonDecimalWithType = "{\"number2\":\"1234.25\", \"type\":\"decimal\"}";
+        String jsonBigDecimalWithType = "{\"number2\":\"1234.22222222222222222223422225\", "
+                + "\"type\":\"decimal\"}";
+        String jsonDecimalStringWithType = "{\"number2\":\"1234.25\", \"type\":\"decimal\"}";
+        
+        String jsonInteger = "{\"number1\":1234}";
+        String jsonIntegerWithType = "{\"number2\":1234.25, \"type\":\"integer\"}";
+        String jsonIntegerStringWithType = "{\"number1\":\"1234\", \"type\":\"integer\"}";
+        String jsonIntegerWithBadType = "{\"number2\":1234.25, \"type\":\"integer\"}";
+        
+        String jsonString = "{\"hello\":\"world\"}";
+        String jsonStringWithType = "{\"hello\":\"world\", \"type\":\"string\"}";
+        
+        String compoundJson = 
+                "[{\"numberDouble\":1234.25},"
+                + "{\"numberInt\":1234},"
+                + "{\"hello\":\"world\"},"
+                + "{\"how\":\"doyoudo\"}]";
+        String compoundJsonWithTypes = 
+                "[{\"numberDouble\":1234.25, \"type\":\"decimal\"},"
+                + "{\"numberInt\":1234, \"type\":\"integer\"},"
+                + "{\"hello\":\"world\", \"type\":\"string\"},"
+                + "{\"how\":\"doyoudo\", \"type\":\"string\"}]";
+        
+        AnnotationIntrospector primary = new JacksonAnnotationIntrospector();
+        AnnotationIntrospector secondary = new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());
+        AnnotationIntrospector pair = new AnnotationIntrospectorPair(primary, secondary);
+        
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setAnnotationIntrospector( pair );
+        TypeReference singleRef = new TypeReference<MetadataEntry>(){};
+        TypeReference compoundRef = new TypeReference<List<MetadataEntry>>(){};
+        
+        
+        MetadataEntry entry;
+        
+        entry = mapper.readValue( jsonDecimal, singleRef);
+        assertEquals("MetadataDecimal", entry.getValue().getClass().getSimpleName());
+        
+        entry = mapper.readValue( jsonDecimalWithType, singleRef);
+        assertEquals("MetadataDecimal", entry.getValue().getClass().getSimpleName());
+        
+        // Check bigdecimal
+        entry = mapper.readValue( jsonBigDecimalWithType, singleRef);
+        assertEquals("MetadataDecimal", entry.getValue().getClass().getSimpleName());
+        assertEquals("BigDecimal", entry.getValue().getValue().getClass().getSimpleName());
+        
+        entry = mapper.readValue( jsonDecimalStringWithType, singleRef);
+        assertEquals("MetadataDecimal", entry.getValue().getClass().getSimpleName());
+        
+        entry = mapper.readValue( jsonInteger, singleRef);
+        assertEquals("MetadataInteger", entry.getValue().getClass().getSimpleName());
+                
+        entry = mapper.readValue( jsonIntegerWithType, singleRef);
+        assertEquals("MetadataInteger", entry.getValue().getClass().getSimpleName());
+        
+        entry = mapper.readValue( jsonIntegerStringWithType, singleRef);
+        assertEquals("MetadataInteger", entry.getValue().getClass().getSimpleName());
+        
+        entry = mapper.readValue( jsonIntegerWithBadType, singleRef);
+        assertEquals("MetadataInteger", entry.getValue().getClass().getSimpleName());
+        
+        entry = mapper.readValue( jsonString, singleRef);
+        assertEquals("MetadataString", entry.getValue().getClass().getSimpleName());
+        
+        entry = mapper.readValue( jsonStringWithType, singleRef);
+        assertEquals("MetadataString", entry.getValue().getClass().getSimpleName());
+        
+        List<MetadataEntry> entries;
+        entries = mapper.readValue( compoundJson, compoundRef);
+        for(MetadataEntry e: entries){
+            System.out.println(e.getValue().getClass().getSimpleName());
+        }
+        entries = mapper.readValue( compoundJsonWithTypes, compoundRef);
+        for(MetadataEntry e: entries){
+            System.out.println(e.getValue().getClass().getSimpleName());
+        }
+        //System.out.println\("(Me[a-zA-Z]*):.*\+ *
     }
     
     public void testMetadataSerialize() throws IOException{
