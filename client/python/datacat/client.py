@@ -75,12 +75,15 @@ class Client(object):
         version = None
         location = None
         if has_version:
-            version = DatasetVersion(versionId, versionMetadata, versionExtras)
+            version = {"versionId":versionId, "versionMetadata":versionMetadata}
+            if versionExtras:
+                version.update(versionExtras)
         if has_location:
-            location = DatasetLocation(site, resource, locationExtras)
-        view = DatasetView(version, [location])
-        ds = DatasetWithView(name, dataType, fileFormat, view)
-        payload = ds.pack()
+            location = {"site":site, "resource":resource}
+            if locationExtras:
+                location.update(locationExtras)
+        ds = Dataset(name=name, dataType=dataType, fileFormat=fileFormat, locations=[location], **version)
+        payload = pack(ds)
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
@@ -96,11 +99,14 @@ class Client(object):
         version = None
         location = None
         if has_version:
-            version = DatasetVersion(versionId, versionMetadata, versionExtras)
+            version = {"versionMetadata":versionMetadata}
+            if versionExtras:
+                version.update(versionExtras)
         if has_location:
-            location = DatasetLocation(site, resource, locationExtras)
-        view = DatasetView(version, [location])
-        ds = DatasetWithView(None, None, None, view)
+            location = {"site":site, "resource":resource}
+            if locationExtras:
+                location.update(locationExtras)
+        ds = Dataset(locations=[location], **version)
         return self.patch_dataset(path, ds, versionId, **kwargs)
 
     def patch_dataset(self, path, dataset, versionId="current", site=None, **kwargs):
@@ -109,7 +115,7 @@ class Client(object):
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
         return self._req("patch",self._target(endpoint, path, versionId, site),
-                         data=json.dumps(dataset, default=default), **kwargs)
+                         data=pack(dataset), **kwargs)
 
     def _req(self, http_method, target, params=None, data=None, **kwargs):
         headers = kwargs["headers"] if "headers" in kwargs else None

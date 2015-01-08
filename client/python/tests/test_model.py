@@ -2,7 +2,7 @@ __author__ = 'bvan'
 import unittest
 import json
 
-from datacat.model import unpack, default, DatasetVersion, DatasetWithView, DatasetView
+from datacat.model import Dataset, pack, unpack
 
 
 class ModelTest(unittest.TestCase):
@@ -20,29 +20,28 @@ class ModelTest(unittest.TestCase):
             "versionMetadata": [
                 {"key": "nRun",
                  "value": 1234,
-                 "_type": "integer"
+                 "type": "integer"
                 },
                 {"key": "sQuality",
                  "value": "good",
-                 "_type": "string"
+                 "type": "string"
                 }
             ]
         }
         json_str = json.dumps(ds)
         print json_str
         ds_new = unpack(json_str)
-        print(type(ds_new))
-        print(ds_new.__dict__)
-        print(json.dumps(ds_new, default=default))
+        print(pack(ds_new))
+        ds_new2 = unpack(pack(ds_new), Dataset)
+        print(pack(ds_new2))
 
     def test_pack(self):
         vmd = {
                 "nRun": 1234,
                 "sQuality":"good"
                 }
-        v = DatasetVersion(versionMetadata=vmd)
-        r = DatasetView(version=v)
-        ds = DatasetWithView("ds001.dat","dat","DAT", view=r)
+        ds = Dataset(name="ds001.dat",fileFormat="dat",dataType="DAT", versionMetadata=vmd)
+        print(pack(ds))
 
 if __name__ == '__main__':
     unittest.main()

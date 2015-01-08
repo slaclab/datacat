@@ -1,15 +1,24 @@
 
-import collections
+from collections import OrderedDict, MutableMapping
 import json
 
-class DatacatObject(object):
-    def __init__(self, raw):
-        for k,v in raw.items():
-            if k != "_type":
-                self.__dict__[k] = v
+class DatacatNode(object):
+    def __init__(self, name=None, path=None, pk=None, parentPk=None, **kwargs):
+        if name is not None:
+            self.name = name
+        if path is not None:
+            self.path = path
+        if pk is not None:
+            self.pk = pk
+        if parentPk is not None:
+            self.parentPk = parentPk
 
-class Container(DatacatObject):
-    pass
+class Container(DatacatNode):
+    def __init__(self, **kwargs):
+        super(Container, self).__init__(**kwargs)
+        for k,v in kwargs.items():
+            if k != "_type" and not hasattr(self, k) and v:
+                self.__dict__[k] = v
 
 class Folder(Container):
     pass
@@ -17,13 +26,41 @@ class Folder(Container):
 class Group(Container):
     pass
 
-class Dataset(DatacatObject):
-    REQ_JSON_ALLOWED = "name dataType fileFormat".split(" ")
+class Dataset(DatacatNode):
+    REQ_JSON_ALLOWED = ("name path dataType fileFormat metadata" \
+        + "versionId processInstance taskName versionMetadata locations").split(" ")
 
-    def __init__(self, **kwargs):
-        super(Dataset, self).__init__(kwargs)
-        self.dataType = kwargs.get('dataType', None)
-        self.fileFormat = kwargs.get('fileFormat', None)
+    def __init__(self,
+                 dataType=None,
+                 fileFormat=None,
+                 metadata=None,
+                 versionId=None,
+                 processInstance=None,
+                 taskName=None,
+                 versionMetadata=None,
+                 locations=None,
+                 **kwargs):
+        super(Dataset, self).__init__(**kwargs)
+        if dataType:
+            self.dataType=dataType
+        if fileFormat:
+            self.fileFormat=fileFormat
+        if metadata:
+            self.metadata=metadata
+        if versionId:
+            self.versionId=versionId
+        if processInstance:
+            self.processInstance=processInstance
+        if taskName:
+            self.taskName=taskName
+        if versionMetadata:
+            self.versionMetadata=versionMetadata
+        if locations:
+            self.locations=locations
+        # ignore _type for now
+        for k,v in kwargs.items():
+            if k != "_type" and not hasattr(self, k) and v:
+                self.__dict__[k] = v
 
     def flattened_by_status(self, status="OK"):
         from copy import copy
@@ -37,58 +74,15 @@ class Dataset(DatacatObject):
         return ret
 
     def _show_first_xxx(self, status):
-        #if hasattr(self, "location"):
-        #if self.location.scanStatus is status:
-        #        return self.location
         if hasattr(self, "locations"):
             for location in self.locations:
                 if location.scanStatus is status:
                     return location
         return None
 
-
-class DatasetVersion(DatacatObject):
-    REQ_JSON_ALLOWED = "versionId processInstance taskName versionMetadata".split(" ")
-
-    def __init__(self, versionId="new", versionMetadata=None, versionExtras=None, **kwargs):
-        if versionId:
-            self.versionId = versionId
-        if versionMetadata:
-            self.versionMetadata = versionMetadata
-        if versionExtras:
-            for k, v in versionExtras.items():
-                setattr(k, v)
-
-class DatasetLocation(DatacatObject):
-    REQ_JSON_ALLOWED = "site resource checksum size".split(" ")
-
-    def __init__(self, site=None, resource=None, locationExtras=None, **kwargs):
-        if site:
-            self.site = site
-        if resource:
-            self.resource = resource
-        if locationExtras:
-            for k, v in locationExtras.items():
-                setattr(k, v)
-
-class DatasetWithView(Dataset):
-    def __init__(self, name, dataType, fileFormat, view, **kwargs):
-        super(DatasetWithView, self).__init__(name=name, dataType=dataType, fileFormat=fileFormat, **kwargs)
-        self.view = view
-
-class DatasetView:
-    def __init__(self, **kwargs):
-        if "version" in kwargs:
-            self.version = kwargs["version"]
-        else:
-            self.version = DatasetVersion(**kwargs)
-        if 'locations' in kwargs:
-            self.locations = [DatasetLocation(**raw_loc) for raw_loc in kwargs['locations']]
-
-
-class Metadata(collections.MutableMapping):
+class Metadata(MutableMapping):
     def __init__(self, seq=None):
-        self.dct = dict(seq) if seq else dict()
+        self.dct = OrderedDict(seq) if seq else OrderedDict()
 
     def __getitem__(self, key):
         return self.dct.__getitem__(key)
@@ -105,67 +99,81 @@ class Metadata(collections.MutableMapping):
     def __len__(self):
         return self.dct.__len__()
 
-    def __encode__(self):
-        ret = []
-        for k,v in self.dct.items():
-            ret.append({"key":k, "value": v})
+def unpack(content, default_type=None):
+    def type_hook(raw):
+        try:
+            ret = _default_hook(raw)
+        except TypeError as e:
+            ret = default_type(**raw)
         return ret
+    return json.loads(content, object_hook=_default_hook if not default_type else type_hook)
 
-def unpack(content):
-    return json.loads(content, object_hook=datacat_hook)
+def pack(object):
+    return json.dumps(object, default=_default_serializer)
 
-def default(obj):
+def _default_serializer(obj):
     try:
-        if isinstance(obj, DatasetWithView):
+        if isinstance(obj, Dataset):
             ret = {}
-            if obj.version is not None:
-                ret.update(default(obj.version))
-            if obj.locations is not None:
+            if hasattr(obj, "locations") and obj.locations is not None:
                 if len(obj.locations) == 1:   # Flat
-                    ret.update(default(obj.locations[0]))
+                    ret.update(_default_serializer(obj.locations[0]))
                 elif len(obj.locations) > 1:
-                    ret['locations'] = [default(obj.locations)] # Full
+                    ret['locations'] = [_default_serializer(obj.locations)] # Full
+            for k,v in obj.__dict__.items():
+                if v:
+                    if k in ("metadata", "versionMetadata"):
+                        ret[k] = Metadata(v)
+                    else:
+                        ret[k] = v
             return ret
-
-        if isinstance(obj, DatacatObject):
+        if isinstance(obj, DatacatNode):
             ret = {}
             for k,v in obj.__dict__.items():
                 if v:
-                    ret[k] = v
+                    if k in ("metadata", "versionMetadata"):
+                        ret[k] = Metadata(v)
+                    else:
+                        ret[k] = v
             return ret
         if isinstance(obj, Metadata):
-            ret = obj.__encode__()
+            type_mapping = {int:"integer", long:"integer", float:"decimal", unicode:"string", str:"string"}
+            ret = []
+            for k,v in obj.dct.items():
+                ret.append(OrderedDict([("key",k), ("value",v), ("type",type_mapping[type(v)])]))
             return ret
         iterable = iter(obj)
-    except TypeError:
-        pass
+    except TypeError as e:
+        print e
     else:
         return list(iterable)
     return json.JSONEncoder.default(obj)
 
-
-def datacat_hook(raw):
-    def fix_md(mdname, d):
-        if mdname in d:
-            d[mdname] = Metadata(d[mdname])
+def _default_hook(raw):
+    def fix_md(name, d):
+        if name in d:
+            d[name] = Metadata(d[name])
     fix_md("metadata", raw)
     fix_md("versionMetadata", raw)
     if '_type' in raw:
         _type = raw['_type']
-    if _type.startswith("dataset"):
-        return Dataset(**raw)
-    elif _type.startswith("folder"):
-        return Folder(raw)
-    elif _type.startswith("group"):
-        return Group(raw)
-    elif _type.startswith("location"):
-        return DatasetLocation(raw)
-    elif _type.startswith("version"):
-        return DatasetVersion(raw)
-    elif _type in ("integer","decimal","string"): # Must be metadata k:value pair
-      value_mapping = {"integer":long, "decimal":float, "string":unicode}
-      return (raw["key"], value_mapping[raw["_type"]](raw["value"]))
-
-def _pack_metadata(md_dict):
-    return [{"key":k, "value":v} for k,v in md_dict.items()]
-
+        if _type.startswith("dataset"):
+            return Dataset(**raw)
+        elif _type.startswith("folder"):
+            return Folder(raw)
+        elif _type.startswith("group"):
+            return Group(raw)
+        elif _type.startswith("location"):
+            # Don't create a DatasetLocation object for now
+            return raw
+        """elif _type.startswith("version"):
+            return DatasetVersion(raw)
+        """
+    # Check for metadata k:v pair
+    if 'type' in raw and raw["type"] in ("integer","decimal","string"):
+        value_mapping = {"integer":long, "decimal":float, "string":unicode}
+        if raw["type"] in value_mapping:
+            fn = value_mapping[raw["type"]]
+            return raw["key"], fn(raw["value"])
+        raise TypeError("No Mapping for type %s" %raw["type"])
+    raise TypeError("No Default Type Information")

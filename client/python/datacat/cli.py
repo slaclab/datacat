@@ -4,7 +4,7 @@ import sys
 import pprint
 import argparse
 
-from model import unpack, DatacatObject
+from model import DatacatNode, unpack
 from client import Client, DcException
 from config import *
 
@@ -137,7 +137,7 @@ def main():
 
     if args.show_response:
         print("Object Response:")
-        pp.pprint([i if isinstance(i, DatacatObject) else i for i in retObjects])
+        pp.pprint([i if isinstance(i, DatacatNode) else i for i in retObjects])
 
     if command == "search":
         def print_search_info(datasets, metanames):
