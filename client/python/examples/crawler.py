@@ -66,7 +66,13 @@ class Crawler:
         results = unpack(resp.content)
 
         for dataset in results:
-            file_path = dataset.resource
+            locations = dataset.locations
+            check_location = None
+            for location in locations:
+                if location.site == WATCH_SITE:
+                    check_location = location
+                    break
+            file_path = location.resource
             dataset_path = dataset.path
             stat = os.stat(file_path)
             cksum = self.get_cksum(file_path)
@@ -82,7 +88,7 @@ class Crawler:
 
             try:
                 patch_resp = self.client.patch_dataset(dataset_path, scan_result,
-                                                       versionId=dataset.versionId, site=dataset.site)
+                                                       versionId=dataset.versionId, site=WATCH_SITE)
             except DcException as error:
                 print("Encountered error while updating dataset")
 
