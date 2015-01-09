@@ -21,7 +21,7 @@ path = '/EXO/Data/Raw/cxd/run00006220-0000.cxd'
 resp = client.path(path)
 
 if resp.status_code == 200:
-    dataset = unpack(resp.json())
+    dataset = unpack(resp.content)
     pprint.pprint(dataset)
 else:
     print("Error processing request:" + str(resp.status_code))
@@ -34,7 +34,7 @@ path = '/EXO/Data/Raw'
 resp = client.children(path, show_request=True)
 
 if resp.status_code == 200:
-    children = [unpack(child) for child in resp.json()]
+    children = unpack(resp.content)
     pprint.pprint([child for child in children])
 else:
     print("Error processing request:" + str(resp.status_code))
@@ -58,7 +58,7 @@ if resp.status_code == 200: # 200 status code ==  success
     The unpack method fixes that, but also does a few other things to play nice, like putting
     the variables into the Dataset.__dict__ object, so you can address them directly
     """
-    datasets = [unpack(raw_dataset) for raw_dataset in resp.json()]    # unpack the python dictionary. this
+    datasets = unpack(resp.content)    # unpack the json list to a python list
     for dataset in datasets:
         print(dataset.resource)
 
