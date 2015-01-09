@@ -3,6 +3,7 @@ package org.srs.datacat.shared;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.ModelProvider;
@@ -56,8 +57,9 @@ public class Provider implements ModelProvider {
     @Override
     public Map<Class<? extends DatacatRecord>, Class<? extends DatacatRecord>> modelProviders(){
         HashMap<Class<? extends DatacatRecord>, Class<? extends DatacatRecord>> providers = new HashMap<>();
+        providers.put(DatacatNode.class, DatacatObject.class);
         providers.put(DatasetModel.class, Dataset.class);
-        providers.put(org.srs.datacat.model.DatasetContainer.class, DatasetContainer.class);
+        providers.put(DatasetContainer.class, DatasetContainer.class);
         return providers;
     }
 
