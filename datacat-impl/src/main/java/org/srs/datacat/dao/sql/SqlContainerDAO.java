@@ -148,12 +148,12 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
         boolean isFolder = container.getType() == RecordType.FOLDER;
         String parent = isFolder ? "DatasetLogicalFolder" : "DatasetGroup";
 
-        String statSQL = "select 'D' type, count(1) count from VerDataset where " + parent + " = ? ";
+        String statSQL = "select 'D' type, count(1) cnt from VerDataset where " + parent + " = ? ";
         if(isFolder){
             statSQL = statSQL
-                    + "UNION ALL select 'G' type, count(1) count from DatasetGroup where datasetlogicalfolder = ? ";
+                    + "UNION ALL select 'G' type, count(1) cnt from DatasetGroup where datasetlogicalfolder = ? ";
             statSQL = statSQL
-                    + "UNION ALL select 'F' type, count(1) count from DatasetLogicalFolder where parent = ? ";
+                    + "UNION ALL select 'F' type, count(1) cnt from DatasetLogicalFolder where parent = ? ";
         }
         try(PreparedStatement stmt = getConnection().prepareStatement(statSQL)) {
             stmt.setLong(1, container.getPk());
@@ -164,7 +164,7 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
             ResultSet rs = stmt.executeQuery();
             BasicStat cs = new BasicStat();
             while(rs.next()){
-                Integer count = rs.getInt("count");
+                Integer count = rs.getInt("cnt");
                 switch(getType(rs.getString("type"))){
                     case DATASET:
                         cs.setDatasetCount(count);
