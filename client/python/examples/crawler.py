@@ -63,7 +63,7 @@ class Crawler:
                 print(error.content)
             sys.exit(1)
 
-        results = [unpack(raw_dataset) for raw_dataset in resp.json()]
+        results = unpack(resp.content)
 
         for dataset in results:
             file_path = dataset.resource
