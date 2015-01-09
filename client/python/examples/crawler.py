@@ -72,7 +72,7 @@ class Crawler:
                 if location.site == WATCH_SITE:
                     check_location = location
                     break
-            file_path = location.resource
+            file_path = check_location.resource
             dataset_path = dataset.path
             stat = os.stat(file_path)
             cksum = self.get_cksum(file_path)
