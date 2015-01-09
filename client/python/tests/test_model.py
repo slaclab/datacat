@@ -47,6 +47,32 @@ class ModelTest(unittest.TestCase):
         group_new2 = unpack(pack(group_new), Container)
         print(pack(group_new2))
 
+        full_ds = [{
+            "_type":"dataset#full",
+            "name":"dataset0001",
+            "path":"/LSST/dataset0001",
+            "pk":11,
+            "parentPk":2,
+            "dataType":"TEST",
+            "fileFormat":"TEST",
+            "versionId":0,
+            "latest":True,
+            "locations":[{
+                "_type":"location","name":"SLAC","pk":1,"site":"SLAC",
+                "master":True,"resource":"/nfs/farm/g/glast/u/bvan/fake.txt","size":0,
+                "scanStatus":None,"runMin":0,"runMax":0,"eventCount":0}
+             ],
+            "versionPk":3}
+        ]
+
+        json_str = json.dumps(full_ds)
+        print json_str
+        ds_new = unpack(json_str)
+        print(ds_new[0].__dict__)
+        print(pack(ds_new))
+        ds_new2 = unpack(pack(ds_new), Dataset)
+        print(pack(ds_new2))
+
 
     def test_pack(self):
         vmd = {

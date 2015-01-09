@@ -2,14 +2,18 @@
 from collections import OrderedDict, MutableMapping
 import json
 
-class DatacatNode(object):
-    def __init__(self, name=None, path=None, pk=None, parentPk=None, **kwargs):
-        if name is not None:
-            self.name = name
+class DatacatRecord(object):
+    def __init__(self, pk=None, path=None, **kwargs):
         if path is not None:
             self.path = path
         if pk is not None:
             self.pk = pk
+
+class DatacatNode(DatacatRecord):
+    def __init__(self, name=None, parentPk=None, **kwargs):
+        super(DatacatNode, self).__init__(**kwargs)
+        if name is not None:
+            self.name = name
         if parentPk is not None:
             self.parentPk = parentPk
 
@@ -62,23 +66,16 @@ class Dataset(DatacatNode):
             if k != "_type" and not hasattr(self, k) and v:
                 self.__dict__[k] = v
 
-    def flattened_by_status(self, status="OK"):
-        from copy import copy
-        ret = copy(self)
-        location = ret._show_first_xxx(status)
-        if hasattr(ret, 'locations'):
-            delattr(ret, 'locations')
-        if location is not None:
-            for k,v in location.items():
-                setattr(self, k, v)
-        return ret
-
-    def _show_first_xxx(self, status):
-        if hasattr(self, "locations"):
-            for location in self.locations:
-                if location.scanStatus is status:
-                    return location
-        return None
+class DatasetLocation(DatacatRecord):
+    def __init__(self, site=None, resource=None, **kwargs):
+        super(DatasetLocation, self).__init__(**kwargs)
+        if site:
+            self.site = site
+        if resource:
+            self.resource = resource
+        for k,v in kwargs.items():
+            if k != "_type" and not hasattr(self, k) and v:
+                self.__dict__[k] = v
 
 class Metadata(MutableMapping):
     def __init__(self, seq=None):
@@ -115,11 +112,6 @@ def _default_serializer(obj):
     try:
         if isinstance(obj, Dataset):
             ret = {}
-            if hasattr(obj, "locations") and obj.locations is not None:
-                if len(obj.locations) == 1:   # Flat
-                    ret.update(_default_serializer(obj.locations[0]))
-                elif len(obj.locations) > 1:
-                    ret['locations'] = [_default_serializer(obj.locations)] # Full
             for k,v in obj.__dict__.items():
                 if v:
                     if k in ("metadata", "versionMetadata"):
@@ -135,6 +127,12 @@ def _default_serializer(obj):
                         ret[k] = Metadata(v)
                     else:
                         ret[k] = v
+            return ret
+        if isinstance(obj, DatacatRecord):
+            ret = {}
+            for k,v in obj.__dict__.items():
+                if v:
+                   ret[k] = v
             return ret
         if isinstance(obj, Metadata):
             type_mapping = {int:"integer", long:"integer", float:"decimal", unicode:"string", str:"string"}
@@ -164,11 +162,7 @@ def _default_hook(raw):
         elif _type.startswith("group"):
             return Group(**raw)
         elif _type.startswith("location"):
-            # Don't create a DatasetLocation object for now
-            return raw
-        """elif _type.startswith("version"):
-            return DatasetVersion(raw)
-        """
+            return DatasetLocation(**raw)
     # Check for metadata k:v pair
     if 'type' in raw and raw["type"] in ("integer","decimal","string"):
         value_mapping = {"integer":long, "decimal":float, "string":unicode}
