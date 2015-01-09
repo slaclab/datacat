@@ -160,9 +160,9 @@ def _default_hook(raw):
         if _type.startswith("dataset"):
             return Dataset(**raw)
         elif _type.startswith("folder"):
-            return Folder(raw)
+            return Folder(**raw)
         elif _type.startswith("group"):
-            return Group(raw)
+            return Group(**raw)
         elif _type.startswith("location"):
             # Don't create a DatasetLocation object for now
             return raw

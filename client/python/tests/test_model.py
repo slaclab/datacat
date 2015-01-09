@@ -2,7 +2,7 @@ __author__ = 'bvan'
 import unittest
 import json
 
-from datacat.model import Dataset, pack, unpack
+from datacat.model import Dataset, Container, pack, unpack
 
 
 class ModelTest(unittest.TestCase):
@@ -34,6 +34,19 @@ class ModelTest(unittest.TestCase):
         print(pack(ds_new))
         ds_new2 = unpack(pack(ds_new), Dataset)
         print(pack(ds_new2))
+
+        group = [
+            {"_type":"group","name":"binary","path":"/EXO/Data/Raw/binary","pk":2274878,"parentPk":2274852},
+            {"_type":"group","name":"cxd","path":"/EXO/Data/Raw/cxd","pk":3007508,"parentPk":2274852},
+            {"_type":"group","name":"root","path":"/EXO/Data/Raw/root","pk":2321462,"parentPk":2274852}
+        ]
+        json_str = json.dumps(group)
+        print json_str
+        group_new = unpack(json_str)
+        print(pack(group_new))
+        group_new2 = unpack(pack(group_new), Container)
+        print(pack(group_new2))
+
 
     def test_pack(self):
         vmd = {
