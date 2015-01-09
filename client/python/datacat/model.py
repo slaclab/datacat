@@ -51,7 +51,7 @@ class Dataset(DatacatNode):
             self.fileFormat=fileFormat
         if metadata:
             self.metadata=metadata
-        if versionId:
+        if versionId is not None:
             self.versionId=versionId
         if processInstance:
             self.processInstance=processInstance
