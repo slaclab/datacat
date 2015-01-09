@@ -119,8 +119,8 @@ public class RequestView extends HashMap<String, String>{
                     if(sites.size() > 1) {
                         throw new IllegalArgumentException("Only one site arguments is allowed");
                     }
-                    site = sites.get(0).toLowerCase();
-                    switch(site){
+                    site = sites.get(0);
+                    switch(site.toLowerCase()){
                         case "all":
                             site = DatasetView.ALL_SITES;
                             break;

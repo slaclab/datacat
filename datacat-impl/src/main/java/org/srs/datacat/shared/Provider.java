@@ -8,6 +8,7 @@ import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.model.container.ContainerStat;
+import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.dataset.DatasetVersionModel;
 
 /**
@@ -59,7 +60,9 @@ public class Provider implements ModelProvider {
         HashMap<Class<? extends DatacatRecord>, Class<? extends DatacatRecord>> providers = new HashMap<>();
         providers.put(DatacatNode.class, DatacatObject.class);
         providers.put(DatasetModel.class, Dataset.class);
-        providers.put(DatasetContainer.class, DatasetContainer.class);
+        providers.put(org.srs.datacat.model.DatasetContainer.class, DatasetContainer.class);
+        providers.put(DatasetLocationModel.class, DatasetLocation.class);
+        providers.put(DatasetVersionModel.class, DatasetVersion.class);
         return providers;
     }
 
