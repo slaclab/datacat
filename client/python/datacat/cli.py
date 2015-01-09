@@ -137,7 +137,7 @@ def main():
 
     if args.show_response:
         print("Object Response:")
-        pp.pprint([i if isinstance(i, DatacatNode) else i for i in retObjects])
+        pp.pprint([i.__dict__ if isinstance(i, DatacatNode) else i for i in retObjects])
 
     if command == "search":
         def print_search_info(datasets, metanames):

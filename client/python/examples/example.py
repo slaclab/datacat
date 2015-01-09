@@ -22,7 +22,7 @@ resp = client.path(path)
 
 if resp.status_code == 200:
     dataset = unpack(resp.content)
-    pprint.pprint(dataset)
+    pprint.pprint(dataset.__dict__)
 else:
     print("Error processing request:" + str(resp.status_code))
 
@@ -35,7 +35,7 @@ resp = client.children(path, show_request=True)
 
 if resp.status_code == 200:
     children = unpack(resp.content)
-    pprint.pprint([child for child in children])
+    pprint.pprint([child.__dict__ for child in children])
 else:
     print("Error processing request:" + str(resp.status_code))
 
