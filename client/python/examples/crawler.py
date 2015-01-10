@@ -1,5 +1,5 @@
 from datacat.client import DcException
-
+from datetime import datetime
 __author__ = 'bvan'
 
 """
@@ -82,17 +82,24 @@ class Crawler:
             scan_result = {}
             scan_result["size"] = stat.st_size
             scan_result["checksum"] = str(cksum)
+            # UTC datetime in ISO format (Note: We need Z to denote UTC Time Zone)
+            scan_result["locationScanned"] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+            scan_result["scanStatus"] = "OK"
+
             md = self.get_metadata(file_path)
             if md:
                 scan_result["versionMetadata"] = md
 
+            print(scan_result)
             try:
                 patch_resp = self.client.patch_dataset(dataset_path, scan_result,
                                                        versionId=dataset.versionId, site=WATCH_SITE)
             except DcException as error:
+                print(error.content)
                 print("Encountered error while updating dataset")
 
 
+        return True
 
 def main():
     c = Crawler()

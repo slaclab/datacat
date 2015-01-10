@@ -12,6 +12,12 @@ class DcException(Exception):
         except Exception:
             self.content = resp.content
 
+    def __repr__(self):
+        s = ""
+        for i in __dict__.keys():
+            s += "%s : %s\n" %(i, dict[i])
+        return s
+
 
 class Client(object):
 
@@ -113,8 +119,9 @@ class Client(object):
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
+        req = dataset if type(dataset) == Dataset else Dataset(**dataset)
         return self._req("patch",self._target(endpoint, path, versionId, site),
-                         data=pack(dataset), **kwargs)
+                         data=pack(req), **kwargs)
 
     def _req(self, http_method, target, params=None, data=None, **kwargs):
         headers = kwargs["headers"] if "headers" in kwargs else None
