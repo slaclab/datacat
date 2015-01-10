@@ -465,7 +465,7 @@ public class Dataset extends DatacatObject implements DatasetModel {
             if(isType( FULL )){
                 return new FullDataset.Builder( this ).build();
             }
-            if(isType( BASE | VERSION )){
+            if(isType( BASE | VERSION ) | isType( BASE | LOCATION )){
                 return new FlatDataset.Builder( this ).build();
             }
             return new Dataset( this );
