@@ -28,9 +28,15 @@ class Crawler:
 
     def __init__(self):
         self.client = Client("http://lsst-db2:8180/rest-datacat-v1/r")
-        self.s = sched.scheduler(time.time, time.sleep)
-        self.s.enter(Crawler.RERUN_SECONDS, 1, self.run, ())
-        self.s.run()
+        self.sched = sched.scheduler(time.time, time.sleep)
+        self._run()
+
+    def start(self):
+        self.sched.run()
+
+    def _run(self):
+        self.run()
+        self.sched.enter(Crawler.RERUN_SECONDS, 1, self._run, ())
 
     def get_cksum(self, path):
         cksum_proc = subprocess.Popen(["cksum", path], stdout=subprocess.PIPE)
@@ -47,6 +53,7 @@ class Crawler:
 
 
     def run(self):
+        print("Checking for new datasets at %s" %(datetime.now().ctime()))
         resp = None
         try:
             resp = self.client.search(WATCH_FOLDER, version="current", site=WATCH_SITE,
@@ -103,6 +110,7 @@ class Crawler:
 
 def main():
     c = Crawler()
+    c.start()
 
 if __name__ == '__main__':
     main()
