@@ -690,9 +690,6 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
             DatasetVersionModel currentVersion;
             DatasetLocationModel currentLocation;
             if(requestView.versionOpt().isPresent()){
-                if(!currentView.versionOpt().isPresent()){
-                    throw new IOException("Unable to patch a non-existent version. Create a version first.");
-                }
                 currentVersion = currentView.getVersion();
                 DatasetVersionModel requestVersion = requestView.getVersion();
                 for(Method method: currentVersion.getClass().getMethods()){
@@ -725,7 +722,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
             }
 
             if(requestView.locationsOpt().isPresent()){
-                if(!currentView.locationsOpt().isPresent()){
+                if(!currentView.versionOpt().isPresent()){
                     throw new IOException("Unable to patch a non-existent version. Create a version first.");
                 }
                 currentLocation = currentView.singularLocationOpt().get();
