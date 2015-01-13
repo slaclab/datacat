@@ -2,6 +2,7 @@ package org.srs.datacat.rest;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.fasterxml.jackson.jaxrs.xml.JacksonXMLProvider;
@@ -51,6 +52,7 @@ public class App extends ResourceConfig {
         public JacksonFeature(){
             if(jsonProvider == null){
                 ObjectMapper jsonMapper = new ObjectMapper();
+                jsonMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
                 XmlMapper xmlMapper = new XmlMapper();
                 for(Entry<Class<? extends DatacatRecord>, Class<? extends DatacatRecord>> e
                         : fsProvider.getModelProvider().modelProviders().entrySet()){
