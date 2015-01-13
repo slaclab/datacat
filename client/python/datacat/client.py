@@ -88,11 +88,10 @@ class Client(object):
             if locationExtras:
                 location.update(locationExtras)
         ds = Dataset(name=name, dataType=dataType, fileFormat=fileFormat, locations=[location], **version)
-        payload = pack(ds)
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
-        return self._req("post",self._target(endpoint, path), data=json.dumps(payload), **kwargs)
+        return self._req("post",self._target(endpoint, path), data=pack(ds), **kwargs)
 
     def patch_dataset(self, path, versionId="current", site=None, versionMetadata=None, resource=None,
                        datasetExtras=None, versionExtras=None, locationExtras=None,

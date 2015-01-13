@@ -71,7 +71,7 @@ def build_argparser():
         parser_children.add_argument('name', help="Dataset name")
         parser_children.add_argument('dataType', help="Dataset data type")
         parser_children.add_argument('fileFormat', help="Dataset file format")
-        parser_children.add_argument('version', dest="versionId",
+        parser_children.add_argument('versionId',
                                      help="Version to query (default equivalent to 'current' for latest version)")
         parser_children.add_argument('site', help="Location site")
         parser_children.add_argument('resource', help="Location resource")
