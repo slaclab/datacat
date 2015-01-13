@@ -3,6 +3,7 @@
 import sys
 import pprint
 import argparse
+import collections
 
 from model import DatacatNode, unpack
 from client import Client, DcException
@@ -87,7 +88,7 @@ def build_argparser():
 
 def main():
     parser = build_argparser()
-    args = parser.parse_known_args()
+    args, extra = parser.parse_known_args()
 
     command = args.command
     target = args.__dict__.pop("path")
@@ -137,6 +138,7 @@ def main():
 
     if args.show_response:
         print("Object Response:")
+        show = retObjects if isinstance(retObjects, collections.Iterable) else [retObjects]
         pp.pprint([i.__dict__ if isinstance(i, DatacatNode) else i for i in retObjects])
 
     if command == "search":
