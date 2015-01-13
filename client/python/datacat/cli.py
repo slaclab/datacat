@@ -128,8 +128,6 @@ def main():
             print(resp.text)
         sys.exit(1)
 
-    retObjects = []
-
     if(resp.status_code == 204):
         print("No Content")
         sys.exit(1)
