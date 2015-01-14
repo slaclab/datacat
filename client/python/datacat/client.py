@@ -59,8 +59,8 @@ class Client(object):
         :param offset: Offset at which to start returning objects.
         :param max_num: Maximum number of objects to return.
         :param accept: Format of the response object which is returned.
-        :return: A :class`requests.Response` object. A user can use Response.content to get the content, and optionally
-        response.json(), if :accept was json, and get a python dictionary back. The object will be a collection.
+        :return: A :class`requests.Response` object. A user can use Response.content to get the content.
+        The object will be a collection.
         """
         endpoint = "search"
         param_list = "query:filter sort:sort show:show offset:offset max_num:max".split(" ")
@@ -72,6 +72,18 @@ class Client(object):
                        versionId="new", site=None, versionMetadata=None, resource=None,
                        datasetExtras=None, versionExtras=None, locationExtras=None,
                        **kwargs):
+        """
+        :param path: Container Target path
+        :param name: Name of Dataset you wish to create
+        :param dataType: User-Defined Data Type of Dataset. This is often a subtype of a file format.
+        :param fileFormat: The File Format of the Dataset (i.e. root, fits, tar.gz, txt, etc...)
+        :param versionId: Desired versionId. By default, it is set to "new", which will result in a versionId of 0.
+        :param site: Site where the dataset physically resides (i.e. SLAC, IN2P3)
+        :param versionMetadata: Metadata to add to registered version if registering a version.
+        :param resource: The actual file resource path at the given site (i.e. /nfs/farm/g/glast/dataset.dat)
+        :return: A :class`requests.Response` object. A user can use Response.content to get the content.
+        The object will be a Dataset.
+        """
         endpoint = "datasets"
         has_version = versionId is not None
         has_location = site is not None and resource is not None
@@ -93,27 +105,18 @@ class Client(object):
         kwargs["headers"] = headers
         return self._req("post",self._target(endpoint, path), data=pack(ds), **kwargs)
 
-    def patch_dataset(self, path, versionId="current", site=None, versionMetadata=None, resource=None,
-                       datasetExtras=None, versionExtras=None, locationExtras=None,
-                       **kwargs):
-        has_version = versionId is not None
-        has_location = site is not None and resource is not None
-        if not has_version and has_location:
-            versionId = "new"
-        version = None
-        location = None
-        if has_version:
-            version = {"versionMetadata":versionMetadata}
-            if versionExtras:
-                version.update(versionExtras)
-        if has_location:
-            location = {"site":site, "resource":resource}
-            if locationExtras:
-                location.update(locationExtras)
-        ds = Dataset(locations=[location], **version)
-        return self.patch_dataset(path, ds, versionId, **kwargs)
-
     def patch_dataset(self, path, dataset, versionId="current", site=None, **kwargs):
+        """
+        Patch a dataset.
+        :param path: Path of the dataset to patch.
+        :param dataset: A dict object or a dataset.model.Dataset object representing the changes to be applied to the
+        dataset
+        :param versionId: If specified, identifies the version to patch. Otherwise, it's assumed to patch the current
+        version, should it exist.
+        :param site: If specified, identifies the specific location to be patched (i.e. SLAC, IN2P3)
+        :param kwargs:
+        :return: A representation of the patched dataset
+        """
         endpoint = "datasets"
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
