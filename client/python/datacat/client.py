@@ -125,6 +125,10 @@ class Client(object):
         return self._req("patch",self._target(endpoint, path, versionId, site),
                          data=pack(req), **kwargs)
 
+    def delete(self, path, **kwargs):
+        # Not implemented yet
+        pass
+
     def _req(self, http_method, target, params=None, data=None, **kwargs):
         headers = kwargs["headers"] if "headers" in kwargs else None
         requests_method = getattr(requests, http_method)
