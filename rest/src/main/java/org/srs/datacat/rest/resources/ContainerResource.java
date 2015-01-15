@@ -153,7 +153,10 @@ public class ContainerResource extends BaseResource {
         path = "/" + path;
         DcPath dcPath = getProvider().getPath(DcUriUtils.toFsUri(path, getUser(), "SRS"));
         try {
-            Files.delete(dcPath);
+            if(!getProvider().resolveFile(dcPath).isDirectory()){
+                throw new NoSuchFileException("Path doesn't resolve to a container");
+            }
+            getProvider().delete(dcPath);
             return Response.noContent().build();
         } catch (DirectoryNotEmptyException ex){
             throw new RestException(ex, 409, "Directory not empty");
@@ -166,13 +169,13 @@ public class ContainerResource extends BaseResource {
         }
     }
     
-    @DELETE
+    /*@DELETE
     @Path(idRegex + ";metadata")
     public Response deleteMetadata(@PathParam("containerType") String contType, 
             @PathParam("id") String path) throws IOException{
         System.out.println("try to delete metadata");
         return null;
-    }
+    }*/
     
     public Response objectView(DcPath containerPath, RequestView rv, Class<? extends ContainerStat> statType) throws IOException{
         DcFile file = Files.readAttributes(containerPath, DcFile.class);

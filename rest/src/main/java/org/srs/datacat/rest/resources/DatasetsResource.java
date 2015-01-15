@@ -18,6 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.MatrixParam;
 import javax.ws.rs.POST;
@@ -325,5 +326,23 @@ public class DatasetsResource extends BaseResource  {
             throw new RestException(ex, 500);
         }
     }
-
+    
+    @DELETE
+    @Path(idRegex)
+    public Response deleteDatasetOrView() throws IOException{
+        DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
+        try {
+            if(!getProvider().resolveFile(targetPath).isRegularFile()){
+                throw new NoSuchFileException("Path doesn't resolve to a Dataset");
+            }
+            getProvider().delete(targetPath);
+            return Response.noContent().build();
+        } catch (NoSuchFileException ex) {
+            throw new RestException(ex ,404, "Dataset doesn't exist", ex.getMessage());
+        } catch (IllegalArgumentException ex){
+            throw new RestException(ex, 400, "Unable to delete a dataset by view", ex.getMessage());
+        } catch (IOException ex){
+            throw new RestException(ex, 500);
+        }
+    }
 }
