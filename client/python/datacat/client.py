@@ -125,9 +125,9 @@ class Client(object):
         return self._req("patch",self._target(endpoint, path, versionId, site),
                          data=pack(req), **kwargs)
 
-    def delete(self, path, **kwargs):
-        # Not implemented yet
-        pass
+    def delete_dataset(self, path, **kwargs):
+        endpoint = "datasets"
+        return self._req("delete",self._target(endpoint, path), **kwargs)
 
     def _req(self, http_method, target, params=None, data=None, **kwargs):
         headers = kwargs["headers"] if "headers" in kwargs else None
