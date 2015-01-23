@@ -76,11 +76,16 @@ public class PathResource extends BaseResource {
         this.pathSegments = pathSegments;
         this.ui = ui;
         String path = "";
-        if(pathSegments != null){
+        if(pathSegments != null && !pathSegments.isEmpty()){
             for(PathSegment s: pathSegments){
                 path = path + "/" + s.getPath();
                 requestMatrixParams.putAll(s.getMatrixParameters());
             }   
+        } else {
+            path = "/";
+            for(PathSegment s: ui.getPathSegments()){
+                requestMatrixParams.putAll(s.getMatrixParameters());
+            }
         }
         requestPath = path;
         requestQueryParams.putAll(ui.getQueryParameters());
@@ -90,7 +95,7 @@ public class PathResource extends BaseResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response getRootBean(@DefaultValue("basic") @QueryParam("stat") StatTypeWrapper statType, 
             @DefaultValue("false") @QueryParam("refresh") boolean refresh) throws IOException{
-        return getBean("", new HashMap<String, List<String>>(), new HashMap<String, List<String>>(), refresh);
+        return getBean(requestPath, requestMatrixParams, requestQueryParams, refresh);
     }
     
     @GET

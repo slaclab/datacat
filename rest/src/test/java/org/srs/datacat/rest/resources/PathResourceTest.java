@@ -61,6 +61,38 @@ public class PathResourceTest extends JerseyTest {
         return app;
     }
 
+    @Test
+    public void testGetRootChildren() throws IOException{
+        String expected = 
+                "[{\"_type\":\"folder\",\"name\":\"testpath\",\"path\":\"/testpath\",\"pk\":1,\"parentPk\":0}]";
+        Response resp = target("/path.json;children")
+                .request()
+                .header("authentication", DbHarness.TEST_USER)
+                .get();
+        TestCase.assertEquals(200, resp.getStatus());
+        TestCase.assertEquals(expected, resp.readEntity(String.class));
+        
+        resp = target("/path.json/;children")
+                .request()
+                .header("authentication", DbHarness.TEST_USER)
+                .get();
+        TestCase.assertEquals(200, resp.getStatus());
+        TestCase.assertEquals(expected, resp.readEntity(String.class));
+        
+        resp = target("/path.json//;children")
+                .request()
+                .header("authentication", DbHarness.TEST_USER)
+                .get();
+        TestCase.assertEquals(200, resp.getStatus());
+        TestCase.assertEquals(expected, resp.readEntity(String.class));
+        
+        resp = target("/path.json/;children=containers")
+                .request()
+                .header("authentication", DbHarness.TEST_USER)
+                .get();
+        TestCase.assertEquals(200, resp.getStatus());
+        TestCase.assertEquals(expected, resp.readEntity(String.class));
+    }
 
     @Test
     public void testGetChildren() throws IOException{
