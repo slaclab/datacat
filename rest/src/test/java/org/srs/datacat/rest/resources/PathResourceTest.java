@@ -8,11 +8,9 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import java.io.IOException;
 import java.sql.SQLException;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
 import junit.framework.TestCase;
-import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.server.model.Resource;
@@ -67,11 +65,43 @@ public class PathResourceTest extends JerseyTest {
     @Test
     public void testGetChildren() throws IOException{
         generateFoldersAndDatasetsAndVersions(this, 10, 10);
-        Response resp = target("/path.json/testpath;children")
+        Response resp = target("/path.json/testpath/folder00004;children")
                 .request()
                 .header("authentication", DbHarness.TEST_USER)
                 .get();
         TestCase.assertEquals(200, resp.getStatus());
+        String content = resp.readEntity(String.class);
+        TestCase.assertTrue(content.startsWith("[{\"_type\":\"dataset\""));
+        
+        resp = target("/path.json/testpath/folder00004;children=")
+                .request()
+                .header("authentication", DbHarness.TEST_USER)
+                .get();
+        
+        TestCase.assertTrue(content.equals(resp.readEntity(String.class)));
+        TestCase.assertEquals(200, resp.getStatus());
+    }
+    
+    @Test
+    public void testGetChildContainers() throws IOException{
+        generateFoldersAndDatasetsAndVersions(this, 10, 10);
+        
+        // no containers
+        Response resp = target("/path.json/testpath/folder00004;children=containers")
+                .request()
+                .header("authentication", DbHarness.TEST_USER)
+                .get();
+        TestCase.assertEquals(200, resp.getStatus());
+        TestCase.assertEquals("[]", resp.readEntity(String.class));
+        
+        // should have containers
+        resp = target("/path.json/testpath;children=containers")
+                .request()
+                .header("authentication", DbHarness.TEST_USER)
+                .get();
+        TestCase.assertEquals(200, resp.getStatus());
+        String content = resp.readEntity(String.class);
+        TestCase.assertTrue(content.startsWith("[{\"_type\":\"folder\""));
     }
 
     

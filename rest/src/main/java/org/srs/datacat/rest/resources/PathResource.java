@@ -162,13 +162,21 @@ public class PathResource extends BaseResource {
     
         List<DatacatNode> retList = new ArrayList<>();
         int count = 0;
-        try (DirectoryStream<java.nio.file.Path> stream = getProvider()
-                .newOptimizedDirectoryStream(dirFile.getPath(), AbstractFsProvider.AcceptAllFilter, 
-                    max, requestView.getDatasetView(DatasetView.CURRENT_ALL))){
-            Iterator<java.nio.file.Path> iter = stream.iterator();
+        DirectoryStream<? super DcPath> stream = null;
+        try{
+            String childrenView = requestView.get("children");
+            if("containers".equals(childrenView)){
+                stream = getProvider()
+                        .directSubdirectoryStream(dirFile.getPath(), AbstractFsProvider.AcceptAllFilter);
+            } else {
+                stream = getProvider()
+                        .newOptimizedDirectoryStream(dirFile.getPath(), AbstractFsProvider.AcceptAllFilter, 
+                            max, requestView.getDatasetView(DatasetView.CURRENT_ALL));
+            }
+            Iterator<? super DcPath> iter = stream.iterator();
             
             while(iter.hasNext() && (retList.size() < max || showCount)){
-                java.nio.file.Path p = iter.next();
+                java.nio.file.Path p = (java.nio.file.Path) iter.next();
                 DcFile file = getProvider().getFile(p);
                 if(!withDs && file.isRegularFile()){
                     continue;
@@ -194,6 +202,14 @@ public class PathResource extends BaseResource {
         } catch (IOException ex){
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("Error accessing the file system: " + ex.getMessage()).build();
+        } finally {
+            try {
+                stream.close();
+            } catch(IOException ex) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity("Error accessing the file system: " + ex.getMessage()).build();
+            }
+            
         }
         
         String start = Integer.toString(offset);

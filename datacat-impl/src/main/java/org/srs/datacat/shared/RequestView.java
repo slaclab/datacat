@@ -102,7 +102,24 @@ public class RequestView extends HashMap<String, String>{
                     if(params.containsKey("metadata")){
                         throw new IllegalArgumentException("Metadata view not compatible with children");
                     }
-                    m.put( "children", PRESENT);
+                    List<String> children = params.get("children");
+                    String childrenType = "";
+                    if(children != null){
+                        if(children.size() > 1){
+                            throw new IllegalArgumentException("Only one version argument is allowed");
+                        }
+                        childrenType = children.get(0) == null || children.get(0).isEmpty() ? "all" : children.get(0);
+                    }
+                    switch(childrenType.toLowerCase()){
+                        case "all":
+                            m.put("children", PRESENT);
+                            break;
+                        case "containers":
+                            m.put("children", "containers");
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Unable to return children of type " + childrenType);
+                    }
                 }
             case DATASET:
                 List<String> version = params.get("v");
