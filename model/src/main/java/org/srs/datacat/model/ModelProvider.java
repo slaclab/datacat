@@ -19,6 +19,6 @@ public interface ModelProvider {
     Class<? extends ContainerStat> getStatByName(String name);
     DatasetVersionModel.Builder getVersionBuilder();
     
-    Map<Class<? extends DatacatRecord>, Class<? extends DatacatRecord>> modelProviders();
+    Map<Class, Class> modelProviders();
     
 }

@@ -29,8 +29,10 @@ import org.srs.datacat.dao.DAOFactory;
 import org.srs.datacat.dao.sql.mysql.DAOFactoryMySQL;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.ModelProvider;
+import org.srs.datacat.model.container.ContainerStat;
 import org.srs.datacat.rest.security.GroupManagerLookupService;
 import org.srs.datacat.security.DcUserLookupService;
+import org.srs.datacat.shared.BasicStat;
 import org.srs.datacat.shared.Provider;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacatalog.search.plugins.EXODatacatSearchPlugin;
@@ -54,7 +56,7 @@ public class App extends ResourceConfig {
                 ObjectMapper jsonMapper = new ObjectMapper();
                 jsonMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
                 XmlMapper xmlMapper = new XmlMapper();
-                for(Entry<Class<? extends DatacatRecord>, Class<? extends DatacatRecord>> e
+                for(Entry<Class, Class> e
                         : fsProvider.getModelProvider().modelProviders().entrySet()){
                     jsonMapper.addMixIn(e.getKey(), e.getValue());
                     xmlMapper.addMixIn(e.getKey(), e.getValue());
