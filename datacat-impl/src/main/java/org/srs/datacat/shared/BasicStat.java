@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.srs.datacat.model.container.ContainerStat;
 
 /**
@@ -11,6 +12,7 @@ import org.srs.datacat.model.container.ContainerStat;
  *
  * @author bvan
  */
+@JsonTypeName(value="stat")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "_type", defaultImpl = BasicStat.class)
 @JsonSubTypes(value = {@JsonSubTypes.Type(DatasetStat.class)})
 @JsonIgnoreProperties(ignoreUnknown=true)
@@ -42,15 +44,10 @@ public class BasicStat implements ContainerStat {
         this(stat.folderCount, stat.groupCount, stat.datasetCount);
     }
 
+    @Override
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnoreProperties(ignoreUnknown=true)
     public Integer getChildCount(){
         return folderCount + groupCount + datasetCount;
-    }
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public Integer getChildContainerCount(){
-        return folderCount + groupCount;
     }
     
     @JsonInclude(JsonInclude.Include.NON_NULL)

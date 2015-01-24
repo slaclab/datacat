@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
  * Statistics are calculated and derived, and may take a long time.
  * @author bvan
  */
-@JsonTypeName(value="dsStat")
+@JsonTypeName(value="stat#dataset")
 public class DatasetStat extends BasicStat {
     
     private long diskUsageBytes;
