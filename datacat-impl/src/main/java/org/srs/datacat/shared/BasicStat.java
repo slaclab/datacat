@@ -14,7 +14,7 @@ import org.srs.datacat.model.container.ContainerStat;
  */
 @JsonTypeName(value="stat")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "_type", defaultImpl = BasicStat.class)
-@JsonSubTypes(value = {@JsonSubTypes.Type(DatasetStat.class)})
+@JsonSubTypes(value = {@JsonSubTypes.Type(DatasetStat.class), @JsonSubTypes.Type(BasicStat.class)})
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class BasicStat implements ContainerStat {
 
