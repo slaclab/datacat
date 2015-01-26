@@ -1,4 +1,4 @@
-<%-- 
+    <%-- 
     Document   : containers
     Created on : Sep 12, 2013, 12:15:46 PM
     Author     : bvan
@@ -9,21 +9,6 @@
 <%@taglib uri="http://srs.slac.stanford.edu/web_datacat" prefix="web_dc" %>
 
 <div class="browser">
-    <ol class="breadcrumb datacat-path">
-        <li><a href="${pageContext.request.contextPath}/browser">Root</a></li>
-        <c:if test='${path != null}'>
-            <c:if test='${path.path.lastIndexOf("/") > 1}'>
-                <c:set var="pathPart" value="" />
-                <c:set var="parentPath" value='${path.path.substring(1, path.path.lastIndexOf("/"))}' />
-                <c:set var="pathList" value='${parentPath.split("/")}' />
-                <c:forEach var="pathElem" items="${pathList}" varStatus="status">
-                    <li><a href="${pageContext.request.contextPath}/browser${pathPart}/${pathElem}">${pathElem}</a></li>
-                    <c:set var="pathPart" value='${pathPart}/${pathElem}' />
-                </c:forEach>
-                <li class="active">${path.name}</li>
-            </c:if>
-        </c:if>
-    </ol>
     <button class="btn btn-primary btn-xs" id="paginate-containers-button" onclick="paginateContainers()">
         Paginate?
     </button>
@@ -82,7 +67,7 @@
                         </c:otherwise>                            
                     </c:choose>
                 </tr>
-            </c:forEach> 
+            </c:forEach>    
 
         </tbody>
     </table>

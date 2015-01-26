@@ -26,14 +26,41 @@
 
         <div class="col-xs-12">
             <div class="row">
+                <div class="col-xs-12">
+                    <ol class="breadcrumb datacat-path">
+                        <li><a href="${pageContext.request.contextPath}/browser">Root</a></li>
+                            <c:if test='${target != null}'>
+                                <c:set var="pathPart" value="" />
 
-                <div class="col-md-5 containers-view">
+                        <c:set var="parentPath" value='${target.path.lastIndexOf("/") > 1 ? 
+                                                         target.path.substring(1, target.path.lastIndexOf("/")) 
+                                                         : "/"}' />
+                                <c:set var="pathList" value='${parentPath.split("/")}' />
+
+                                <c:forEach var="pathElem" items="${pathList}" varStatus="status">
+                                    <li><a href="${pageContext.request.contextPath}/browser${pathPart}/${pathElem}">${pathElem}</a></li>
+                                        <c:set var="pathPart" value='${pathPart}/${pathElem}' />
+                                </c:forEach>
+                            <li class="active">${target.name}</li>
+
+                            </c:if>
+                    </ol>
+                </div>
+            </div>
+            <div class="row">
+
+                <div class="col-sm-5 col-md-4 col-lg-4 containers-view">
                     <%@ include file="containers.jsp" %>
                 </div>
 
-                <div class="col-md-7" id="info-views">
+                <div class=" col-sm-7 col-md-8 col-lg-8" id="info-views">
                     <c:if test="${selected != null}" > <%@ include file="stat.jsp" %> </c:if>
-                    <%@ include file="datasets.jsp" %>
+                    <c:choose>
+                        <c:when test="${dataset != null}" > <%@ include file="dataset.jsp" %> </c:when>
+                        <c:otherwise>
+                            <%@ include file="datasets.jsp" %>
+                        </c:otherwise>
+                    </c:choose>
                 </div> <!-- End right side -->
             </div> <!-- end row -->
         </div>

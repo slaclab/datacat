@@ -1,8 +1,6 @@
 
 
-var localStorage = window.storage;
-
-/*(function( ldStack, $, rootPath) {
+(function( ldStack, $, rootPath) {
     ldStack.basePath = rootPath || "http://glastlnx08.slac.stanford.edu:8180/rest/datacat/v1";
     
     var loadStack = new Array();
@@ -56,11 +54,11 @@ var localStorage = window.storage;
             } else if(status == "timeout"){
 		$("#content").text("A timeout occurred.");
             }
-	}*\/
-    }
+	}*/
+	}
     
 }( window.loadStack = window.loadStack || {}, jQuery, "http://localhost:8080/rest/datacat/v1" ));
-*/
+
 
 (function( dynamicTree, $) {
 
@@ -99,7 +97,7 @@ var localStorage = window.storage;
 	syncLoadStack("/path", path, null, null);
     }
      */
-    
+
     /*function childrenCB(parent){
 	return function(items){
 	    parent['children'] = items;
@@ -256,11 +254,11 @@ var localStorage = window.storage;
                 target.children.forEach(function(child){
                     loadChildren(target, child, 0, 2);
                 });
-	    } /* else if (p.data("treeNode").loaded == null) {
+	    }  else if (p.data("treeNode").loaded == null) {
 		groupsAndFoldersFor(findPath(tNode), function(items){	    
 		    childrenCB(tNode)(items);
 		});
-            }*/
+            }
 	    p.toggleClass("open");
 	    window.location.hash = "#" + findPath(tNode);
 	}
@@ -281,9 +279,6 @@ var localStorage = window.storage;
     
     var rawItems = null;
     dynamicTree.init = function(items, cached){
-        if( cached == null ){
-            localStorage.setItem("srs.datacat.rawTree", JSON.stringify(items));
-        }
         rawItems = items;
 	$(".tree").ready(    function (){
             $(".tree").bind("keydown",multiSet);
@@ -292,11 +287,7 @@ var localStorage = window.storage;
         });
     }
 
-}( window.dynamicTree = window.dynamicTree || {}, jQuery, null/*window.loadStack.syncLoadStack*/  ));
+}( window.dynamicTree = window.dynamicTree || {}, jQuery, window.loadStack.syncLoadStack ));
 
-if(localStorage.getItem("srs.datacat.rawTree") != null){
-    window.dynamicTree.init( JSON.parse(localStorage.getItem("dynamicTree.rawRootTree") ), true );
-} else {
-    $("head").append($("<script type=\"text/javascript\" src=\"r/root/jsonp?callback=window.dynamicTree.init\"></script>")[0]);
-}
+window.dynamicTree.init([{"$type":"folder","name":"LSST", "path":"/LSST"}], null);
 

@@ -11,7 +11,7 @@
     <div class="panel panel-info">
         <div class="panel-heading stat-heading">
             Info for <span id="stat-container-type">${selected.type}</span> 
-            <span id="stat-location">${selected.path} / ${selected.name}</span>
+            <span id="stat-location">${selected.path}</span>
         </div>
         <table class="table table-condensed table-hover">
             <thead>
