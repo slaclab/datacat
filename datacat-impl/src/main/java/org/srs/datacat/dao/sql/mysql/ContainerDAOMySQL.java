@@ -348,7 +348,8 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
         return stream;
     }
 
-    private static void checkResultSet(Dataset.Builder dsBuilder, ResultSet dsVer, ResultSet dsLoc) throws SQLException{
+    private void checkResultSet(Dataset.Builder dsBuilder, ResultSet dsVer, ResultSet dsLoc) throws SQLException{
+        completeDataset(dsBuilder);
         long dsPk = dsBuilder.pk;
         if(dsVer == null || dsVer.isClosed()){
             return;

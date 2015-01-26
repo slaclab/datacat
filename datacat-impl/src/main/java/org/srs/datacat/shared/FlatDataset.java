@@ -10,12 +10,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.dataset.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.FlatDataset.Builder;
-import org.srs.datacat.shared.adapters.RestDateAdapter;
 
 /**
  * Dataset with a version. The location may not exist.
@@ -90,7 +88,6 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("locationModified")
-    @XmlJavaTypeAdapter(RestDateAdapter.class) 
     public Timestamp getDateLocationModified(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getDateModified();
@@ -99,8 +96,7 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     }
     
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonProperty("locationRegistered")
-    @XmlJavaTypeAdapter(RestDateAdapter.class) 
+    @JsonProperty("locationCreated")
     public Timestamp getDateLocationCreated(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getDateCreated();
@@ -111,7 +107,6 @@ public class FlatDataset extends DatasetWithView implements DatasetLocationModel
     @Override 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("locationScanned")
-    @XmlJavaTypeAdapter(RestDateAdapter.class) 
     public Timestamp getDateScanned(){ 
         if(getViewInfo().singularLocationOpt().isPresent()){
             return getViewInfo().singularLocationOpt().get().getDateScanned();

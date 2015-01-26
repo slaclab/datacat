@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.srs.datacat.model.DatasetModel;
 import java.sql.Timestamp;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.Collection;
@@ -23,7 +22,6 @@ import org.srs.datacat.model.dataset.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.dataset.DatasetViewInfoModel;
 import org.srs.datacat.shared.Dataset.Builder;
-import org.srs.datacat.shared.adapters.RestDateAdapter;
 import org.srs.datacat.shared.metadata.MetadataEntry;
 
 /**
@@ -73,11 +71,10 @@ public class Dataset extends DatacatObject implements DatasetModel {
     public String getDataType() { return this.dataType; }
         
     @Override
-    
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getFileFormat() { return this.fileFormat; }
     
     @Override
-    @XmlJavaTypeAdapter(RestDateAdapter.class) 
     @JsonProperty("created")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Timestamp getDateCreated(){ return this.dateCreated; }

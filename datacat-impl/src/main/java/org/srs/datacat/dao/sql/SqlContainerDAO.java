@@ -348,7 +348,8 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
         return stream;
     }
 
-    private static void checkResultSet(Dataset.Builder dsBuilder, ResultSet dsVer, ResultSet dsLoc) throws SQLException{
+    private void checkResultSet(Dataset.Builder dsBuilder, ResultSet dsVer, ResultSet dsLoc) throws SQLException{
+        completeDataset(dsBuilder);
         long dsPk = dsBuilder.pk;
         if(dsVer == null || dsVer.isClosed()){
             return;
@@ -374,6 +375,7 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
         while(!dsVer.isClosed() && dsVer.getLong("dataset") == dsPk && dsVer.getLong("datasetversion") == verPk){
             HashMap<String, Object> metadata = new HashMap<>();
             List<DatasetLocationModel> locations = new ArrayList<>();
+            // Update
             builder.pk(verPk);
             builder.parentPk(dsPk);
             builder.versionId(dsVer.getInt("versionid"));
