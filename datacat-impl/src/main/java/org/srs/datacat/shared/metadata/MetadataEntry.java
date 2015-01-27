@@ -38,7 +38,7 @@ public class MetadataEntry {
             if(e.getValue() instanceof Number){
                 list.add(new MetadataEntry(e.getKey(), (Number) e.getValue()));
             } else {
-                list.add(new MetadataEntry(e.getKey(), e.getValue().toString()));
+                list.add(new MetadataEntry(e.getKey(), (String) e.getValue()));
             }
         }
         return list;

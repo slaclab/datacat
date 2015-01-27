@@ -42,16 +42,16 @@ public interface MetadataValue<T> {
                     if(rawValue instanceof Number){
                         return (T) new MetadataDecimal((Number) rawValue);
                     } else {
-                        return (T) new MetadataDecimal(new BigDecimal(rawValue.toString()));
+                        return (T) new MetadataDecimal(new BigDecimal((String) rawValue));
                     }
                 } else if(type.equalsIgnoreCase("integer")){
                     if(rawValue instanceof Number){
                         return (T) new MetadataInteger((Number) rawValue);
                     } else {
-                        return (T) new MetadataInteger(new BigInteger(rawValue.toString()));
+                        return (T) new MetadataInteger(new BigInteger((String) rawValue));
                     }
                 } else {
-                    return (T) new MetadataString(rawValue.toString());
+                    return (T) new MetadataString((String) rawValue);
                 }
             }
             if(rawValue instanceof Long || rawValue instanceof BigInteger || rawValue instanceof Integer){
@@ -60,7 +60,7 @@ public interface MetadataValue<T> {
             if(rawValue instanceof Number){
                 return (T) new MetadataDecimal((Number) rawValue);
             }
-            return (T) new MetadataString(rawValue.toString());
+            return (T) new MetadataString((String) rawValue);
         }
 
         @JsonSetter
