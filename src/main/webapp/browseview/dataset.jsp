@@ -21,7 +21,9 @@
     </c:if>
 --%>
 
-<h3>Dataset ${dataset.name} version ${dataset.versionId}</h3>
+<div class="page-header">
+  <h3>${dataset.name} <small>version ${dataset.versionId}</small></h3>
+</div>
 
 <table class="table table-condensed table-striped">
     <thead>
