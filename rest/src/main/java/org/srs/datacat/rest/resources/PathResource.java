@@ -182,7 +182,12 @@ public class PathResource extends BaseResource {
             
             while(iter.hasNext() && (retList.size() < max || showCount)){
                 java.nio.file.Path p = (java.nio.file.Path) iter.next();
-                DcFile file = getProvider().getFile(p);
+                DcFile file = null;
+                try {
+                    file = getProvider().getFile(p);
+                } catch (AccessDeniedException ex){
+                    continue;
+                }
                 if(!withDs && file.isRegularFile()){
                     continue;
                 }
