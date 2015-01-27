@@ -54,9 +54,10 @@
                 </div>
 
                 <div class=" col-sm-7 col-md-8 col-lg-8" id="info-views">
-                    <c:if test="${selected != null}" > <%@ include file="stat.jsp" %> </c:if>
+                    <c:if test="${selected != null && dataset == null}" > <%@ include file="stat.jsp" %> </c:if>
                     <c:choose>
                         <c:when test="${dataset != null}" > <%@ include file="dataset.jsp" %> </c:when>
+                        <%-- <c:when test="${overflow != null}" > Overflow </c:when> --%>
                         <c:otherwise>
                             <%@ include file="datasets.jsp" %>
                         </c:otherwise>

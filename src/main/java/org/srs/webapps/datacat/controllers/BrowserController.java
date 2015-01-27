@@ -17,6 +17,7 @@ import org.srs.datacat.model.DatasetView;
 
 import org.srs.datacat.shared.RequestView;
 import org.srs.datacat.model.RecordType;
+import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetStat;
 import org.srs.vfs.PathUtils;
 
@@ -32,7 +33,7 @@ public class BrowserController extends HttpServlet {
     Client c;
     
     public BrowserController() throws MalformedURLException{
-        c = new Client();
+        c = new Client("http://scalnx-v04.slac.stanford.edu:8180/org-srs-datacat-war-0.2-SNAPSHOT/r");
     }
     
     @Override
@@ -48,8 +49,10 @@ public class BrowserController extends HttpServlet {
             String path = request.getPathInfo();
             DatacatNode pathObject = c.getObject(path);
             request.setAttribute("target", pathObject );
+            
             if(!pathObject.getType().isContainer()){
                 request.setAttribute("dataset", pathObject);
+                System.out.println(((Dataset) pathObject).getDateCreated());
                 path = PathUtils.getParentPath(pathObject.getPath());
             }
             
@@ -59,7 +62,7 @@ public class BrowserController extends HttpServlet {
             long dsCount = t.getDatasetCount();
             if(ccCount == 0){
                 if(dsCount > 0){
-                    if(dsCount < 10000){
+                    if(dsCount < 1000){
                         ArrayList<DatacatNode> datasets = new ArrayList<>();
                         for(DatacatNode d: getChildren(path, rv, requestQueryParams)){
                             if(!d.getType().isContainer()){
@@ -67,14 +70,20 @@ public class BrowserController extends HttpServlet {
                             }
                         }
                         request.setAttribute("datasets", datasets);
+                    } else {
+                        request.setAttribute("overflow", new Object());
                     }
                 }
+                request.setAttribute("containers", 
+                        getContainers(PathUtils.getParentPath(path), rv, requestQueryParams));
                 request.setAttribute( "selected", pathObject );
+            } else {
+                request.setAttribute("containers", 
+                        getContainers(path, rv, requestQueryParams));
             }
             
 
             request.setAttribute("parentURL", request.getPathInfo() );
-            request.setAttribute("containers", getContainers(PathUtils.getParentPath(path), rv, requestQueryParams));
         }
         request.getRequestDispatcher( "/browseview/browser.jsp" ).forward( request, response );
     }

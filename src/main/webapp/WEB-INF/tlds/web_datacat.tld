@@ -21,4 +21,10 @@
     <function-class>org.srs.webapps.datacat.tags.Util</function-class>
     <function-signature>java.lang.String formatEvents(long)</function-signature>
   </function>
+  <function>
+    <description>Format value type</description>
+    <name>getValueType</name>
+    <function-class>org.srs.webapps.datacat.tags.Util</function-class>
+    <function-signature>java.lang.String getValueType(java.lang.Object)</function-signature>
+  </function>
 </taglib>
