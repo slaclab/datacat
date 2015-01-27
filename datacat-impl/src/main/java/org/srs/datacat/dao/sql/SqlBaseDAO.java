@@ -161,7 +161,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
     protected void completeDataset(Dataset.Builder builder) throws SQLException{
         String sql = "select vd.datasetfileformat, "
                 + "vd.datasetdatatype, vd.latestversion, "
-                + "vd.registered vregistered "
+                + "vd.registered created "
                 + "from VerDataset vd "
                 + "where vd.dataset = ? ";
 
@@ -170,7 +170,8 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             ResultSet rs = stmt.executeQuery();
             rs.next();
             builder.fileFormat(rs.getString("datasetfileformat"))
-                    .dataType(rs.getString("datasetdatatype"));
+                    .dataType(rs.getString("datasetdatatype"))
+                    .created(rs.getTimestamp("created"));
         }
     }
 
