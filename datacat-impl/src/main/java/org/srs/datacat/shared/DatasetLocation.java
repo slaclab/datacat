@@ -8,12 +8,10 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
 import java.sql.Timestamp;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.Objects;
 import org.srs.datacat.shared.DatasetLocation.Builder;
-import org.srs.datacat.shared.adapters.RestDateAdapter;
 
 
 /**
@@ -26,7 +24,7 @@ import org.srs.datacat.shared.adapters.RestDateAdapter;
 @JsonDeserialize(builder = Builder.class)
 @JsonPropertyOrder({"_type", "name",  "path", "pk", "parentPk",
     "metadata", "site", "master", "resource", "size", "checksum", "scanStatus",
-    "registered", "modified", "scanned", "runMin", "runMax", "eventCount"}
+    "created", "modified", "scanned", "runMin", "runMax", "eventCount"}
 )
 public class DatasetLocation extends DatacatObject implements DatasetLocationModel {
    
@@ -117,21 +115,18 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     @JsonInclude(JsonInclude.Include.NON_NULL) @Override public String getChecksum() { return this.checksum; }
    
     @Override 
-    @XmlJavaTypeAdapter(RestDateAdapter.class) 
     @JsonProperty("modified")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Timestamp getDateModified() { return this.dateModified; }
    
     @Override 
-    @XmlJavaTypeAdapter(RestDateAdapter.class) 
     @Patchable(column="LastScanned")
     @JsonProperty("scanned")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Timestamp getDateScanned() { return this.dateScanned; }
 
     @Override
-    @XmlJavaTypeAdapter(RestDateAdapter.class) 
-    @JsonProperty("registered")
+    @JsonProperty("created")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Timestamp getDateCreated() { return this.dateCreated; }
 
