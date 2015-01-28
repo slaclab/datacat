@@ -5,6 +5,7 @@ from .model import *
 
 class DcException(Exception):
     def __init__(self, resp):
+        self.raw = resp
         try:
             err = resp.json()
             for k, v in err.items():
@@ -14,8 +15,8 @@ class DcException(Exception):
 
     def __repr__(self):
         s = ""
-        for i in __dict__.keys():
-            s += "%s : %s\n" %(i, dict[i])
+        for i in self.__dict__.keys():
+            s += "%s : %s\n" %(i, self.__dict__[i])
         return s
 
 
