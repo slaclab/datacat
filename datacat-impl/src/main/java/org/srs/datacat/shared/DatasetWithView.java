@@ -8,11 +8,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.sql.Timestamp;
 import java.util.List;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.dataset.DatasetVersionModel;
 import org.srs.datacat.model.dataset.DatasetWithViewModel;
-import org.srs.datacat.shared.adapters.RestDateAdapter;
 import org.srs.datacat.shared.metadata.MetadataEntry;
 
 /**
@@ -137,7 +135,6 @@ public class DatasetWithView extends Dataset implements DatasetWithViewModel {
         return null;
     }
 
-    @XmlJavaTypeAdapter(RestDateAdapter.class)
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("versionCreated")
     public Timestamp getDateVersionCreated(){

@@ -7,14 +7,12 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.srs.datacat.model.dataset.DatasetVersionModel;
 import java.sql.Timestamp;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.Objects;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.DatasetView.VersionId;
 import org.srs.datacat.shared.DatasetVersion.Builder;
-import org.srs.datacat.shared.adapters.RestDateAdapter;
 
 /**
  * A DatasetVersion represents a specific version for a given Dataset.
@@ -82,7 +80,6 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
     public Boolean isLatest() { return this.isLatest; }
 
     @Override
-    @XmlJavaTypeAdapter(RestDateAdapter.class) 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Timestamp getDateCreated() { return this.versionRegistrationDate; }
 
