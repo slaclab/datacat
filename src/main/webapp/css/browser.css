@@ -61,3 +61,25 @@ root {
     background-color: #fff;
     box-shadow: none;
 }
+
+.location-site {
+    width: 4em;
+}
+
+.location-status {
+    width: 6em;
+}
+
+.location-ts {
+    /*max-width: 200px;*/
+}
+
+.location-resource {
+    white-space: nowrap;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+}
+
+.location-table {
+    table-layout: fixed;
+}

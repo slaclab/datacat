@@ -28,7 +28,7 @@
     <small>Dataset</small><br></h3>
 </div>
 
-<table class="table table-condensed table-striped">
+<table class="table table-condensed table-striped location-table">
     <thead>
         <tr>
             <th>Name</th>
@@ -55,7 +55,7 @@
             <tr><th>Master Site:</th><td>${master.site}</td></tr>
         </c:catch>
         <c:catch var="exception">
-            <tr><th>Master resource:</th><td>${master.resource}</td></tr>
+            <tr><th>Master resource:</th><td class="location-resource">${master.resource}</td></tr>
         </c:catch>
         <c:catch var="exception">
             <tr><th>Run Min:</th><td>${master.runMin}</td></tr>
@@ -127,24 +127,26 @@
     <h3>Locations</h3>
     <c:choose>
             <c:when test="${dataset.viewInfo.locations != null && !empty dataset.viewInfo.locations}">
-                <table class="table table-condensed table-striped">
+                <table class="table table-condensed table-striped location-table">
                     <thead>
                         <tr>
-                            <th>Site</th>
-                            <th>Scan Status</th>
-                            <th>Created</th>
-                            <th>Last Scanned (UTC)</th>
-                            <th>Resource</th>
+                            <th class="location-site">Site</th>
+                            <th class="location-status">Scan Status</th>    
+                            <th class="location-ts">Created</th>
+                            <th class="location-ts">Last Scanned</th>
+                            <th class="location-resource"><div class="location-resource">Resource</div></th>
                         </tr>
                     </thead>
 
                     <tbody>
                         <c:forEach var="location" items="${dataset.viewInfo.locations}" varStatus="status">
-                            <tr><td>${location.site}</td>
-                            <td>${location.scanStatus}</td>
-                            <td>${web_dc:formatTimestamp(location.dateCreated)}</td>
-                            <td>${web_dc:formatTimestamp(location.dateScanned)}</td>
-                            <td>${location.resource}</td></tr>
+                            <tr>
+                                <td >${location.site}</td>
+                                <td>${location.scanStatus}</td>
+                                <td>${web_dc:formatTimestamp(location.dateCreated)}</td>
+                                <td>${web_dc:formatTimestamp(location.dateScanned)}</td>
+                                <td class="location-resource">${location.resource}</td>
+                            </tr>
                         </c:forEach>
                     </tbody>
                 </table>
