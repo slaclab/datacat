@@ -20,7 +20,9 @@ import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import org.glassfish.jersey.CommonProperties;
 import org.srs.datacat.client.resources.Path;
+import org.srs.datacat.client.resources.Search;
 import org.srs.datacat.model.DatacatNode;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.shared.Provider;
 
 /**
@@ -31,6 +33,7 @@ public class Client {
     private javax.ws.rs.client.Client client;
     private WebTarget baseTarget;
     private Path pathResource;
+    private Search searchResource;
     
     public Client() throws MalformedURLException{
         init("http://lsst-db2.slac.stanford.edu:8180/rest-datacat-v1/r");
@@ -83,15 +86,24 @@ public class Client {
                 .build();
         baseTarget = client.target(baseUrl);
         this.pathResource = new Path(baseTarget);
+        this.searchResource = new Search(baseTarget);
     }
     
     public List<DatacatNode> getChildren(String path){
-        return pathResource.getChildren(path, Optional.<String>absent(), Optional.<String>absent())
+        return pathResource.getChildren(path, Optional.<String>absent(), Optional.<String>absent(),
+                Optional.<Integer>absent(), Optional.<Integer>absent())
                 .readEntity(new GenericType<List<DatacatNode>>(){});
     }
     
     public List<DatacatNode> getChildren(String path, String versionId, String site){
-        return pathResource.getChildren(path, Optional.fromNullable(versionId), Optional.fromNullable(site))
+        return pathResource.getChildren(path, Optional.fromNullable(versionId), Optional.fromNullable(site),
+                Optional.<Integer>absent(), Optional.<Integer>absent())
+                .readEntity(new GenericType<List<DatacatNode>>(){});
+    }
+    
+    public List<DatacatNode> getChildren(String path, String versionId, String site, int offset, int max){
+        return pathResource.getChildren(path, Optional.fromNullable(versionId), Optional.fromNullable(site),
+                Optional.of(offset), Optional.of(max))
                 .readEntity(new GenericType<List<DatacatNode>>(){});
     }
     
@@ -110,6 +122,15 @@ public class Client {
                 .readEntity(new GenericType<DatacatNode>(){});
     }
     
+    public List<DatasetModel> searchForDatasets(String target, String versionId, String site, 
+            String query, String sort, String show, int offset, int max){
+        return this.searchResource.searchForDatasets(target, Optional.fromNullable(versionId), 
+                Optional.fromNullable(site), Optional.fromNullable(query), 
+                Optional.fromNullable(sort), Optional.fromNullable(show), 
+                Optional.<Integer>fromNullable(offset), Optional.<Integer>fromNullable(max))
+                .readEntity(new GenericType<List<DatasetModel>>(){});
+    }
+
     public static void main(String[] argv) throws MalformedURLException{
         Client c = new Client();
         DatacatNode n = c.getContainer("/LSST", "dataset");
@@ -118,9 +139,14 @@ public class Client {
         
         
         System.out.println(n.toString());
-        List<DatacatNode> children = c.getChildren("/LSST", "current", "master");
+        List<? extends DatacatNode> children = c.getChildren("/LSST", "current", "master");
         for(DatacatNode child: children){
             System.out.println(child.toString());
+        }
+        children = c.searchForDatasets("/LSST", "current", "master", "", null, null, 0, 1000);
+        for(DatacatNode child: children){
+            System.out.println(child.toString());
+            System.out.println(child.getClass());
         }
     }
 

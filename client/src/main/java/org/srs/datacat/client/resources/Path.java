@@ -17,8 +17,12 @@ public class Path {
         this.target = baseTarget.path("path.json");
     }
     
-    public Response getChildren(String path, Optional<String> versionId, Optional<String> site){
-        return getTarget(target.path(path), versionId, site).matrixParam("children", "").request()
+    public Response getChildren(String path, Optional<String> versionId, Optional<String> site,
+        Optional<Integer> offset, Optional<Integer> max){
+        return getTarget(target.path(path), versionId, site).matrixParam("children", "")
+                .queryParam("offset", offset.orNull())
+                .queryParam("max", max.orNull())
+                .request()
                 .get();
     }
     
@@ -36,7 +40,7 @@ public class Path {
                 .get();
     }
     
-    public WebTarget getTarget(WebTarget base, Optional<String> versionId, Optional<String> site){
+    public static WebTarget getTarget(WebTarget base, Optional<String> versionId, Optional<String> site){
         if(versionId.isPresent()){
             base = base.matrixParam("v", versionId.get());
         }
