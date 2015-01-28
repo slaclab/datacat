@@ -3,16 +3,20 @@ package org.srs.webapps.datacat.controllers;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import java.util.List;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import jersey.repackaged.com.google.common.base.Optional;
 import org.srs.datacat.client.Client;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetContainer;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetView;
 
 import org.srs.datacat.shared.RequestView;
@@ -28,8 +32,6 @@ import org.srs.vfs.PathUtils;
  */
 public class BrowserController extends HttpServlet {
 
-    private HashMap<String, List<String>> requestMatrixParams = new HashMap<>();
-    private HashMap<String, List<String>> requestQueryParams = new HashMap<>();
     Client c;
     
     public BrowserController() throws MalformedURLException{
@@ -39,6 +41,11 @@ public class BrowserController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException{
+        HashMap<String, List<String>> requestQueryParams = new HashMap<>();
+        Map<String, String[]> params = request.getParameterMap();
+        for(Map.Entry<String, String[]> e: params.entrySet()){
+            requestQueryParams.put(e.getKey(), Arrays.asList((String[]) e.getValue()));
+        }
         
         RequestView rv = new RequestView(RecordType.FOLDER, null);
         if(request.getPathInfo() == null || request.getPathInfo().length() == 1){
@@ -57,22 +64,19 @@ public class BrowserController extends HttpServlet {
             }
             
             pathObject = c.getContainer(path, "dataset");
+            request.setAttribute("container", pathObject);
             DatasetStat t = (DatasetStat) ((DatasetContainer) pathObject).getStat();
             long ccCount = t.getGroupCount() + t.getFolderCount();
             long dsCount = t.getDatasetCount();
             if(ccCount == 0){
                 if(dsCount > 0){
-                    if(dsCount < 1000){
-                        ArrayList<DatacatNode> datasets = new ArrayList<>();
-                        for(DatacatNode d: getChildren(path, rv, requestQueryParams)){
-                            if(!d.getType().isContainer()){
-                                datasets.add(d);
-                            }
+                    ArrayList<DatacatNode> datasets = new ArrayList<>();
+                    for(DatacatNode d: getDatasets(path, rv, requestQueryParams)){
+                        if(!d.getType().isContainer()){
+                            datasets.add(d);
                         }
-                        request.setAttribute("datasets", datasets);
-                    } else {
-                        request.setAttribute("overflow", new Object());
                     }
+                    request.setAttribute("datasets", datasets);
                 }
                 request.setAttribute("containers", 
                         getContainers(PathUtils.getParentPath(path), rv, requestQueryParams));
@@ -88,25 +92,22 @@ public class BrowserController extends HttpServlet {
         request.getRequestDispatcher( "/browseview/browser.jsp" ).forward( request, response );
     }
     
-    List<DatacatNode> getChildren(String path, RequestView requestView, HashMap<String, List<String>> queryParams) throws IOException{
-        int max = queryParams.containsKey("max") ? Integer.valueOf( queryParams.get("max").get(0)) :100000;
+    List<DatasetModel> getDatasets(String path, RequestView requestView, HashMap<String, List<String>> queryParams) throws IOException{
+        int max = queryParams.containsKey("max") ? Integer.valueOf( queryParams.get("max").get(0)) : 4000;
         int offset = queryParams.containsKey("offset") ? Integer.valueOf( queryParams.get("offset").get(0)) :0;
     
-        List<DatacatNode> retList = new ArrayList<>();
-        int count = 0;
+        String filter =  queryParams.containsKey("filter") ? queryParams.get("filter").get(0) :"";
+        System.out.println(filter);;
         DatasetView dsView = requestView.getDatasetView(DatasetView.MASTER);
-        for(DatacatNode n: c.getChildren(path, Integer.toString(dsView.getVersionId()), dsView.getSite() )){
-            if(count >= offset && retList.size() < max){
-                retList.add(n);
-            }
-            count++;
-        }
+        List<DatasetModel> retList = c.searchForDatasets(path, Integer.toString(dsView.getVersionId()), 
+                dsView.getSite(), filter, null ,null, offset, max);
+        
         return retList;
     }
     
     List<DatacatNode> getContainers(String path, RequestView requestView, HashMap<String, List<String>> queryParams) throws IOException{
-        int max = queryParams.containsKey("max") ? Integer.valueOf( queryParams.get("max").get(0)) :100000;
-        int offset = queryParams.containsKey("offset") ? Integer.valueOf( queryParams.get("offset").get(0)) :0;
+        int max = queryParams.containsKey("cmax") ? Integer.valueOf( queryParams.get("cmax").get(0)) :100000;
+        int offset = queryParams.containsKey("coffset") ? Integer.valueOf( queryParams.get("coffset").get(0)) :0;
     
         List<DatacatNode> retList = new ArrayList<>();
         int count = 0;

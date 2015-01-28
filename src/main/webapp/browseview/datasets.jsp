@@ -8,18 +8,9 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib uri="http://srs.slac.stanford.edu/web_datacat" prefix="web_dc" %>
 
-<div class="datasets">
-    <div class="panel panel-default">
-        <div class="panel-heading">
 
-            List of datasets for <span id="datasets-location">${selected.path}</span>
-            <div class="pull-right">
-                <a class="accordion-toggle" data-toggle="collapse" data-target="#ds-collapse"><span class="glyphicon glyphicon-th-list" style="font-size:14px;" data-toggle="tooltip" title="Show/Hide Datasets"></span></a>
-            </div>
-        </div>
-        <!--<button class="btn btn-primary btn-sm" id="paginate-datasets-button" onclick="paginateDatasets()">
-            Paginate?
-        </button> -->
+    <div class="datacat-component">
+        <h3>Datasets</h3>
         <div id="ds-collapse" class="panel-collapse in">
             <table class="table table-condensed table-hover datatable-datasets">
                 <thead>
@@ -34,6 +25,11 @@
                 <tbody class="datasets">
                 <c:if test="${datasets != null}">
                     <c:forEach var="child" items="${datasets}">
+                        <c:forEach var="location" items="${child.viewInfo.locations}" varStatus="status">
+                            <c:if test="${location.isMaster().booleanValue()}">
+                                <c:set var="master" value="${location}" />
+                            </c:if>
+                        </c:forEach>
                         <tr>
                             <td>
                                 <span class="glyphicon glyphicon-info-sign"></span>
@@ -44,11 +40,11 @@
                             </td>
                             <td>${child.dataType}</td>
                             <td>
-                                <c:catch var="exception">${web_dc:formatBytes(child.size)}</c:catch>
+                                <c:catch var="exception">${web_dc:formatBytes(master.size)}</c:catch>
                                 <c:if test="${not empty exception}">N/A</c:if>
                             </td>
                             <td>
-                                <c:catch var="exception"><fmt:formatDate value="${child.dateVersionCreated}"  pattern="yyyy-MM-dd HH:mm z" /></c:catch>
+                                <c:catch var="exception">${web_dc:formatTimestamp(child.dateCreated)}</c:catch>
                                 <c:if test="${not empty exception}">N/A</c:if>
                                         
                             </td>
@@ -60,4 +56,3 @@
             </table>
         </div>
     </div>
-</div> <!-- end datasets -->

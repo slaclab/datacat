@@ -5,8 +5,6 @@ root {
 }
 
 .browser {
-    margin-bottom: 20px;
-    padding: 15px;
     background-color: #fff;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -49,4 +47,17 @@ root {
 
 .type-icon {
     margin-right: 6px;
+}
+
+.datacat-header {
+    padding-bottom: 4px;
+    margin: 10px 0 5px;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.datacat-component {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #fff;
+    box-shadow: none;
 }

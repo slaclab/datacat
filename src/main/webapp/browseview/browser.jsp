@@ -49,12 +49,12 @@
             </div>
             <div class="row">
 
-                <div class="col-sm-5 col-md-4 col-lg-4 containers-view">
+                <div class="col-sm-5 col-md-4 col-lg-4">
                     <%@ include file="containers.jsp" %>
                 </div>
 
                 <div class=" col-sm-7 col-md-8 col-lg-8" id="info-views">
-                    <c:if test="${selected != null && dataset == null}" > <%@ include file="stat.jsp" %> </c:if>
+                    <c:if test="${container != null && dataset == null}" > <%@ include file="stat.jsp" %> </c:if>
                     <c:choose>
                         <c:when test="${dataset != null}" > <%@ include file="dataset.jsp" %> </c:when>
                         <%-- <c:when test="${overflow != null}" > Overflow </c:when> --%>

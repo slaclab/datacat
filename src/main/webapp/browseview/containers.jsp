@@ -8,18 +8,16 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib uri="http://srs.slac.stanford.edu/web_datacat" prefix="web_dc" %>
 
-<div class="browser">
-    <button class="btn btn-primary btn-xs" id="paginate-containers-button" onclick="paginateContainers()">
-        Paginate?
-    </button>
+<div class="datact-component">
+    <h3>Containers</h3>
     <table class="table table-condensed table-hover datatable-containers">
         <thead>
             <tr>
-                <th></th>
+                <%--<th></th>--%>
                 <th class="table-header-title">Name</th>
-                <th class="table-header-title"><span class="glyphicon glyphicon-folder-open" data-toggle="tooltip" data-placement="top" data-original-title="Folders" title="Folders"></span></th>
+                <%--<th class="table-header-title"><span class="glyphicon glyphicon-folder-open" data-toggle="tooltip" data-placement="top" data-original-title="Folders" title="Folders"></span></th>
                 <th class="table-header-title"><span class="glyphicon glyphicon-book" data-toggle="tooltip" data-placement="top" data-original-title="Groups" title="Groups"></span></th>
-                <th class="table-header-title"><span class="glyphicon glyphicon-file" data-toggle="tooltip" data-placement="top" data-original-title="Datasets" title="Datasets"></span></th>
+                <th class="table-header-title"><span class="glyphicon glyphicon-file" data-toggle="tooltip" data-placement="top" data-original-title="Datasets" title="Datasets"></span></th>--%>
             </tr>
         </thead>
         
@@ -35,14 +33,14 @@
                 <c:set var="hasChildren" value='${isContainer eq true and needsInfo eq false and child.stat.childCount > 0}' />
                 <c:set var="iconName" value="${isFolder?'folder-open':'book'}" />
                 <tr <c:if test="${child.pk == selected.pk}">class="success"</c:if> >
-                    <td>
+                    <%--<td>
                         <span class="glyphicon glyphicon-info-sign"></span>
                         <c:if test='${isFolder eq true and hasDatasets eq true and hasContainers eq true}' >
                             <a href="${pageContext.request.contextPath}/browser${parentURL}#datasets=${parentURL}/${child.name}">
                                 <span class="glyphicon glyphicon-list" style="margin-left: 8px;" title="List datasets for ${child.name}"></span>
                             </a>
                         </c:if>
-                    </td>
+                    </td>--%>
                     <td>
                         <span class="glyphicon glyphicon-${iconName} type-icon"></span>
                         <c:choose>
@@ -54,7 +52,7 @@
                             </c:otherwise>
                         </c:choose>
                     </td>
-                    <c:choose>
+                    <%--<c:choose>
                         <c:when test="${needsInfo eq true}">
                             <td></td>
                             <td></td>
@@ -65,10 +63,13 @@
                             <td><c:if test="${isFolder eq true}" >${child.stat.groupCount}</c:if></td>
                             <td>${child.stat.datasetCount}</td>
                         </c:otherwise>                            
-                    </c:choose>
+                    </c:choose>--%>
                 </tr>
             </c:forEach>    
 
         </tbody>
     </table>
+    <button class="btn btn-primary btn-xs" id="paginate-containers-button" onclick="paginateContainers()">
+        Paginate?
+    </button>
 </div>

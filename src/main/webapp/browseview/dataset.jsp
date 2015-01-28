@@ -1,4 +1,4 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
 <%@page contentType="text/html"%>
 <%@page pageEncoding="UTF-8"%>
 <%@taglib uri="http://java.sun.com/jsp/jstl/sql" prefix="sql" %>
@@ -20,9 +20,12 @@
         <datacat:downloadLink datasetList="${paramValues.dataset}" datasetVersionList="${paramValues.datasetVersion}" redirect="true"/>                    
     </c:if>
 --%>
+<div class="datacat-component">
+<div class="datacat-header">
 
-<div class="page-header">
-  <h3>${dataset.name} <small>version ${dataset.versionId}</small></h3>
+    <h3>${dataset.name}<br>
+    <small>Version ${dataset.versionId}</small><br>
+    <small>Dataset</small><br></h3>
 </div>
 
 <table class="table table-condensed table-striped">
@@ -86,51 +89,70 @@
     </tbody>
 </table>
 
-<h3>Version Metadata</h3>
+<c:catch var="exception">
+    <h3>Version Metadata</h3>
 
-<table class="table table-condensed table-striped">
-    <thead>
-        <tr>
-            <th>Key</th>
-            <th>Value</th>
-            <th>Type</th>
-        </tr>
-    </thead>
+    <c:choose>
+        <c:when test="${dataset.versionMetadata != null && !empty dataset.versionMetadata}">
+            <table class="table table-condensed table-striped">
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Value</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
 
-    <tbody>
-        <c:forEach var="md" items="${dataset.versionMetadata}" varStatus="status">
-            <tr><td>${md.key}</td><td>${md.rawValue}</td>
-                <td>${web_dc:getValueType(md.rawValue)}</td>
-            </tr>
-        </c:forEach>
-    </tbody>
-</table>
+                <tbody>
+                    <c:forEach var="md" items="${dataset.versionMetadata}" varStatus="status">
+                        <tr><td>${md.key}</td><td>${md.rawValue}</td>
+                            <td>${web_dc:getValueType(md.rawValue)}</td>
+                        </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
+        </c:when>
+        <c:otherwise>
+            Nothing to display
+        </c:otherwise>
+    </c:choose>
+</c:catch>
 <%--
     <c:if test="${gm:isUserInGroup(pageContext,'DataCatalogAdmin')}">
         <a href="metadata.jsp?datasetVersion=${dataset.datasetVersion}" class="edit">Edit meta-data</a>
     </c:if>
 --%>
 
-<h3>Locations</h3>
+<c:catch var="exception">
+    <h3>Locations</h3>
+    <c:choose>
+            <c:when test="${dataset.viewInfo.locations != null && !empty dataset.viewInfo.locations}">
+                <table class="table table-condensed table-striped">
+                    <thead>
+                        <tr>
+                            <th>Site</th>
+                            <th>Scan Status</th>
+                            <th>Created</th>
+                            <th>Last Scanned (UTC)</th>
+                            <th>Resource</th>
+                        </tr>
+                    </thead>
 
-<table class="table table-condensed table-striped">
-    <thead>
-        <tr>
-            <th>Site</th>
-            <th>Scan Status</th>
-            <th>Created</th>
-            <th>Last Scanned (UTC)</th>
-            <th>Resource</th>
-        </tr>
-    </thead>
-    
-    <tbody>
-        <c:forEach var="location" items="${dataset.viewInfo.locations}" varStatus="status">
-            <tr><td>${location.site}</td>
-            <td>${location.scanStatus}</td>
-            <td>${web_dc:formatTimestamp(location.dateCreated)}</td>
-            <td>${web_dc:formatTimestamp(location.dateScanned)}</td>
-            <td>${location.resource}</td></tr>
-        </c:forEach>
-    </tbody>
-</table>
+                    <tbody>
+                        <c:forEach var="location" items="${dataset.viewInfo.locations}" varStatus="status">
+                            <tr><td>${location.site}</td>
+                            <td>${location.scanStatus}</td>
+                            <td>${web_dc:formatTimestamp(location.dateCreated)}</td>
+                            <td>${web_dc:formatTimestamp(location.dateScanned)}</td>
+                            <td>${location.resource}</td></tr>
+                        </c:forEach>
+                    </tbody>
+                </table>
+            </c:when>
+
+        <c:otherwise>
+            Nothing to display
+        </c:otherwise>
+    </c:choose>
+</c:catch>
+</div>
