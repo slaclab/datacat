@@ -85,6 +85,7 @@ public class SearchUtils {
         builder.path(PathUtils.resolve(rs.getString( "containerpath"), name));
         builder.fileFormat(rs.getString("fileformat"));
         builder.dataType(rs.getString("datatype"));
+        builder.created(rs.getTimestamp("created"));
         
         long versionPk = rs.getLong("datasetversion");
         builder.versionPk(versionPk);
