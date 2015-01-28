@@ -27,10 +27,8 @@ import org.srs.datacat.model.DatasetView;
 import org.srs.datacatalog.search.plugins.DatacatPlugin;
 import org.srs.datacatalog.search.tables.DatasetVersions;
 import org.zerorm.core.Column;
-import org.zerorm.core.Expr;
 import org.zerorm.core.Op;
 import org.zerorm.core.Select;
-import org.zerorm.core.Sql;
 import org.zerorm.core.Table;
 import org.zerorm.core.Val;
 import org.zerorm.core.interfaces.MaybeHasAlias;
@@ -48,6 +46,8 @@ public class DatasetSearch {
     private DatasetView datasetView;
     private Connection conn;
     private Select selectStatement;
+    private int offset = 0;
+    private int max = Integer.MAX_VALUE;
     
     public DatasetSearch(Connection conn, HashMap<String, DatacatPlugin> pluginMap) throws SQLException {
         this.pluginMap = pluginMap;
@@ -72,7 +72,8 @@ public class DatasetSearch {
     
     public List<DatasetModel> retrieveDatasets() throws IOException {
         try {
-            return SearchUtils.getResults(conn, selectStatement, datasetView, metadataFields);
+            return SearchUtils.getResults(conn, selectStatement, datasetView, metadataFields,
+                    this.offset, this.max);
         } catch (SQLException ex) {
             throw new IOException("Error retrieving results", ex);
         }
@@ -81,6 +82,12 @@ public class DatasetSearch {
     protected Select compileStatement(LinkedList<DatacatRecord> containers, DatasetView datasetView, 
             String queryString, String[] metaFieldsToRetrieve, String[] sortFields, 
             int offset, int max) throws ParseException, SQLException, IOException {
+        if(offset > 0){
+            this.offset = offset;
+        }
+        if(max > 0){
+            this.max = max;
+        }
         this.datasetView = datasetView;
         AST ast = parseQueryString(queryString);
         // Prepare DatasetVersions Selection 
@@ -109,14 +116,6 @@ public class DatasetSearch {
         HashMap<String, MaybeHasAlias> availableSelections = new HashMap<>();
         for(MaybeHasAlias a: dsv.getAvailableSelections()){
             availableSelections.put( a.canonical(), a);
-        }
-        
-        Expr paging = null;
-        if(max > 0){
-            paging = Op.lteq( new Sql("rownum"), offset + max );
-        }
-        if(paging != null){
-            dsv.where( paging );
         }
         
         Table containerSearch = new Table("ContainerSearch", "cp");
@@ -219,12 +218,6 @@ public class DatasetSearch {
             }
         }
         
-        if(offset > 0){
-            Sql s = new Sql("rownum").as( "rnum");
-            dsv.selection( s );
-            selectStatement = new Select(selectStatement.getSelections()).from( selectStatement.as("ss") )
-                    .where( Op.gt( new Sql(s.alias()), offset) );
-        }
         return selectStatement;
     }
     

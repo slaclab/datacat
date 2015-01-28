@@ -110,7 +110,7 @@ public class SearchResource extends BaseResource {
             ContainerVisitor visitor = new ContainerVisitor(searchPath.getFileSystem(), pathPattern, checkGroups, checkFolders);
             DirectoryWalker walker = new DirectoryWalker(getProvider(), visitor, 100 /* max depth */);
             walker.walk(searchPath);
-            datacatSearch.compile(visitor.files, dv, queryString, metafields, sortFields,0,-1);
+            datacatSearch.compile(visitor.files, dv, queryString, metafields, sortFields, offset, max);
             datasets = datacatSearch.retrieveDatasets();
         } catch (IllegalArgumentException ex){
             throw new RestException(ex,400, "Unable to process query, see message", ex.getMessage());

@@ -13,19 +13,22 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.freehep.commons.lang.AST;
+import org.zerorm.core.Select;
+
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.RecordType;
+
+//import org.srs.datacat.vfs.DirectoryWalker;
+import org.srs.vfs.PathUtils;
+
+// Using builders
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.DatasetLocation;
-import org.srs.datacat.shared.FlatDataset;
-import org.srs.datacat.shared.FullDataset;
-import org.srs.datacat.model.RecordType;
-import org.srs.datacat.vfs.DirectoryWalker;
-import org.srs.vfs.PathUtils;
-import org.zerorm.core.Select;
 
 /**
  *
@@ -72,13 +75,8 @@ public class SearchUtils {
         return startOfError.toString();
     }
 
-    public static Dataset datasetFactory(ResultSet rs, DatasetView dsView, List<String> includedMetadata) throws SQLException{
-        Dataset.Builder builder;
-        if(dsView.allSites()){
-            builder = new FullDataset.Builder();
-        } else {
-            builder = new FlatDataset.Builder();
-        }
+    public static DatasetModel datasetFactory(ResultSet rs, DatasetView dsView, List<String> includedMetadata) throws SQLException{
+        DatasetModel.Builder builder = new Dataset.Builder();
 
         String name = rs.getString("name");
         builder.pk(rs.getLong("pk"));
@@ -108,7 +106,7 @@ public class SearchUtils {
         }
         
         while(!rs.isClosed() && rs.getInt("datasetversion") == versionPk){
-            DatasetLocation next = processLocation(rs);
+            DatasetLocationModel next = processLocation(rs);
             if(next != null){
                 locations.add(next);
             }
@@ -116,18 +114,12 @@ public class SearchUtils {
                 rs.close();
             }
         }
-        
-        if(builder instanceof FullDataset.Builder){
-            builder.locations(locations);
-        } else if(!locations.isEmpty()){
-            builder.location(locations.get(0));
-        }
-
+        builder.locations(locations);
         builder.metadata( metadata );
         return builder.build();
     }
     
-    private static DatasetLocation processLocation(ResultSet rs) throws SQLException{
+    private static DatasetLocationModel processLocation(ResultSet rs) throws SQLException{
         DatasetLocation.Builder builder = new DatasetLocation.Builder();
         Long pk = rs.getLong("datasetlocation");
         if(rs.wasNull()){
@@ -291,6 +283,7 @@ public class SearchUtils {
         }
     }
     
+    /*
     public static void pruneParentTempTable(Connection conn, DirectoryWalker.ContainerVisitor visitor) throws SQLException {
         String sql = 
                 "DELETE FROM ContainerSearch "
@@ -307,15 +300,22 @@ public class SearchUtils {
             }
         }
     }
+    */
     
-    public static List<DatasetModel> getResults(final Connection conn, final Select sel, DatasetView dsView, List<String> metadataNames) throws SQLException{
+    public static List<DatasetModel> getResults(final Connection conn, final Select sel, DatasetView dsView, List<String> metadataNames,
+            int offset, int max) throws SQLException{
         ArrayList<DatasetModel> datasets = new ArrayList<>();        
         try(PreparedStatement stmt = sel.prepareAndBind( conn )){
             ResultSet rs = stmt.executeQuery();
             if(!rs.next()){
                 rs.close();
             }
-            while(!rs.isClosed()) {
+            
+            for(int i = 0; i < offset && !rs.isClosed(); i++){
+                SearchUtils.datasetFactory(rs, dsView, metadataNames);
+            }
+            
+            for(int i = 0; i < max && !rs.isClosed(); i++){
                 datasets.add(SearchUtils.datasetFactory(rs, dsView, metadataNames));
             }
         }
