@@ -1,6 +1,7 @@
 
 package org.srs.datacatalog.search.tables;
 
+import java.sql.Timestamp;
 import org.zerorm.core.Column;
 import org.zerorm.core.Table;
 import org.zerorm.core.interfaces.Schema;
@@ -18,6 +19,7 @@ public class VerDataset extends Table {
     @Schema public Column<Long> datasetlogicalfolder;
     @Schema public Column<Long> datasetGroup;
     @Schema public Column<Long> latestVersion;
+    @Schema(alias = "created") public Column<Timestamp> registered;
 
     public VerDataset(){
         super();
