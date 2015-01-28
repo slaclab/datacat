@@ -232,6 +232,17 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
                 metadata.put(rs.getString("metaname"), (Number) n);
             }
         }
+        sql = String.format(mdBase, tableType, "Timestamp", column);
+        try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
+            stmt.setLong(1, pk);
+            ResultSet rs = stmt.executeQuery();
+            while(rs.next()){
+                Number n;
+                java.math.BigDecimal v = (java.math.BigDecimal) rs.getObject("metavalue");
+                n = v.scale() == 0 ? v.toBigIntegerExact() : v;
+                metadata.put(rs.getString("metaname"), (Number) n);
+            }
+        }
         if(!metadata.isEmpty()){
             builder.metadata(metadata);
         }
@@ -290,20 +301,53 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             throw new IOException("Unable to add metadata to object", ex);
         }
     }
+    
+    public void mergeMetadata(DatacatRecord record, Map metaData) throws IOException{
+        try {
+            switch(record.getType()){
+                case DATASETVERSION:
+                    addDatasetVersionMetadata(record.getPk(), metaData);
+                    break;
+                case GROUP:
+                    addGroupMetadata(record.getPk(), metaData);
+                    break;
+                case FOLDER:
+                    addFolderMetadata(record.getPk(), metaData);
+                    break;
+                default:
+                    String msg = "Unable to add metadata to object type: " + record.getType();
+                    throw new IOException(msg);
+            }
+        } catch(SQLException ex) {
+            throw new IOException("Unable to add metadata to object", ex);
+        }
+    }
 
-    protected void addDatasetVersionMetadata(Long pk, Map metaData) throws SQLException{
+    protected void addDatasetVersionMetadata(Long pk, Map<String, Object> metaData) throws SQLException{
         addDatacatObjectMetadata(pk, metaData, "VerDataset", "DatasetVersion");
     }
 
-    protected void addGroupMetadata(long datasetGroupPK, Map metaData) throws SQLException{
+    protected void addGroupMetadata(long datasetGroupPK, Map<String, Object> metaData) throws SQLException{
         addDatacatObjectMetadata(datasetGroupPK, metaData, "DatasetGroup", "DatasetGroup");
     }
 
-    protected void addFolderMetadata(long logicalFolderPK, Map metaData) throws SQLException{
+    protected void addFolderMetadata(long logicalFolderPK, Map<String, Object> metaData) throws SQLException{
         addDatacatObjectMetadata(logicalFolderPK, metaData, "LogicalFolder", "LogicalFolder");
     }
+    
+    protected void mergeDatasetVersionMetadata(Long pk, Map<String, Object> metaData) throws SQLException{
+        mergeDatacatObjectMetadata(pk, metaData, "VerDataset", "DatasetVersion");
+    }
 
-    private void addDatacatObjectMetadata(long objectPK, Map metaData, String tablePrefix,
+    protected void mergeGroupMetadata(long datasetGroupPK, Map<String, Object> metaData) throws SQLException{
+        mergeDatacatObjectMetadata(datasetGroupPK, metaData, "DatasetGroup", "DatasetGroup");
+    }
+
+    protected void mergeFolderMetadata(long logicalFolderPK, Map<String, Object> metaData) throws SQLException{
+        mergeDatacatObjectMetadata(logicalFolderPK, metaData, "LogicalFolder", "LogicalFolder");
+    }
+
+    private void addDatacatObjectMetadata(long objectPK, Map<String, Object> metaData, String tablePrefix,
             String column) throws SQLException{
         if(metaData == null){
             return;
@@ -357,6 +401,67 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
                 stmtMetaTimestamp.close();
             }
         }
+    }
+    
+    private void mergeDatacatObjectMetadata(long objectPK, Map<String, Object> metaData, String tablePrefix,
+            String column) throws SQLException{
+        Map<String, Object> insertMetaData = new HashMap<>();
+        if(metaData == null){
+            return;
+        }
+        if(!(metaData instanceof HashMap)){
+            metaData = new HashMap(metaData);
+        }
+        final String metaSql = "UPDATE %sMeta%s SET MetaValue = ? WHERE MetaName= ? and DatasetVersion = ?";
+        String metaStringSql = String.format(metaSql, tablePrefix, "String", column);
+        String metaNumberSql = String.format(metaSql, tablePrefix, "Number", column);
+        String metaTimestampSql = String.format(metaSql, tablePrefix, "Timestamp", column);
+        PreparedStatement stmtMetaString = null;
+        PreparedStatement stmtMetaNumber = null;
+        PreparedStatement stmtMetaTimestamp = null;
+        PreparedStatement stmt;
+        
+        try {
+            stmtMetaString = getConnection().prepareStatement(metaStringSql);
+            stmtMetaNumber = getConnection().prepareStatement(metaNumberSql);
+            stmtMetaTimestamp = getConnection().prepareStatement(metaTimestampSql);
+            Iterator i = metaData.entrySet().iterator();
+            while(i.hasNext()){
+                Map.Entry e = (Map.Entry) i.next();
+                String metaName = (String) e.getKey();
+                Object metaValue = e.getValue();
+
+                // Determine MetaData Object type and insert it into the appropriate table:
+                if(metaValue instanceof Timestamp){
+                    stmt = stmtMetaTimestamp;
+                    stmt.setTimestamp(1, (Timestamp) metaValue);
+                } else if(metaValue instanceof Number){
+                    stmt = stmtMetaNumber;
+                    stmt.setObject(1, metaValue);
+                } else { // all others stored as String
+                    stmt = stmtMetaString;
+                    stmt.setString(1, metaValue.toString());
+                }
+
+                stmt.setLong(3, objectPK);
+                stmt.setString(2, metaName);
+                int result = stmt.executeUpdate();
+                if(result == 0){
+                    insertMetaData.put(metaName, metaValue);
+                }
+            }
+        } finally {
+            if(stmtMetaString != null){
+                stmtMetaString.close();
+            }
+            if(stmtMetaNumber != null){
+                stmtMetaNumber.close();
+            }
+            if(stmtMetaTimestamp != null){
+                stmtMetaTimestamp.close();
+            }
+        }
+        addDatacatObjectMetadata(objectPK, insertMetaData, tablePrefix, column);
     }
 
     protected static RecordType getType(String typeChar){
@@ -415,6 +520,8 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
                 return;
             case "S":
                 metadata.put(rs.getString("metaname"), rs.getString("metastring"));
+            case "T":
+                metadata.put(rs.getString("metaname"), rs.getTimestamp("metatimestamp"));
             default:
         }
     }
@@ -489,14 +596,20 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             + "       ORDER BY vd.name, dsv.versionid desc "
             + ") "
             + "SELECT dsv.dataset, dsv.datasetversion, dsv.versionid, dsv.datasetsource, dsv.islatest,  "
-            + "     md.mdtype, md.metaname, md.metastring, md.metanumber "
+            + "     md.mdtype, md.metaname, md.metastring, md.metanumber, md.metatimestamp "
             + "FROM DatasetVersions dsv "
             + " JOIN "
-            + " ( SELECT mn.datasetversion, 'N' mdtype, mn.metaname, null metastring, mn.metavalue metanumber   "
+            + " ( SELECT mn.datasetversion, 'N' mdtype, mn.metaname, "
+            + "         null metastring, mn.metavalue metanumber, null metatimestamp   "
             + "     FROM VerDatasetMetaNumber mn "
             + "   UNION ALL  "
-            + "   SELECT ms.datasetversion, 'S' mdtype, ms.metaname, ms.metavalue metastring, null metanumber   "
+            + "   SELECT ms.datasetversion, 'S' mdtype, ms.metaname, "
+            + "         ms.metavalue metastring, null metanumber, null metatimestamp   "
             + "     FROM VerDatasetMetaString ms "
+            + "   UNION ALL  "
+            + "   SELECT mt.datasetversion, 'T' mdtype, mt.metaname, "
+            + "         null metastring, null metanumber, mt.metavalue metatimestamp   "
+            + "     FROM VerDatasetMetaTimestamp mt "
             + "  ) md on (md.datasetversion = dsv.datasetversion)";
         return datasetSqlWithMetadata;
     }
@@ -562,12 +675,15 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
                 "WITH DSV (dsv) AS ( "
                 + "  SELECT ? FROM DUAL "
                 + ") "
-                + "SELECT type, metaname, metastring, metanumber FROM  "
-                + " ( SELECT 'N' mdtype, mn.metaname, null metastring, mn.metavalue metanumber  "
+                + "SELECT type, metaname, metastring, metanumber, metatimestamp FROM  "
+                + " ( SELECT 'N' mdtype, mn.metaname, null metastring, mn.metavalue metanumber, null metatimestamp "
                 + "     FROM VerDatasetMetaNumber mn where mn.DatasetVersion = (SELECT dsv FROM DSV) "
                 + "   UNION ALL "
-                + "   SELECT 'S' mdtype, ms.metaname, ms.metavalue metastring, null metanumber  "
+                + "   SELECT 'S' mdtype, ms.metaname, ms.metavalue metastring, null metanumber, null metatimestamp "
                 + "     FROM VerDatasetMetaString ms where ms.DatasetVersion = (SELECT dsv FROM DSV) "
+                + "   UNION ALL "
+                + "   SELECT 'T' mdtype, mt.metaname, null metastring, null metanumber, mt.metavalue metatimestamp "
+                + "     FROM VerDatasetMetaTimestamp mt where mt.DatasetVersion = (SELECT dsv FROM DSV) "
                 + "  )";
         return sql;
     }

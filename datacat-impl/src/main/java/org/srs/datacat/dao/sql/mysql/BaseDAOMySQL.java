@@ -91,12 +91,19 @@ public class BaseDAOMySQL extends org.srs.datacat.dao.sql.SqlBaseDAO {
     @Override
     protected String getVersionMetadataSql(){
         String sql= 
-            "SELECT md.datasetversion, md.type, md.metaname, md.metastring, md.metanumber FROM  "
-            + " ( SELECT mn.datasetversion, 'N' type, mn.metaname, null metastring, mn.metavalue metanumber  "
+            "SELECT md.datasetversion, md.type, md.metaname, "
+            + " md.metastring, md.metanumber, md.metatimestamp FROM  "
+            + " ( SELECT mn.datasetversion, 'N' mdtype, mn.metaname, "
+            + "         null metastring, mn.metavalue metanumber, null metatimestamp   "
             + "     FROM VerDatasetMetaNumber mn "
-            + "   UNION ALL "
-            + "   SELECT ms.datasetversion, 'S' type, ms.metaname, ms.metavalue metastring, null metanumber  "
+            + "   UNION ALL  "
+            + "   SELECT ms.datasetversion, 'S' mdtype, ms.metaname, "
+            + "         ms.metavalue metastring, null metanumber, null metatimestamp   "
             + "     FROM VerDatasetMetaString ms "
+            + "   UNION ALL  "
+            + "   SELECT mt.datasetversion, 'T' mdtype, mt.metaname, "
+            + "         null metastring, null metanumber, mt.metavalue metatimestamp   "
+            + "     FROM VerDatasetMetaTimestamp mt "
             + "  ) md "
             + "  WHERE md.datasetversion = ?";
         return sql;
@@ -118,7 +125,7 @@ public class BaseDAOMySQL extends org.srs.datacat.dao.sql.SqlBaseDAO {
 
         String datasetSqlWithMetadata = 
             "SELECT dsv.dataset, dsv.datasetversion, dsv.versionid, dsv.datasetsource, dsv.islatest,  "
-            + "     md.mdtype, md.metaname, md.metastring, md.metanumber "
+            + "     md.mdtype, md.metaname, md.metastring, md.metanumber, md.metatimestamp "
             + "FROM ( "
             + "      select vd.dataset, dsv.datasetversion, dsv.versionid, dsv.datasetsource, "
             + "            CASE WHEN vd.latestversion = dsv.datasetversion THEN 1 ELSE 0 END isLatest "
@@ -132,11 +139,17 @@ public class BaseDAOMySQL extends org.srs.datacat.dao.sql.SqlBaseDAO {
             + "                and " + versionString(view)
             + "           ORDER BY vd.name, dsv.versionid desc ) dsv "
             + " LEFT OUTER JOIN "
-            + " ( SELECT mn.datasetversion, 'N' mdtype, mn.metaname, null metastring, mn.metavalue metanumber   "
+            + " ( SELECT mn.datasetversion, 'N' mdtype, mn.metaname, "
+            + "         null metastring, mn.metavalue metanumber, null metatimestamp   "
             + "     FROM VerDatasetMetaNumber mn "
             + "   UNION ALL  "
-            + "   SELECT ms.datasetversion, 'S' mdtype, ms.metaname, ms.metavalue metastring, null metanumber   "
+            + "   SELECT ms.datasetversion, 'S' mdtype, ms.metaname, "
+            + "         ms.metavalue metastring, null metanumber, null metatimestamp   "
             + "     FROM VerDatasetMetaString ms "
+            + "   UNION ALL  "
+            + "   SELECT mt.datasetversion, 'T' mdtype, mt.metaname, "
+            + "         null metastring, null metanumber, mt.metavalue metatimestamp   "
+            + "     FROM VerDatasetMetaTimestamp mt "
             + "  ) md on (md.datasetversion = dsv.datasetversion) ";
         return datasetSqlWithMetadata;
     }
