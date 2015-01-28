@@ -100,7 +100,8 @@ class Client(object):
             location = {"site":site, "resource":resource}
             if locationExtras:
                 location.update(locationExtras)
-        ds = Dataset(name=name, dataType=dataType, fileFormat=fileFormat, locations=[location], **version)
+        ds = Dataset(name=name, dataType=dataType, fileFormat=fileFormat,
+                     locations=[location] if location else None, **version)
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
