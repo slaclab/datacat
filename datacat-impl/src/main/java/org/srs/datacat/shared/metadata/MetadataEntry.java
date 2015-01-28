@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +38,8 @@ public class MetadataEntry {
         for(Entry<String, Object> e: map.entrySet()){
             if(e.getValue() instanceof Number){
                 list.add(new MetadataEntry(e.getKey(), (Number) e.getValue()));
+            } else if(e.getValue() instanceof Timestamp){
+                list.add(new MetadataEntry(e.getKey(), (Timestamp) e.getValue()));
             } else {
                 list.add(new MetadataEntry(e.getKey(), (String) e.getValue()));
             }
@@ -52,10 +55,15 @@ public class MetadataEntry {
             value = new MetadataInteger(v.longValue());
         }
     }
-
+    
     public MetadataEntry(String k, String v){
         key = k;
         value = new MetadataString(v);
+    }
+    
+    public MetadataEntry(String k, Timestamp v){
+        key = k;
+        value = new MetadataTimestamp(v);
     }
 
     @JsonProperty

@@ -8,7 +8,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.TimeZone;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -17,7 +17,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * Turns a string into/from a timestamp.
  * @author bvan
  */
-public class RestDateAdapter extends XmlAdapter<String, Timestamp> {
+public class RestDateAdapter {
     private final TimeZone tz; // = TimeZone.getTimeZone("America/Denver");
     
     // TODO: Create different default time zones, or eliminate altogether?
@@ -27,14 +27,17 @@ public class RestDateAdapter extends XmlAdapter<String, Timestamp> {
     
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
-    @Override
-    public String marshal(Timestamp date) throws Exception {
+    public String marshal(Timestamp date){
         return dateFormat.format(date);
     }
 
-    @Override
-    public Timestamp unmarshal(String dateString) throws Exception {
-        XMLGregorianCalendar cal = DatatypeFactory.newInstance().newXMLGregorianCalendar(dateString);
+    public Timestamp unmarshal(String dateString) {
+        XMLGregorianCalendar cal;
+        try {
+            cal = DatatypeFactory.newInstance().newXMLGregorianCalendar(dateString);
+        } catch(DatatypeConfigurationException ex) {
+            throw new IllegalArgumentException(ex);
+        }
         TimeZone whichTz = cal.getTimezone() == DatatypeConstants.FIELD_UNDEFINED ? tz : null;
         Timestamp ts = new Timestamp(cal.toGregorianCalendar(whichTz, Locale.ENGLISH, null).getTimeInMillis());
         

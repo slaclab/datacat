@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Timestamp;
+import org.srs.datacat.shared.adapters.RestDateAdapter;
 import org.srs.datacat.shared.metadata.MetadataValue.Builder;
 
 /**
@@ -33,6 +35,8 @@ public interface MetadataValue<T> {
         public Builder(Long val){ this.rawValue = val; }
 
         public Builder(java.math.BigInteger val){ this.rawValue = val; }
+        
+        public Builder(Timestamp val){ this.rawValue = val; }
 
         public Builder(String val){ this.rawValue = val; }
 
@@ -49,6 +53,12 @@ public interface MetadataValue<T> {
                         return (T) new MetadataInteger((Number) rawValue);
                     } else {
                         return (T) new MetadataInteger(new BigInteger((String) rawValue));
+                    }
+                } else if(type.equalsIgnoreCase("timestamp")){
+                    if(rawValue instanceof Timestamp){
+                        return (T) new MetadataTimestamp((Timestamp) rawValue);
+                    } else {
+                        return (T) new MetadataTimestamp(new RestDateAdapter().unmarshal((String) rawValue));
                     }
                 } else {
                     return (T) new MetadataString((String) rawValue);
