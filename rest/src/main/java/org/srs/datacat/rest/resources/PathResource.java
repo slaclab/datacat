@@ -5,6 +5,7 @@ package org.srs.datacat.rest.resources;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 
 import java.nio.file.NotDirectoryException;
@@ -14,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -89,6 +91,30 @@ public class PathResource extends BaseResource {
         }
         requestPath = path;
         requestQueryParams.putAll(ui.getQueryParameters());
+    }
+    
+    @HEAD
+    public Response getHead(@DefaultValue("false") @QueryParam("refresh") boolean refresh) throws IOException{
+        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
+        try {
+            if(refresh){
+                getProvider().getCache().removeFile(dcp);
+            }
+            DcFile file = getProvider().getFile(dcp);
+            if(file.isRegularFile()){
+                RequestView rv = new RequestView(file.getObject().getType(), requestMatrixParams);
+                file.getAttributeView(DatasetViewProvider.class).withView(rv.getDatasetView(), rv.includeMetadata());
+            }
+            return Response.ok().build();
+        } catch (IllegalArgumentException ex){
+            throw new RestException(ex, 400 , "Unable to correctly process view", ex.getMessage());
+        } catch (NoSuchFileException ex){
+             throw new RestException(ex,404 , "File doesn't exist", ex.getMessage());
+        } catch (AccessDeniedException ex){
+             throw new RestException(ex, 403);
+        } catch (IOException ex){
+            throw new RestException(ex, 500);
+        }
     }
     
     @GET

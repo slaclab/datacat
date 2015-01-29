@@ -135,6 +135,22 @@ public class PathResourceTest extends JerseyTest {
         String content = resp.readEntity(String.class);
         TestCase.assertTrue(content.startsWith("[{\"_type\":\"folder\""));
     }
+    
+    @Test
+    public void testHead() throws IOException{
+        generateFoldersAndDatasetsAndVersions(this, 5, 5);
+        Response resp = target("/path.json/testpath/folder00004")
+                .request()
+                .header("authentication", DbHarness.TEST_USER)
+                .head();
+        TestCase.assertEquals(200, resp.getStatus());        
+        
+        resp = target("/path.json/testpath/folder0000X")
+                .request()
+                .header("authentication", DbHarness.TEST_USER)
+                .head();
+        TestCase.assertEquals(404, resp.getStatus());
+    }
 
     
 }
