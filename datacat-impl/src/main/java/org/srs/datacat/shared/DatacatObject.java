@@ -326,6 +326,8 @@ public class DatacatObject implements DatacatNode, HasMetadata {
                 for(MetadataEntry e: val){
                     if(e.getRawValue() instanceof Number){
                         metadata.put(e.getKey(), (Number) e.getRawValue());
+                    } else if(e.getRawValue() instanceof Timestamp) {
+                        metadata.put(e.getKey(), (Timestamp) e.getRawValue());
                     } else {
                         metadata.put(e.getKey(), (String) e.getRawValue());
                     }

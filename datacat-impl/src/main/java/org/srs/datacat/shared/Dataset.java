@@ -342,6 +342,8 @@ public class Dataset extends DatacatObject implements DatasetModel {
                 for(MetadataEntry e: val){
                     if(e.getRawValue() instanceof Number) {
                         versionMetadata.put(e.getKey(), (Number)e.getRawValue());
+                    } else if(e.getRawValue() instanceof Timestamp) {
+                        versionMetadata.put(e.getKey(), (Timestamp) e.getRawValue());
                     } else {
                         versionMetadata.put(e.getKey(), (String)e.getRawValue());
                     }
