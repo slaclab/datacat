@@ -65,6 +65,7 @@ public class ContainerResourceTest extends JerseyTest {
         ResourceConfig app = new App(harness.getDataSource(), TestUtils.getLookupService())
                 .register(TestSecurityFilter.class)
                 .register(ContainerResource.class)
+                .register(DatasetsResource.class)
                 .register(PathResource.class);
         app.property( ServerProperties.TRACING, "ALL");
         for(Resource r: app.getResources()){
@@ -259,6 +260,21 @@ public class ContainerResourceTest extends JerseyTest {
         }
 
     }
-            
     
+    @Test
+    public void testDeletePopulatedFolders() throws IOException{
+        DatasetsResourceTest.generateFoldersAndDatasetsAndVersions(this, 5, 5);
+        Response resp = target("/folders.txt/testpath")
+                    .request()
+                    .header("authentication", DbHarness.TEST_USER)
+                    .delete();
+        TestCase.assertEquals(409, resp.getStatus());
+        
+        resp = target("/folders.txt/testpath/folder00001")
+                    .request()
+                    .header("authentication", DbHarness.TEST_USER)
+                    .delete();
+        TestCase.assertEquals(409, resp.getStatus());
+    }
+
 }
