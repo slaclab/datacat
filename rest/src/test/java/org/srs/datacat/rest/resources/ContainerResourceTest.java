@@ -13,13 +13,18 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import junit.framework.TestCase;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.server.model.Resource;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
+import org.srs.datacat.model.DatasetContainer;
+import org.srs.datacat.model.RecordType;
 import org.srs.datacat.rest.App;
+import org.srs.datacat.rest.FormParamConverter;
 import org.srs.datacat.test.DbHarness;
-import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.TestUtils;
 import org.srs.vfs.PathUtils;
 
@@ -61,6 +66,7 @@ public class ContainerResourceTest extends JerseyTest {
                 .register(TestSecurityFilter.class)
                 .register(ContainerResource.class)
                 .register(PathResource.class);
+        app.property( ServerProperties.TRACING, "ALL");
         for(Resource r: app.getResources()){
             System.out.println(r.getPath());
         }
@@ -189,6 +195,30 @@ public class ContainerResourceTest extends JerseyTest {
         TestCase.assertEquals( Status.NO_CONTENT, Status.fromStatusCode(resp.getStatus()));
                 */
 
+    }
+    
+    @Test
+    public void testCreateJson() throws IOException {
+        MultivaluedHashMap<String,String> entity = new MultivaluedHashMap<>();
+        entity.add( "name", "dispatchTest");
+        DatasetContainer fold1 = 
+                FormParamConverter.getContainerBuilder(RecordType.FOLDER, entity).build();
+        
+        Response resp = target("/folders.txt/testpath")
+                .request()
+                .get();
+        
+        TestCase.assertEquals(Status.OK, Status.fromStatusCode(resp.getStatus()));
+        
+        resp = target("/folders.json/testpath")
+                .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
+                .register(App.JacksonFeature.class)
+                .property(ClientProperties.FOLLOW_REDIRECTS, "false")
+                .request()
+                .header("authentication", DbHarness.TEST_USER)
+                .post(Entity.entity(fold1, MediaType.APPLICATION_JSON));
+        
+        TestCase.assertEquals( Status.CREATED, Status.fromStatusCode(resp.getStatus()));    
     }
     
     @Test

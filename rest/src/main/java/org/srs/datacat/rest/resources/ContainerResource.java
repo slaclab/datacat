@@ -28,7 +28,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import org.srs.datacat.model.DatacatNode;
+import org.srs.datacat.shared.DatasetContainer;
 import org.srs.datacat.shared.RequestView;
 import org.srs.datacat.rest.BaseResource;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
@@ -51,6 +53,28 @@ import org.srs.datacat.model.container.DatasetContainerBuilder;
 @Path("/{containerType: (groups|folders|containers)}" +  OPTIONAL_EXTENSIONS)
 public class ContainerResource extends BaseResource {
     
+    private String requestPath;
+    private String containerType;
+    private HashMap<String, List<String>> matrixParams = new HashMap<>();
+    
+    public ContainerResource(@PathParam("containerType") String contType,
+            @PathParam("id") List<PathSegment> pathSegments, @Context UriInfo ui){
+        String path = "";
+        this.containerType = contType;
+        if(pathSegments != null && !pathSegments.isEmpty()){
+            for(PathSegment s: pathSegments){
+                path = path + "/" + s.getPath();
+                matrixParams.putAll(s.getMatrixParameters());
+            }   
+        } else {
+            path = "/";
+            for(PathSegment s: ui.getPathSegments()){
+                matrixParams.putAll(s.getMatrixParameters());
+            }
+        }
+        requestPath = path;
+    }
+    
     private final String idRegex = "{id: [%\\w\\d\\-_\\./]+}";
     
     @Context HttpServletRequest httpRequest;
@@ -58,20 +82,11 @@ public class ContainerResource extends BaseResource {
     @GET
     @Path(idRegex)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public Response getChildren(@PathParam("containerType") String contType, 
-            @PathParam("id") List<PathSegment> pathSegments,
-            @DefaultValue("100000") @QueryParam("max") int max,
+    public Response getChildren( @DefaultValue("100000") @QueryParam("max") int max,
             @DefaultValue("0") @QueryParam("offset") int offset) throws IOException{
-        
-        HashMap<String, List<String>> matrixParams = new HashMap<>();
-        String path = "";
-        for(PathSegment s: pathSegments){
-            path = path + "/" + s.getPath();
-            matrixParams.putAll(s.getMatrixParameters());
-        }
-        
+
         RecordType type = RecordType.FOLDER; // Folder by default
-        if(contType.equalsIgnoreCase("groups")){
+        if(containerType.equalsIgnoreCase("groups")){
             type = RecordType.GROUP;
         }
         
@@ -82,7 +97,7 @@ public class ContainerResource extends BaseResource {
             throw new RestException(ex, 400, "Unable to validate request view", ex.getMessage());
         }
         
-        DcPath containerPath = getProvider().getPath(DcUriUtils.toFsUri(path, getUser(), "SRS"));
+        DcPath containerPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
         
         try {
             if(!Files.readAttributes(containerPath, DcFile.class).isDirectory()){
@@ -113,12 +128,10 @@ public class ContainerResource extends BaseResource {
     @Path(idRegex)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public Response createContainer(@PathParam("containerType") String contType, 
-            @PathParam("id") String parent,
-            MultivaluedMap<String, String> formParams) throws IOException{
-        String sParentPath = "/" + parent;
+    public Response createContainer(MultivaluedMap<String, String> formParams) throws IOException{
+        String sParentPath = requestPath;
         RecordType type = RecordType.FOLDER; // Folder by default
-        if(contType.equalsIgnoreCase( "groups")){
+        if(containerType.equalsIgnoreCase( "groups")){
             type = RecordType.GROUP;
         }
 
@@ -146,12 +159,45 @@ public class ContainerResource extends BaseResource {
         
     }
     
+    @POST
+    @Path(idRegex)
+    @Consumes(MediaType.APPLICATION_JSON)
+    //@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
+    public Response createContainerJson(DatasetContainer container) throws IOException{
+        String sParentPath = requestPath;
+        RecordType type = RecordType.FOLDER; // Folder by default
+        if(containerType.equalsIgnoreCase("groups")){
+            type = RecordType.GROUP;
+        }
+        DatasetContainerBuilder builder = getProvider().getModelProvider().getContainerBuilder().create(container);
+
+        DcPath parentPath = getProvider().getPath(DcUriUtils.toFsUri(sParentPath, getUser(), "SRS"));
+        DcPath targetPath = parentPath.resolve(container.getName());
+        builder.path(targetPath.toString());
+        
+        ContainerCreationAttribute request = new ContainerCreationAttribute(container);
+        
+        try {
+            getProvider().createDirectory(targetPath, request);
+            return Response.created(DcUriUtils.toFsUri(targetPath.toString(), getUser(), "SRS"))
+                    .entity(builder.build()).build();
+        } catch (NoSuchFileException ex){
+             throw new RestException(ex ,404, "Parent file doesn't exist", ex.getMessage());
+        } catch (AccessDeniedException ex){
+             throw new RestException(ex, 403);
+        } catch (NotDirectoryException ex){
+            throw new RestException(ex, 404, "File exists, but Path is not a container");
+        } catch (IOException ex){
+            ex.printStackTrace();
+            throw new RestException(ex, 500);
+        }
+        
+    }
+    
     @DELETE
     @Path(idRegex)
-    public Response deleteContainer(@PathParam("containerType") String contType, 
-            @PathParam("id") String path) throws IOException{
-        path = "/" + path;
-        DcPath dcPath = getProvider().getPath(DcUriUtils.toFsUri(path, getUser(), "SRS"));
+    public Response deleteContainer() throws IOException{
+        DcPath dcPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
         try {
             if(!getProvider().resolveFile(dcPath).isDirectory()){
                 throw new NoSuchFileException("Path doesn't resolve to a container");
