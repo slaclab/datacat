@@ -1,4 +1,5 @@
 import requests
+import urllib
 from config import ENDPOINTS, DATATYPES
 from .model import *
 
@@ -57,7 +58,7 @@ class Client(object):
         :param query: The query
         :param sort: Fields and Metadata fields to sort on.
         :param show: Metadata fields to optionally return
-        :param offset: Offset at which to start returning objects.
+:param offset: Offset at which to start returning objects.
         :param max_num: Maximum number of objects to return.
         :param accept: Format of the response object which is returned.
         :return: A :class`requests.Response` object. A user can use Response.content to get the content.
@@ -172,7 +173,7 @@ class Client(object):
         def resolve(path, part):
             path = path if path[-1] != '/' else path[:-1]
             part = part if part[0] != '/' else (part[1:] if len(part) > 0 else "")
-            return "%s/%s" %(path, part)
+            return "%s/%s" %(path, urllib.quote(part))
         url = resolve(self.base_url, resource(endpoint, accept))
         view = ";v=" + str(version) if version is not None else ""
         view += ";s=" + site if site is not None else ""
