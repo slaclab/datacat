@@ -2,12 +2,14 @@
 package org.srs.datacat.shared;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.srs.datacat.model.container.ContainerStat;
 
 /**
  *
  * @author bvan
  */
+@JsonDeserialize(builder=DatasetContainerBuilder.class)
 public abstract class DatasetContainer extends DatacatObject 
     implements org.srs.datacat.model.DatasetContainer {
     
