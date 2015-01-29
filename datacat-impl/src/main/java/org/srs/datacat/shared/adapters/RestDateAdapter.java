@@ -33,6 +33,13 @@ public class RestDateAdapter {
 
     public Timestamp unmarshal(String dateString) {
         XMLGregorianCalendar cal;
+        if(dateString.matches(".*[+-]\\d\\d\\d\\d$")){
+            int sp = dateString.length() - 2;
+            dateString = new StringBuilder(dateString.substring(0, sp))
+                    .append(":")
+                    .append(dateString.substring(sp, dateString.length()))
+                    .toString();
+        }
         try {
             cal = DatatypeFactory.newInstance().newXMLGregorianCalendar(dateString);
         } catch(DatatypeConfigurationException ex) {

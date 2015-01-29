@@ -150,6 +150,7 @@ public class MetadataTest extends TestCase {
         String jsonStringWithType = "{\"hello\":\"world\", \"type\":\"string\"}";
         
         String jsonTimestamp = "{\"hello\":\"2014-01-02T12:02:01Z\", \"type\":\"timestamp\"}";
+        String jsonTimestamp2 = "{\"hello\":\"2014-01-02T12:02:01-0000\", \"type\":\"timestamp\"}";
         
         String compoundJson = 
                 "[{\"numberDouble\":1234.25},"
@@ -207,6 +208,9 @@ public class MetadataTest extends TestCase {
         assertEquals("MetadataString", entry.getValue().getClass().getSimpleName());
         
         entry = mapper.readValue( jsonTimestamp, singleRef);
+        assertEquals("MetadataTimestamp", entry.getValue().getClass().getSimpleName());
+        
+        entry = mapper.readValue( jsonTimestamp2, singleRef);
         assertEquals("MetadataTimestamp", entry.getValue().getClass().getSimpleName());
         
         List<MetadataEntry> entries;
