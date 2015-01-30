@@ -59,7 +59,7 @@ create table DatasetSource (
 
 create table DatasetLogicalFolder (
 	DatasetLogicalFolder	SERIAL,
-	Name			varchar(50),
+	Name			varchar(255),
 	Parent			integer,
 	Description		varchar(400),
         ACL                     varchar(1000),
@@ -72,7 +72,7 @@ create index IDX_DatasetLogicalFolderParent on DatasetLogicalFolder(Parent);
 
 create table DatasetGroup (
 	DatasetGroup		SERIAL,
-	Name			varchar(50),
+	Name			varchar(255),
 	DatasetLogicalFolder	bigint unsigned not null,
 	CreateDate		timestamp,
 	ModifyDate		timestamp,
@@ -90,7 +90,7 @@ create index IDX_DSG_DSLF on DatasetGroup(DatasetLogicalFolder);
 
 create table VerDataset (
 	Dataset			SERIAL,
-	DatasetName		varchar(50) not null,
+	DatasetName		varchar(255) not null,
 	DatasetFileFormat	varchar(20) not null,
 	DatasetDataType		varchar(32) not null,
 	DatasetLogicalFolder	numeric,
@@ -335,7 +335,7 @@ create table LogicalFolderMetaName (
 create table DatasetLocationPurge (
 	Purged			timestamp default CURRENT_TIMESTAMP,
 	Dataset			numeric,
-	DatasetName		varchar(50) NOT NULL,
+	DatasetName		varchar(255) NOT NULL,
 	DatasetFileFormat	varchar(20) NOT NULL,
 	DatasetDataType		varchar(32) NOT NULL,
 	DataCatFolderPath	varchar(2000) NOT NULL,
