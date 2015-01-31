@@ -3,7 +3,7 @@ package org.srs.datacat.vfs;
 import com.google.common.base.Optional;
 import org.srs.datacat.security.DcPermissions;
 import java.io.IOException;
-import java.net.URI;
+import java.net.URI;    
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.DirectoryStream;
@@ -168,8 +168,14 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                         DatacatNode child = iter.next();
                         DcPath maybeNext = dcPath.resolve(child.getName());
                         DcFile file = DcFileSystemProvider.this.
-                        buildChild(dirFile, maybeNext, child);
-
+                            buildChild(dirFile, maybeNext, child);
+                        /* TODO: Permissions check here?
+                        try{
+                            DcFileSystemProvider.this.checkPermission(dcPath.getUserName(), file, DcPermissions.READ);
+                        } catch (AccessDeniedException ex){
+                            continue;
+                        }
+                        */
                         if(file.isDirectory()){
                             getCache().putFileIfAbsent(file);
                         }
@@ -222,6 +228,14 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                     public boolean acceptNext() throws IOException{
                         while(iter.hasNext()){
                             DcPath maybeNext = iter.next();
+                            /* TODO: Permissions check here?
+                            DcFile file = DcFileSystemProvider.this.resolveFile(maybeNext);
+                            try{
+                            DcFileSystemProvider.this.checkPermission(dcPath.getUserName(), file, DcPermissions.READ);
+                            } catch (AccessDeniedException ex){
+                                continue;
+                            }
+                            */
                             if(filter.accept(maybeNext)){
                                 setNext(maybeNext);
                                 return true;
@@ -330,7 +344,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
      * @return
      * @throws IOException
      */
-    public DcFile addMetadata(Path path, DatacatRecord record, Map metadata) throws IOException{
+    public DcFile addMetadata(Path path, DatacatRecord record, Map<String, Object> metadata) throws IOException{
         DcPath dcPath = checkPath(path);
         DcFile f = getFile(dcPath);
         checkPermission(dcPath.getUserName(), f, DcPermissions.WRITE);
@@ -342,8 +356,48 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         return getFile(dcPath);
     }
     
-
-
+    /**
+     * Merge metadata to a DatacatRecord at a given path.
+     *
+     * @param path
+     * @param record
+     * @param metadata
+     * @return
+     * @throws IOException
+     */
+    public DcFile mergeMetadata(Path path, DatacatRecord record, Map<String, Object> metadata) throws IOException{
+        DcPath dcPath = checkPath(path);
+        DcFile f = getFile(dcPath);
+        checkPermission(dcPath.getUserName(), f, DcPermissions.WRITE);
+        try(BaseDAO dao = daoFactory.newBaseDAO()) {
+            dao.mergeMetadata(record, metadata);
+            dao.commit();
+        }
+        getCache().removeFile(dcPath);
+        return getFile(dcPath);
+    }
+    
+    /**
+     * Add metadata to a DatacatRecord at a given path.
+     *
+     * @param path
+     * @param record
+     * @param metadata
+     * @return
+     * @throws IOException
+     */
+    public DcFile deleteMetadata(Path path, DatacatRecord record, Set<String> metadata) throws IOException{
+        DcPath dcPath = checkPath(path);
+        DcFile f = getFile(dcPath);
+        checkPermission(dcPath.getUserName(), f, DcPermissions.WRITE);
+        try(BaseDAO dao = daoFactory.newBaseDAO()) {
+            dao.deleteMetadata(record, metadata);
+            dao.commit();
+        }
+        getCache().removeFile(dcPath);
+        return getFile(dcPath);
+    }
+    
     @Override
     public DcPath getPath(URI uri){
         return fileSystem.getPathProvider().getPath(uri);
