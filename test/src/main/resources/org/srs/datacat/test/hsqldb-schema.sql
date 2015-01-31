@@ -48,7 +48,7 @@ create table DatasetSite (
 create table DatasetDataType (
 	DatasetDataType		varchar(32),
 	Description		varchar(400),
-	CrawlerPriority		number,
+	CrawlerPriority		numeric,
 	constraint PK_DatasetDataType primary key (DatasetDataType)
 );
 
@@ -80,10 +80,10 @@ create table DatasetGroup (
 	DatasetLogicalFolder	integer not null,
 	CreateDate		timestamp,
 	ModifyDate		timestamp,
-	RunMin			number,
-	RunMax			number,
-	NumberEvents		number,
-	DiskSizeBytes		number,
+	RunMin			decimal,
+	RunMax			decimal,
+	NumberEvents		numeric,
+	DiskSizeBytes		integer,
 	Description		varchar(400),
         ACL                     varchar(1000),
 	constraint PK_DatasetGroup primary key (DatasetGroup),
@@ -100,9 +100,9 @@ create table VerDataset (
 	DatasetName		varchar(255) not null,
 	DatasetFileFormat	varchar(20) not null,
 	DatasetDataType		varchar(32) not null,
-	DatasetLogicalFolder	number,
-	DatasetGroup		number,
-	LatestVersion		number,
+	DatasetLogicalFolder	integer,
+	DatasetGroup		integer,
+	LatestVersion		integer,
 	Registered		timestamp DEFAULT CURRENT_TIMESTAMP,
         ACL                     varchar(40),
 	constraint FK_VDS_DSDataType foreign key (DatasetDataType)
@@ -162,11 +162,11 @@ create table VerDatasetLocation (
 	DatasetVersion		integer not null,
 	DatasetSite		varchar(20) not null,
 	Path			varchar(256) not null,
-        RunMin			number,
-	RunMax			number,
-	NumberEvents		number,
-	FileSizeBytes		number,
-	CheckSum		number,
+        RunMin			numeric,
+	RunMax			numeric,
+	NumberEvents		numeric,
+	FileSizeBytes		integer,
+	CheckSum		integer,
 	LastModified		timestamp,
 	LastScanned 		timestamp,
 	ScanStatus 		varchar(20) DEFAULT 'UNSCANNED',
@@ -207,7 +207,7 @@ create index IDX_VDSMS_NameValue on VerDatasetMetaString(MetaName, MetaValue);
 create table VerDatasetMetaNumber (
 	DatasetVersion		integer not null,
 	MetaName		varchar(64) not null,
-	MetaValue		numeric,
+	MetaValue		decimal(128,20),
 	constraint FK_VDSMN_DSVersion foreign key (DatasetVersion)
 		references DatasetVersion (DatasetVersion)
 		on delete cascade,
@@ -352,19 +352,19 @@ create table LogicalFolderMetaName (
 
 create table DatasetLocationPurge (
 	Purged			timestamp default CURRENT_TIMESTAMP,
-	Dataset			number,
+	Dataset			integer,
 	DatasetName		varchar(255) NOT NULL,
 	DatasetFileFormat	varchar(20) NOT NULL,
 	DatasetDataType		varchar(32) NOT NULL,
 	DataCatFolderPath	varchar(2000) NOT NULL,
 	DataCatGroupName	varchar(32),
-	DatasetVersion		number,
-	VersionID		number,
+	DatasetVersion		integer,
+	VersionID		integer,
 	DatasetSource		varchar(20) NOT NULL,
-	ProcessInstance		number,
+	ProcessInstance		integer,
 	TaskName		varchar(30),
 	WasLatestVersion	integer NOT NULL,
-	DatasetLocation		number PRIMARY KEY,
+	DatasetLocation		integer PRIMARY KEY,
 	DatasetSite		varchar(20) NOT NULL,
 	Path			varchar(2000) NOT NULL,
 	WasMasterLocation	integer NOT NULL
@@ -374,6 +374,8 @@ create index idx_DSLP_PurgeTime on DatasetLocationPurge (Purged);
 insert
   into DatasetLogicalFolder (DatasetLogicalFolder, Name, Parent, ACL)
   values(0, 'ROOT', NULL, '$PUBLIC$@:g:r:,test_user@SRS:o::,test_group@SRS:g:idrwa:');
+
+SET DATABASE SQL SYNTAX ORA true;
 
 create global temporary table ContainerSearch (
     DatasetLogicalFolder	number,
