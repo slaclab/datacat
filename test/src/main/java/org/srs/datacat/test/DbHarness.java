@@ -1,5 +1,6 @@
 package org.srs.datacat.test;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -10,7 +11,7 @@ import javax.sql.DataSource;
  * @author bvan
  */
 public abstract class DbHarness {
-    public static Number[] numberMdValues = {0, 3.14159F, 4294967296L, -1.0000000001};
+    public static Number[] numberMdValues = {0, new BigDecimal("3.14159"), 4294967296L, -1.0000000001};
     public static final String TEST_FILEFORMAT_01 = "junit.test";
     public static final String TEST_USER = "test_user";
     public static String[] alphaMdValues = {"abc", "def", "ghi", "jkl"};
