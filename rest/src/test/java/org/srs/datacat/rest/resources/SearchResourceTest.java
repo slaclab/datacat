@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 import javax.ws.rs.core.Application;
@@ -139,12 +140,12 @@ public class SearchResourceTest extends JerseyTest{
         expected = 25*10;
         for(int j = 0; j < 10; j++){
             Number num = DbHarness.numberMdValues[j%4];
-            if(num.equals( 3.14159f) || num.equals(0)){
+            if(num.equals( new BigDecimal("3.14159")) || num.equals(0)){
                 expected += 75;
             }
         }
         datasets = doSearch(pathPattern, filter, 200);
-        TestCase.assertEquals("Expected 0 datasets, no groups in search path", expected, datasets.size());
+        TestCase.assertEquals(expected, datasets.size());
         
         pathPattern = "/testpath/folder0000*$";
         filter = "alpha == 'def' or num in (3.1414:3.1416)";
