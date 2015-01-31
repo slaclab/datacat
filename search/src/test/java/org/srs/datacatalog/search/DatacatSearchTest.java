@@ -175,6 +175,31 @@ public class DatacatSearchTest {
         datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 0);
         conn.commit(); // Remove from parents on commit
         
+        queryString = "num == 0";
+        pathPattern = "/testpath/folder00000";
+        datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 1000);
+        conn.commit(); // Remove from parents on commit
+
+        queryString = "num == 0";
+        pathPattern = "/testpath/folder00001";
+        datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 0);
+        conn.commit(); // Remove from parents on commit
+                
+        queryString = "num == 3.14159F";
+        pathPattern = "/testpath/folder00001";
+        datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 1000);
+        conn.commit(); // Remove from parents on commit
+        
+        queryString = "num == 3.14159F";
+        pathPattern = "/testpath/folder00000";
+        datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 0);
+        conn.commit(); // Remove from parents on commit
+        
+        queryString = "num == 4294967296";
+        pathPattern = "/testpath/folder00002";
+        datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 1000);
+        conn.commit(); // Remove from parents on commit
+
         queryString = "num is not null";
         pathPattern = "/testpath/folder00001";
         datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, 1000);
@@ -234,7 +259,7 @@ public class DatacatSearchTest {
         datasets = doSearch( conn, root, pathPattern, searchFolders, searchGroups, queryString, expected);
         TestCase.assertEquals("First dataset found incorrect", "dataset00001", datasets.get(0).getName());
         conn.commit(); // Remove from parents on commit
-
+        
         queryString = "alpha == 'def' or num in (0,3.14159f)";
         pathPattern = "/testpath/folder0000*$";
         expected = 250*10 + 750*3 + 750*3;
@@ -289,7 +314,6 @@ public class DatacatSearchTest {
         walker = new DirectoryWalker(provider, visitor, 100);
         walker.walk(searchPath);
         statement = datacatSearch.compileStatement(visitor.files, dsView, queryString, metaFieldsToRetrieve, sortFields,0,-1);
-        System.out.println(statement.formatted());
         
         /*datasets = datacatSearch.searchForDatasetsInParent( conn, statement, keepAlive);
         for(Dataset d: datasets){
