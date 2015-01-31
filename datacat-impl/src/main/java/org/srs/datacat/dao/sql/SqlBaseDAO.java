@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
@@ -201,8 +202,6 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
     }
 
     protected void setContainerMetadata(org.srs.datacat.shared.DatacatObject.Builder builder) throws SQLException{
-        HashMap<String, Object> metadata = new HashMap<>();
-
         String tableType = null;
         Long pk = builder.pk;
         if(builder instanceof LogicalFolder.Builder){
@@ -210,9 +209,16 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         } else if(builder instanceof DatasetGroup.Builder){
             tableType = "DatasetGroup";
         }
-        String column = tableType;
+        Map<String, Object> metadata = getMetadata(pk, tableType, tableType);
+        if(!metadata.isEmpty()){
+            builder.metadata(metadata);
+        }
+    }
+    
+    protected Map<String, Object> getMetadata(long pk, String tablePrefix, String column) throws SQLException{
+        HashMap<String, Object> metadata = new HashMap<>();
         String mdBase = "select Metaname, Metavalue from %sMeta%s where %s = ?";
-        String sql = String.format(mdBase, tableType, "String", column);
+        String sql = String.format(mdBase, tablePrefix, "String", column);
         try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
             stmt.setLong(1, pk);
             ResultSet rs = stmt.executeQuery();
@@ -221,7 +227,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             }
         }
 
-        sql = String.format(mdBase, tableType, "Number", column);
+        sql = String.format(mdBase, tablePrefix, "Number", column);
         try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
             stmt.setLong(1, pk);
             ResultSet rs = stmt.executeQuery();
@@ -232,20 +238,16 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
                 metadata.put(rs.getString("metaname"), (Number) n);
             }
         }
-        sql = String.format(mdBase, tableType, "Timestamp", column);
+        sql = String.format(mdBase, tablePrefix, "Timestamp", column);
         try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
             stmt.setLong(1, pk);
             ResultSet rs = stmt.executeQuery();
             while(rs.next()){
-                Number n;
-                java.math.BigDecimal v = (java.math.BigDecimal) rs.getObject("metavalue");
-                n = v.scale() == 0 ? v.toBigIntegerExact() : v;
-                metadata.put(rs.getString("metaname"), (Number) n);
+                Timestamp t = rs.getTimestamp("metavalue");
+                metadata.put(rs.getString("metaname"), t);
             }
         }
-        if(!metadata.isEmpty()){
-            builder.metadata(metadata);
-        }
+        return metadata;
     }
 
     @Override
@@ -281,7 +283,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
     }
 
     @Override
-    public void addMetadata(DatacatRecord record, Map metaData) throws IOException{
+    public void addMetadata(DatacatRecord record, Map<String, Object> metaData) throws IOException{
         try {
             switch(record.getType()){
                 case DATASETVERSION:
@@ -302,17 +304,40 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         }
     }
     
-    public void mergeMetadata(DatacatRecord record, Map metaData) throws IOException{
+    @Override
+    public void mergeMetadata(DatacatRecord record, Map<String, Object> metaData) throws IOException{
         try {
             switch(record.getType()){
                 case DATASETVERSION:
-                    addDatasetVersionMetadata(record.getPk(), metaData);
+                    mergeDatasetVersionMetadata(record.getPk(), metaData);
                     break;
                 case GROUP:
-                    addGroupMetadata(record.getPk(), metaData);
+                    mergeGroupMetadata(record.getPk(), metaData);
                     break;
                 case FOLDER:
-                    addFolderMetadata(record.getPk(), metaData);
+                    mergeFolderMetadata(record.getPk(), metaData);
+                    break;
+                default:
+                    String msg = "Unable to add metadata to object type: " + record.getType();
+                    throw new IOException(msg);
+            }
+        } catch(SQLException ex) {
+            throw new IOException("Unable to add metadata to object", ex);
+        }
+    }
+    
+    @Override
+    public void deleteMetadata(DatacatRecord record, Set<String> metaDataKeys) throws IOException{
+        try {
+            switch(record.getType()){
+                case DATASETVERSION:
+                    deleteDatasetVersionMetadata(record.getPk(), metaDataKeys);
+                    break;
+                case GROUP:
+                    deleteGroupMetadata(record.getPk(), metaDataKeys);
+                    break;
+                case FOLDER:
+                    deleteFolderMetadata(record.getPk(), metaDataKeys);
                     break;
                 default:
                     String msg = "Unable to add metadata to object type: " + record.getType();
@@ -346,6 +371,18 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
     protected void mergeFolderMetadata(long logicalFolderPK, Map<String, Object> metaData) throws SQLException{
         mergeDatacatObjectMetadata(logicalFolderPK, metaData, "LogicalFolder", "LogicalFolder");
     }
+    
+    protected void deleteDatasetVersionMetadata(Long pk, Set<String> metaDataKeys) throws SQLException{
+        deleteDatacatObjectMetadata(pk, metaDataKeys, "VerDataset", "DatasetVersion");
+    }
+
+    protected void deleteGroupMetadata(long datasetGroupPK, Set<String> metaDataKeys) throws SQLException{
+        deleteDatacatObjectMetadata(datasetGroupPK, metaDataKeys, "DatasetGroup", "DatasetGroup");
+    }
+
+    protected void deleteFolderMetadata(long logicalFolderPK, Set<String> metaDataKeys) throws SQLException{
+        deleteDatacatObjectMetadata(logicalFolderPK, metaDataKeys, "LogicalFolder", "LogicalFolder");
+    }
 
     private void addDatacatObjectMetadata(long objectPK, Map<String, Object> metaData, String tablePrefix,
             String column) throws SQLException{
@@ -373,7 +410,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
                 Map.Entry e = (Map.Entry) i.next();
                 String metaName = (String) e.getKey();
                 Object metaValue = e.getValue();
-
+                
                 // Determine MetaData Object type and insert it into the appropriate table:
                 if(metaValue instanceof Timestamp){
                     stmt = stmtMetaTimestamp;
@@ -463,6 +500,57 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         }
         addDatacatObjectMetadata(objectPK, insertMetaData, tablePrefix, column);
     }
+    
+    private void deleteDatacatObjectMetadata(long objectPK, Set<String> metaDataKeys, String tablePrefix,
+            String column) throws SQLException{
+        if(metaDataKeys == null){
+            return;
+        }
+        final String metaSql = "DELETE FROM %sMeta%s WHERE MetaName= ? and DatasetVersion = ?";
+        String metaStringSql = String.format(metaSql, tablePrefix, "String", column);
+        String metaNumberSql = String.format(metaSql, tablePrefix, "Number", column);
+        String metaTimestampSql = String.format(metaSql, tablePrefix, "Timestamp", column);
+        PreparedStatement stmtMetaString = null;
+        PreparedStatement stmtMetaNumber = null;
+        PreparedStatement stmtMetaTimestamp = null;
+        PreparedStatement stmt;
+        
+        try {
+            stmtMetaString = getConnection().prepareStatement(metaStringSql);
+            stmtMetaNumber = getConnection().prepareStatement(metaNumberSql);
+            stmtMetaTimestamp = getConnection().prepareStatement(metaTimestampSql);
+            Iterator<String> i = metaDataKeys.iterator();
+
+            Map<String, Object> existingMetadata = getMetadata(objectPK, tablePrefix, column);
+            while(i.hasNext()){
+                String metaName = i.next();
+                Object metaValue = existingMetadata.get(metaName);
+
+                // Determine MetaData Object type and insert it into the appropriate table:
+                if(metaValue instanceof Timestamp){
+                    stmt = stmtMetaTimestamp;
+                } else if(metaValue instanceof Number){
+                    stmt = stmtMetaNumber;
+                } else { // all others stored as String
+                    stmt = stmtMetaString;
+                }
+
+                stmt.setString(1, metaName);
+                stmt.setLong(2, objectPK);
+                stmt.executeUpdate();
+            }
+        } finally {
+            if(stmtMetaString != null){
+                stmtMetaString.close();
+            }
+            if(stmtMetaNumber != null){
+                stmtMetaNumber.close();
+            }
+            if(stmtMetaTimestamp != null){
+                stmtMetaTimestamp.close();
+            }
+        }
+    }
 
     protected static RecordType getType(String typeChar){
         switch(typeChar){
@@ -514,12 +602,13 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         switch(rs.getString("mdtype")){
             case "N":
                 Number n;
-                java.math.BigDecimal v = (java.math.BigDecimal) rs.getObject("metanumber");
+                java.math.BigDecimal v = rs.getBigDecimal("metanumber");
                 n = v.scale() == 0 ? v.toBigIntegerExact() : v;
                 metadata.put(rs.getString("metaname"), (Number) n);
                 return;
             case "S":
                 metadata.put(rs.getString("metaname"), rs.getString("metastring"));
+                return;
             case "T":
                 metadata.put(rs.getString("metaname"), rs.getTimestamp("metatimestamp"));
             default:

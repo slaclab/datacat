@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.FileSystemException;
 import java.nio.file.NoSuchFileException;
 import java.util.Map;
+import java.util.Set;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
 
@@ -51,7 +52,25 @@ public interface BaseDAO extends AutoCloseable {
      * @param metaData Metadata to be appended
      * @throws IOException 
      */
-    void addMetadata(DatacatRecord record, Map metaData) throws IOException;
+    void addMetadata(DatacatRecord record, Map<String, Object> metaData) throws IOException;
+    
+    /**
+     * Merge metadata of an existing record.
+     * 
+     * @param record A Folder, Group, or DatasetVersion
+     * @param metaData Metadata to be merged
+     * @throws IOException 
+     */
+    void mergeMetadata(DatacatRecord record, Map<String, Object> metaData) throws IOException;
+    
+    /**
+     * Delete metadata of an existing record.
+     * 
+     * @param record A Folder, Group, or DatasetVersion
+     * @param metaDataKeys Metadata keys to be deleted
+     * @throws IOException 
+     */
+    void deleteMetadata(DatacatRecord record, Set<String> metaDataKeys) throws IOException;
     
     /**
      * Delete a DatacatRecord.

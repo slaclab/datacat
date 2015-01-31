@@ -3,11 +3,16 @@ package org.srs.datacat.dao.sql;
 
 import com.google.common.base.Optional;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.file.NoSuchFileException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import javax.sql.DataSource;
+import junit.framework.TestCase;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -126,6 +131,101 @@ public class DatasetSqlDAOTest {
         System.out.println("Registered: " + newVer.toString());
         System.out.println(new Dataset.Builder(ds).version(newVer).build().toString());
         dao.deleteDatasetVersion(ds.getParentPk(), newVer);
+    }
+    
+    @Test
+    public void testMetadata() throws SQLException, IOException {
+        String dsName = "testCaseDataset002";
+        SqlDatasetDAO dao = new SqlDatasetDAO(conn);
+        
+        FlatDataset req =(FlatDataset) getRequest(dsName)
+                .versionId(DatasetView.NEW_VER)
+                .datasetSource(DbHarness.TEST_DATASET_SOURCE)
+                .build();
+        Dataset ds = create(DbHarness.TEST_BASE_PATH, req);
+        Optional<DatasetVersionModel> versionOpt = Optional.absent();
+        DatasetVersionModel newVer = dao.createOrMergeDatasetVersion(ds, (DatasetVersion) req.getVersion(), versionOpt, false);
+        HashMap<String, Object> md = new HashMap();
+        md.put("stringObject", "mdvalue");
+        md.put("intObject", 1234);
+        md.put("doubleObject", 1234.4321);
+        md.put("tsObject", new java.sql.Timestamp(1234L));
+        System.out.println(newVer);
+        dao.addMetadata(newVer, md);
+
+        md.put( "fakeMetadata", "fakeString");
+        md.put( "fakeMetadataNumber", 24);
+        md.put( "fakeMetadataDecimal", 24.242);
+        
+        newVer = dao.getDatasetViewInfo(ds, DatasetView.CURRENT_ANY).getVersion();
+        for(Map.Entry<String, Object> e: md.entrySet()){
+            Object expected = e.getValue();
+            Object actual = newVer.getMetadataMap().get(e.getKey());
+            if(expected instanceof Number){
+                if(expected instanceof Double | expected instanceof Float){
+                    expected = BigDecimal.valueOf(((Number) expected).doubleValue());
+                    actual = BigDecimal.valueOf(((Number) actual).doubleValue());
+                }
+                if(expected instanceof Integer | expected instanceof Long){
+                    expected = BigInteger.valueOf(((Number) expected).longValue()).longValue();
+                    actual = ((Number) actual).longValue();
+                }
+            }
+            TestCase.assertEquals(String.format("%s should have been %s", actual.toString(), expected.toString()), expected, actual);
+        }
+        
+        HashMap<String, Object> merge = new HashMap<>();
+        merge.put("stringObject", "mdvalue1");
+        merge.put("intObject", 4321);
+        merge.put("doubleObject", 4321.1234);
+        md.put("stringObject", "mdvalue1");
+        md.put("intObject", 4321);
+        md.put("doubleObject", 4321.1234);
+        dao.mergeMetadata(newVer, merge);
+        
+        newVer = dao.getDatasetViewInfo(ds, DatasetView.CURRENT_ANY).getVersion();
+        for(Map.Entry<String, Object> e: md.entrySet()){
+            Object expected = e.getValue();
+            Object actual = newVer.getMetadataMap().get(e.getKey());
+            if(expected instanceof Number){
+                if(expected instanceof Double | expected instanceof Float){
+                    expected = BigDecimal.valueOf(((Number) expected).doubleValue());
+                    actual = BigDecimal.valueOf(((Number) actual).doubleValue());
+                }
+                if(expected instanceof Integer | expected instanceof Long){
+                    expected = BigInteger.valueOf(((Number) expected).longValue()).longValue();
+                    actual = ((Number) actual).longValue();
+                }
+            }
+            TestCase.assertEquals(String.format("%s should have been %s", actual.toString(), expected.toString()), expected, actual);
+        }
+        
+        HashSet<String> deletes = new HashSet<>();
+        deletes.add("stringObject");
+        deletes.add("intObject");
+        deletes.add("doubleObject");
+        md.remove("stringObject", "mdvalue1");
+        md.remove("intObject", 4321);
+        md.remove("doubleObject", 4321.1234);
+        dao.deleteMetadata(newVer, deletes);
+        
+        newVer = dao.getDatasetViewInfo(ds, DatasetView.CURRENT_ANY).getVersion();
+        for(Map.Entry<String, Object> e: md.entrySet()){
+            Object expected = e.getValue();
+            Object actual = newVer.getMetadataMap().get(e.getKey());
+            if(expected instanceof Number){
+                if(expected instanceof Double | expected instanceof Float){
+                    expected = BigDecimal.valueOf(((Number) expected).doubleValue());
+                    actual = BigDecimal.valueOf(((Number) actual).doubleValue());
+                }
+                if(expected instanceof Integer | expected instanceof Long){
+                    expected = BigInteger.valueOf(((Number) expected).longValue()).longValue();
+                    actual = ((Number) actual).longValue();
+                }
+            }
+            TestCase.assertEquals(String.format("%s should have been %s", actual.toString(), expected.toString()), expected, actual);
+        }
+        
     }
     
     private Dataset create(String path, Dataset ds) throws SQLException, IOException {
