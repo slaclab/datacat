@@ -34,15 +34,11 @@ public class BrowserController extends HttpServlet {
     
     static final int DEFAULT_MAX = 100;
 
-    Client c;
-    
-    public BrowserController() throws MalformedURLException{
-        c = new Client("http://lsst-db2.slac.stanford.edu:8180/rest-datacat-v1/r");
-    }
     
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException{
+        Client client = new Client("http://scalnx-v04.slac.stanford.edu:8180/org-srs-datacat-war-0.2-SNAPSHOT/r", request);
         HashMap<String, List<String>> requestQueryParams = new HashMap<>();
         Map<String, String[]> params = request.getParameterMap();
         for(Map.Entry<String, String[]> e: params.entrySet()){
@@ -52,11 +48,11 @@ public class BrowserController extends HttpServlet {
         RequestView rv = new RequestView(RecordType.FOLDER, null);
         if(request.getPathInfo() == null || request.getPathInfo().length() == 1){
             request.setAttribute( "parentURL", "/" );
-            request.setAttribute( "containers", getContainers("/", rv, requestQueryParams));
+            request.setAttribute( "containers", getContainers(client, "/", rv, requestQueryParams));
             request.setAttribute( "path", null );
         } else {
             String path = request.getPathInfo();
-            DatacatNode pathObject = c.getObject(path);
+            DatacatNode pathObject = client.getObject(path);
             request.setAttribute("target", pathObject );
             
             if(!pathObject.getType().isContainer()){
@@ -65,7 +61,7 @@ public class BrowserController extends HttpServlet {
                 path = PathUtils.getParentPath(pathObject.getPath());
             }
             
-            pathObject = c.getContainer(path, "dataset");
+            pathObject = client.getContainer(path, "dataset");
             request.setAttribute("container", pathObject);
             DatasetStat t = (DatasetStat) ((DatasetContainer) pathObject).getStat();
             long ccCount = t.getGroupCount() + t.getFolderCount();
@@ -80,7 +76,7 @@ public class BrowserController extends HttpServlet {
             if(ccCount == 0){
                 if(dsCount > 0){
                     ArrayList<DatacatNode> datasets = new ArrayList<>();
-                    for(DatacatNode d: getDatasets(path, rv, requestQueryParams, offset, max)){
+                    for(DatacatNode d: getDatasets(client, path, rv, requestQueryParams, offset, max)){
                         if(!d.getType().isContainer()){
                             datasets.add(d);
                         }
@@ -99,11 +95,11 @@ public class BrowserController extends HttpServlet {
                     }
                 }
                 request.setAttribute("containers", 
-                        getContainers(PathUtils.getParentPath(path), rv, requestQueryParams));
-                request.setAttribute( "selected", pathObject );
+                        getContainers(client, PathUtils.getParentPath(path), rv, requestQueryParams));
+                request.setAttribute("selected", pathObject );
             } else {
                 request.setAttribute("containers", 
-                        getContainers(path, rv, requestQueryParams));
+                        getContainers(client, path, rv, requestQueryParams));
             }
             
 
@@ -112,7 +108,7 @@ public class BrowserController extends HttpServlet {
         request.getRequestDispatcher( "/browseview/browser.jsp" ).forward( request, response );
     }
     
-    List<DatasetModel> getDatasets(String path, RequestView requestView, 
+    List<DatasetModel> getDatasets(Client c, String path, RequestView requestView, 
             HashMap<String, List<String>> queryParams, int offset, int max) throws IOException{
         String filter =  queryParams.containsKey("filter") ? queryParams.get("filter").get(0) :"";
         DatasetView dsView = requestView.getDatasetView(DatasetView.MASTER);
@@ -122,7 +118,7 @@ public class BrowserController extends HttpServlet {
         return retList;
     }
     
-    List<DatacatNode> getContainers(String path, RequestView requestView, 
+    List<DatacatNode> getContainers(Client c, String path, RequestView requestView, 
             HashMap<String, List<String>> queryParams) throws IOException{
         int max = queryParams.containsKey("cmax") ? Integer.valueOf( queryParams.get("cmax").get(0)) :100000;
         int offset = queryParams.containsKey("coffset") ? Integer.valueOf( queryParams.get("coffset").get(0)) :0;
