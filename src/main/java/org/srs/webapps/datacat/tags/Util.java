@@ -43,6 +43,9 @@ public class Util {
         if(value instanceof Double || value instanceof Float || value instanceof BigDecimal) {
             return "decimal";
         }
+        if(value instanceof Timestamp){
+            return "timestamp";
+        }
         return "string";
     }
 }
