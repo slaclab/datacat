@@ -11,6 +11,7 @@ import com.google.common.base.Optional;
 import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Feature;
@@ -34,13 +35,18 @@ public class Client {
     private WebTarget baseTarget;
     private Path pathResource;
     private Search searchResource;
+    private AuthenticationFilter filter;
     
     public Client() throws MalformedURLException{
-        init("http://lsst-db2.slac.stanford.edu:8180/rest-datacat-v1/r");
+        init("http://lsst-db2.slac.stanford.edu:8180/rest-datacat-v1/r", null);
     }
     
-    public Client(String url) throws MalformedURLException{
-        init(url);
+    public Client(HttpServletRequest delegatedRequest) throws MalformedURLException{
+        init("http://lsst-db2.slac.stanford.edu:8180/rest-datacat-v1/r", delegatedRequest);
+    }
+    
+    public Client(String url, HttpServletRequest delegatedRequest) throws MalformedURLException{
+        init(url, delegatedRequest);
     }
     
     /**
@@ -80,8 +86,11 @@ public class Client {
         }
     }
     
-    private void init(String baseUrl) throws MalformedURLException{
+    private void init(String baseUrl, HttpServletRequest delegatedRequest) throws MalformedURLException{
+        this.filter = new AuthenticationFilter(delegatedRequest);
+        
         client = ClientBuilder.newBuilder()
+                .register(this.filter)
                 .register(new JacksonFeature())
                 .build();
         baseTarget = client.target(baseUrl);
