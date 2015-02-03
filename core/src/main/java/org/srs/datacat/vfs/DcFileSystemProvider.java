@@ -498,6 +498,33 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     }
     
     /**
+     * Patch a container.
+     *
+     * @param path
+     * @param request
+     * @return
+     * @throws IOException
+     */
+    public DcFile patchContainer(Path path, DatasetContainer request) throws IOException{
+        DcPath dcPath = checkPath(path);
+        DcFile f = getFile(dcPath);
+        checkPermission(dcPath.getUserName(), f, DcPermissions.WRITE);
+        
+        if(f.getType() != FileType.DIRECTORY){ // Use the constant instead of instanceof
+            AfsException.NO_SUCH_FILE.throwError(f, "The file to be patched is a container");
+        }
+        
+        DatacatNode container = f.getObject();
+                
+        try(ContainerDAO dao = daoFactory.newContainerDAO(dcPath)) {
+            dao.patchContainer(container, request);
+            dao.commit();
+        }
+        getCache().removeFile(dcPath);
+        return getFile(dcPath);
+    }
+    
+    /**
      * Patch a dataset.
      *
      * @param path
@@ -514,6 +541,10 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         
         Optional<DatasetModel> requestDataset = Optional.of(request);
         Optional<DatasetViewInfoModel> requestView = Optional.absent();
+        
+        if(f.getType() != FileType.FILE){ // Use the constant instead of instanceof
+            AfsException.NO_SUCH_FILE.throwError(f, "The file to be patched is a container");
+        }
 
         if(request instanceof DatasetWithViewModel){
             requestView = Optional.of(((DatasetWithViewModel) request).getViewInfo());
