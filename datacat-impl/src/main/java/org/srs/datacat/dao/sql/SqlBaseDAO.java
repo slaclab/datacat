@@ -428,7 +428,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         if(!(metaData instanceof HashMap)){
             metaData = new HashMap(metaData);
         }
-        final String metaSql = "UPDATE %sMeta%s SET MetaValue = ? WHERE MetaName= ? and DatasetVersion = ?";
+        final String metaSql = "UPDATE %sMeta%s SET MetaValue = ? WHERE MetaName= ? and %s = ?";
         String metaStringSql = String.format(metaSql, tablePrefix, "String", column);
         String metaNumberSql = String.format(metaSql, tablePrefix, "Number", column);
         String metaTimestampSql = String.format(metaSql, tablePrefix, "Timestamp", column);

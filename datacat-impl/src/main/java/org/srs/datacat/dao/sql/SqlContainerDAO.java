@@ -2,6 +2,8 @@ package org.srs.datacat.dao.sql;
 
 import com.google.common.base.Optional;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.DirectoryStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.container.ContainerStat;
@@ -29,6 +32,7 @@ import org.srs.datacat.shared.BasicStat;
 import org.srs.datacat.shared.DatasetStat;
 import org.srs.datacat.shared.DatasetViewInfo;
 import org.srs.datacat.model.RecordType;
+import org.srs.datacat.shared.Patchable;
 import org.srs.vfs.PathUtils;
 
 /**
@@ -229,6 +233,52 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
             return getChildrenStreamInternal(parent.getPk(), parent.getPath(), viewPrefetch.orNull());
         } catch(SQLException ex) {
             throw new IOException(ex);
+        }
+    }
+    
+    @Override
+    public void patchContainer(DatacatNode container, DatasetContainer request) throws IOException{
+        try {
+            patchContainerInternal(container, request);
+        } catch (SQLException ex){
+            throw new IOException("Unable to perform patch", ex);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex){
+            throw new IOException("FATAL error in defined model", ex);
+        }
+    }
+    
+    protected void patchContainerInternal(DatacatNode container, DatasetContainer request) throws SQLException, 
+        IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException{
+
+        String table = container.getType()== RecordType.FOLDER ? "DatasetLogicalFolder" : "DatasetGroup";
+        
+        for(Method method: request.getClass().getMethods()){
+            if(method.isAnnotationPresent(Patchable.class)){
+                Object patchedValue = method.invoke(request);
+                if(patchedValue == null){
+                    continue;
+                }
+                if(patchedValue instanceof Map && ((Map) patchedValue).isEmpty()){
+                    continue;
+                }
+
+                String methodName = method.getName();
+                if("getMetadataMap".equals(methodName)){
+                    mergeMetadata(container, request.getMetadataMap());
+                    continue;
+                }
+                
+                
+                String baseSql = "UPDATE %s SET %s=? WHERE %s = ?";
+                Patchable p = method.getAnnotation(Patchable.class);
+                String sql = String.format(baseSql, table, p.column(), table);
+
+                try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
+                    stmt.setObject(1, patchedValue);
+                    stmt.setLong(2, container.getPk());
+                    stmt.executeUpdate();
+                }
+            }
         }
     }
 

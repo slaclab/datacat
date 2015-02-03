@@ -2,6 +2,8 @@ package org.srs.datacat.dao.sql.mysql;
 
 import com.google.common.base.Optional;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.DirectoryStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,8 +13,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.locks.ReentrantLock;
+import org.srs.datacat.dao.sql.SqlBaseDAO;
 import org.srs.datacat.model.container.ContainerStat;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
@@ -29,6 +33,7 @@ import org.srs.datacat.shared.BasicStat;
 import org.srs.datacat.shared.DatasetStat;
 import org.srs.datacat.shared.DatasetViewInfo;
 import org.srs.datacat.model.RecordType;
+import org.srs.datacat.shared.Patchable;
 import org.srs.vfs.PathUtils;
 
 /**
@@ -231,6 +236,52 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
             throw new IOException(ex);
         }
     }
+    
+    @Override
+    public void patchContainer(DatacatNode container, DatasetContainer request) throws IOException{
+        try {
+            patchContainerInternal(container, request);
+        } catch (SQLException ex){
+            throw new IOException("Unable to perform patch", ex);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex){
+            throw new IOException("FATAL error in defined model", ex);
+        }
+    }
+    
+    protected void patchContainerInternal(DatacatNode container, DatasetContainer request) throws SQLException, 
+            IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException{
+
+        String table = container.getType()== RecordType.FOLDER ? "DatasetLogicalFolder" : "DatasetGroup";
+        
+        for(Method method: request.getClass().getMethods()){
+            if(method.isAnnotationPresent(Patchable.class)){
+                Object patchedValue = method.invoke(request);
+                if(patchedValue == null){
+                    continue;
+                }
+                if(patchedValue instanceof Map && ((Map) patchedValue).isEmpty()){
+                    continue;
+                }
+
+                String methodName = method.getName();
+                if("getMetadataMap".equals(methodName)){
+                    mergeMetadata(container, request.getMetadataMap());
+                    continue;
+                }
+                
+                
+                String baseSql = "UPDATE %s SET %s=? WHERE %s = ?";
+                Patchable p = method.getAnnotation(Patchable.class);
+                String sql = String.format(baseSql, table, p.column(), table);
+
+                try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
+                    stmt.setObject(1, patchedValue);
+                    stmt.setLong(2, container.getPk());
+                    stmt.executeUpdate();
+                }
+            }
+        }
+    }
 
     protected DirectoryStream<DatacatNode> getChildrenStreamInternal(Long parentPk,
             final String parentPath,
@@ -371,6 +422,7 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
         while(!dsVer.isClosed() && dsVer.getLong("dataset") == dsPk && dsVer.getLong("datasetversion") == verPk){
             HashMap<String, Object> metadata = new HashMap<>();
             List<DatasetLocationModel> locations = new ArrayList<>();
+            // Update
             builder.pk(verPk);
             builder.parentPk(dsPk);
             builder.versionId(dsVer.getInt("versionid"));
@@ -378,7 +430,7 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
             builder.latest(dsVer.getBoolean("isLatest"));
             while(!dsVer.isClosed() && dsVer.getLong("dataset") == dsPk && dsVer.getLong("datasetversion") == verPk){
                 // Process all metadata entries first, 1 or more rows per version
-                processMetadata(dsVer, metadata);
+                SqlBaseDAO.processMetadata(dsVer, metadata);
                 if(!dsVer.next()){
                     dsVer.close();
                 }
@@ -388,7 +440,7 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
             while(dsLoc != null && !dsLoc.isClosed() && dsLoc.getLong("datasetversion") == verPk){
                 // Assume one location per row. Row could be null (LEFT OUTER JOIN)
                 if(dsLoc.getString("datasetsite") != null){
-                    processLocation(dsLoc, builder.pk, locations);
+                    SqlBaseDAO.processLocation(dsLoc, builder.pk, locations);
                 }
                 if(!dsLoc.next()){
                     dsLoc.close();

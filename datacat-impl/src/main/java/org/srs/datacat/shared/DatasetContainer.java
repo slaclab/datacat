@@ -38,6 +38,7 @@ public abstract class DatasetContainer extends DatacatObject
         this.description = builder.description;
     }
     
+    @Patchable(column="Description")
     @Override
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getDescription() { return description; }
