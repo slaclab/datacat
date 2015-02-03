@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
 import java.util.ArrayList;
@@ -45,6 +44,8 @@ import org.srs.datacat.rest.RestException;
 import org.srs.datacat.model.RecordType;
 import org.srs.datacat.model.container.ContainerStat;
 import org.srs.datacat.model.container.DatasetContainerBuilder;
+import org.srs.datacat.rest.PATCH;
+import org.srs.datacat.shared.metadata.MetadataEntry;
 
 /**
  *
@@ -100,7 +101,7 @@ public class ContainerResource extends BaseResource {
         DcPath containerPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
         
         try {
-            if(!Files.readAttributes(containerPath, DcFile.class).isDirectory()){
+            if(!getProvider().getFile(containerPath).isDirectory()){
                 throw new NotDirectoryException(containerPath.toString());
             }
         } catch (NoSuchFileException ex){
@@ -121,7 +122,7 @@ public class ContainerResource extends BaseResource {
             return childrenView(containerPath, rv, offset, max, statType);
         }
         
-        return objectView(containerPath, rv, statType);
+        return objectView(containerPath, statType);
     }
     
     @POST
@@ -194,6 +195,24 @@ public class ContainerResource extends BaseResource {
         
     }
     
+    @PATCH
+    @Path(idRegex)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
+    public Response patchDataset(DatasetContainer containerReq) throws IOException{
+        DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
+        try {
+            getProvider().patchContainer(targetPath, containerReq);
+            return objectView(targetPath, null);
+        } catch (NoSuchFileException ex) {
+            throw new RestException(ex ,404, "Dataset doesn't exist", ex.getMessage());
+        } catch (IllegalArgumentException ex){
+            throw new RestException(ex, 400, "Unable to validate request view", ex.getMessage());
+        } catch (IOException ex){
+            throw new RestException(ex, 500);
+        }
+    }
+    
     @DELETE
     @Path(idRegex)
     public Response deleteContainer() throws IOException{
@@ -215,16 +234,8 @@ public class ContainerResource extends BaseResource {
         }
     }
     
-    /*@DELETE
-    @Path(idRegex + ";metadata")
-    public Response deleteMetadata(@PathParam("containerType") String contType, 
-            @PathParam("id") String path) throws IOException{
-        System.out.println("try to delete metadata");
-        return null;
-    }*/
-    
-    public Response objectView(DcPath containerPath, RequestView rv, Class<? extends ContainerStat> statType) throws IOException{
-        DcFile file = Files.readAttributes(containerPath, DcFile.class);
+    public Response objectView(DcPath containerPath, Class<? extends ContainerStat> statType) throws IOException{
+        DcFile file = getProvider().getFile(containerPath);
         return Response
                 .ok(file.getAttributeView(ContainerViewProvider.class)
                 .withView(statType)).build();

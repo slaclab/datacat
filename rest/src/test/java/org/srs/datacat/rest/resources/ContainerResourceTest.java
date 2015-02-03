@@ -276,5 +276,62 @@ public class ContainerResourceTest extends JerseyTest {
                     .delete();
         TestCase.assertEquals(409, resp.getStatus());
     }
+    
+    @Test
+    public void testPatchJson() throws IOException{
+        DatasetsResourceTest.generateFoldersAndDatasetsAndVersions(this, 2, 2);
+        Response resp = target("/folders.txt/testpath/folder00001")
+                    .request( MediaType.APPLICATION_JSON )
+                    .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
+                    .header("authentication", DbHarness.TEST_USER)
+                    .method("PATCH", 
+                            Entity.entity("{\"_type\":\"folder\", \"description\":\"A folder00001\", \"metadata\":[{\"mdKey\":\"mdValue\"}]}",
+                                    MediaType.APPLICATION_JSON));
+        TestCase.assertEquals(200, resp.getStatus());        
+    }
+    
+    @Test
+    public void testDeleteMetadata() throws IOException{
+        DatasetsResourceTest.generateFoldersAndDatasetsAndVersions(this, 2, 2);
+        Response resp = target("/folders.txt/testpath/folder00001")
+                    .request( MediaType.APPLICATION_JSON )
+                    .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
+                    .header("authentication", DbHarness.TEST_USER)
+                    .method("PATCH", 
+                            Entity.entity("{\"_type\":\"folder\", \"description\":\"A folder00001\", \"metadata\":[{\"mdKey\":\"mdValue\"}]}",
+                                    MediaType.APPLICATION_JSON));
+
+        TestCase.assertEquals(200, resp.getStatus());
+        TestCase.assertTrue(resp.readEntity(String.class).contains("mdKey"));
+        
+        resp = target("/folders.json/testpath/folder00001")
+                .request( MediaType.APPLICATION_JSON )
+                .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
+                .header("authentication", DbHarness.TEST_USER)
+                .get();
+
+        TestCase.assertEquals(200, resp.getStatus());
+        TestCase.assertTrue(resp.readEntity(String.class).contains("mdKey"));
+        
+        resp = target("/folders.txt/testpath/folder00001")
+                    .request( MediaType.APPLICATION_JSON )
+                    .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
+                    .header("authentication", DbHarness.TEST_USER)
+                    .method("PATCH",
+                        Entity.entity("{\"_type\":\"folder\", \"description\":\"A folder00001\", \"metadata\":[{\"mdKey\":null}]}",
+                                MediaType.APPLICATION_JSON));
+        
+        TestCase.assertEquals(200, resp.getStatus());
+        TestCase.assertFalse(resp.readEntity(String.class).contains("mdKey"));
+        
+        resp = target("/folders.json/testpath/folder00001")
+                .request( MediaType.APPLICATION_JSON )
+                .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
+                .header("authentication", DbHarness.TEST_USER)
+                .get();
+
+        TestCase.assertEquals(200, resp.getStatus());        
+        TestCase.assertFalse(resp.readEntity(String.class).contains("mdKey"));
+    }
 
 }
