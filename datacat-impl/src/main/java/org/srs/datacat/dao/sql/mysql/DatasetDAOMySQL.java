@@ -118,8 +118,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         }
     }
     
-    @Override
-    public DatasetVersion createOrMergeDatasetVersion(DatacatRecord dsRecord, DatasetVersionModel request, 
+    protected DatasetVersion createOrMergeDatasetVersion(DatacatRecord dsRecord, DatasetVersionModel request, 
             Optional<DatasetVersionModel> curVersionOpt, boolean mergeVersion) throws IOException, FileSystemException{
         try {
             int newId = request.getVersionId();
@@ -144,8 +143,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         }
     }
     
-    @Override
-    public DatasetLocation createDatasetLocation(DatacatRecord versionRecord, DatasetLocationModel newLoc, 
+    protected DatasetLocation createDatasetLocation(DatacatRecord versionRecord, DatasetLocationModel newLoc, 
             boolean skipCheck) throws IOException, FileSystemException{
         try {
             if(!skipCheck){
@@ -157,8 +155,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         }
     }
     
-    @Override
-    public DatasetVersion getCurrentVersion(DatacatRecord dsRecord) throws IOException {
+    protected DatasetVersion getCurrentVersion(DatacatRecord dsRecord) throws IOException {
         try {
             for(DatasetVersion v: getDatasetVersions(dsRecord)){
                 if(v.isLatest()){

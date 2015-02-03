@@ -1,5 +1,6 @@
 package org.srs.datacat.dao.sql.mysql;
 
+import com.google.common.base.Optional;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.sql.Connection;
@@ -222,15 +223,10 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
     }
 
     @Override
-    public DirectoryStream<DatacatNode> getSubdirectoryStream(DatacatRecord parent) throws IOException{
-        return getChildrenStream(parent, null);
-    }
-
-    @Override
     public DirectoryStream<DatacatNode> getChildrenStream(DatacatRecord parent,
-            DatasetView viewPrefetch) throws IOException{
+            Optional<DatasetView> viewPrefetch) throws IOException{
         try {
-            return getChildrenStreamInternal(parent.getPk(), parent.getPath(), viewPrefetch);
+            return getChildrenStreamInternal(parent.getPk(), parent.getPath(), viewPrefetch.orNull());
         } catch(SQLException ex) {
             throw new IOException(ex);
         }

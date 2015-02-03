@@ -1,5 +1,6 @@
 package org.srs.datacat.dao.sql;
 
+import com.google.common.base.Optional;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.DirectoryNotEmptyException;
@@ -266,7 +267,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         }
         SqlContainerDAO dao = new SqlContainerDAO(getConnection());
         // Verify directory is empty
-        try(DirectoryStream ds = dao.getChildrenStream(record, DatasetView.EMPTY)) {
+        try(DirectoryStream ds = dao.getChildrenStream(record, Optional.of(DatasetView.EMPTY))) {
             if(ds.iterator().hasNext()){
                 AfsException.DIRECTORY_NOT_EMPTY.throwError(record.getPath(), "Container not empty");
             }
@@ -280,28 +281,6 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         }
         SqlDatasetDAO dao = new SqlDatasetDAO(getConnection());
         dao.deleteDataset(record);
-    }
-
-    @Override
-    public void addMetadata(DatacatRecord record, Map<String, Object> metaData) throws IOException{
-        try {
-            switch(record.getType()){
-                case DATASETVERSION:
-                    addDatasetVersionMetadata(record.getPk(), metaData);
-                    break;
-                case GROUP:
-                    addGroupMetadata(record.getPk(), metaData);
-                    break;
-                case FOLDER:
-                    addFolderMetadata(record.getPk(), metaData);
-                    break;
-                default:
-                    String msg = "Unable to add metadata to object type: " + record.getType();
-                    throw new IOException(msg);
-            }
-        } catch(SQLException ex) {
-            throw new IOException("Unable to add metadata to object", ex);
-        }
     }
     
     @Override

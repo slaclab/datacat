@@ -151,11 +151,8 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         // !IMPORTANT!: This object is closed when the stream is closed
         final ContainerDAO dao = daoFactory.newContainerDAO();
         DirectoryStream<DatacatNode> stream;
-        if(viewPrefetch != null){
-            stream = dao.getChildrenStream(dirFile.asRecord(), viewPrefetch);
-        } else {
-            stream = dao.getSubdirectoryStream(dirFile.asRecord());
-        }
+        Optional<DatasetView> view = Optional.fromNullable(viewPrefetch);
+        stream = dao.getChildrenStream(dirFile.asRecord(), view);
 
         final Iterator<DatacatNode> iter = stream.iterator();
         final AtomicInteger dsCount = new AtomicInteger();
@@ -333,27 +330,6 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         AfsException.NO_SUCH_FILE.throwError(dcPath, "Unable to resolve file");
         return null; // Keep compiler happy
-    }
-
-    /**
-     * Add metadata to a DatacatRecord at a given path.
-     *
-     * @param path
-     * @param record
-     * @param metadata
-     * @return
-     * @throws IOException
-     */
-    public DcFile addMetadata(Path path, DatacatRecord record, Map<String, Object> metadata) throws IOException{
-        DcPath dcPath = checkPath(path);
-        DcFile f = getFile(dcPath);
-        checkPermission(dcPath.getUserName(), f, DcPermissions.WRITE);
-        try(BaseDAO dao = daoFactory.newBaseDAO()) {
-            dao.addMetadata(record, metadata);
-            dao.commit();
-        }
-        getCache().removeFile(dcPath);
-        return getFile(dcPath);
     }
     
     /**

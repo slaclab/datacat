@@ -44,16 +44,7 @@ public interface BaseDAO extends AutoCloseable {
      * @throws NoSuchFileException 
      */
     DatacatNode getObjectInParent(DatacatRecord parent, String name) throws IOException, NoSuchFileException;
-    
-    /**
-     * Add metadata to an existing record.
-     * 
-     * @param record A Folder, Group, or DatasetVersion
-     * @param metaData Metadata to be appended
-     * @throws IOException 
-     */
-    void addMetadata(DatacatRecord record, Map<String, Object> metaData) throws IOException;
-    
+        
     /**
      * Merge metadata of an existing record.
      * 
@@ -79,5 +70,5 @@ public interface BaseDAO extends AutoCloseable {
      * @throws IOException 
      */
     void delete(DatacatRecord record) throws IOException;
-    
+
 }

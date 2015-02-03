@@ -151,7 +151,7 @@ public class DatasetSqlDAOTest {
         md.put("doubleObject", 1234.4321);
         md.put("tsObject", new java.sql.Timestamp(1234L));
         System.out.println(newVer);
-        dao.addMetadata(newVer, md);
+        dao.mergeMetadata(newVer, md);
 
         md.put( "fakeMetadata", "fakeString");
         md.put( "fakeMetadataNumber", 24);
