@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -422,6 +423,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
     private void mergeDatacatObjectMetadata(long objectPK, Map<String, Object> metaData, String tablePrefix,
             String column) throws SQLException{
         Map<String, Object> insertMetaData = new HashMap<>();
+        Set<String> deleteMetadata = new HashSet<>();
         if(metaData == null){
             return;
         }
@@ -446,6 +448,10 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
                 Map.Entry e = (Map.Entry) i.next();
                 String metaName = (String) e.getKey();
                 Object metaValue = e.getValue();
+                if(metaValue == null){
+                    deleteMetadata.add(metaName);
+                    continue;
+                }
 
                 // Determine MetaData Object type and insert it into the appropriate table:
                 if(metaValue instanceof Timestamp){
@@ -478,6 +484,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             }
         }
         addDatacatObjectMetadata(objectPK, insertMetaData, tablePrefix, column);
+        deleteDatacatObjectMetadata(objectPK, deleteMetadata, tablePrefix, column);
     }
     
     private void deleteDatacatObjectMetadata(long objectPK, Set<String> metaDataKeys, String tablePrefix,
@@ -485,7 +492,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         if(metaDataKeys == null){
             return;
         }
-        final String metaSql = "DELETE FROM %sMeta%s WHERE MetaName= ? and DatasetVersion = ?";
+        final String metaSql = "DELETE FROM %sMeta%s WHERE MetaName= ? and %s = ?";
         String metaStringSql = String.format(metaSql, tablePrefix, "String", column);
         String metaNumberSql = String.format(metaSql, tablePrefix, "Number", column);
         String metaTimestampSql = String.format(metaSql, tablePrefix, "Timestamp", column);
