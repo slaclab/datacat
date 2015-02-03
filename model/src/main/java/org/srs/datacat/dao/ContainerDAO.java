@@ -7,6 +7,7 @@ import java.nio.file.DirectoryStream;
 import org.srs.datacat.model.container.ContainerStat;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetView;
 
 /**
@@ -20,4 +21,6 @@ public interface ContainerDAO extends BaseDAO {
     
     <V extends ContainerStat> V getStat(DatacatRecord container, Class<V> statType) throws IOException;
 
+    void patchContainer(DatacatNode container, DatasetContainer request) throws IOException;
+    
 }
