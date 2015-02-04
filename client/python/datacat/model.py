@@ -1,6 +1,7 @@
 
 from collections import OrderedDict, MutableMapping
 import json
+from datetime import datetime
 
 class DatacatRecord(object):
     def __init__(self, pk=None, path=None, **kwargs):
@@ -135,10 +136,15 @@ def _default_serializer(obj):
                    ret[k] = v
             return ret
         if isinstance(obj, Metadata):
-            type_mapping = {int:"integer", long:"integer", float:"decimal", unicode:"string", str:"string"}
+            type_mapping = {int:"integer", long:"integer", float:"decimal", unicode:"string", str:"string",
+                            datetime:"timestamp"}
             ret = []
             for k,v in obj.dct.items():
-                ret.append(OrderedDict([("key",k), ("value",v), ("type",type_mapping[type(v)])]))
+                typ = type_mapping[type(v)]
+                if type(v) == datetime:
+                    v = _totimestamp(v)
+                ret.append(OrderedDict([("key",k), ("value",v), ("type",typ)]))
+            print ret
             return ret
         iterable = iter(obj)
     except TypeError as e:
@@ -146,6 +152,13 @@ def _default_serializer(obj):
     else:
         return list(iterable)
     return json.JSONEncoder.default(obj)
+
+
+def _totimestamp(ts):
+    return ts.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+
+def _timestamp(ts):
+    return datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S.%fZ')
 
 def _default_hook(raw):
     def fix_md(name, d):
@@ -164,10 +177,10 @@ def _default_hook(raw):
         elif _type.startswith("location"):
             return DatasetLocation(**raw)
     # Check for metadata k:v pair
-    if 'type' in raw and raw["type"] in ("integer","decimal","string"):
-        value_mapping = {"integer":long, "decimal":float, "string":unicode}
-        if raw["type"] in value_mapping:
-            fn = value_mapping[raw["type"]]
+    if 'type' in raw and raw["type"].lower() in ("integer","decimal","string","timestamp"):
+        value_mapping = {"integer":long, "decimal":float, "string":unicode, "timestamp":_timestamp}
+        if raw["type"].lower() in value_mapping:
+            fn = value_mapping[raw["type"].lower()]
             return raw["key"], fn(raw["value"])
-        raise TypeError("No Mapping for type %s" %raw["type"])
+        raise TypeError("No Mapping for type %s" %raw["type"].lower())
     raise TypeError("No Default Type Information")

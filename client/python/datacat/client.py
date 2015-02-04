@@ -1,3 +1,5 @@
+
+import os
 import requests
 import urllib
 from config import ENDPOINTS, DATATYPES
@@ -44,7 +46,71 @@ class Client(object):
     def path(self, path, versionId=None, site=None, accept="json", **kwargs):
         endpoint = "path"
         return self._req("get", self._target(endpoint, path, versionId, site, accept), **kwargs)
-    
+
+    def exists(self, path, versionId=None, site=None, **kwargs):
+        endpoint = "path"
+        try:
+            resp = self._req("get", self._target(endpoint, path, versionId, site), accept="json", **kwargs)
+            return True
+        except DcException as e:
+            if e.raw.status_code > 404 or e.raw.status_code == 400:
+                raise e
+        return False
+
+    def mkfolder(self, path, parents=False, metadata=None, folderExtras=None, **kwargs):
+        """
+        Make a new Folder
+        :param path: Container Target path
+        :param parents: If true, will create intermediate Folders as required.
+        :param metadata: Metadata to add to when creating folder
+        :return: A :class`requests.Response` object. A user can use Response.content to get the content.
+        The object will be a Folder
+        """
+        return self.mkdir(path, type="folder", parents=parents, metadata=metadata, extras=folderExtras, **kwargs)
+
+    def mkgroup(self, path, parents=False, metadata=None, groupExtras=None, **kwargs):
+        """
+        Make a new Folder
+        :param path: Container Target path
+        :param parents: If true, will create intermediate Folders as required.
+        :param metadata: Metadata to add to when creating folder
+        :return: A :class`requests.Response` object. A user can use Response.content to get the content.
+        The object will be a Folder
+        """
+        return self.mkdir(path, type="group", parents=parents, metadata=metadata, extras=groupExtras, **kwargs)
+
+    def mkdir(self, path, type="folder", parents=False, metadata=None, extras=None, **kwargs):
+        """
+        Make a new Container
+        :param path: Container Target path
+        :param type: Container type. Defaults to folder.
+        :param parents: If true, will create intermediate Folders as required.
+        :param metadata: Metadata to add to when creating folder
+        :return: A :class`requests.Response` object. A user can use Response.content to get the content.
+        The object will be a Folder
+        """
+        if type.lower() == "folder":
+            endpoint = "folders"
+            container = Folder(path=path, name=path.split("/")[-1], metadata=metadata)
+        elif type.lower() == "group":
+            endpoint = "groups"
+            container = Group(path=path, name=path.split("/")[-1], metadata=metadata)
+        headers = kwargs.get("headers", {})
+        headers["content-type"] = "application/json"
+        kwargs["headers"] = headers
+        if parents:
+            parentpath = os.path.dirname(path)
+            parts = []
+            while not self.exists(parentpath):
+                parts.append(os.path.split(parentpath)[1])
+                parentpath = os.path.dirname(path)
+            if len(parts):
+                for part in parts:
+                    parentpath = os.path.join(parentpath, parts.pop())
+                    self.mkdir(parentpath)
+        return self._req("post",self._target(endpoint, path), data=pack(container), **kwargs)
+
+
     def search(self, target, versionId=None, site=None, query=None, sort=None, show=None, offset=None, max_num=None,
                accept="json", **kwargs):
         """Search a target. A target is a Container of some sort. It may also be specified as a glob, as in:
@@ -127,6 +193,31 @@ class Client(object):
         req = dataset if type(dataset) == Dataset else Dataset(**dataset)
         return self._req("patch",self._target(endpoint, path, versionId, site),
                          data=pack(req), **kwargs)
+
+    def patch_container(self, path, container, type="folder", **kwargs):
+        """
+        Patch a container.
+        :param path: Path of the dataset to patch.
+        :param type: Container type. Defaults to folder.
+        :param container: A dict object or a dataset.model.Group/Folder object representing the changes to be applied to the
+        container.
+        :param kwargs:
+        :return: A representation of the patched dataset
+        """
+        if type.lower() == "folder":
+            endpoint = "folders"
+        elif type.lower() == "group":
+            endpoint = "groups"
+        headers = kwargs.get("headers", {})
+        headers["content-type"] = "application/json"
+        kwargs["headers"] = headers
+        if isinstance(container, Container):
+            req = container
+        elif type == "group":
+            req = Group(**container)
+        elif type == "folder":
+            req = Folder(**container)
+        return self._req("patch",self._target(endpoint, path), data=pack(req), **kwargs)
 
     def delete_dataset(self, path, **kwargs):
         endpoint = "datasets"
