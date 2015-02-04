@@ -10,7 +10,7 @@
     
     <groupId>srs</groupId>
     <artifactId>org-srs-webapps-datacat</artifactId>
-    <version>0.5-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <name>SRS Webapps for DataCatalog</name>
@@ -70,6 +70,12 @@
         </dependency>
         <dependency>
             <groupId>srs</groupId>
+            <artifactId>org-srs-datacat-rest</artifactId>
+            <version>0.2-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>srs</groupId>
             <artifactId>org-srs-datacat-client</artifactId>
             <version>0.2-SNAPSHOT</version>
             <type>jar</type>
@@ -83,11 +89,11 @@
             <!--<plugin>
                 <groupId>org.apache.tomcat.maven</groupId>
                 <artifactId>tomcat7-maven-plugin</artifactId>
-                <version>2.0</version>
+                <version>2.2</version>
                 <configuration>
-                    <url>http://fermilnx-v12.slac.stanford.edu:8080/manager/text</url>
+                    <url>http://lsst-db2.slac.stanford.edu:8180/manager/text</url>
                     <server>${tomcat.server.managerid}</server>
-                    <path>/webapps-datacat-v1</path>
+                    <path>/datacat-v${project.version}</path>
                     <update>true</update>
                 </configuration>
             </plugin>-->

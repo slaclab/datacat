@@ -4,6 +4,7 @@
         <param-name>restResourceBaseURL</param-name>
         <param-value>/rest-datacat-v1/r</param-value>
     </context-param>
+    <!--
     <filter>
         <filter-name>LoginFilter</filter-name>
         <filter-class>org.srs.web.base.filters.login.LoginFilter</filter-class>
@@ -20,7 +21,7 @@
         <filter-name>LoginFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-    <!--
+    
     <filter>
         <filter-name>GroupManagerFilter</filter-name>
         <filter-class>org.srs.groupmanager.filter.GroupCheckerFilter</filter-class>
@@ -33,7 +34,7 @@
         <filter-name>GroupManagerFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-    -->
+    
     <filter>
         <filter-name>ModeSwitcherFilter</filter-name>
         <filter-class>org.srs.web.base.filters.modeswitcher.ModeSwitcherFilter</filter-class>
@@ -50,6 +51,7 @@
         <filter-name>ModeSwitcherFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+    -->
     <!-- MultiPart Filter -->
     <filter>
         <filter-name>MultipartFilter</filter-name>
@@ -69,6 +71,42 @@
         <!-- using base of host/rest/datacat -->
         <url-pattern>/browser/*</url-pattern>
     </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>Jersey REST Service</servlet-name>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+        <init-param>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>org.srs.datacat.rest.App</param-value>
+        </init-param>
+        <init-param>
+            <param-name>jersey.config.server.provider.packages</param-name>
+            <param-value>org.srs.datacat.rest;org.srs.datacat.rest.resources</param-value>
+        </init-param>
+        
+        <init-param>
+            <param-name>jersey.config.server.response.setStatusOverSendError</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        
+        <init-param>
+            <param-name>jersey.config.server.tracing.type</param-name>
+            <param-value>ALL</param-value>
+        </init-param>
+        <init-param>
+            <param-name>jersey.config.server.tracing.threshold</param-name>
+            <param-value>VERBOSE</param-value>
+        </init-param>
+        
+        
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Jersey REST Service</servlet-name>
+        <!-- using base of host/rest/datacat -->
+        <url-pattern>/r/*</url-pattern>
+    </servlet-mapping>
+    
     <filter>
         <filter-name>sitemesh</filter-name>
         <filter-class>com.opensymphony.module.sitemesh.filter.PageFilter</filter-class>
