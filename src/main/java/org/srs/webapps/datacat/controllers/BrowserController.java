@@ -37,7 +37,11 @@ public class BrowserController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException{
-        Client client = new Client(request.getRequestURL().append("/r").toString(), request);
+        
+        String localUrl = String.format("%s://%s:%s%s/r",
+                request.getScheme(), request.getServerName(), request.getServerPort(), 
+                request.getContextPath());
+        Client client = new Client(localUrl, request);
         HashMap<String, List<String>> requestQueryParams = new HashMap<>();
         Map<String, String[]> params = request.getParameterMap();
         for(Map.Entry<String, String[]> e: params.entrySet()){
