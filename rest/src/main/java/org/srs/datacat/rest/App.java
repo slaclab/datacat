@@ -27,15 +27,13 @@ import org.glassfish.jersey.server.spi.Container;
 import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
 import org.srs.datacat.dao.DAOFactory;
 import org.srs.datacat.dao.sql.mysql.DAOFactoryMySQL;
-import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.ModelProvider;
-import org.srs.datacat.model.container.ContainerStat;
 import org.srs.datacat.rest.security.GroupManagerLookupService;
-import org.srs.datacat.security.DcUserLookupService;
-import org.srs.datacat.shared.BasicStat;
+import org.srs.datacat.security.DcUserLookupService;    
 import org.srs.datacat.shared.Provider;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacatalog.search.plugins.EXODatacatSearchPlugin;
+import org.srs.datacatalog.search.plugins.LsstFilesSearchPlugin;
 
 /**
  *
@@ -204,7 +202,10 @@ public class App extends ResourceConfig {
         register(new DataSourceBinder(dataSource));
         register(new FsBinder(fsProvider));
         
-        SearchPluginProvider provider = new SearchPluginProvider(new EXODatacatSearchPlugin());
+        SearchPluginProvider provider = new SearchPluginProvider(
+                new EXODatacatSearchPlugin(),
+                new LsstFilesSearchPlugin());
+
         register(provider.binder);
         
         if(classesLoaded)
