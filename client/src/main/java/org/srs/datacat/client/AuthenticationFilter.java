@@ -28,11 +28,14 @@ public class AuthenticationFilter implements ClientRequestFilter {
     public AuthenticationFilter(HttpServletRequest delegatedRequest){
         if(delegatedRequest != null){
             ArrayList<Cookie> jaxrsCookies = new ArrayList<>();
-            for(javax.servlet.http.Cookie c: delegatedRequest.getCookies()){
-                Cookie n = new Cookie(c.getName(), c.getValue(), c.getPath(), c.getDomain(), c.getVersion());
-                jaxrsCookies.add(n);
+            if(delegatedRequest.getCookies() != null){
+                for(javax.servlet.http.Cookie c: delegatedRequest.getCookies()){
+                    Cookie n = new Cookie(c.getName(), c.getValue(), c.getPath(), c.getDomain(), c.getVersion());
+                    jaxrsCookies.add(n);
+                }
+                this.cookies = jaxrsCookies;
             }
-            this.cookies = jaxrsCookies;
+
             Enumeration e = delegatedRequest.getHeaderNames();
             Map<String, Object> jaxrsHeaders = new HashMap<>();
             while(e.hasMoreElements()){
