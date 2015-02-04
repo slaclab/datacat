@@ -4,7 +4,7 @@
 <%@taglib prefix="srs_utils" uri="http://srs.slac.stanford.edu/utils" %>
 <%@taglib prefix="srs_login" uri="http://srs.slac.stanford.edu/login" %>
 
-
+<%--
 <div class="col-xs-12">
     <srs_utils:menuBar/>
     <div class="clearfix"></div>
@@ -17,6 +17,6 @@
         </div>
     </div>
 </div>
-
+--%>
 
 
