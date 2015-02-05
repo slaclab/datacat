@@ -44,7 +44,7 @@ else:
 print("\nSearch Example:")
 
 path_pattern = "/EXO/Data/Raw/*"                     # Search containers under Raw
-query = 'nRun gt 6200 and exo.runQuality =~ "GO%"'   # Filter query
+query = 'nRun gt 6200 and exo.runQuality =~ "GO*"'   # Filter query
 sort = ["nRun-", "nEvents"]                          # Sort nRun desc, nEvents asc (asc default). These are retrieved.
 show = ["nVetoEvents"]                               # Retrieve nVetoEvents as well.
 
@@ -60,7 +60,7 @@ if resp.status_code == 200: # 200 status code ==  success
     """
     datasets = unpack(resp.content)    # unpack the json list to a python list
     for dataset in datasets:
-        print(dataset.resource)
+        print(dataset.locations[0].resource)
 
         """
         When searching, metadata will be returned to Dataset.metadata. When you are just querying a Dataset,
