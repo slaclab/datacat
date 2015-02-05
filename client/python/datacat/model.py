@@ -97,6 +97,12 @@ class Metadata(MutableMapping):
     def __len__(self):
         return self.dct.__len__()
 
+    def __repr__(self):
+        return repr(self.dct)
+
+    def __str__(self):
+        return str(self.dct)
+
 def unpack(content, default_type=None):
     def type_hook(raw):
         try:
