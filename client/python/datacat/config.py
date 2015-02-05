@@ -1,11 +1,11 @@
 ENDPOINTS = "children path search datasets containers groups folders".split(" ")
 DATATYPES = "json xml txt".split(" ")
 
-__version__ = "0.1-ALPHA"
+__version__ = "0.2-ALPHA"
 
 INSTALLATIONS = "srs fermi".split(" ")
 
-DEV_SRS_URL = "http://scalnx-v04.slac.stanford.edu:8180/org-srs-datacat-war-0.2-SNAPSHOT/r"
+DEV_SRS_URL = "http://scalnx-v04.slac.stanford.edu:8180/org-srs-webapps-datacat-0.2-SNAPSHOT/r"
 #PROD_SRS_URL
 #DEV_FERMI_URL
 
