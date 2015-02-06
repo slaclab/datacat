@@ -25,7 +25,6 @@ public abstract class AbstractFs<P extends AbstractPath> extends FileSystem {
         this.provider = provider;
     }
     
-    public abstract Class<P> getPathClass();
     public abstract PathProvider<P> getPathProvider();
 
     @Override

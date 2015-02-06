@@ -51,11 +51,6 @@ public class AbstractPathTest extends TestCase {
         }
 
         @Override
-        public Class getPathClass(){
-            return AbstractPath.class;
-        }
-
-        @Override
         public PathProvider getPathProvider(){
             return new MockPathProvider();
         }
