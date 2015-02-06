@@ -37,11 +37,6 @@ public class DcFileSystem extends AbstractFs<DcPath> {
     }
 
     @Override
-    public Class<DcPath> getPathClass(){
-        return DcPath.class;
-    }
-
-    @Override
     public PathProvider<DcPath> getPathProvider(){
         return pathProvider;
     }

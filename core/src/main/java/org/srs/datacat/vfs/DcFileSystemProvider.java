@@ -332,48 +332,6 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         return null; // Keep compiler happy
     }
     
-    /**
-     * Merge metadata to a DatacatRecord at a given path.
-     *
-     * @param path
-     * @param record
-     * @param metadata
-     * @return
-     * @throws IOException
-     */
-    public DcFile mergeMetadata(Path path, DatacatRecord record, Map<String, Object> metadata) throws IOException{
-        DcPath dcPath = checkPath(path);
-        DcFile f = getFile(dcPath);
-        checkPermission(dcPath.getUserName(), f, DcPermissions.WRITE);
-        try(BaseDAO dao = daoFactory.newBaseDAO()) {
-            dao.mergeMetadata(record, metadata);
-            dao.commit();
-        }
-        getCache().removeFile(dcPath);
-        return getFile(dcPath);
-    }
-    
-    /**
-     * Add metadata to a DatacatRecord at a given path.
-     *
-     * @param path
-     * @param record
-     * @param metadata
-     * @return
-     * @throws IOException
-     */
-    public DcFile deleteMetadata(Path path, DatacatRecord record, Set<String> metadata) throws IOException{
-        DcPath dcPath = checkPath(path);
-        DcFile f = getFile(dcPath);
-        checkPermission(dcPath.getUserName(), f, DcPermissions.WRITE);
-        try(BaseDAO dao = daoFactory.newBaseDAO()) {
-            dao.deleteMetadata(record, metadata);
-            dao.commit();
-        }
-        getCache().removeFile(dcPath);
-        return getFile(dcPath);
-    }
-    
     @Override
     public DcPath getPath(URI uri){
         return fileSystem.getPathProvider().getPath(uri);
@@ -421,7 +379,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
     }
 
-    private DcFile buildChild(DcFile parent, DcPath childPath, DatacatNode child) throws IOException{
+    private static DcFile buildChild(DcFile parent, DcPath childPath, DatacatNode child) throws IOException{
         DcAclFileAttributeView aclView;
         OwnerAclAttributes attr = DcPermissions.getOwnerAclAttributes(child.getAcl()).orNull();
         if(parent == null){
@@ -632,9 +590,8 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     }
 
     public void checkPermission(String userName, DcFile file, AclEntryPermission permission) throws IOException{
-        DcFileSystem fs = file.getPath().getFileSystem();
-        DcUser user = fs.getUserPrincipalLookupService().lookupPrincipalByName(userName);
-        Set<DcGroup> usersGroups = fs.getUserPrincipalLookupService().lookupGroupsForUser(user);
+        DcUser user = fileSystem.getUserPrincipalLookupService().lookupPrincipalByName(userName);
+        Set<DcGroup> usersGroups = fileSystem.getUserPrincipalLookupService().lookupGroupsForUser(user);
         DcAclFileAttributeView aclView = file.getAttributeView(DcAclFileAttributeView.class);
 
         if(!permissionsCheck(usersGroups, aclView.getAcl(), permission)){
