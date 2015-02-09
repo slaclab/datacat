@@ -1,6 +1,7 @@
 package org.srs.webapps.datacat.controllers;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.UriBuilder;
 import org.srs.datacat.client.Client;
+import org.srs.datacat.client.Client.DcException;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetModel;
@@ -38,6 +40,17 @@ public class BrowserController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException{
         
+        try {
+            handleRequest(request, response);
+        } catch (DcException ex){
+            request.setAttribute("error", ex);
+            request.getRequestDispatcher( "/browseview/error.jsp" ).forward( request, response );
+        }    
+        request.getRequestDispatcher( "/browseview/browser.jsp" ).forward( request, response );
+    }
+    
+    private void handleRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, MalformedURLException {
         String localUrl = String.format("%s://%s:%s%s/r",
                 request.getScheme(), request.getServerName(), request.getServerPort(), 
                 request.getContextPath());
@@ -104,15 +117,13 @@ public class BrowserController extends HttpServlet {
                 request.setAttribute("containers", 
                         getContainers(client, path, rv, requestQueryParams));
             }
-            
 
             request.setAttribute("parentURL", request.getPathInfo() );
         }
-        request.getRequestDispatcher( "/browseview/browser.jsp" ).forward( request, response );
     }
     
     List<DatasetModel> getDatasets(Client c, String path, RequestView requestView, 
-            HashMap<String, List<String>> queryParams, int offset, int max) throws IOException{
+            HashMap<String, List<String>> queryParams, int offset, int max) {
         String filter =  queryParams.containsKey("filter") ? queryParams.get("filter").get(0) :"";
         DatasetView dsView = requestView.getDatasetView(DatasetView.MASTER);
         List<DatasetModel> retList = c.searchForDatasets(path, Integer.toString(dsView.getVersionId()), 
@@ -122,7 +133,7 @@ public class BrowserController extends HttpServlet {
     }
     
     List<DatacatNode> getContainers(Client c, String path, RequestView requestView, 
-            HashMap<String, List<String>> queryParams) throws IOException{
+            HashMap<String, List<String>> queryParams) {
         int max = queryParams.containsKey("cmax") ? Integer.valueOf( queryParams.get("cmax").get(0)) :100000;
         int offset = queryParams.containsKey("coffset") ? Integer.valueOf( queryParams.get("coffset").get(0)) :0;
     
