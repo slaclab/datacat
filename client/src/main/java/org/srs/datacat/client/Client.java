@@ -17,6 +17,9 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import org.glassfish.jersey.CommonProperties;
@@ -24,6 +27,7 @@ import org.srs.datacat.client.resources.Path;
 import org.srs.datacat.client.resources.Search;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.rest.ErrorResponse;
 import org.srs.datacat.shared.Provider;
 
 /**
@@ -36,6 +40,42 @@ public class Client {
     private Path pathResource;
     private Search searchResource;
     private AuthenticationFilter filter;
+    
+    /**
+     * Exceptions that occur when making calls into the API.
+     */
+    public static class DcException extends RuntimeException { 
+        
+        private String type;
+        private String code;
+        private int status;
+        
+        public DcException(String resp, int status){
+            super(resp);
+            this.status = status;
+            this.type = "ApplicationError";
+        }
+    
+        public DcException(ErrorResponse err, int status){
+            super(err.getMessage(), new Throwable(err.getCause()));
+            this.type = err.getType();
+            this.code = err.getCode();
+            this.status = status;
+        }
+        
+        public String getType(){
+            return type;
+        }
+
+        public String getCode(){
+            return code;
+        }
+
+        public int getStatus(){
+            return status;
+        }
+    
+    }
     
     public Client() throws MalformedURLException{
         init("http://lsst-db2.slac.stanford.edu:8180/rest-datacat-v1/r", null);
@@ -99,45 +139,67 @@ public class Client {
     }
     
     public List<DatacatNode> getChildren(String path){
-        return pathResource.getChildren(path, Optional.<String>absent(), Optional.<String>absent(),
-                Optional.<Integer>absent(), Optional.<Integer>absent())
-                .readEntity(new GenericType<List<DatacatNode>>(){});
+        Response resp = pathResource.getChildren(path, Optional.<String>absent(), Optional.<String>absent(),
+                Optional.<Integer>absent(), Optional.<Integer>absent());
+        checkResponse(resp);
+        return resp.readEntity(new GenericType<List<DatacatNode>>(){});
     }
     
     public List<DatacatNode> getChildren(String path, String versionId, String site){
-        return pathResource.getChildren(path, Optional.fromNullable(versionId), Optional.fromNullable(site),
-                Optional.<Integer>absent(), Optional.<Integer>absent())
-                .readEntity(new GenericType<List<DatacatNode>>(){});
+        Response resp = pathResource.getChildren(path, Optional.fromNullable(versionId), Optional.fromNullable(site),
+                Optional.<Integer>absent(), Optional.<Integer>absent());
+        checkResponse(resp);
+        return resp.readEntity(new GenericType<List<DatacatNode>>(){});
     }
     
     public List<DatacatNode> getChildren(String path, String versionId, String site, int offset, int max){
-        return pathResource.getChildren(path, Optional.fromNullable(versionId), Optional.fromNullable(site),
-                Optional.of(offset), Optional.of(max))
-                .readEntity(new GenericType<List<DatacatNode>>(){});
+        Response resp = pathResource.getChildren(path, Optional.fromNullable(versionId), Optional.fromNullable(site),
+                Optional.of(offset), Optional.of(max));
+        checkResponse(resp);
+        return resp.readEntity(new GenericType<List<DatacatNode>>(){});
     }
     
     public List<DatacatNode> getContainers(String path){
-        return pathResource.getContainers(path).readEntity(new GenericType<List<DatacatNode>>(){});
+        Response resp = pathResource.getContainers(path);
+        checkResponse(resp);
+        return resp.readEntity(new GenericType<List<DatacatNode>>(){});
     }
     
     public DatacatNode getObject(String path){
-        return pathResource.getObject(path, Optional.fromNullable("current"), Optional.fromNullable("all"))
-                .readEntity(new GenericType<DatacatNode>(){});
+        Response resp = pathResource.getObject(path, Optional.fromNullable("current"), Optional.fromNullable("all"));
+        checkResponse(resp);
+        return resp.readEntity(new GenericType<DatacatNode>(){});
     }
     
     public DatacatNode getContainer(String path, String stat){
-        return pathResource.getContainer(path, Optional.<String>absent(), Optional.<String>absent(),
-                Optional.of(stat))
-                .readEntity(new GenericType<DatacatNode>(){});
+        Response resp = pathResource.getContainer(path, Optional.<String>absent(), Optional.<String>absent(),
+                Optional.of(stat));
+        checkResponse(resp);
+        return resp.readEntity(new GenericType<DatacatNode>(){});
     }
     
     public List<DatasetModel> searchForDatasets(String target, String versionId, String site, 
             String query, String sort, String show, int offset, int max){
-        return this.searchResource.searchForDatasets(target, Optional.fromNullable(versionId), 
+        Response resp = searchResource.searchForDatasets(target, Optional.fromNullable(versionId), 
                 Optional.fromNullable(site), Optional.fromNullable(query), 
                 Optional.fromNullable(sort), Optional.fromNullable(show), 
-                Optional.<Integer>fromNullable(offset), Optional.<Integer>fromNullable(max))
-                .readEntity(new GenericType<List<DatasetModel>>(){});
+                Optional.<Integer>fromNullable(offset), Optional.<Integer>fromNullable(max));
+        checkResponse(resp);
+        return resp.readEntity(new GenericType<List<DatasetModel>>(){});
+    }
+
+    protected void checkResponse(Response resp) throws DcException {
+        if(resp.getStatusInfo().getFamily() == Status.Family.SUCCESSFUL){
+            return;
+        }
+        if(resp.getStatusInfo().getFamily() == Status.Family.CLIENT_ERROR ||
+                resp.getStatusInfo().getFamily() == Status.Family.SERVER_ERROR){
+            if(resp.getMediaType() == MediaType.APPLICATION_JSON_TYPE){
+                ErrorResponse err = resp.readEntity(ErrorResponse.class);
+                throw new DcException(err, resp.getStatus());
+            }
+            throw new DcException(resp.readEntity(String.class), resp.getStatus());
+        }
     }
 
     public static void main(String[] argv) throws MalformedURLException{

@@ -53,6 +53,12 @@
             <version>2.13</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>srs</groupId>
+            <artifactId>org-srs-datacat-rest</artifactId>
+            <version>0.2-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
     
     <build>
