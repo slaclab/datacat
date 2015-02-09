@@ -14,7 +14,7 @@
     <table class="table table-condensed table-hover datatable-datasets">
         <thead>
             <tr>
-                <th class="table-file-info"></th>
+                <!--<th class="table-file-info"></th>-->
                 <th>Name</th>
                 <th>Type</th>
                 <th>Size</th>
@@ -30,10 +30,10 @@
                         </c:if>
                     </c:forEach>
                     <tr>
-                        <td>
+                        <!--<td>
                             <span class="glyphicon glyphicon-info-sign"></span>
                             <span class="glyphicon glyphicon-download-alt"></span>
-                        </td>
+                        </td>-->
                         <td>
                             <a href="${pageContext.request.contextPath}/browser${child.path}" pk="${child.pk}">${child.name}</a>
                         </td>
