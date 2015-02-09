@@ -194,7 +194,7 @@ public class Client {
         }
         if(resp.getStatusInfo().getFamily() == Status.Family.CLIENT_ERROR ||
                 resp.getStatusInfo().getFamily() == Status.Family.SERVER_ERROR){
-            if(resp.getMediaType() == MediaType.APPLICATION_JSON_TYPE){
+            if(MediaType.APPLICATION_JSON_TYPE.isCompatible(resp.getMediaType())){
                 ErrorResponse err = resp.readEntity(ErrorResponse.class);
                 throw new DcException(err, resp.getStatus());
             }
