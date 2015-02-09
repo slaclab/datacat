@@ -2,6 +2,7 @@ package org.srs.datacat.rest;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -64,22 +65,26 @@ public class ErrorResponse {
         public Builder(){
         }
 
-        public Builder setMessage(String message){
+        @JsonSetter
+        public Builder message(String message){
             this.message = message;
             return this;
         }
 
-        public Builder setType(String type){
+        @JsonSetter
+        public Builder type(String type){
             this.type = type;
             return this;
         }
 
-        public Builder setCode(String code){
+        @JsonSetter
+        public Builder code(String code){
             this.code = code;
             return this;
         }
 
-        public Builder setCause(String cause){
+        @JsonSetter
+        public Builder cause(String cause){
             this.cause = cause;
             return this;
         }

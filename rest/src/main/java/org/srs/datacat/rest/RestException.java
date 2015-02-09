@@ -35,10 +35,10 @@ public class RestException extends WebApplicationException {
         
     public static ErrorResponse getError(String message, String cause, String type){
         return new ErrorResponse.Builder()
-                .setMessage(message)
-                .setCause(cause)
-                .setType(type)
-                .setCode(null)
+                .message(message)
+                .cause(cause)
+                .type(type)
+                .code(null)
                 .build();
     }
     
