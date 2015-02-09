@@ -34,6 +34,8 @@ import org.srs.datacat.shared.Provider;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacatalog.search.plugins.EXODatacatSearchPlugin;
 import org.srs.datacatalog.search.plugins.LsstFilesSearchPlugin;
+import org.srs.datacatalog.search.plugins.LsstKVSearchPlugin;
+import org.srs.datacatalog.search.plugins.LsstPositionsSearchPlugin;
 
 /**
  *
@@ -204,7 +206,10 @@ public class App extends ResourceConfig {
         
         SearchPluginProvider provider = new SearchPluginProvider(
                 new EXODatacatSearchPlugin(),
-                new LsstFilesSearchPlugin());
+                new LsstFilesSearchPlugin(),
+                new LsstKVSearchPlugin(),
+                new LsstPositionsSearchPlugin()
+        );
 
         register(provider.binder);
         
