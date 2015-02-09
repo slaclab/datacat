@@ -12,14 +12,14 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyWriter;
-import org.srs.datacat.shared.metadata.MetadataEntry;
+import org.srs.datacat.rest.ErrorResponse.Builder;
 
 /**
  *
  * @author bvan
  */
 @JsonPropertyOrder({"message", "type", "code", "cause"})
-@JsonDeserialize(builder = MetadataEntry.Builder.class)
+@JsonDeserialize(builder = Builder.class)
 public class ErrorResponse {
     private String message;
     private String type;
