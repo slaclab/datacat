@@ -14,7 +14,7 @@ import org.zerorm.core.interfaces.SimpleTable;
 public interface DatacatPlugin {
 
     public String getNamespace();
-    public SimpleTable joinToStatement(Select statement);
+    public SimpleTable joinToStatement(String key, Select statement);
     public boolean containsKey(String key);
     public void reset();
     

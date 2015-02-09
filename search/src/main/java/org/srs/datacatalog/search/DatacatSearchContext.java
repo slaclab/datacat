@@ -193,7 +193,7 @@ public class DatacatSearchContext implements SearchContext {
         if( pluginScope.contains( ident ) ){
             DatacatPlugin plugin = pluginScope.getPlugin( (String) tLeft );
             String fIdent = ((String) tLeft).split( "\\.")[1];
-            SimpleTable t = plugin.joinToStatement( statement );
+            SimpleTable t = plugin.joinToStatement(fIdent, statement);
             Column c = null;
             for(Object o: t.getColumns()){
                 if(o instanceof Column){

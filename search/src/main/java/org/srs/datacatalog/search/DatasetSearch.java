@@ -147,7 +147,7 @@ public class DatasetSearch {
                     // TODO: This should be cleaner
                     DatacatPlugin plugin = sd.pluginScope.getPlugin(s);
                     String fIdent = s.split( "\\.")[1];
-                    for(Object o: plugin.joinToStatement(dsv).getColumns()){
+                    for(Object o: plugin.joinToStatement(fIdent, dsv).getColumns()){
                         if(o instanceof Column){
                             Column cc = (Column) o;
                             if( cc.canonical().equals( fIdent ) ){
@@ -185,19 +185,23 @@ public class DatasetSearch {
                 Column retrieve = null;
                 if(sd.inSelectionScope( s )){
                     retrieve = getColumnFromSelectionScope( dsv, s );
+                    metadataFields.add( s );
                 } else if(sd.inPluginScope( s )){
                     // TODO: This should be cleaner
                     DatacatPlugin plugin = sd.pluginScope.getPlugin(s);
                     String fIdent = s.split( "\\.")[1];
-                    for(Object o: plugin.joinToStatement(dsv).getColumns()){
-                        if(o instanceof Column){
-                            Column cc = (Column) o;
-                            if( cc.canonical().equals( fIdent ) ){
-                                retrieve = cc;
-                                break;
+                    if(!sd.inSelectionScope(fIdent)){
+                        for(Object o: plugin.joinToStatement(fIdent, dsv).getColumns()){
+                            if(o instanceof Column){
+                                Column cc = (Column) o;
+                                if( cc.canonical().equals( fIdent ) ){
+                                    retrieve = cc;
+                                    break;
+                                }
                             }
-                        }
+                        }   
                     }
+                    metadataFields.add(fIdent);
                 } else if(sd.inMetanameScope( s )){
                     String aliased = "\"" + s + "\"";
                     retrieve = getColumnFromAllScope( dsv, aliased);

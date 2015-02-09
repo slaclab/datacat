@@ -51,7 +51,7 @@ public class EXODatacatSearchPlugin implements DatacatPlugin {
         return mappings.containsKey( key );
     }
 
-    public SimpleTable joinToStatement(Select statement){
+    public SimpleTable joinToStatement(String key, Select statement){
         if(joined){
             return eri;
         }
