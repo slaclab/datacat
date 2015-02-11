@@ -201,6 +201,7 @@ public class DatasetSearch {
                             }
                         }   
                     }
+                    retrieve = getColumnFromSelectionScope( dsv, fIdent);
                     metadataFields.add(fIdent);
                 } else if(sd.inMetanameScope( s )){
                     String aliased = "\"" + s + "\"";
