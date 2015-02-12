@@ -117,7 +117,7 @@ class Client(object):
         :param type: Type of container (Group or Folder). This will be removed in a future version.
         :return: A :class`requests.Response` object. A client can inspect the status code.
         """
-        if type.lower() == "container":
+        if type.lower() == "folder":
             endpoint = "folders"
         elif type.lower() == "group":
             endpoint = "groups"
