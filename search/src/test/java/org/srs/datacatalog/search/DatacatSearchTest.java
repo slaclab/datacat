@@ -39,7 +39,7 @@ public class DatacatSearchTest {
     
     static DbHarness harness;
     DatasetSearch datacatSearch;
-    HashMap<String, DatacatPlugin> pluginMap;
+    Class<? extends DatacatPlugin>[] plugins;
     public DataSource ds = null;
     DcPath root;
     DcFileSystemProvider provider;
@@ -60,9 +60,9 @@ public class DatacatSearchTest {
         provider = new DcFileSystemProvider(factory, modelProvider, TestUtils.getLookupService());
         root = provider.getPath(DcUriUtils.toFsUri( "/", DbHarness.TEST_USER, "SRS"));
         
-        pluginMap = new HashMap<>();
-        DatacatPlugin exoPlugin = new EXODatacatSearchPlugin();
-        pluginMap.put( exoPlugin.getNamespace(), exoPlugin);
+        plugins = new Class[]{
+            EXODatacatSearchPlugin.class
+        };
     }
         
     @BeforeClass
@@ -82,7 +82,7 @@ public class DatacatSearchTest {
                         + "and ADO15 in (d'2012-03-23', d'2012-12-23T12:10Z')";
         query = "exo.runId > 5490 and exo.runQuality = 'GOLDEN' and nSegment = 1";
         
-        datacatSearch = new DatasetSearch(conn, pluginMap);
+        datacatSearch = new DatasetSearch(conn, plugins);
         /*datacatSearch.prepareSelection( query );
         
         DatasetVersions select = datacatSearch.getSelectStatement();
@@ -120,7 +120,7 @@ public class DatacatSearchTest {
         DcPath searchPath;
         String pathPattern;
         
-        datacatSearch = new DatasetSearch(conn, pluginMap);
+        datacatSearch = new DatasetSearch(conn, plugins);
         
         searchFolders = true;
         searchGroups = true;

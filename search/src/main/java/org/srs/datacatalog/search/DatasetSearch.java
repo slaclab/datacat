@@ -40,7 +40,7 @@ import org.zerorm.core.primaries.Case;
  */
 public class DatasetSearch {
     
-    private HashMap<String, DatacatPlugin> pluginMap;
+    private Class<? extends DatacatPlugin>[] plugins;
     protected MetanameContext dmc;
     private ArrayList<String> metadataFields = new ArrayList<>();
     private DatasetView datasetView;
@@ -49,8 +49,8 @@ public class DatasetSearch {
     private int offset = 0;
     private int max = Integer.MAX_VALUE;
     
-    public DatasetSearch(Connection conn, HashMap<String, DatacatPlugin> pluginMap) throws SQLException {
-        this.pluginMap = pluginMap;
+    public DatasetSearch(Connection conn, Class<? extends DatacatPlugin>... plugins) throws SQLException {
+        this.plugins = plugins;
         this.dmc = SearchUtils.buildMetaInfoGlobalContext( conn );
         this.conn = conn;
     }
@@ -93,13 +93,8 @@ public class DatasetSearch {
         // Prepare DatasetVersions Selection 
         DatasetVersions dsv = prepareDatasetVersion(datasetView);
         
-        // Reset any plugins
-        for(DatacatPlugin p: pluginMap.values()){
-            p.reset();
-        }
-        
         // Prepare Search Context
-        DatacatSearchContext sd = new DatacatSearchContext(dsv, pluginMap, dmc);
+        DatacatSearchContext sd = new DatacatSearchContext(dsv, plugins, dmc);
         
         // Process AST
         if(ast != null){

@@ -18,16 +18,14 @@ public class SearchPluginProvider {
         }
     }
     protected SearchPluginBinder binder = new SearchPluginBinder();
-    private HashMap<String, DatacatPlugin> pluginMap = new HashMap<>();
+    private Class<? extends DatacatPlugin>[] plugins;
     
-    public SearchPluginProvider(DatacatPlugin... plugins){
-        for(DatacatPlugin plugin : plugins){
-            pluginMap.put(plugin.getNamespace(), plugin);
-        }
+    public SearchPluginProvider(Class<? extends DatacatPlugin>... plugins){
+        this.plugins = plugins;
     }
     
-    public HashMap<String, DatacatPlugin> getPlugins(){
-        return this.pluginMap;
+    public Class<? extends DatacatPlugin>[] getPlugins(){
+        return this.plugins;
     }
 
 }

@@ -205,10 +205,10 @@ public class App extends ResourceConfig {
         register(new FsBinder(fsProvider));
         
         SearchPluginProvider provider = new SearchPluginProvider(
-                new EXODatacatSearchPlugin(),
-                new LsstFilesSearchPlugin(),
-                new LsstKVSearchPlugin(),
-                new LsstPositionsSearchPlugin()
+                EXODatacatSearchPlugin.class,
+                LsstFilesSearchPlugin.class,
+                LsstKVSearchPlugin.class,
+                LsstPositionsSearchPlugin.class
         );
 
         register(provider.binder);

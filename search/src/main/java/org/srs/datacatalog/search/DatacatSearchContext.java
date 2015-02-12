@@ -3,6 +3,7 @@ package org.srs.datacatalog.search;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import org.freehep.commons.lang.AST;
 import org.freehep.commons.lang.bool.sym;
 import org.zerorm.core.Column;
@@ -14,6 +15,7 @@ import org.zerorm.core.interfaces.MaybeHasAlias;
 import org.zerorm.core.interfaces.MaybeHasParams;
 import org.zerorm.core.interfaces.SimpleTable;
 import org.srs.datacatalog.search.plugins.DatacatPlugin;
+import org.srs.datacatalog.search.plugins.DatacatPluginProvider;
 import org.srs.datacatalog.search.tables.MetajoinedStatement;
 
 /**
@@ -22,23 +24,33 @@ import org.srs.datacatalog.search.tables.MetajoinedStatement;
  */
 public class DatacatSearchContext implements SearchContext {
 
-    public static class PluginScope {
+    public static class PluginScope implements DatacatPluginProvider {
         HashMap<String, DatacatPlugin> pluginMap;
 
-        public PluginScope(HashMap<String, DatacatPlugin> pluginMap){
-            this.pluginMap = pluginMap;
+        public PluginScope(Class<? extends DatacatPlugin>[] plugins){
+            this.pluginMap = new HashMap<>();
+            for(Class<? extends DatacatPlugin> p: plugins){
+                try {
+                    DatacatPlugin plugin = p.newInstance();
+                    this.pluginMap.put(plugin.getNamespace(), plugin);
+                } catch(InstantiationException | IllegalAccessException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
         }
-
-        public boolean contains(String ident){
+        
+        @Override
+        public boolean hasPlugin(String ident){
             if(ident.contains( "." )){
                 String[] ns_plugin = ident.split( "\\." );
                 if(pluginMap.containsKey( ns_plugin[0] )){
                     return pluginMap.get( ns_plugin[0] ).containsKey( ns_plugin[1] );
                 }
             }
-            return false;
+            return false;        
         }
         
+        @Override
         public DatacatPlugin getPlugin(String ident){
             if(ident.contains( "." )){
                 String[] ns_plugin = ident.split( "\\." );
@@ -67,10 +79,10 @@ public class DatacatSearchContext implements SearchContext {
     final MetanameContext metanameContext;
     private Expr evaluatedExpr;
     
-    public DatacatSearchContext(MetajoinedStatement dsv, HashMap<String, DatacatPlugin> pluginMap, 
+    public DatacatSearchContext(MetajoinedStatement dsv, Class<? extends DatacatPlugin>[] plugins, 
             MetanameContext context){
         this.dsv = dsv;
-        this.pluginScope = new PluginScope( pluginMap );
+        this.pluginScope = new PluginScope(plugins);
         this.metanameContext = context;
     }
     
@@ -97,7 +109,7 @@ public class DatacatSearchContext implements SearchContext {
 
     @Override
     public boolean inPluginScope(String ident){
-        return pluginScope.contains( ident );
+        return pluginScope.hasPlugin(ident);
     }
 
     @Override
@@ -172,7 +184,7 @@ public class DatacatSearchContext implements SearchContext {
                 return getColumnFromSelectionScope( strVal );
             }
 
-            if(pluginScope.contains( strVal )){
+            if(pluginScope.hasPlugin(strVal)){
                 // Optionally, Join plugin/ foreign table here
             }
         }
@@ -190,7 +202,7 @@ public class DatacatSearchContext implements SearchContext {
             return tOper.apply( (MaybeHasAlias) tLeft,  tRight );
         }
         
-        if( pluginScope.contains( ident ) ){
+        if(pluginScope.hasPlugin(ident)){
             DatacatPlugin plugin = pluginScope.getPlugin( (String) tLeft );
             String fIdent = ((String) tLeft).split( "\\.")[1];
             SimpleTable t = plugin.joinToStatement(fIdent, statement);
