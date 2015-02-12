@@ -186,6 +186,7 @@ def _default_hook(raw):
             return Group(**raw)
         elif _type.startswith("location"):
             return DatasetLocation(**raw)
+        return raw
     # Check for metadata k:v pair
     if 'type' in raw and raw["type"].lower() in ("integer","decimal","string","timestamp"):
         value_mapping = {"integer":long, "decimal":float, "string":unicode, "timestamp":_timestamp}
@@ -193,4 +194,4 @@ def _default_hook(raw):
             fn = value_mapping[raw["type"].lower()]
             return raw["key"], fn(raw["value"])
         raise TypeError("No Mapping for type %s" %raw["type"].lower())
-    raise TypeError("No Default Type Information")
+    raise TypeError("No Default Type Information in " + repr(raw))
