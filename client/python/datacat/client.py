@@ -89,6 +89,7 @@ class Client(object):
         :return: A :class`requests.Response` object. A user can use Response.content to get the content.
         The object will be a Folder
         """
+        parentpath = os.path.dirname(path)
         if type.lower() == "folder":
             endpoint = "folders"
             container = Folder(path=path, name=path.split("/")[-1], metadata=metadata)
@@ -99,7 +100,6 @@ class Client(object):
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
         if parents:
-            parentpath = os.path.dirname(path)
             parts = []
             while not self.exists(parentpath):
                 parts.append(os.path.split(parentpath)[1])
@@ -108,7 +108,7 @@ class Client(object):
                 for part in parts:
                     parentpath = os.path.join(parentpath, parts.pop())
                     self.mkdir(parentpath)
-        return self._req("post",self._target(endpoint, path), data=pack(container), **kwargs)
+        return self._req("post",self._target(endpoint, parentpath), data=pack(container), **kwargs)
 
     def rmdir(self, path, type="folder", **kwargs):
         """
