@@ -110,6 +110,44 @@ class Client(object):
                     self.mkdir(parentpath)
         return self._req("post",self._target(endpoint, path), data=pack(container), **kwargs)
 
+    def rmdir(self, path, type="folder", **kwargs):
+        """
+        Remove a container.
+        :param path: Path of container to remove.
+        :param type: Type of container (Group or Folder). This will be removed in a future version.
+        :return: A :class`requests.Response` object. A client can inspect the status code.
+        """
+        if type.lower() == "container":
+            endpoint = "folders"
+        elif type.lower() == "group":
+            endpoint = "groups"
+        return self._req("delete",self._target(endpoint, path), **kwargs)
+
+    def mkds(self, path, name, dataType, fileFormat, versionId="new", site=None, versionMetadata=None,
+             resource=None, **kwargs):
+        """
+        Make a dataset.
+        :param path: Container Target path
+        :param name: Name of Dataset you wish to create
+        :param dataType: User-Defined Data Type of Dataset. This is often a subtype of a file format.
+        :param fileFormat: The File Format of the Dataset (i.e. root, fits, tar.gz, txt, etc...)
+        :param versionId: Desired versionId. By default, it is set to "new", which will result in a versionId of 0.
+        :param site: Site where the dataset physically resides (i.e. SLAC, IN2P3)
+        :param versionMetadata: Metadata to add to registered version if registering a version.
+        :param resource: The actual file resource path at the given site (i.e. /nfs/farm/g/glast/dataset.dat)
+        :return: A :class`requests.Response` object. A user can use Response.content to get the content.
+        The object will be a Dataset.
+        """
+        return self.create_dataset(path, name, dataType, fileFormat, versionId, site, versionMetadata, resource)
+
+    def rmds(self, path, **kwargs):
+        """
+        Remove a dataset.
+        :param path: Path of dataset to remove
+        :param kwargs:
+        :return: A :class`requests.Response` object. A client can inspect the status code.
+        """
+        return self.delete_dataset(path, **kwargs)
 
     def search(self, target, versionId=None, site=None, query=None, sort=None, show=None, offset=None, max_num=None,
                accept="json", **kwargs):
@@ -124,7 +162,7 @@ class Client(object):
         :param query: The query
         :param sort: Fields and Metadata fields to sort on.
         :param show: Metadata fields to optionally return
-:param offset: Offset at which to start returning objects.
+        :param offset: Offset at which to start returning objects.
         :param max_num: Maximum number of objects to return.
         :param accept: Format of the response object which is returned.
         :return: A :class`requests.Response` object. A user can use Response.content to get the content.

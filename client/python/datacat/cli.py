@@ -66,8 +66,8 @@ def build_argparser():
         parser_children.set_defaults(command=cmd)
 
     def add_mkds(subparsers):
-        cmd = "create_dataset"
-        parser_children = subparsers.add_parser(cmd, help="Help with the children command")
+        cmd = "mkds"
+        parser_children = subparsers.add_parser(cmd, help="Making a dataset")
         parser_children.add_argument('path', help="Dataset path")
         parser_children.add_argument('name', help="Dataset name")
         parser_children.add_argument('dataType', help="Dataset data type")
@@ -77,11 +77,34 @@ def build_argparser():
         parser_children.add_argument('site', help="Location site")
         parser_children.add_argument('resource', help="Location resource")
         parser_children.set_defaults(command=cmd)
-    
+
+    def add_rmds(subparsers):
+        cmd = "rmds"
+        parser_children = subparsers.add_parser(cmd, help="Help with the children command")
+        parser_children.add_argument('path', help="Path of dataset to remove")
+        parser_children.set_defaults(command=cmd)
+
+    def add_mkdir(subparsers):
+        cmd = "mkdir"
+        parser_children = subparsers.add_parser(cmd, help="Help with the children command")
+        parser_children.add_argument('path', help="Container path")
+        parser_children.add_argument('type', help="Container Type (defaults to folder)", choices=("folder","group"))
+        parser_children.set_defaults(command=cmd)
+
+    def add_rmdir(subparsers):
+        cmd = "rmdir"
+        parser_children = subparsers.add_parser(cmd, help="Remove a container (group or foldeR)")
+        parser_children.add_argument('path', help="Path of container to remove")
+        parser_children.add_argument('type', help="Container Type (defaults to folder)", choices=("folder","group"))
+        parser_children.set_defaults(command=cmd)
+
     add_path(subparsers)
     add_children(subparsers)
     add_search(subparsers)
     add_mkds(subparsers)
+    add_rmds(subparsers)
+    add_mkdir(subparsers)
+    add_rmdir(subparsers)
     
     return parser
 
