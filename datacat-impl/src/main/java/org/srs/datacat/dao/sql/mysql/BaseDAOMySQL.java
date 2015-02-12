@@ -1,6 +1,9 @@
 package org.srs.datacat.dao.sql.mysql;
 
+import com.google.common.base.Optional;
 import java.io.IOException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystemException;
 import java.sql.Connection;
 import java.util.concurrent.locks.ReentrantLock;
@@ -8,6 +11,7 @@ import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.Dataset;
+import org.srs.vfs.AbstractFsProvider.AfsException;
 
 /**
  *
@@ -152,6 +156,22 @@ public class BaseDAOMySQL extends org.srs.datacat.dao.sql.SqlBaseDAO {
             + "     FROM VerDatasetMetaTimestamp mt "
             + "  ) md on (md.datasetversion = dsv.datasetversion) ";
         return datasetSqlWithMetadata;
+    }
+    
+    @Override
+    protected void doDeleteDirectory(DatacatRecord record) throws DirectoryNotEmptyException, IOException{
+        if(!record.getType().isContainer()){
+            String msg = "Unable to delete object: Not a Group or Folder" + record.getType();
+            throw new IOException(msg);
+        }
+        ContainerDAOMySQL dao = new ContainerDAOMySQL(getConnection());
+        // Verify directory is empty
+        try(DirectoryStream ds = dao.getChildrenStream(record, Optional.of(DatasetView.EMPTY))) {
+            if(ds.iterator().hasNext()){
+                AfsException.DIRECTORY_NOT_EMPTY.throwError(record.getPath(), "Container not empty");
+            }
+        }
+        dao.deleteContainer(record);
     }
 
 }
