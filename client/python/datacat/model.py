@@ -134,16 +134,16 @@ def _default_serializer(obj):
                         ret[k] = Metadata(v)
                     else:
                         ret[k] = v
+            if isinstance(obj, Group):
+                ret["_type"] = "group"
+            if isinstance(obj, Folder):
+                ret["_type"] = "folder"
             return ret
         if isinstance(obj, DatacatRecord):
             ret = {}
             for k,v in obj.__dict__.items():
                 if v:
                    ret[k] = v
-            if isinstance(obj, Group):
-                ret["_type"] = "group"
-            if isinstance(obj, Folder):
-                ret["_type"] = "folder"
             return ret
         if isinstance(obj, Metadata):
             type_mapping = {int:"integer", long:"integer", float:"decimal", unicode:"string", str:"string",
