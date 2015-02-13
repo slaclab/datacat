@@ -27,7 +27,7 @@ class Crawler:
     RERUN_SECONDS = 5
 
     def __init__(self):
-        self.client = Client("http://lsst-db2:8180/rest-datacat-v1/r")
+        self.client = Client("http://lsst-db2.slac.stanford.edu:8180/rest-datacat-v1/r")
         self.sched = sched.scheduler(time.time, time.sleep)
         self._run()
 
@@ -49,7 +49,7 @@ class Crawler:
         return cksum
 
     def get_metadata(self, path):
-        return None
+        return {"FITS_RADIUS":30}
 
 
     def run(self):
@@ -101,6 +101,9 @@ class Crawler:
             try:
                 patch_resp = self.client.patch_dataset(dataset_path, scan_result,
                                                        versionId=dataset.versionId, site=WATCH_SITE)
+                if patch_resp.status == 200:
+                    patched_ds = unpack(patch_resp.content)
+
             except DcException as error:
                 print(error.content)
                 print("Encountered error while updating dataset")
