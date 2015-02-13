@@ -1,17 +1,22 @@
 ENDPOINTS = "children path search datasets containers groups folders".split(" ")
 DATATYPES = "json xml txt".split(" ")
 
-__version__ = "0.2-ALPHA"
+__version__ = "0.2"
 
 INSTALLATIONS = "srs fermi".split(" ")
 
-DEV_SRS_URL = "http://scalnx-v04.slac.stanford.edu:8180/org-srs-webapps-datacat-0.2-SNAPSHOT/r"
-#PROD_SRS_URL
+DEV_SRS_URL = "http://scalnx-v04.slac.stanford.edu:8180/datacat-v%s-SNAPSHOT/r" %(__version__)
+PROD_SRS_URL = "http://srs.slac.stanford.edu/datacat-v%s/r" %(__version__)
+DEV_LSST_DM_URL = "http://lsst-db2.slac.stanford.edu/datacat-v%s-SNAPSHOT/r" %(__version__)
 #DEV_FERMI_URL
 
 SRS_EXPERIMENTS = "srs exo cdms lsst lsst-desc lsst-camera".split(" ")
+LSST_DM_EXPERIMENT = "lsst-dm"
 
 def CONFIG_URL(experiment, mode="dev"):
     is_srs = experiment.lower() in SRS_EXPERIMENTS
     if mode is "dev" and is_srs:
         return DEV_SRS_URL
+    if experiment == LSST_DM_EXPERIMENT:
+        return DEV_LSST_DM_URL
+    return None
