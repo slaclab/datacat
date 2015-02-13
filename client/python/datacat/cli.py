@@ -119,7 +119,7 @@ def main():
     params = args.__dict__
 
     experiment = "srs" if not hasattr(args, "experiment") else args.experiment
-    mode = None if not hasattr(args, "mode") else args.mode
+    mode = "prod" if not hasattr(args, "mode") else args.mode
     base_url = args.base_url if hasattr(args, 'base_url') and args.base_url is not None else CONFIG_URL(experiment, mode)
     client = Client(base_url)
     client_method = getattr(client, command)
