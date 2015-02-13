@@ -12,8 +12,8 @@ from config import *
 def build_argparser():
     parser = argparse.ArgumentParser(description="Python CLI for Data Catalog RESTful interfaces")
     parser.add_argument('-U', '--base-url', help="Override base URL for client", action="store")
-    parser.add_argument('-D', '--experiment', "--domain", help="Set experiment domain for requests")
-    parser.add_argument('-M', '--mode', help="Set server mode", choices=("dev","prod"))
+    parser.add_argument('-D', '--experiment', "--domain", help="Set experiment domain for requests", default="srs")
+    parser.add_argument('-M', '--mode', help="Set server mode", choices=("dev","prod"), default="prod")
     parser.add_argument('-f', '--format', dest="accept", default="json", help="Default format is JSON. JSON will attempted to be processed further")
     parser.add_argument('-r', '--show-request', action="store_true", dest="show_request",
                         help="Show request URL", default=False)
@@ -118,9 +118,8 @@ def main():
     target = args.__dict__.pop("path")
     params = args.__dict__
 
-    experiment = "srs" if not hasattr(args, "experiment") else args.experiment
-    mode = "prod" if not hasattr(args, "mode") else args.mode
-    base_url = args.base_url if hasattr(args, 'base_url') and args.base_url is not None else CONFIG_URL(experiment, mode)
+    base_url = args.base_url if hasattr(args, 'base_url') and args.base_url is not None \
+        else CONFIG_URL(args.experiment, args.mode)
     client = Client(base_url)
     client_method = getattr(client, command)
 
