@@ -14,6 +14,7 @@ SRS_EXPERIMENTS = "srs exo cdms lsst lsst-desc lsst-camera".split(" ")
 LSST_DM_EXPERIMENT = "lsst-dm"
 
 def CONFIG_URL(experiment, mode="dev"):
+    experiment = experiment or "srs"
     is_srs = experiment.lower() in SRS_EXPERIMENTS
     if mode is "dev" and is_srs:
         return DEV_SRS_URL
