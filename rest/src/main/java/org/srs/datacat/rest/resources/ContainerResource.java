@@ -29,7 +29,7 @@ import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import org.srs.datacat.model.DatacatNode;
-import org.srs.datacat.shared.DatasetContainer;
+import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.shared.RequestView;
 import org.srs.datacat.rest.BaseResource;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
@@ -163,7 +163,7 @@ public class ContainerResource extends BaseResource {
     @POST
     @Path(idRegex)
     @Consumes(MediaType.APPLICATION_JSON)
-    //@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response createContainerJson(DatasetContainer container) throws IOException{
         String sParentPath = requestPath;
         RecordType type = RecordType.FOLDER; // Folder by default
@@ -226,7 +226,7 @@ public class ContainerResource extends BaseResource {
         } catch (DirectoryNotEmptyException ex){
             throw new RestException(ex, 409, "Directory not empty");
         } catch (NoSuchFileException ex){
-             throw new RestException(ex, 404, "Parent file doesn't exit", ex.getMessage());
+             throw new RestException(ex, 404, "Directory doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
         } catch (IOException ex){
