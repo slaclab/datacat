@@ -3,8 +3,10 @@ package org.srs.datacat.client;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -20,6 +22,10 @@ public class AuthenticationFilter implements ClientRequestFilter {
 
     private List<Cookie> cookies;
     private Map<String, Object> headers;
+    
+    static final HashSet<String> ALLOWED_HEADERS = new HashSet<>(Arrays.asList(new String[]{
+        "authenticaiton"
+    }));
     
     public AuthenticationFilter(){
         
@@ -40,6 +46,9 @@ public class AuthenticationFilter implements ClientRequestFilter {
             Map<String, Object> jaxrsHeaders = new HashMap<>();
             while(e.hasMoreElements()){
                 String name = e.nextElement().toString();
+                if(!ALLOWED_HEADERS.contains(name.toLowerCase())){
+                    continue;
+                }
                 Enumeration values = delegatedRequest.getHeaders(name);
                 ArrayList<Object> more = new ArrayList<>();
                 Object first = values.nextElement();
@@ -68,9 +77,7 @@ public class AuthenticationFilter implements ClientRequestFilter {
             }
         }
         if(this.cookies != null){
-            for(Cookie c: cookies){
-                requestContext.getCookies().put(c.getName(), c);
-            }
+            requestContext.getHeaders().add("Cookie", cookies);
         }
     }
 
