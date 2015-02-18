@@ -4,7 +4,7 @@
     <parent>
         <groupId>srs</groupId>
         <artifactId>org-srs-datacat</artifactId>
-        <version>0.3-SNAPSHOT</version>
+        <version>0.2-BETA2</version>
     </parent>
     <artifactId>org-srs-datacat-client</artifactId>
     <packaging>jar</packaging>
@@ -32,13 +32,13 @@
         <dependency>
             <groupId>srs</groupId>
             <artifactId>org-srs-datacat-model</artifactId>
-            <version>0.3-SNAPSHOT</version>
+            <version>0.2-BETA2</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>srs</groupId>
             <artifactId>org-srs-datacat-impl</artifactId>
-            <version>0.3-SNAPSHOT</version>
+            <version>0.2-BETA2</version>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -56,7 +56,7 @@
         <dependency>
             <groupId>srs</groupId>
             <artifactId>org-srs-datacat-rest</artifactId>
-            <version>0.3-SNAPSHOT</version>
+            <version>0.2-BETA2</version>
             <type>jar</type>
         </dependency>
     </dependencies>
