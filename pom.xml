@@ -47,7 +47,7 @@
 
     <modules>
       <module>core</module>
-      <!--<module>client</module>-->
+      <module>client</module>
       <module>rest</module>
       <module>search</module>
       <module>vfs</module>
