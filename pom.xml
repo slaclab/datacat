@@ -10,7 +10,7 @@
     
     <groupId>srs</groupId>
     <artifactId>org-srs-webapps-datacat</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.3-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <name>SRS Webapps for DataCatalog</name>
@@ -65,19 +65,19 @@
         <dependency>
             <groupId>srs</groupId>
             <artifactId>org-srs-datacat-core</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>0.3-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>srs</groupId>
             <artifactId>org-srs-datacat-rest</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>0.3-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>srs</groupId>
             <artifactId>org-srs-datacat-client</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>0.3-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
     </dependencies>
@@ -86,17 +86,17 @@
         <finalName>${project.artifactId}-${project.version}</finalName>
         
         <plugins>
-            <!--<plugin>
+            <plugin>
                 <groupId>org.apache.tomcat.maven</groupId>
                 <artifactId>tomcat7-maven-plugin</artifactId>
                 <version>2.2</version>
                 <configuration>
-                    <url>http://lsst-db2.slac.stanford.edu:8180/manager/text</url>
-                    <server>${tomcat.server.managerid}</server>
+                    <!--<url>http://lsst-db2.slac.stanford.edu:8180/manager/text</url>
+                    <server>${tomcat.server.managerid}</server>-->
                     <path>/datacat-v${project.version}</path>
                     <update>true</update>
                 </configuration>
-            </plugin>-->
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
