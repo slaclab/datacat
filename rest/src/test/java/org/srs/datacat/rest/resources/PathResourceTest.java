@@ -23,7 +23,7 @@ import org.srs.datacat.vfs.TestUtils;
 
 /**
  *
- * @author Brian Van Klaveren<bvan@slac.stanford.edu>
+ * @author bvan
  */
 public class PathResourceTest extends JerseyTest {
     

@@ -9,7 +9,7 @@ import org.srs.vfs.ChildrenView;
 
 /**
  *
- * @author Brian Van Klaveren<bvan@slac.stanford.edu>
+ * @author bvan
  */
 public class SubdirectoryView extends ChildrenView<DcPath> {
 

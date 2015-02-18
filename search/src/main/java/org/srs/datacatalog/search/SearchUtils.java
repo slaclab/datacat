@@ -32,7 +32,7 @@ import org.srs.datacat.shared.DatasetLocation;
 
 /**
  *
- * @author Brian Van Klaveren<bvan@slac.stanford.edu>
+ * @author bvan
  */
 public class SearchUtils {
     

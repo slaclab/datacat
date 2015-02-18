@@ -1,13 +1,12 @@
 
 package org.srs.datacat.rest;
 
-import java.util.HashMap;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.srs.datacatalog.search.plugins.DatacatPlugin;
 
 /**
  *
- * @author Brian Van Klaveren<bvan@slac.stanford.edu>
+ * @author bvan
  */
 public class SearchPluginProvider {
     

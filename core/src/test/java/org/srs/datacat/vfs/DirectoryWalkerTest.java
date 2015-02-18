@@ -22,7 +22,7 @@ import org.srs.vfs.PathUtils;
 
 /**
  *
- * @author Brian Van Klaveren<bvan@slac.stanford.edu>
+ * @author bvan
  */
 public class DirectoryWalkerTest {
     static DbHarness harness;

@@ -23,7 +23,7 @@ import org.srs.vfs.AbstractFsProvider;
 
 /**
  *
- * @author Brian Van Klaveren<bvan@slac.stanford.edu>
+ * @author bvan
  */
 public class DcPermissionsTest {
     
