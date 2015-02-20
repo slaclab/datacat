@@ -5,10 +5,10 @@ gevent.monkey.patch_socket()
 
 from datacat.client import Client
 from datacat.config import CONFIG_URL
+from datacat.model import pack
 
 from gevent.queue import Queue
 import requests
-from datacat.model import unpack, pack
 import json
 from jinja2 import Template
 
