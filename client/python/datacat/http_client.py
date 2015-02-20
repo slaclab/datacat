@@ -15,18 +15,32 @@ class HttpClient(object):
 
     def __init__(self, base_url, *args, **kwargs):
         self.base_url = base_url
+
+    def path(self, path, versionId=None, site=None, accept="json", **kwargs):
+        """
+        Retrieve a datacat object.
+        :param path: Path of the object to retrieve.
+        :param versionId: Version ID input for Dataset View.
+        :param site: Site input for Dataset View.
+        :return: A :class`requests.Response` object. The content is a representation of the newly created container.
+        """
+        endpoint = "path"
+        return self._req("get", self._target(endpoint, path, versionId, site, accept), **kwargs)
     
     def children(self, path, versionId=None, site=None, offset=None, max_num=None, accept="json", **kwargs):
+        """
+        Retrieve the children of a container.
+        :param path: Path of the container to retrieve objects from
+        :param versionId: Version ID input for the Dataset View on the individual datasets.
+        :param site: Site input for the Dataset View on the individual datasets.
+        :return: A :class`requests.Response` object. The content is a representation of the newly created container.
+        """
         endpoint = "path"
         param_list = "offset:offset max_num:max".split(" ")
         param_map = dict([i.split(":") for i in param_list])
         params = {param_map[k]:v for k,v in locals().items() if k in param_map and v is not None}
         target = self._target(endpoint, path, versionId, site, accept) + ";children"
         return self._req("get", target, params, **kwargs)
-    
-    def path(self, path, versionId=None, site=None, accept="json", **kwargs):
-        endpoint = "path"
-        return self._req("get", self._target(endpoint, path, versionId, site, accept), **kwargs)
 
     def mkdir(self, path, type="folder", payload=None, **kwargs):
         """
@@ -35,8 +49,7 @@ class HttpClient(object):
         :param type: Container type. Defaults to folder.
         :param parents: If true, will create intermediate Folders as required.
         :param metadata: Metadata to add to when creating folder
-        :return: A :class`requests.Response` object. A user can use Response.content to get the content.
-        The object will be a Folder
+        :return: A :class`requests.Response` object. The content is a representation of the newly created container.
         """
         parentpath = os.path.dirname(path)
         if type.lower() == "folder":
@@ -56,8 +69,7 @@ class HttpClient(object):
         :param site: Site where the dataset physically resides (i.e. SLAC, IN2P3)
         :param versionMetadata: Metadata to add to registered version if registering a version.
         :param resource: The actual file resource path at the given site (i.e. /nfs/farm/g/glast/dataset.dat)
-        :return: A :class`requests.Response` object. A user can use Response.content to get the content.
-        The object will be a Dataset.
+        :return: A :class`requests.Response` object. The content is a representation of the newly created Dataset.
         """
         endpoint = "datasets"
         return self._req("post",self._target(endpoint, path), data=payload, **kwargs)
@@ -80,7 +92,7 @@ class HttpClient(object):
         Remove a dataset.
         :param path: Path of dataset to remove
         :param kwargs:
-        :return: A :class`requests.Response` object. A client can inspect the status code.
+        :return: A :class`requests.Response` object.
         """
         endpoint = "datasets"
         return self._req("delete",self._target(endpoint, path), **kwargs)
@@ -95,7 +107,7 @@ class HttpClient(object):
         version, should it exist.
         :param site: If specified, identifies the specific location to be patched (i.e. SLAC, IN2P3)
         :param kwargs:
-        :return: A representation of the patched dataset
+        :return: A :class`requests.Response` object. The content is a representation of the patched dataset
         """
         endpoint = "datasets"
         return self._req("patch",self._target(endpoint, path, versionId, site), data=payload, **kwargs)
@@ -108,7 +120,7 @@ class HttpClient(object):
         :param container: A dict object or a dataset.model.Group/Folder object representing the changes to be applied to the
         container.
         :param kwargs:
-        :return: A representation of the patched dataset
+        :return: A :class`requests.Response` object. The content is a representation of the patched container
         """
         if type.lower() == "folder":
             endpoint = "folders"
