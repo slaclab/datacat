@@ -94,7 +94,7 @@ def build_argparser():
 
     def add_rmdir(subparsers):
         cmd = "rmdir"
-        parser_children = subparsers.add_parser(cmd, help="Remove a container (group or foldeR)")
+        parser_children = subparsers.add_parser(cmd, help="Remove a container (group or folder)")
         parser_children.add_argument('path', help="Path of container to remove")
         parser_children.add_argument('type', help="Container Type (defaults to folder)", choices=("folder","group"))
         parser_children.set_defaults(command=cmd)

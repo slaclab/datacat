@@ -76,7 +76,7 @@ class Client(object):
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
-        resp = self.http_client.mkdir(path, type, payload=pack(container), **kwargs)
+        resp = self.http_client.mkdir(path, payload=pack(container), type=type, **kwargs)
         self._check_response(resp)
         return unpack(resp.content)
 

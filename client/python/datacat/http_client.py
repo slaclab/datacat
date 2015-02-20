@@ -42,7 +42,7 @@ class HttpClient(object):
         target = self._target(endpoint, path, versionId, site, accept) + ";children"
         return self._req("get", target, params, **kwargs)
 
-    def mkdir(self, path, type="folder", payload=None, **kwargs):
+    def mkdir(self, path, payload=None, type="folder", **kwargs):
         """
         Make a new Container
         :param path: Container Target path
