@@ -18,6 +18,11 @@ class DatacatNode(DatacatRecord):
         if parentPk is not None:
             self.parentPk = parentPk
 
+    def __repr__(self):
+        name = " Name: %s" %(self.name) if hasattr(self, "name") else ""
+        path = " Path: %s" %(self.path) if hasattr(self, "path") else ""
+        return u'<{}.{}{}{}>'.format(type(self).__module__, type(self).__name__, name, path)
+
 class Container(DatacatNode):
     def __init__(self, **kwargs):
         super(Container, self).__init__(**kwargs)
@@ -168,7 +173,16 @@ def _totimestamp(ts):
     return ts.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
 def _timestamp(ts):
-    return datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S.%fZ')
+    try:
+        return datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S.%f%z')
+    except ValueError:
+        pass
+    try:
+        return datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S.%f%zZ')
+    except ValueError:
+        pass
+
+    return datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S.%f%Z')
 
 def _default_hook(raw):
     def fix_md(name, d):
