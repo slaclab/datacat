@@ -156,10 +156,12 @@ def _default_serializer(obj):
             ret = []
             for k,v in obj.dct.items():
                 typ = type_mapping[type(v)]
-                if type(v) == datetime:
+                if v and type(v) == datetime:
                     v = _totimestamp(v)
-                ret.append(OrderedDict([("key",k), ("value",v), ("type",typ)]))
-            print ret
+                if v:
+                    ret.append(OrderedDict([("key",k), ("value",v), ("type",typ)]))
+                else:
+                    ret.append(OrderedDict([("key",k), ("value",v)]))
             return ret
         iterable = iter(obj)
     except TypeError as e:
