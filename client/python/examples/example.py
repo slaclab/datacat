@@ -11,33 +11,29 @@ from datacat.config import CONFIG_URL
 
 import pprint
 
-client = Client(CONFIG_URL("exo", mode="dev"))
+client = Client(CONFIG_URL("exo", mode="prod"))
 
 # Path example
 print("\nPath Example:")
 
 path = '/EXO/Data/Raw/cxd/run00006220-0000.cxd'
 
-resp = client.path(path)
-
-if resp.status_code == 200:
-    dataset = unpack(resp.content)
+try:
+    dataset = client.path(path)
     pprint.pprint(dataset.__dict__)
-else:
-    print("Error processing request:" + str(resp.status_code))
+except Exception as e:
+    print("Error processing request:" + str(e))
 
 # Children example
 
 print("\nChildren Example:")
 path = '/EXO/Data/Raw'
 
-resp = client.children(path, show_request=True)
-
-if resp.status_code == 200:
-    children = unpack(resp.content)
+try:
+    children = client.children(path, show_request=True)
     pprint.pprint([child.__dict__ for child in children])
-else:
-    print("Error processing request:" + str(resp.status_code))
+except Exception as e:
+    print("Error processing request:" + str(e))
 
 
 # Search example
@@ -48,17 +44,8 @@ query = 'nRun gt 6200 and exo.runQuality =~ "GO*"'   # Filter query
 sort = ["nRun-", "nEvents"]                          # Sort nRun desc, nEvents asc (asc default). These are retrieved.
 show = ["nVetoEvents"]                               # Retrieve nVetoEvents as well.
 
-resp = client.search(path_pattern, query=query, sort=sort, show=show)
-
-if resp.status_code == 200: # 200 status code ==  success
-    """
-    The raw json representation of a datacatalog object (Dataset) packs up metadata into a list
-    of objects of the form:
-       [{'key':'nRun', '$type':'integer', 'value':6201}, ...]
-    The unpack method fixes that, but also does a few other things to play nice, like putting
-    the variables into the Dataset.__dict__ object, so you can address them directly
-    """
-    datasets = unpack(resp.content)    # unpack the json list to a python list
+try:
+    datasets = client.search(path_pattern, query=query, sort=sort, show=show)
     for dataset in datasets:
         print(dataset.locations[0].resource)
 
@@ -67,7 +54,7 @@ if resp.status_code == 200: # 200 status code ==  success
         using something like client.path("/path/to/dataset.dst"), the metadata will be in versionMetadata
         """
         print("\t" + str(dataset.metadata))
-else:
-    print("Error processing request:" + str(resp.status_code))
+except Exception as e:
+    print("Error processing request:" + str(e))
 
 
