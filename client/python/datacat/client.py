@@ -170,26 +170,6 @@ class Client(object):
     def delete_dataset(self, path, **kwargs):
         return self.rmds(path, **kwargs)
 
-    def patchds(self, path, dataset, versionId="current", site=None, **kwargs):
-        """
-        Patch a dataset.
-        :param path: Path of the dataset to patch.
-        :param dataset: A dict object or a dataset.model.Dataset object representing the changes to be applied to the
-        dataset
-        :param versionId: If specified, identifies the version to patch. Otherwise, it's assumed to patch the current
-        version, should it exist.
-        :param site: If specified, identifies the specific location to be patched (i.e. SLAC, IN2P3)
-        :param kwargs:
-        :return: A representation of the patched dataset
-        """
-        headers = kwargs.get("headers", {})
-        headers["content-type"] = "application/json"
-        kwargs["headers"] = headers
-        ds = dataset if type(dataset) == Dataset else Dataset(**dataset)
-        resp = self.http_client.patchds(path, pack(ds), versionId, site, **kwargs)
-        self._check_response(resp)
-        return unpack(resp.content)
-
     def patchdir(self, path, container, type="folder", **kwargs):
         """
         Patch a container.
@@ -215,11 +195,31 @@ class Client(object):
         self._check_response(resp)
         return unpack(resp.content)
 
-    def patch_dataset(self, path, dataset, versionId="current", site=None, **kwargs):
-        return self.patchds(path, dataset, versionId, site, **kwargs)
+    def patchds(self, path, dataset, versionId="current", site=None, **kwargs):
+        """
+        Patch a dataset.
+        :param path: Path of the dataset to patch.
+        :param dataset: A dict object or a dataset.model.Dataset object representing the changes to be applied to the
+        dataset
+        :param versionId: If specified, identifies the version to patch. Otherwise, it's assumed to patch the current
+        version, should it exist.
+        :param site: If specified, identifies the specific location to be patched (i.e. SLAC, IN2P3)
+        :param kwargs:
+        :return: A representation of the patched dataset
+        """
+        headers = kwargs.get("headers", {})
+        headers["content-type"] = "application/json"
+        kwargs["headers"] = headers
+        ds = dataset if type(dataset) == Dataset else Dataset(**dataset)
+        resp = self.http_client.patchds(path, pack(ds), versionId, site, **kwargs)
+        self._check_response(resp)
+        return unpack(resp.content)
 
     def patch_container(self, path, container, type="folder", **kwargs):
         return self.patchdir(path, container, type, **kwargs)
+
+    def patch_dataset(self, path, dataset, versionId="current", site=None, **kwargs):
+        return self.patchds(path, dataset, versionId, site, **kwargs)
 
     def search(self, target, versionId=None, site=None, query=None, sort=None, show=None, offset=None, max_num=None,
                **kwargs):

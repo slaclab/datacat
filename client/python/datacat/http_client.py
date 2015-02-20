@@ -97,21 +97,6 @@ class HttpClient(object):
         endpoint = "datasets"
         return self._req("delete",self._target(endpoint, path), **kwargs)
 
-    def patchds(self, path, payload, versionId="current", site=None, **kwargs):
-        """
-        Patch a dataset.
-        :param path: Path of the dataset to patch.
-        :param dataset: A dict object or a dataset.model.Dataset object representing the changes to be applied to the
-        dataset
-        :param versionId: If specified, identifies the version to patch. Otherwise, it's assumed to patch the current
-        version, should it exist.
-        :param site: If specified, identifies the specific location to be patched (i.e. SLAC, IN2P3)
-        :param kwargs:
-        :return: A :class`requests.Response` object. The content is a representation of the patched dataset
-        """
-        endpoint = "datasets"
-        return self._req("patch",self._target(endpoint, path, versionId, site), data=payload, **kwargs)
-
     def patchdir(self, path, payload, type="folder", **kwargs):
         """
         Patch a container.
@@ -127,6 +112,21 @@ class HttpClient(object):
         elif type.lower() == "group":
             endpoint = "groups"
         return self._req("patch",self._target(endpoint, path), data=payload, **kwargs)
+
+    def patchds(self, path, payload, versionId="current", site=None, **kwargs):
+        """
+        Patch a dataset.
+        :param path: Path of the dataset to patch.
+        :param dataset: A dict object or a dataset.model.Dataset object representing the changes to be applied to the
+        dataset
+        :param versionId: If specified, identifies the version to patch. Otherwise, it's assumed to patch the current
+        version, should it exist.
+        :param site: If specified, identifies the specific location to be patched (i.e. SLAC, IN2P3)
+        :param kwargs:
+        :return: A :class`requests.Response` object. The content is a representation of the patched dataset
+        """
+        endpoint = "datasets"
+        return self._req("patch",self._target(endpoint, path, versionId, site), data=payload, **kwargs)
 
     def search(self, target, versionId=None, site=None, query=None, sort=None, show=None, offset=None, max_num=None,
                accept="json", **kwargs):
