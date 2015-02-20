@@ -6,7 +6,7 @@ requires = [
 
 setup(
     name='datacat',
-    version='0.2',
+    version='0.3-SNAPSHOT',
     packages=['datacat'],
     url='http://srs.slac.stanford.edu',
     license='',
