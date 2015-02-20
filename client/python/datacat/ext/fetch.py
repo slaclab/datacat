@@ -3,20 +3,22 @@ import gevent
 import gevent.monkey
 gevent.monkey.patch_socket()
 
+from datacat.client import Client
+from datacat.config import CONFIG_URL
+
 from gevent.queue import Queue
 import requests
 from datacat.model import unpack, pack
 import json
 from jinja2 import Template
 
-default_template = Template("{{ name }}.{{ fileFormat}}")
+default_template = Template("{{ name }}.{{ fileFormat }}")
 
 q = Queue()
 
-search_url = "http://scalnx-v04.slac.stanford.edu:8180/org-srs-webapps-datacat-0.2-SNAPSHOT/r/search.json/LSST/mirror/BNL3/workarea/ccdtest/e2v/113-03/flat/20140709-112014?max=10"
+c = Client(CONFIG_URL("srs","prod"))
 
-resp = requests.get(search_url)
-for i in unpack(resp.content):
+for i in c.search("/LSST/mirror/BNL3/workarea/ccdtest/e2v/113-03/flat/20140709-112014", max_num=10):
     q.put(i)
 
 dl_url = "http://srs.slac.stanford.edu/DataCatalog/get?dataset=%d&datasetVersion=%d&datasetLocation=%d"
