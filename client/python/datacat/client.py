@@ -205,14 +205,14 @@ class Client(object):
         kwargs["headers"] = headers
 
         if isinstance(container, Container):
-            req = container
+            pass
         elif type == "group":
-            req = Group(**container)
+            container = Group(**container)
         elif type == "folder":
-            req = Folder(**container)
+            container = Folder(**container)
 
         resp = self.http_client.patchdir(path, pack(container), type, **kwargs)
-        self._check_response(resp, 204)
+        self._check_response(resp)
         return unpack(resp.content)
 
     def patch_dataset(self, path, dataset, versionId="current", site=None, **kwargs):
