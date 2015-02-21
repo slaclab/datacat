@@ -5,18 +5,13 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import java.nio.file.attribute.AclEntry;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 import org.srs.datacat.security.DcPermissions;
 
 /**
  *
  * @author bvan
  */
-@XmlType(propOrder={"subject","permissions"})
 @JsonPropertyOrder({"subject","permissions"})
-@XmlRootElement(name = "acl")
 public class AclEntryProxy {
     private AclEntry entry;
 
@@ -24,12 +19,10 @@ public class AclEntryProxy {
         this.entry = entry;
     }
 
-    @XmlElement
     public String getSubject(){
         return entry.principal().toString();
     }
 
-    @XmlElement
     public HashMap<String, Boolean> getPermissions(){
         LinkedHashMap<String, Boolean> permissions = new LinkedHashMap<>();
         permissions.put( "read", entry.permissions().contains( DcPermissions.READ ) );
