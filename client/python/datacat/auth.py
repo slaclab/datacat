@@ -8,20 +8,21 @@ from email.utils import formatdate
 import hashlib
 
 
-class HMACAuth(requests.auth.AuthBase):
-    def __init__(self, key_id, secret_key, base_url=None):
+class HMACAuthBase(requests.auth.AuthBase):
+    def __init__(self, key_id, secret_key, header_name, signature_format, base_url=None):
         """key_id must not be base64"""
         if base_url:
             self.resource_base_url = base_url
         self.key_id = str(key_id)
         self.secret_key = str(secret_key)
+        self.header_name = header_name
+        self.sig_fmt = signature_format
 
     def __call__(self, r):
         # Create date header if it is not created yet.
         if not 'date' in r.headers:
             r.headers['date'] = formatdate(timeval=None, localtime=False, usegmt=True)
-        r.headers['Authorization'] = 'SRS:%s:%s'%(self.key_id, self.get_signature(r))
-        return r
+        r.headers[self.header_name] = self.sig_fmt.format(self.key_id, self.get_signature(r))
 
     def get_signature(self, r):
         canonical_string = self.get_canonical_string(r.url, r.headers, r.method)
@@ -45,4 +46,6 @@ class HMACAuth(requests.auth.AuthBase):
         hash_buf = "%s\n%s\n%s\n%s\n%s\n" %(method,rpath,content_md5, content_type, date)
         return hash_buf
 
-
+class HMACAuthSRS(HMACAuthBase):
+    def __init__(self, key_id, secret_key, base_url=None):
+        super(HMACAuthSRS, self).__init__(key_id, secret_key, u"Authorization", u"SRS:{1}:{2}", base_url)
