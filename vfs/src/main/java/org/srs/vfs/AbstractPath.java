@@ -26,6 +26,9 @@ public abstract class AbstractPath<T extends AbstractPath> implements Path {
     protected final String path;
     private volatile int[] offsets;
     
+    // cached version of the hash
+    private volatile int hash;
+    
     protected AbstractPath(String userName, AbstractFs fileSystem, String path){
         this.path = PathUtils.normalizeSeparators( path );
         this.fileSystem = fileSystem;
@@ -286,7 +289,10 @@ public abstract class AbstractPath<T extends AbstractPath> implements Path {
     @Override
     public int hashCode(){
         // Use absolute, normalized name for this (extra CPUs, but easier)
-        return smearHash(toAbsolutePath().path.hashCode());
+        if(hash == 0){
+            hash = smearHash(toAbsolutePath().path.hashCode());
+        }
+        return hash;
     }
     
     private static final int C1 = 0xcc9e2d51;
