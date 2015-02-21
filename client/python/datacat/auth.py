@@ -46,6 +46,22 @@ class HMACAuthBase(requests.auth.AuthBase):
         hash_buf = "%s\n%s\n%s\n%s\n%s\n" %(method,rpath,content_md5, content_type, date)
         return hash_buf
 
+
+"""
+TODO: Write tests
+class MockRequest(object):
+    pass
+
+r = MockRequest()
+r.url =  "http://srs.slac.stanford.edu/datacat-v0.2/r" + "/path.json/LSST"
+r.headers = {}
+r.method = "post"
+
+auth_strategy = HMACAuthSRS(key, secret, "http://srs.slac.stanford.edu/datacat-v0.2/r")
+auth_strategy(r)
+"""
+
 class HMACAuthSRS(HMACAuthBase):
     def __init__(self, key_id, secret_key, base_url=None):
-        super(HMACAuthSRS, self).__init__(key_id, secret_key, u"Authorization", u"SRS:{1}:{2}", base_url)
+        super(HMACAuthSRS, self).__init__(key_id, secret_key, u"Authorization", u"SRS:{0}:{1}", base_url)
+
