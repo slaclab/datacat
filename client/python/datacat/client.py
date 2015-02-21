@@ -26,8 +26,8 @@ class Client(object):
     Pythonic Client for interacting with the data catalog. This client interacts solely through JSON.
     '''
 
-    def __init__(self, base_url, *args, **kwargs):
-        self.http_client = HttpClient(base_url, *args, **kwargs)
+    def __init__(self, base_url, auth_strategy=None, *args, **kwargs):
+        self.http_client = HttpClient(base_url, auth_strategy, *args, **kwargs)
         self.base_url = base_url
 
     def path(self, path, versionId=None, site=None, **kwargs):

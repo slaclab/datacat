@@ -13,8 +13,9 @@ class HttpClient(object):
     ALLOWABLE_VERSIONS = "curr current latest new next".split(" ")
     ALLOWABLE_SITES = "master canonical all".split(" ")
 
-    def __init__(self, base_url, *args, **kwargs):
+    def __init__(self, base_url, auth_strategy=None, *args, **kwargs):
         self.base_url = base_url
+        self.auth_strategy = auth_strategy
 
     def path(self, path, versionId=None, site=None, accept="json", **kwargs):
         """
@@ -156,7 +157,7 @@ class HttpClient(object):
     def _req(self, http_method, target, params=None, data=None, **kwargs):
         headers = kwargs["headers"] if "headers" in kwargs else None
         requests_method = getattr(requests, http_method)
-        resp = requests_method(target, params=params, headers=headers, data=data)
+        resp = requests_method(target, params=params, headers=headers, data=data, auth=self.auth_strategy)
         if kwargs.get('show_request', False):
             print("Request")
             if data:
