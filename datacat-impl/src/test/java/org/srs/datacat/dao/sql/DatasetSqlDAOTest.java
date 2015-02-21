@@ -200,14 +200,14 @@ public class DatasetSqlDAOTest {
             TestCase.assertEquals(String.format("%s should have been %s", actual.toString(), expected.toString()), expected, actual);
         }
         
-        HashSet<String> deletes = new HashSet<>();
-        deletes.add("stringObject");
-        deletes.add("intObject");
-        deletes.add("doubleObject");
+        HashMap<String, Object> deletes = new HashMap<>();
+        deletes.put("stringObject", null);
+        deletes.put("intObject", null);
+        deletes.put("doubleObject", null);
         md.remove("stringObject", "mdvalue1");
         md.remove("intObject", 4321);
         md.remove("doubleObject", 4321.1234);
-        dao.deleteMetadata(newVer, deletes);
+        dao.mergeMetadata(newVer, deletes);
         
         newVer = dao.getDatasetViewInfo(ds, DatasetView.CURRENT_ANY).getVersion();
         for(Map.Entry<String, Object> e: md.entrySet()){

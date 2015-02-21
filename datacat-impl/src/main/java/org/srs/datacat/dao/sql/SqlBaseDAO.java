@@ -306,28 +306,6 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         }
     }
     
-    @Override
-    public void deleteMetadata(DatacatRecord record, Set<String> metaDataKeys) throws IOException{
-        try {
-            switch(record.getType()){
-                case DATASETVERSION:
-                    deleteDatasetVersionMetadata(record.getPk(), metaDataKeys);
-                    break;
-                case GROUP:
-                    deleteGroupMetadata(record.getPk(), metaDataKeys);
-                    break;
-                case FOLDER:
-                    deleteFolderMetadata(record.getPk(), metaDataKeys);
-                    break;
-                default:
-                    String msg = "Unable to add metadata to object type: " + record.getType();
-                    throw new IOException(msg);
-            }
-        } catch(SQLException ex) {
-            throw new IOException("Unable to add metadata to object", ex);
-        }
-    }
-
     protected void addDatasetVersionMetadata(Long pk, Map<String, Object> metaData) throws SQLException{
         addDatacatObjectMetadata(pk, metaData, "VerDataset", "DatasetVersion");
     }

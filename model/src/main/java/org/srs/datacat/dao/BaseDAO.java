@@ -53,16 +53,7 @@ public interface BaseDAO extends AutoCloseable {
      * @throws IOException 
      */
     void mergeMetadata(DatacatRecord record, Map<String, Object> metaData) throws IOException;
-    
-    /**
-     * Delete metadata of an existing record.
-     * 
-     * @param record A Folder, Group, or DatasetVersion
-     * @param metaDataKeys Metadata keys to be deleted
-     * @throws IOException 
-     */
-    void deleteMetadata(DatacatRecord record, Set<String> metaDataKeys) throws IOException;
-    
+        
     /**
      * Delete a DatacatRecord.
      * 
