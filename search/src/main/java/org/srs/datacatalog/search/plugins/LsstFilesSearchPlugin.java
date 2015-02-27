@@ -15,9 +15,7 @@ import org.srs.datacatalog.search.tables.DatasetVersions;
 public class LsstFilesSearchPlugin implements DatacatPlugin {
     
     @Schema(name="jgates_fitsTest.FitsFiles", alias="lsstff")
-    class FitsFiles extends Table {
-        boolean joined = false;
-            
+    class FitsFiles extends Table {            
         @Schema(name="fitsFileId") 
         public Column<Long> fileId;
         @Schema(name="fileName") 
@@ -62,10 +60,6 @@ public class LsstFilesSearchPlugin implements DatacatPlugin {
         dsv.selection( lsstff.getColumns() ).leftOuterJoin( lsstff, vecColumn.eq( lsstff.fileId )  );
         joined = true;
         return lsstff;
-    }
-
-    public void reset(){
-        this.joined = false;
     }
 
 }

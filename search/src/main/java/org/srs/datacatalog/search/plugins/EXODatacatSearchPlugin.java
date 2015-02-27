@@ -16,7 +16,6 @@ public class EXODatacatSearchPlugin implements DatacatPlugin {
     
     @Schema(name="EXORunIndex", alias="eri")
     class EXORunIndex extends Table {
-        boolean joined = false;
             
         @Schema(name="runIndex", alias="runId") 
         public Column<Long> runId;
@@ -25,9 +24,7 @@ public class EXODatacatSearchPlugin implements DatacatPlugin {
         @Schema(name="quality", alias="runQuality")
         public Column<String> runQuality;
 
-        
         public EXORunIndex(){ super(); }
-        
     };
     
     final private String namespace = "exo";
@@ -62,10 +59,6 @@ public class EXODatacatSearchPlugin implements DatacatPlugin {
         dsv.selection( eri.getColumns() ).leftOuterJoin( eri, vecColumn.eq( eri.runId )  );
         joined = true;
         return eri;
-    }
-
-    public void reset(){
-        this.joined = false;
     }
 
 }

@@ -16,7 +16,6 @@ public class LsstKVSearchPlugin implements DatacatPlugin {
     
     @Schema(name="jgates_fitsTest.FitsKeyValues", alias="lsstkv")
     class FitsKeyValues extends Table {
-        boolean joined = false;
             
         @Schema(name="fitsFileId") 
         public Column<Long> fileId;
@@ -65,10 +64,6 @@ public class LsstKVSearchPlugin implements DatacatPlugin {
         dsv.selection( lsstkv.getColumns() ).leftOuterJoin( lsstkv, vecColumn.eq( lsstkv.fileId )  );
         joined = true;
         return lsstkv;
-    }
-
-    public void reset(){
-        this.joined = false;
     }
 
 }

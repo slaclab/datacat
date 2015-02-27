@@ -17,7 +17,6 @@ public class LsstPositionsSearchPlugin implements DatacatPlugin {
     
     @Schema(name="jgates_fitsTest.FitsPositions", alias="lsstpos")
     class FitsPositions extends Table {
-        boolean joined = false;
             
         @Schema(name="fitsFileId") 
         public Column<Long> fileId;
@@ -64,10 +63,6 @@ public class LsstPositionsSearchPlugin implements DatacatPlugin {
         dsv.selection( lsstpos.getColumns() ).leftOuterJoin( lsstpos, vecColumn.eq( lsstpos.fileId )  );
         joined = true;
         return lsstpos;
-    }
-
-    public void reset(){
-        this.joined = false;
     }
 
 }

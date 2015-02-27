@@ -16,6 +16,5 @@ public interface DatacatPlugin {
     public String getNamespace();
     public SimpleTable joinToStatement(String key, Select statement);
     public boolean containsKey(String key);
-    public void reset();
     
 }
