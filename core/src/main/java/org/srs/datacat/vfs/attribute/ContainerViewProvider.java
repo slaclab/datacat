@@ -91,7 +91,7 @@ public class ContainerViewProvider implements DcViewProvider<Class<? extends Con
         try {
             if(!stats.containsKey(statType)){
                 try(ContainerDAO dao = provider.getDaoFactory().newContainerDAO()) {
-                    stats.put(statType, dao.getStat(file.asRecord(), statType));
+                    stats.put(statType, dao.getStat(file.getObject(), statType));
                 }
             }
             retStat = stats.get(statType);
