@@ -197,6 +197,7 @@ public class DcFileSystemProviderTest {
         DcPath filePath = parentPath.resolve(request.getName());
         HashSet<DatasetOption> options = new HashSet<>(Arrays.asList( DatasetOption.CREATE_NODE));
         provider.createDataset( filePath, request, options);
+        provider.delete(filePath);
     }
     
     @Test
@@ -234,7 +235,7 @@ public class DcFileSystemProviderTest {
     @Test
     public void testDirectoryAcl() throws IOException {
         
-        String folderName = "createFolderTest";
+        String folderName = "directoryAclTest";
         DatasetContainer request = (DatasetContainer) provider.getModelProvider().getContainerBuilder()
                 .name(folderName)
                 .parentPk(0L)
@@ -320,7 +321,9 @@ public class DcFileSystemProviderTest {
         } catch (IOException ex){
             ex.printStackTrace();
         }
-        
+
+        provider.delete(path.resolve(folderName).resolve(folderName));
+        provider.delete(path.resolve(folderName));
     }
 
     
