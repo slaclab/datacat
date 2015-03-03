@@ -145,7 +145,7 @@ public class DirectoryWalker {
         }
 
         public void accept(DcFile file){
-            files.add(file.asRecord());
+            files.add(file.getObject());
         }
 
         @Override
