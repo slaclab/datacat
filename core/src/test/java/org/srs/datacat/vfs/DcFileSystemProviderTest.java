@@ -121,7 +121,7 @@ public class DcFileSystemProviderTest {
         DcPath rootPath = provider.getPath( uri );
         try(DirectoryStream<Path> s = provider.newDirectoryStream( rootPath )){
             for(Path p: s){
-                System.out.println(p.toString());
+                // Do nothing
             }
         }
         
@@ -131,7 +131,6 @@ public class DcFileSystemProviderTest {
         try(DirectoryStream<? extends AbstractPath> cstream = provider.unCachedDirectoryStream( rootPath.resolve("testpath") )){
             for(Iterator<? extends AbstractPath> iter = cstream.iterator(); iter.hasNext();){
                 iter.next();
-                //System.out.println(iter.next().toString());
             }
         }
         System.out.println("uncached directory stream took:" + (System.currentTimeMillis() - t0));
@@ -141,14 +140,12 @@ public class DcFileSystemProviderTest {
             try(DirectoryStream<Path> cstream = provider.newDirectoryStream( rootPath.resolve("testpath") )){
                 for(Iterator<Path> iter = cstream.iterator(); iter.hasNext();){
                     iter.next();
-                    //System.out.println(iter.next().toString());
                 }
             }   
         }
         
         System.out.println("100 cached directory streams took:" + (System.currentTimeMillis() - t0));
         
-        System.out.println("Walking tree...\n\n");
         Files.walkFileTree( rootPath.resolve("testpath"), new SimpleFileVisitor<Path>() {
             int filesVisited = 0;
             @Override
@@ -158,10 +155,6 @@ public class DcFileSystemProviderTest {
                     return FileVisitResult.TERMINATE;
                 }
                 filesVisited++;
-                //StringBuilder sb = new StringBuilder();
-                //for(int i = 0; i< file.getNameCount(); sb.append("  "), i++);
-                //sb.append(file.toString());
-                //System.out.println(sb.toString());
                 return FileVisitResult.CONTINUE;
             }
 
@@ -169,11 +162,6 @@ public class DcFileSystemProviderTest {
             public FileVisitResult postVisitDirectory(Path dir, IOException e)
                     throws IOException{
                 if(e == null){
-                    //StringBuilder sb = new StringBuilder();
-                    //for(int i = 0; i < dir.getNameCount(); sb.append( "  " ), i++);
-                    //sb.append( "in directory: ");
-                    //sb.append( dir.toString() );
-                    //System.out.println(sb.toString());
                     return FileVisitResult.CONTINUE;
                 } else {
                     // directory iteration failed
@@ -181,7 +169,6 @@ public class DcFileSystemProviderTest {
                 }
             }
         } );
-        System.out.println(o.toString());
     }
 
     @Test
@@ -301,7 +288,6 @@ public class DcFileSystemProviderTest {
 
             newAcl.add(entry);
             provider.mergeContainerAclEntries(target, newAcl, true);
-            System.out.println(provider.getFile(target).getAcl());
             TestCase.assertEquals("Only one entry should exist", 1, provider.getFile(target).getAcl().size());
             
             /* TODO: Define this behavior - clear = true, permissions = empty
