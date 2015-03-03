@@ -1,22 +1,23 @@
 package org.srs.datacat.vfs;
 
 import java.io.IOException;
-import org.srs.datacat.model.RecordType;
 
 import java.nio.file.attribute.AttributeView;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+
 import org.srs.datacat.model.DatacatNode;
-import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetModel;
-import org.srs.vfs.AbstractVirtualFile;
-import org.srs.vfs.ChildrenView;
+import org.srs.datacat.model.RecordType;
+import org.srs.datacat.model.security.DcAclEntry;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 import org.srs.datacat.vfs.attribute.SubdirectoryView;
-import org.srs.datacat.vfs.attribute.DcAclFileAttributeView;
+import org.srs.vfs.AbstractVirtualFile;
+import org.srs.vfs.ChildrenView;
 import org.srs.vfs.FileType;
 
 /**
@@ -28,7 +29,6 @@ import org.srs.vfs.FileType;
 public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFileAttributeView {
 
     {
-        addViewName(DcAclFileAttributeView.class, "acl");
         addViewName(DcFile.class, "basic");
         addViewName(SubdirectoryView.class, "subdirectories");
     }
@@ -39,12 +39,13 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     public static class GroupType extends FileType.Directory {}
 
     private final DatacatNode dcObject;
+    private final List<DcAclEntry> acl;
     private final long dcObjectCreation = System.currentTimeMillis();
 
-    public DcFile(DcPath path, DatacatNode object, DcAclFileAttributeView aclView){
+    public DcFile(DcPath path, DatacatNode object, List<DcAclEntry> acl){
         super(path, fileType(object));
         this.dcObject = object;
-        addAttributeViews(aclView);
+        this.acl = acl;
         initViews(object);
     }
 
@@ -71,6 +72,10 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
             default:
                 return FileType.FILE;
         }
+    }
+
+    public List<DcAclEntry> getAcl(){
+        return acl;
     }
 
     @Override
@@ -142,10 +147,6 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     }
 
     public DatacatNode getObject(){
-        return this.dcObject;
-    }
-
-    public DatacatRecord asRecord(){
         return this.dcObject;
     }
 

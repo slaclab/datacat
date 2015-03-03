@@ -614,6 +614,28 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         return (T) dao.createContainer(parent, path, request);
     }
 
+    @Override
+    public void setAcl(DatacatRecord record, String acl) throws IOException{
+        try {
+            setAclInternal(record, acl);
+        } catch (SQLException ex){
+            throw new IOException(ex);
+        }
+    }
+    
+    private void setAclInternal(DatacatRecord record, String acl) throws SQLException {
+        String sql = "UPDATE %s SET ACL = ?";        
+        String tableType = "DatasetLogicalFolder";
+        if(record instanceof DatasetGroup.Builder){
+            tableType = "DatasetGroup";
+        }
+        sql = String.format(sql, tableType);
+        try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
+            stmt.setString(1, acl);
+            stmt.executeUpdate();
+        }
+    }
+
     protected enum VersionParent {
         DATASET,
         CONTAINER;

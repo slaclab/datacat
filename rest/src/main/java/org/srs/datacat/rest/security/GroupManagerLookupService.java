@@ -2,8 +2,8 @@
 package org.srs.datacat.rest.security;
 
 import java.util.Set;
-import org.srs.datacat.security.DcGroup;
-import org.srs.datacat.security.DcUser;
+import org.srs.datacat.model.security.DcGroup;
+import org.srs.datacat.model.security.DcUser;
 import org.srs.datacat.security.DcUserLookupService;
 
 /**

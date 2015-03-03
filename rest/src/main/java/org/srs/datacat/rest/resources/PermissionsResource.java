@@ -4,6 +4,7 @@ package org.srs.datacat.rest.resources;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.NoSuchFileException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import javax.ws.rs.GET;
@@ -16,14 +17,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import org.srs.datacat.model.security.DcAclEntry;
 import org.srs.datacat.rest.BaseResource;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.rest.RestException;
-import org.srs.datacat.rest.security.OwnerAclProxy;
+import org.srs.datacat.rest.security.AclEntryProxy;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
-import org.srs.datacat.vfs.attribute.DcAclFileAttributeView;
 
 /**
  *
@@ -62,8 +63,11 @@ public class PermissionsResource extends BaseResource {
         DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
         try {
             DcFile dcf = getProvider().getFile(dcp);
-            OwnerAclProxy p = new OwnerAclProxy(dcf.getAttributeView( DcAclFileAttributeView.class));
-            return Response.ok(new GenericEntity(p, OwnerAclProxy.class)).build();
+            List<AclEntryProxy> acl = new ArrayList<>(dcf.getAcl().size());
+            for(DcAclEntry e: dcf.getAcl()){
+                acl.add(new AclEntryProxy(e));
+            }
+            return Response.ok(new GenericEntity<List<AclEntryProxy>>(acl){}).build();
         } catch (NoSuchFileException ex){
              throw new RestException(ex,404 , "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){

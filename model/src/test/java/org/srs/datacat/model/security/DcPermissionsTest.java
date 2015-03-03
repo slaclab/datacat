@@ -31,7 +31,7 @@ public class DcPermissionsTest {
 
     @Test
     public void testGetAclAttributes() throws IOException{
-        Optional<List<DcAclEntry>> attrOpt = AclTransformation.parseAclSpec("john@fermi:g:riw,$PUBLIC$@:g:r");
+        Optional<List<DcAclEntry>> attrOpt = AclTransformation.parseAcl("john@fermi:g:riw,$PUBLIC$@:g:r");
         TestCase.assertTrue(attrOpt.isPresent());
         List<DcAclEntry> acl = attrOpt.get();
         TestCase.assertTrue(acl.get(0).getPermissions().contains(DcPermissions.READ));

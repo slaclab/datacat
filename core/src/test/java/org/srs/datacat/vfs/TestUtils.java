@@ -8,15 +8,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.security.DcGroup;
-import org.srs.datacat.security.DcUserLookupService;
-import org.srs.datacat.security.DcUser;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.RecordType;
+import org.srs.datacat.model.dataset.DatasetOption;
 import org.srs.datacat.model.container.DatasetContainerBuilder;
+import org.srs.datacat.model.security.DcGroup;
+import org.srs.datacat.model.security.DcUser;
+
+import org.srs.datacat.security.DcUserLookupService;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
-import org.srs.datacat.model.dataset.DatasetOption;
+
 import org.srs.datacat.test.DbHarness;
 
 /**

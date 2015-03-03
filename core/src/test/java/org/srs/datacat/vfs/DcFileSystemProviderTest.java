@@ -12,9 +12,12 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import junit.framework.TestCase;
 import org.junit.AfterClass;
 
@@ -32,11 +35,15 @@ import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.model.RecordType;
-import org.srs.datacat.security.DcUser;
+import org.srs.datacat.model.security.DcUser;
 import org.srs.datacat.test.DbHarness;
 
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.model.dataset.DatasetOption;
+import org.srs.datacat.model.security.DcAclEntry;
+import org.srs.datacat.model.security.DcAclEntryScope;
+import org.srs.datacat.model.security.DcGroup;
+import org.srs.datacat.model.security.DcPermissions;
 import org.srs.datacat.shared.Provider;
 import org.srs.vfs.AbstractPath;
 import org.srs.vfs.PathUtils;
@@ -221,6 +228,99 @@ public class DcFileSystemProviderTest {
             // File should already be deleted
             provider.delete(path.resolve(folderName));
         } catch (NoSuchFileException ex){}
+    }
+    
+    
+    @Test
+    public void testDirectoryAcl() throws IOException {
+        
+        String folderName = "createFolderTest";
+        DatasetContainer request = (DatasetContainer) provider.getModelProvider().getContainerBuilder()
+                .name(folderName)
+                .parentPk(0L)
+                .type(RecordType.FOLDER)
+                .build();
+
+        ContainerCreationAttribute attr = new ContainerCreationAttribute(request);
+        URI uri = DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, DbHarness.TEST_USER, "SRS");
+        DcPath path =  provider.getPath(uri);
+        provider.createDirectory(path.resolve(folderName), attr);
+        provider.createDirectory(path.resolve(folderName).resolve(folderName), attr);
+        
+        try {
+            
+            Path target = path.resolve(folderName);
+            List<DcAclEntry> newAcl = new ArrayList<>();
+            DcAclEntry entry = DcAclEntry.newBuilder()
+                .subject(DcGroup.PUBLIC_GROUP)
+                .permissions("rw")
+                .scope(DcAclEntryScope.DEFAULT)
+                .build();
+            newAcl.add(entry);
+            provider.mergeContainerAclEntries(target, newAcl, false);
+            
+            boolean okay = false;
+            for(DcAclEntry e: provider.getFile(target).getAcl()){
+                if(e.getSubject().equals(DcGroup.PUBLIC_GROUP)){
+                    if(e.getPermissions().contains(DcPermissions.WRITE)){
+                        okay = true;
+                        break;
+                    }
+                }
+            }
+            
+            newAcl = new ArrayList<>();
+            entry = DcAclEntry.newBuilder()
+                .subject(DcGroup.PUBLIC_GROUP)
+                .permissions(Collections.EMPTY_SET)
+                .scope(DcAclEntryScope.DEFAULT)
+                .build();
+
+            newAcl.add(entry);
+            provider.mergeContainerAclEntries(target, newAcl, false);
+            
+            okay = true;
+            for(DcAclEntry e: provider.getFile(target).getAcl()){
+                if(e.getSubject().equals(DcGroup.PUBLIC_GROUP)){
+                    if(e.getPermissions().contains(DcPermissions.WRITE)){
+                        okay = false;
+                        break;
+                    }
+                }
+            }
+            
+            TestCase.assertTrue("Should not have passed check", okay);
+            
+            newAcl = new ArrayList<>();
+            entry = DcAclEntry.newBuilder()
+                .subject(DcGroup.PUBLIC_GROUP)
+                .permissions("rw")
+                .scope(DcAclEntryScope.DEFAULT)
+                .build();
+
+            newAcl.add(entry);
+            provider.mergeContainerAclEntries(target, newAcl, true);
+            System.out.println(provider.getFile(target).getAcl());
+            TestCase.assertEquals("Only one entry should exist", 1, provider.getFile(target).getAcl().size());
+            
+            /* TODO: Define this behavior - clear = true, permissions = empty
+            newAcl = new ArrayList<>();
+            entry = DcAclEntry.newBuilder()
+                .subject(DcGroup.PUBLIC_GROUP)
+                .permissions(Collections.EMPTY_SET)
+                .scope(DcAclEntryScope.DEFAULT)
+                .build();
+
+            newAcl.add(entry);
+            provider.mergeContainerAclEntries(target, newAcl, true);
+            System.out.println(provider.getFile(target).getAcl());
+            TestCase.assertEquals("Only one entry should exist", 1, provider.getFile(target).getAcl().size());
+            */
+            
+        } catch (IOException ex){
+            ex.printStackTrace();
+        }
+        
     }
 
     

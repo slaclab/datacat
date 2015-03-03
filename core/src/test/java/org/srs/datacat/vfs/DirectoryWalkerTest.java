@@ -14,7 +14,7 @@ import org.junit.BeforeClass;
 import org.srs.datacat.dao.DAOFactory;
 import org.srs.datacat.dao.sql.mysql.DAOFactoryMySQL;
 import org.srs.datacat.model.ModelProvider;
-import org.srs.datacat.security.DcUser;
+import org.srs.datacat.model.security.DcUser;
 import org.srs.datacat.shared.Provider;
 import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;

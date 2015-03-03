@@ -52,7 +52,16 @@ public interface BaseDAO extends AutoCloseable {
      * @throws IOException 
      */
     void mergeMetadata(DatacatRecord record, Map<String, Object> metaData) throws IOException;
-        
+    
+    /**
+     * Set the ACL field on a record.
+     * 
+     * @param record A Folder, Group, or DatasetVersion
+     * @param acl String version of the acl to be set.
+     * @throws IOException 
+     */
+    void setAcl(DatacatRecord record, String acl) throws IOException;
+    
     /**
      * Delete a DatacatRecord.
      * 

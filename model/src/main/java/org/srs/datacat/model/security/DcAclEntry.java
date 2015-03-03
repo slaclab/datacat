@@ -148,8 +148,10 @@ public final class DcAclEntry {
 
     @Override
     public String toString(){
-        return String.format("%s:%s", 
+        
+        return String.format("%s:%s:%s:", 
                 who != null ? who.toString() : "", 
+                who instanceof DcGroup ? "g" : "",
                 DcPermissions.pack(perms));
     }
 

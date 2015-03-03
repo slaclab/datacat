@@ -44,7 +44,7 @@ public final class AclTransformation {
         return buildAndValidateAcl(retAcl);
     }
     
-    public static Optional<List<DcAclEntry>> parseAclSpec(String aclString){
+    public static Optional<List<DcAclEntry>> parseAcl(String aclString){
         if(aclString == null || aclString.isEmpty()){
             return Optional.absent();
         }
@@ -55,7 +55,15 @@ public final class AclTransformation {
         }
         return Optional.of(acl);
     }
-
+    
+    public static String aclToString(List<DcAclEntry> acl){
+        StringBuilder builder = new StringBuilder();
+        for(Iterator<DcAclEntry> iter = acl.iterator(); iter.hasNext();){
+            builder.append(iter.next()).append(iter.hasNext() ? "," : "");
+        }
+        return builder.toString();
+    }
+    
     public static DcAclEntry parseAclEntry(String aclEntryString){
         String[] ace = aclEntryString.split(":");
         String principal = ace[0];

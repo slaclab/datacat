@@ -7,8 +7,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.srs.datacat.model.security.DcGroup;
+import org.srs.datacat.model.security.DcUser;
+
 /**
- *
+ * Basic lookup service.
  * @author bvan
  */
 public class DcUserLookupService extends UserPrincipalLookupService {

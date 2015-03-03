@@ -1,10 +1,11 @@
 package org.srs.datacat.vfs;
 
 import com.google.common.base.Optional;
-import org.srs.datacat.security.DcPermissions;
+import org.srs.datacat.model.security.DcPermissions;
 import java.io.IOException;
 import java.net.URI;    
 import java.nio.channels.SeekableByteChannel;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.AccessMode;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileStore;
@@ -14,8 +15,6 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.nio.file.attribute.AclEntry;
-import java.nio.file.attribute.AclEntryPermission;
 
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
@@ -23,6 +22,7 @@ import java.nio.file.attribute.FileAttributeView;
 import java.util.ArrayList;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -47,14 +47,16 @@ import org.srs.datacat.dao.DAOFactory;
 import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.model.dataset.DatasetViewInfoModel;
 
+import org.srs.datacat.model.security.DcAclEntry;
+import org.srs.datacat.model.security.DcAclEntryScope;
+import org.srs.datacat.model.security.DcGroup;
+import org.srs.datacat.model.security.DcUser;
+
+import org.srs.datacat.model.security.AclTransformation;
+import org.srs.datacat.security.DcUserLookupService;
+
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
-import org.srs.datacat.vfs.attribute.DcAclFileAttributeView;
-
-import org.srs.datacat.security.DcGroup;
-import org.srs.datacat.security.DcUserLookupService;
-import org.srs.datacat.security.DcUser;
-import org.srs.datacat.security.OwnerAclAttributes;
 
 import org.srs.vfs.AbstractFsProvider;
 import org.srs.vfs.AbstractPath;
@@ -152,7 +154,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         final ContainerDAO dao = daoFactory.newContainerDAO();
         DirectoryStream<DatacatNode> stream;
         Optional<DatasetView> view = Optional.fromNullable(viewPrefetch);
-        stream = dao.getChildrenStream(dirFile.asRecord(), view);
+        stream = dao.getChildrenStream(dirFile.getObject(), view);
 
         final Iterator<DatacatNode> iter = stream.iterator();
         final AtomicInteger dsCount = new AtomicInteger();
@@ -320,7 +322,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
          some sort of distributed consensus stuff potentially.
          */
         DcFile f = resolveFile(dcPath);
-        if((f.lastModifiedTime().toMillis() - System.currentTimeMillis()) > MAX_CACHE_TIME){
+        if((System.currentTimeMillis() - f.lastModifiedTime().toMillis()) > MAX_CACHE_TIME){
             getCache().removeFile(dcPath);
             f = resolveFile(dcPath);
         }
@@ -341,7 +343,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     public void checkAccess(Path path, AccessMode... modes) throws IOException{
         DcPath dcPath = checkPath(path);
         DcFile file = resolveFile(dcPath);
-        AclEntryPermission perm = DcPermissions.READ;
+        DcPermissions perm = DcPermissions.READ;
         if(modes.length > 0){
             if(modes[0] == AccessMode.WRITE){
                 perm = DcPermissions.WRITE;
@@ -373,36 +375,25 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     public DcFile retrieveFileAttributes(DcPath path, DcFile parent) throws IOException{
         // LOG: Checking database
         try(BaseDAO dao = daoFactory.newBaseDAO()) {
-            DatacatRecord parentRecord = parent != null ? parent.asRecord() : null;
+            DatacatRecord parentRecord = parent != null ? parent.getObject() : null;
             return buildChild(parent, path, dao.getObjectInParent(parentRecord, path.getFileName().
                     toString()));
         }
     }
 
-    private static DcFile buildChild(DcFile parent, DcPath childPath, DatacatNode child) throws IOException{
-        DcAclFileAttributeView aclView;
-        OwnerAclAttributes attr = DcPermissions.getOwnerAclAttributes(child.getAcl()).orNull();
-        if(parent == null){
-            aclView = new DcAclFileAttributeView(attr);
-        } else {
-            if(attr != null){
-                /*
-                 TODO: Come up with better strategy for global ADMIN privileges
-                 Always inherit parent ADMIN permissions for now.
-                 */
-                List<AclEntry> acl = new ArrayList<>(attr.getAcl());
-                for(AclEntry e: parent.getAttributeView(DcAclFileAttributeView.class).getAcl()){
-                    if(e.permissions().contains(DcPermissions.ADMIN)){
-                        acl.add(e);
-                    }
-                }
-                aclView = new DcAclFileAttributeView(attr.getOwner(), acl);
-            } else {
-                // Inherit parent's attributes
-                aclView = parent.getAttributeView(DcAclFileAttributeView.class);
+    private static DcFile buildChild(DcFile parent, DcPath childPath, DatacatNode child) throws IOException{        
+        List<DcAclEntry> acl = AclTransformation.parseAcl(child.getAcl()).orNull();
+        if(acl == null){
+            acl = new ArrayList<>();
+            // Inherit parent's attributes
+            for(DcAclEntry e: parent.getAcl()){
+                DcAclEntry defaultEntry = DcAclEntry.newBuilder(e)
+                        .scope(DcAclEntryScope.DEFAULT)
+                        .build();
+                acl.add(defaultEntry);
             }
         }
-        return new DcFile(childPath, child, aclView);
+        return new DcFile(childPath, child, acl);
     }
     
     /**
@@ -448,11 +439,44 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         try(DatasetDAO dao = daoFactory.newDatasetDAO(dsPath)) {
             DatasetModel ret = dao.
-                    createDataset(dsParent.asRecord(), dsName, requestDataset, requestView, dsOptions);
+                    createDataset(dsParent.getObject(), dsName, requestDataset, requestView, dsOptions);
             dao.commit();
             dsParent.childAdded(dsPath, FileType.FILE);
             return ret;
         }
+    }
+    
+    /**
+     * Patch ACLs.
+     *
+     * @param path
+     * @param request
+     * @param clear Flag to overwrite access-scoped entries and ignore default-scoped entries
+     * @return
+     * @throws IOException
+     */
+    public DcFile mergeContainerAclEntries(Path path, List<DcAclEntry> request, boolean clear) throws IOException{
+        DcPath dcPath = checkPath(path);
+        DcFile f = getFile(dcPath);
+        try {
+            checkPermission(dcPath.getUserName(), f, DcPermissions.ADMIN);
+        } catch (AccessDeniedException ex){
+            // If there is admin entries on the root folder, allow those through as well.
+            checkPermission(dcPath.getUserName(), getFile(dcPath.getName(0)), DcPermissions.ADMIN);
+        }
+
+        if(f.getType() != FileType.DIRECTORY){ // Use the constant instead of instanceof
+            AfsException.NO_SUCH_FILE.throwError(f, "Unable to set ACLs on dataset");
+        }
+        List<DcAclEntry> existing = clear ? Collections.<DcAclEntry>emptyList() : f.getAcl();
+        List<DcAclEntry> newAcl = AclTransformation.mergeAclEntries(existing, request);
+        
+        try(BaseDAO dao = daoFactory.newBaseDAO()) {    
+            dao.setAcl(f.getObject(), AclTransformation.aclToString(newAcl));
+            dao.commit();
+        }
+        getCache().removeFile(dcPath);
+        return getFile(dcPath);
     }
     
     /**
@@ -519,7 +543,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     public DatasetViewInfoModel getDatasetViewInfo(DcFile file, 
             DatasetView view) throws IOException, NoSuchFileException{
         try(DatasetDAO dsdao = daoFactory.newDatasetDAO()) {
-            DatasetViewInfoModel ret = dsdao.getDatasetViewInfo(file.asRecord(), view);
+            DatasetViewInfoModel ret = dsdao.getDatasetViewInfo(file.getObject(), view);
             if(ret == null){
                 String msg = String.format("Invalid View. Version %d not found", view.getVersionId());
                 throw new NoSuchFileException(msg);
@@ -553,7 +577,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         DatacatNode request = dsAttr.value();
         try(ContainerDAO dao = daoFactory.newContainerDAO(targetDir)){
             String fileName = targetDir.getFileName().toString();
-            DatacatNode ret = dao.createNode(parent.asRecord(), fileName, request);
+            DatacatNode ret = dao.createNode(parent.getObject(), fileName, request);
             dao.commit();
             parent.childAdded(targetDir, FileType.DIRECTORY);
             DcFile f = buildChild(parent, targetDir, ret);
@@ -581,7 +605,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         try(BaseDAO dao = daoFactory.newBaseDAO()) {
             DcFile file = resolveFile(dcPath);
             checkPermission(dcPath.getUserName(), file, DcPermissions.DELETE);
-            dao.delete(file.asRecord());
+            dao.delete(file.getObject());
             dao.commit();
         }
         DcFile parentFile = resolveFile(dcPath.getParent());
@@ -589,12 +613,12 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         parentFile.childRemoved(dcPath);
     }
 
-    public void checkPermission(String userName, DcFile file, AclEntryPermission permission) throws IOException{
+    public void checkPermission(String userName, DcFile file, DcPermissions permission) throws IOException{
         DcUser user = fileSystem.getUserPrincipalLookupService().lookupPrincipalByName(userName);
         Set<DcGroup> usersGroups = fileSystem.getUserPrincipalLookupService().lookupGroupsForUser(user);
-        DcAclFileAttributeView aclView = file.getAttributeView(DcAclFileAttributeView.class);
+        List<DcAclEntry> acl = file.getAcl();
 
-        if(!permissionsCheck(usersGroups, aclView.getAcl(), permission)){
+        if(!permissionsCheck(usersGroups, acl, permission)){
             String err = String.format("No Access Control Entries Found: User %s", user.getName());
             AfsException.ACCESS_DENIED.throwError(file.getPath(), err);
         }
@@ -608,11 +632,10 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
      * @param permission The permission requested
      * @return
      */
-    private boolean permissionsCheck(Set<DcGroup> usersGroups, List<AclEntry> acl,
-            AclEntryPermission permission){
-        for(AclEntry entry: acl){
-            if(usersGroups.contains((DcGroup) entry.principal())){
-                if(entry.permissions().contains(permission)){
+    private boolean permissionsCheck(Set<DcGroup> usersGroups, List<DcAclEntry> acl, DcPermissions permission){
+        for(DcAclEntry entry: acl){
+            if(usersGroups.contains((DcGroup) entry.getSubject())){
+                if(entry.getPermissions().contains(permission)){
                     return true;
                 }
             }
