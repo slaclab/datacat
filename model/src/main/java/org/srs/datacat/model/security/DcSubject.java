@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
 import java.nio.file.attribute.UserPrincipal;
+import java.util.Objects;
 
 /**
  *
@@ -30,6 +31,48 @@ public abstract class DcSubject implements  UserPrincipal, Comparable<DcSubject>
             .compare(thisProject, thatProject, Ordering.natural().nullsFirst())
             .compare(getName(), o.getName(), Ordering.natural().nullsFirst())
             .result();    
+    }
+    
+    public static Builder newBuilder(){
+        return new Builder();
+    }
+    
+    /**
+     * Entry Builder.
+     */
+    public static class Builder {
+        
+        private String name;
+        private String project;
+        private String type;
+        
+        private Builder(){ }
+
+        public Builder name(String val){
+            this.name = val;
+            return this;
+        }
+
+        public Builder domain(String val){
+            this.project = val;
+            return this;
+        }
+
+        public Builder type(String val){
+            this.type = val;
+            return this;
+        }
+        
+        public DcSubject build(){
+            Objects.requireNonNull(this.name, "Need a non-null name");
+            if(this.project != null || "g".equals(this.type)){
+                return new DcGroup(this.name, this.project);
+            }
+            if(DcGroup.PROTECTED_NAME.equals(name) || DcGroup.PUBLIC_NAME.equals(name)){
+                return new DcGroup(name, null);
+            }
+            return new DcUser(name);
+        }
     }
 
 }

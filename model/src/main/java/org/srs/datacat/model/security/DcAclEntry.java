@@ -144,7 +144,6 @@ public final class DcAclEntry {
     public static Builder newBuilder(DcAclEntry entry){
         return new Builder(entry.who, entry.perms);
     }
-    
 
     @Override
     public String toString(){
