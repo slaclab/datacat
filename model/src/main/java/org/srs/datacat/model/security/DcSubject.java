@@ -40,7 +40,7 @@ public abstract class DcSubject implements  UserPrincipal, Comparable<DcSubject>
     /**
      * Entry Builder.
      */
-    public static class Builder {
+    public static final class Builder {
         
         private String name;
         private String project;
