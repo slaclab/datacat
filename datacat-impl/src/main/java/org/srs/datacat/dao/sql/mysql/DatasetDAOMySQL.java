@@ -650,108 +650,116 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
             IllegalArgumentException, InvocationTargetException, IOException{
 
         if(dsReq.isPresent()){
-            DatasetModel m = dsReq.get();
-            for(Method method: m.getClass().getMethods()){
-                if(method.isAnnotationPresent(Patchable.class)){
-                    Object patchedValue = method.invoke(m);
-                    if(patchedValue == null){
-                        continue;
-                    }
-                    if(patchedValue instanceof Map && ((Map) patchedValue).isEmpty()){
-                        continue;
-                    }
-                    
-                    String methodName = method.getName();
-                    String sql;
-                    switch(methodName){
-                        case "getAcl":
-                            sql = "UPDATE VerDataset SET ACL=? WHERE Dataset = ?";
-                            break;
-                        default:
-                            throw new IOException("No Implementation to patch field " + methodName);
-                    }
-                    try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
-                        stmt.setObject(1, patchedValue);
-                        stmt.setLong(2, dataset.getPk());
-                        stmt.executeUpdate();
-                    }
-                }
-            }
+            patchDataset(dataset, dsReq.get());
         }
 
         if(viewInfo.isPresent()){
             DatasetViewInfoModel requestView = viewInfo.get();
-            System.out.println(view.toString());
             DatasetViewInfo currentView = getDatasetViewInfo(dataset, view);
-
-            DatasetVersionModel currentVersion;
-            DatasetLocationModel currentLocation;
             if(requestView.versionOpt().isPresent()){
-                currentVersion = currentView.getVersion();
-                DatasetVersionModel requestVersion = requestView.getVersion();
-                for(Method method: currentVersion.getClass().getMethods()){
-                    if(method.isAnnotationPresent(Patchable.class)){
-                        Object patchedValue = method.invoke(requestVersion);
-                        if(patchedValue == null){
-                            continue;
-                        }
-                        if(patchedValue instanceof Map && ((Map) patchedValue).isEmpty()){
-                            continue;
-                        }
-                        
-                        String methodName = method.getName();
-                        if("getMetadataMap".equals(methodName)){
-                            mergeDatasetVersionMetadata(currentVersion.getPk(), (Map) patchedValue);
-                            continue;
-                        }
-                        
-                        String baseSql = "UPDATE DatasetVersion SET %s=? WHERE DatasetVersion = ?";
-                        Patchable p = method.getAnnotation(Patchable.class);
-                        String sql = String.format(baseSql, p.column());
-                        
-                        try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
-                            stmt.setObject(1, patchedValue);
-                            stmt.setLong(2, currentVersion.getPk());
-                            stmt.executeUpdate();
-                        }
-                    }
-                }
+                patchDatasetVersion(currentView.getVersion(), requestView.getVersion());
             }
-
             if(requestView.locationsOpt().isPresent()){
                 if(!currentView.versionOpt().isPresent()){
                     throw new IOException("Unable to patch a non-existent version. Create a version first.");
                 }
-                currentLocation = currentView.singularLocationOpt().get();
-                DatasetLocationModel requestLocation = requestView.singularLocationOpt().get();
-                for(Method method: currentLocation.getClass().getMethods()){
-                    if(method.isAnnotationPresent(Patchable.class)){
-                        Object patchedValue = method.invoke(requestLocation);
-                        if(patchedValue == null){
-                            continue;
-                        }
-                        if(patchedValue instanceof Map && ((Map) patchedValue).isEmpty()){
-                            continue;
-                        }
-                        
-                        String methodName = method.getName();
-                        if("getMetadataMap".equals(methodName)){
-                            throw new IOException("Metadata on DatasetLocation not patchable");
-                        }
-                        String baseSql = "UPDATE VerDatasetLocation SET %s=? WHERE DatasetLocation = ?";
-                        Patchable p = method.getAnnotation(Patchable.class);
-                        String sql = String.format(baseSql, p.column());
-                        if("checksum".equalsIgnoreCase(p.column())){
-                            patchedValue = new BigInteger(patchedValue.toString(), 16);
-                        }
-                        try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
-                            stmt.setObject(1, patchedValue);
-                            stmt.setLong(2, currentLocation.getPk());
-                            stmt.executeUpdate();
-                        }
-
-                    }
+                patchDatasetLocation(currentView.singularLocationOpt().get(),
+                        requestView.singularLocationOpt().get());
+            }
+        }
+    }
+    
+    private void patchDataset(DatacatRecord existing, DatasetModel patch) throws SQLException, 
+            IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException {
+             
+        for(Method method: patch.getClass().getMethods()){
+            if(method.isAnnotationPresent(Patchable.class)){
+                Object patchedValue = method.invoke(patch);
+                if(patchedValue == null){
+                    continue;
                 }
+                if(patchedValue instanceof Map && ((Map) patchedValue).isEmpty()){
+                    continue;
+                }
+
+                String methodName = method.getName();
+                String sql;
+                switch(methodName){
+                    case "getAcl":
+                        sql = "UPDATE VerDataset SET ACL=? WHERE Dataset = ?";
+                        break;
+                    default:
+                        throw new IOException("No Implementation to patch field " + methodName);
+                }
+                try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
+                    stmt.setObject(1, patchedValue);
+                    stmt.setLong(2, existing.getPk());
+                    stmt.executeUpdate();
+                }
+            }
+        }
+    }
+    
+    private void patchDatasetVersion(DatacatRecord existing, DatasetVersionModel patch) throws SQLException, 
+            IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException {
+        for(Method method: existing.getClass().getMethods()){
+            if(method.isAnnotationPresent(Patchable.class)){
+                Object patchedValue = method.invoke(patch);
+                if(patchedValue == null){
+                    continue;
+                }
+                if(patchedValue instanceof Map && ((Map) patchedValue).isEmpty()){
+                    continue;
+                }
+
+                String methodName = method.getName();
+                if("getMetadataMap".equals(methodName)){
+                    mergeDatasetVersionMetadata(existing.getPk(), (Map) patchedValue);
+                    continue;
+                }
+
+                String baseSql = "UPDATE DatasetVersion SET %s=? WHERE DatasetVersion = ?";
+                Patchable p = method.getAnnotation(Patchable.class);
+                String sql = String.format(baseSql, p.column());
+
+                try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
+                    stmt.setObject(1, patchedValue);
+                    stmt.setLong(2, existing.getPk());
+                    stmt.executeUpdate();
+                }
+            }
+        }
+    }
+    
+    private void patchDatasetLocation(DatacatRecord existing, DatasetLocationModel patch) throws SQLException, 
+            IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException {
+
+        for(Method method: existing.getClass().getMethods()){
+            if(method.isAnnotationPresent(Patchable.class)){
+                Object patchedValue = method.invoke(patch);
+                if(patchedValue == null){
+                    continue;
+                }
+                if(patchedValue instanceof Map && ((Map) patchedValue).isEmpty()){
+                    continue;
+                }
+
+                String methodName = method.getName();
+                if("getMetadataMap".equals(methodName)){
+                    throw new IOException("Metadata on DatasetLocation not patchable");
+                }
+                String baseSql = "UPDATE VerDatasetLocation SET %s=? WHERE DatasetLocation = ?";
+                Patchable p = method.getAnnotation(Patchable.class);
+                String sql = String.format(baseSql, p.column());
+                if("checksum".equalsIgnoreCase(p.column())){
+                    patchedValue = new BigInteger(patchedValue.toString(), 16);
+                }
+                try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
+                    stmt.setObject(1, patchedValue);
+                    stmt.setLong(2, existing.getPk());
+                    stmt.executeUpdate();
+                }
+
             }
         }
     }
