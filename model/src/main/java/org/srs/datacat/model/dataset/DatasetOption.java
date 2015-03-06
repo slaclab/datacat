@@ -14,6 +14,7 @@ public enum DatasetOption {
     CREATE_NODE,
     CREATE_VERSION,
     CREATE_LOCATIONS,
+    MERGE_NODE,
     MERGE_VERSION,
     // These are for optimizations
     SKIP_NODE_CHECK,
