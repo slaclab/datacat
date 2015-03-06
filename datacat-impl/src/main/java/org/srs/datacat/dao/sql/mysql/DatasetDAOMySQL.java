@@ -79,12 +79,17 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         
         if(dsReq.isPresent()){
             if(target != null){
-                String pathString = PathUtils.resolve( parent.getPath(), dsName);
-                DATASET_EXISTS.throwError(pathString, "A dataset node already exists at this location");
+                if(!dsOptions.remove(DatasetOption.MERGE_NODE)){
+                    String pathString = PathUtils.resolve( parent.getPath(), dsName);
+                    DATASET_EXISTS.throwError(pathString, "A dataset node already exists at this location");
+                }
+                patchDataset(target, dsReq.get());
+                target = getObjectInParent(parent, dsName);
+            } else {
+                target = createNode(parent, dsName, (Dataset) dsReq.get());
+                // If we added a node, skip version check
+                dsOptions.add(DatasetOption.SKIP_VERSION_CHECK); 
             }
-            target = createNode(parent, dsName, (Dataset) dsReq.get());
-            // If we added a node, skip version check
-            dsOptions.add(DatasetOption.SKIP_VERSION_CHECK); 
         }
 
         if(target == null || !(target instanceof Dataset)){
@@ -108,7 +113,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         }
         return builder.build();
     }
-    
+        
     public void deleteDataset(DatacatRecord dataset) throws IOException {
         try {
             String deleteSql = "delete from VerDataset where Dataset=?";
@@ -634,20 +639,13 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
     
     @Override
     public void patchDataset(DatacatRecord dataset, DatasetView view, Optional<DatasetModel> dsReq,
-            Optional<DatasetViewInfoModel> viewInfo) throws IOException{
-        try {
-            patchDatasetInternal(dataset, view, dsReq, viewInfo);
-        } catch (SQLException ex){
-            throw new IOException("Unable to perform patch", ex);
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex){
-            throw new IOException("FATAL error in defined model", ex);
-        }
+            Optional<DatasetViewInfoModel> viewInfo) throws IOException {
+        patchDatasetInternal(dataset, view, dsReq, viewInfo);
     }
     
     protected void patchDatasetInternal(DatacatRecord dataset, DatasetView view,
             Optional<DatasetModel> dsReq,
-            Optional<DatasetViewInfoModel> viewInfo) throws SQLException, IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException, IOException{
+            Optional<DatasetViewInfoModel> viewInfo) throws IOException {
 
         if(dsReq.isPresent()){
             patchDataset(dataset, dsReq.get());
@@ -669,98 +667,111 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         }
     }
     
-    private void patchDataset(DatacatRecord existing, DatasetModel patch) throws SQLException, 
-            IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException {
-             
-        for(Method method: patch.getClass().getMethods()){
-            if(method.isAnnotationPresent(Patchable.class)){
-                Object patchedValue = method.invoke(patch);
-                if(patchedValue == null){
-                    continue;
-                }
-                if(patchedValue instanceof Map && ((Map) patchedValue).isEmpty()){
-                    continue;
-                }
+    private void patchDataset(DatacatRecord existing, DatasetModel patch) throws IOException {
+        try {
+            for(Method method: patch.getClass().getMethods()){
+                if(method.isAnnotationPresent(Patchable.class)){
+                    Object patchedValue = method.invoke(patch);
+                    if(patchedValue == null){
+                        continue;
+                    }
+                    if(patchedValue instanceof Map && ((Map) patchedValue).isEmpty()){
+                        continue;
+                    }
 
-                String methodName = method.getName();
-                String sql;
-                switch(methodName){
-                    case "getAcl":
-                        sql = "UPDATE VerDataset SET ACL=? WHERE Dataset = ?";
-                        break;
-                    default:
-                        throw new IOException("No Implementation to patch field " + methodName);
-                }
-                try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
-                    stmt.setObject(1, patchedValue);
-                    stmt.setLong(2, existing.getPk());
-                    stmt.executeUpdate();
+                    String methodName = method.getName();
+                    String sql;
+                    switch(methodName){
+                        case "getAcl":
+                            sql = "UPDATE VerDataset SET ACL=? WHERE Dataset = ?";
+                            break;
+                        default:
+                            throw new IOException("No Implementation to patch field " + methodName);
+                    }
+                    try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
+                        stmt.setObject(1, patchedValue);
+                        stmt.setLong(2, existing.getPk());
+                        stmt.executeUpdate();
+                    }
                 }
             }
+        } catch (SQLException ex){
+            throw new IOException("Unable to perform patch", ex);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex){
+            throw new IOException("FATAL error in defined model", ex);
         }
     }
     
-    private void patchDatasetVersion(DatacatRecord existing, DatasetVersionModel patch) throws SQLException, 
-            IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException {
-        for(Method method: existing.getClass().getMethods()){
-            if(method.isAnnotationPresent(Patchable.class)){
-                Object patchedValue = method.invoke(patch);
-                if(patchedValue == null){
-                    continue;
-                }
-                if(patchedValue instanceof Map && ((Map) patchedValue).isEmpty()){
-                    continue;
-                }
+    private void patchDatasetVersion(DatacatRecord existing, DatasetVersionModel patch) throws IOException {
+        try {
+            for(Method method: existing.getClass().getMethods()){
+                if(method.isAnnotationPresent(Patchable.class)){
+                    Object patchedValue = method.invoke(patch);
+                    if(patchedValue == null){
+                        continue;
+                    }
+                    if(patchedValue instanceof Map && ((Map) patchedValue).isEmpty()){
+                        continue;
+                    }
 
-                String methodName = method.getName();
-                if("getMetadataMap".equals(methodName)){
-                    mergeDatasetVersionMetadata(existing.getPk(), (Map) patchedValue);
-                    continue;
-                }
+                    String methodName = method.getName();
+                    if("getMetadataMap".equals(methodName)){
+                        mergeDatasetVersionMetadata(existing.getPk(), (Map) patchedValue);
+                        continue;
+                    }
 
-                String baseSql = "UPDATE DatasetVersion SET %s=? WHERE DatasetVersion = ?";
-                Patchable p = method.getAnnotation(Patchable.class);
-                String sql = String.format(baseSql, p.column());
+                    String baseSql = "UPDATE DatasetVersion SET %s=? WHERE DatasetVersion = ?";
+                    Patchable p = method.getAnnotation(Patchable.class);
+                    String sql = String.format(baseSql, p.column());
 
-                try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
-                    stmt.setObject(1, patchedValue);
-                    stmt.setLong(2, existing.getPk());
-                    stmt.executeUpdate();
+                    try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
+                        stmt.setObject(1, patchedValue);
+                        stmt.setLong(2, existing.getPk());
+                        stmt.executeUpdate();
+                    }
                 }
             }
+        } catch (SQLException ex){
+            throw new IOException("Unable to perform patch", ex);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex){
+            throw new IOException("FATAL error in defined model", ex);
         }
     }
     
-    private void patchDatasetLocation(DatacatRecord existing, DatasetLocationModel patch) throws SQLException, 
-            IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException {
+    private void patchDatasetLocation(DatacatRecord existing, DatasetLocationModel patch) throws IOException {
+        try {
+            for(Method method: existing.getClass().getMethods()){
+                if(method.isAnnotationPresent(Patchable.class)){
+                    Object patchedValue = method.invoke(patch);
+                    if(patchedValue == null){
+                        continue;
+                    }
+                    if(patchedValue instanceof Map && ((Map) patchedValue).isEmpty()){
+                        continue;
+                    }
 
-        for(Method method: existing.getClass().getMethods()){
-            if(method.isAnnotationPresent(Patchable.class)){
-                Object patchedValue = method.invoke(patch);
-                if(patchedValue == null){
-                    continue;
-                }
-                if(patchedValue instanceof Map && ((Map) patchedValue).isEmpty()){
-                    continue;
-                }
+                    String methodName = method.getName();
+                    if("getMetadataMap".equals(methodName)){
+                        throw new IOException("Metadata on DatasetLocation not patchable");
+                    }
+                    String baseSql = "UPDATE VerDatasetLocation SET %s=? WHERE DatasetLocation = ?";
+                    Patchable p = method.getAnnotation(Patchable.class);
+                    String sql = String.format(baseSql, p.column());
+                    if("checksum".equalsIgnoreCase(p.column())){
+                        patchedValue = new BigInteger(patchedValue.toString(), 16);
+                    }
+                    try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
+                        stmt.setObject(1, patchedValue);
+                        stmt.setLong(2, existing.getPk());
+                        stmt.executeUpdate();
+                    }
 
-                String methodName = method.getName();
-                if("getMetadataMap".equals(methodName)){
-                    throw new IOException("Metadata on DatasetLocation not patchable");
                 }
-                String baseSql = "UPDATE VerDatasetLocation SET %s=? WHERE DatasetLocation = ?";
-                Patchable p = method.getAnnotation(Patchable.class);
-                String sql = String.format(baseSql, p.column());
-                if("checksum".equalsIgnoreCase(p.column())){
-                    patchedValue = new BigInteger(patchedValue.toString(), 16);
-                }
-                try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
-                    stmt.setObject(1, patchedValue);
-                    stmt.setLong(2, existing.getPk());
-                    stmt.executeUpdate();
-                }
-
             }
+        } catch (SQLException ex){
+            throw new IOException("Unable to perform patch", ex);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex){
+            throw new IOException("FATAL error in defined model", ex);
         }
     }
     
