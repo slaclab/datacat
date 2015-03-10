@@ -55,7 +55,18 @@ public class DatasetSearch {
         this.conn = conn;
     }
     
-    public void compile(LinkedList<DatacatRecord> containers, DatasetView datasetView, 
+    public List<DatasetModel> search(LinkedList<DatacatRecord> containers, DatasetView datasetView, 
+            String query, String[] metaFieldsToRetrieve, String[] sortFields, 
+            int offset, int max) throws ParseException, IOException {
+        try {
+            compileStatement(containers, datasetView, query, metaFieldsToRetrieve, sortFields, offset, max);
+            return retrieveDatasets();
+        } catch (SQLException ex) {
+            throw new IOException("Error retrieving results", ex);
+        }
+    }
+    
+    protected void compile(LinkedList<DatacatRecord> containers, DatasetView datasetView, 
             String queryString, String[] metaFieldsToRetrieve, String[] sortFields, 
             int offset, int max) throws ParseException, IOException {
         try {
@@ -66,11 +77,7 @@ public class DatasetSearch {
         }
     }
     
-    public void close(){
-        
-    }
-    
-    public List<DatasetModel> retrieveDatasets() throws IOException {
+    protected List<DatasetModel> retrieveDatasets() throws IOException {
         try {
             return SearchUtils.getResults(conn, selectStatement, datasetView, metadataFields,
                     this.offset, this.max);
