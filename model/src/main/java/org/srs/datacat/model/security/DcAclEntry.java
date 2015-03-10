@@ -90,6 +90,7 @@ public final class DcAclEntry {
         }
 
         public DcAclEntry build(){
+            scope = scope == null ? DcAclEntryScope.ACCESS : scope;
             return new DcAclEntry(scope, who, perms);
         }
 
