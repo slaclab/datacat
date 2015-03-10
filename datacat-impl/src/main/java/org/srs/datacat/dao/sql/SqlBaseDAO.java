@@ -626,14 +626,13 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
     private void setAclInternal(DatacatRecord record, String acl) throws SQLException {
         String sql = "UPDATE %s SET ACL = ? WHERE %s = ?";
         String tableType = "DatasetLogicalFolder";
-        String column = "LogicalFolder";
         if(record instanceof DatasetGroup.Builder){
             tableType = "DatasetGroup";
-            column = "DatasetGroup";
         }
-        sql = String.format(sql, tableType, column);
+        sql = String.format(sql, tableType, tableType);
         try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
             stmt.setString(1, acl);
+            stmt.setLong(2, record.getPk());
             stmt.executeUpdate();
         }
     }
