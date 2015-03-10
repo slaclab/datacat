@@ -619,7 +619,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         List<DcAclEntry> acl = file.getAcl();
 
         if(!permissionsCheck(usersGroups, acl, permission)){
-            String err = String.format("No Access Control Entries Found: User %s", user.getName());
+            String err = String.format("No permission entries for %s found", permission);
             AfsException.ACCESS_DENIED.throwError(file.getPath(), err);
         }
     }
