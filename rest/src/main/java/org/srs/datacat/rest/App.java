@@ -122,7 +122,7 @@ public class App extends ResourceConfig {
         register( ListPlainTextProvider.class );
         register( ErrorResponse.ErrorTextProvider.class );
         register( DatacatObjectTextProvider.class );
-                
+        register( JacksonExceptionMapper.class );
         try {
             initPlugins();
         } catch(IOException ex) {
