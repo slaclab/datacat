@@ -282,7 +282,7 @@ public class DcFileSystemProviderTest {
             newAcl = new ArrayList<>();
             entry = DcAclEntry.newBuilder()
                 .subject(DcGroup.PUBLIC_GROUP)
-                .permissions("rw")
+                .permissions("rwd")
                 .scope(DcAclEntryScope.DEFAULT)
                 .build();
 
