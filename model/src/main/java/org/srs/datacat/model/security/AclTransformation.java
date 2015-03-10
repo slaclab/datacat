@@ -66,24 +66,27 @@ public final class AclTransformation {
     
     public static DcAclEntry parseAclEntry(String aclEntryString){
         String[] ace = aclEntryString.split(":");
-        String principal = ace[0];
+        String subjectString = ace[0];
         String entryType = ace[1];
-
-        String[] uprinWithExp = principal.split("@");
-        String principalName = uprinWithExp[0];
-        String principalProject = uprinWithExp.length > 1 ? uprinWithExp[1] : null;
         
         // TODO: Support user principals as well
         if(!"g".equals(entryType)){
             throw new IllegalArgumentException("Illegal principal type:" + entryType);
         }
         
-        DcGroup up = new DcGroup(principalName, principalProject);
+        String[] uprinWithExp = subjectString.split("@");
+        String subjectName = uprinWithExp[0];
+        String subjectDomain = uprinWithExp.length > 1 ? uprinWithExp[1] : null;
+        
+        DcSubject subject = DcSubject.newBuilder()
+                .name(subjectName)
+                .domain(subjectDomain)
+                .type(entryType).build();
         
         String permissions = ace[2];
         Set<DcPermissions> perms = DcPermissions.unpackString(permissions);
         return DcAclEntry.newBuilder()
-                .subject(up)
+                .subject(subject)
                 .permissions(perms)
                 .scope(ACCESS)
                 .build();
