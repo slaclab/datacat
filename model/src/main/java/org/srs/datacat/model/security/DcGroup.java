@@ -33,7 +33,8 @@ public class DcGroup extends DcSubject implements GroupPrincipal {
 
     @Override
     public int hashCode(){
-        return toString().hashCode();
+        String hstr = (getName() != null ? getName() : "") + "@" + (project != null ? project : "");
+        return hstr.hashCode();
     }
 
     @Override
@@ -41,7 +42,8 @@ public class DcGroup extends DcSubject implements GroupPrincipal {
         if(obj == null){
             return false;
         }
-        if(getClass() != obj.getClass()){
+        if(!getClass().isAssignableFrom(obj.getClass()) &&
+                !obj.getClass().isAssignableFrom(getClass())){
             return false;
         }
         final DcGroup other = (DcGroup) obj;
