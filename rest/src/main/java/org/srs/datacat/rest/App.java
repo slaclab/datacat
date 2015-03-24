@@ -111,6 +111,10 @@ public class App extends ResourceConfig {
     public App(){
         this(initDatasource("jdbc/datacat-prod"), new GroupManagerLookupService());
     }
+    
+    public App(DcUserLookupService lookupService){
+        this(initDatasource("jdbc/datacat-prod"), lookupService);
+    }
         
     public App(DataSource dataSource, DcUserLookupService lookupService){
         super();
