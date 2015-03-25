@@ -23,6 +23,7 @@ class HMACAuthBase(requests.auth.AuthBase):
         if not 'date' in r.headers:
             r.headers['date'] = formatdate(timeval=None, localtime=False, usegmt=True)
         r.headers[self.header_name] = self.sig_fmt.format(self.key_id, self.get_signature(r))
+        return r
 
     def get_signature(self, r):
         canonical_string = self.get_canonical_string(r.url, r.headers, r.method)
@@ -37,13 +38,13 @@ class HMACAuthBase(requests.auth.AuthBase):
             d_headers[lk] = headers[key]
         # hacky way of doing this...
         if self.resource_base_url:
-            rpath = parsedurl.path.replace(self.resource_base_url,"")
+            rpath = parsedurl.path.replace(urlparse(self.resource_base_url).path,"")
         else:
             rpath = "/" + "".join(parsedurl.path.split("/r/")[1:])
         content_md5 = d_headers['content-md5'] if 'content-md5' in d_headers else ""
         content_type = d_headers['content-type'] if 'content-type' in d_headers else ""
         date = d_headers['date']
-        hash_buf = "%s\n%s\n%s\n%s\n%s\n" %(method,rpath,content_md5, content_type, date)
+        hash_buf = "%s\n%s\n%s\n%s\n%s\n" %(method, rpath, content_md5, content_type, date)
         return hash_buf
 
 
