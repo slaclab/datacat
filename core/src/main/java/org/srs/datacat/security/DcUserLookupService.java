@@ -29,7 +29,7 @@ public class DcUserLookupService extends UserPrincipalLookupService {
         throw new UnsupportedOperationException("Querying groups not supported");
     }
     
-    public Set<DcGroup> lookupGroupsForUser(DcUser member){
+    public Set<DcGroup> lookupGroupsForUser(DcUser member) throws IOException{
         return new HashSet<>(Arrays.asList(DcGroup.PUBLIC_GROUP));
     }
     

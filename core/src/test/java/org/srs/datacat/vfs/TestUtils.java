@@ -84,7 +84,7 @@ public class TestUtils {
 
 
             @Override
-            public Set<DcGroup> lookupGroupsForUser(DcUser member){
+            public Set<DcGroup> lookupGroupsForUser(DcUser member) throws IOException {
                 Set<DcGroup> ug = new HashSet<>(super.lookupGroupsForUser( member ));
                 if(member != null && member.getName().equals( "test_user")){
                     ug.add( new DcGroup("test_group","SRS"));

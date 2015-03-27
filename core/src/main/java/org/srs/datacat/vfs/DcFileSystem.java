@@ -13,6 +13,7 @@ import org.srs.datacat.security.DcUserLookupService;
 public class DcFileSystem extends AbstractFs<DcPath> {
         
     private final DcUserLookupService lookupService;
+    private final DcFileSystemProvider provider;
     private final PathProvider<DcPath> pathProvider = new PathProvider<DcPath>(){
 
         @Override
@@ -33,6 +34,7 @@ public class DcFileSystem extends AbstractFs<DcPath> {
 
     public DcFileSystem(DcFileSystemProvider provider, DcUserLookupService lookupService){
         super(provider);
+        this.provider = provider;
         this.lookupService = lookupService;
     }
 
@@ -46,9 +48,8 @@ public class DcFileSystem extends AbstractFs<DcPath> {
         return lookupService;
     }
 
-    @Override
-    public DcFileSystemProvider provider(){
-        return (DcFileSystemProvider) super.provider();
+    public DcFileSystemProvider getProvider(){
+        return provider;
     }
 
 }

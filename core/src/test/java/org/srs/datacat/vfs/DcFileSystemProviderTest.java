@@ -115,18 +115,17 @@ public class DcFileSystemProviderTest {
         return next;
     }
     
-    @Before
-    public void setUp() throws IOException, SQLException{
+    @Test
+    public void testCacheStream() throws IOException{
         URI uri = DcUriUtils.toFsUri( "/", (DcUser) null, "SRS");
         DcPath rootPath = provider.getPath( uri );
-        try(DirectoryStream<Path> s = provider.newDirectoryStream( rootPath )){
+        try(DirectoryStream<DcPath> s = provider.newDirectoryStream( rootPath )){
             for(Path p: s){
                 // Do nothing
             }
         }
-        
+
         DatacatRecord o = provider.resolveFile(rootPath.resolve("testpath")).getAttributeView(DcFile.class).getObject();
-        
         long t0 = System.currentTimeMillis();
         try(DirectoryStream<? extends AbstractPath> cstream = provider.unCachedDirectoryStream( rootPath.resolve("testpath") )){
             for(Iterator<? extends AbstractPath> iter = cstream.iterator(); iter.hasNext();){
@@ -137,13 +136,12 @@ public class DcFileSystemProviderTest {
         
         t0 = System.currentTimeMillis();
         for(int i = 0; i <100; i++){
-            try(DirectoryStream<Path> cstream = provider.newDirectoryStream( rootPath.resolve("testpath") )){
-                for(Iterator<Path> iter = cstream.iterator(); iter.hasNext();){
+            try(DirectoryStream<DcPath> cstream = provider.newDirectoryStream( rootPath.resolve("testpath") )){
+                for(Iterator<DcPath> iter = cstream.iterator(); iter.hasNext();){
                     iter.next();
                 }
             }   
         }
-        
         System.out.println("100 cached directory streams took:" + (System.currentTimeMillis() - t0));
         
         Files.walkFileTree( rootPath.resolve("testpath"), new SimpleFileVisitor<Path>() {

@@ -6,10 +6,10 @@ import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.DatasetModel;
-import org.srs.datacat.model.dataset.DatasetVersionModel;
 import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.dataset.DatasetLocationModel;
+import org.srs.datacat.model.dataset.DatasetVersionModel;
 import org.srs.datacat.model.dataset.DatasetViewInfoModel;
 import org.srs.datacat.model.dataset.DatasetWithViewModel;
 import org.srs.datacat.vfs.DcFile;
@@ -28,7 +28,7 @@ public class DatasetViewProvider implements DcViewProvider<DatasetView> {
     
     public DatasetViewProvider(DcFile file, DatasetModel object){
         this.file = file;
-        this.provider = file.getPath().getFileSystem().provider();
+        this.provider = file.getPath().getFileSystem().getProvider();
         if(object instanceof DatasetWithViewModel){
             DatasetWithViewModel objectWithView = ((DatasetWithViewModel) object);
             if(objectWithView.getViewInfo().locationsOpt().isPresent()){

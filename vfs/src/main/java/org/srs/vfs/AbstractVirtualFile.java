@@ -28,7 +28,6 @@ public abstract class AbstractVirtualFile<P extends AbstractPath, F> implements 
     {
         attrNames.put( BasicFileAttributeView.class, "basic");
         attrNames.put( AclFileAttributeView.class, "acl");
-        attrNames.put( ChildrenView.class, "children");
     }
     
     public AbstractVirtualFile(P path, FileType type){

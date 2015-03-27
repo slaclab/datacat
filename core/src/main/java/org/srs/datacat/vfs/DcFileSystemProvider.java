@@ -55,13 +55,16 @@ import org.srs.datacat.model.security.DcUser;
 import org.srs.datacat.model.security.AclTransformation;
 import org.srs.datacat.security.DcUserLookupService;
 
+import org.srs.datacat.vfs.attribute.ChildrenView;
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 
 import org.srs.vfs.AbstractFsProvider;
 import org.srs.vfs.AbstractPath;
-import org.srs.vfs.ChildrenView;
+import org.srs.vfs.AbstractFsProvider.AfsException;
 import org.srs.vfs.FileType;
+import org.srs.vfs.VfsCache;
+import org.srs.vfs.VfsSoftCache;
 
 /**
  *
@@ -78,6 +81,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     private final DcFileSystem fileSystem;
     private final DAOFactory daoFactory;
     private final ModelProvider modelProvider;
+    private final VfsCache<DcFile> cache = new VfsSoftCache<>();
     
     public DcFileSystemProvider(DAOFactory daoFactory, 
             ModelProvider modelProvider, DcUserLookupService userLookupService) throws IOException{
@@ -99,14 +103,49 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     public ModelProvider getModelProvider(){
         return modelProvider;
     }
-
+    
+    public static final DirectoryStream.Filter<Path> ACCEPT_ALL_FILTER
+        = new DirectoryStream.Filter<Path>() {
+            @Override
+            public boolean accept(Path entry) throws IOException{
+                return true;
+            }
+        };
+    
+    
     @Override
-    public DirectoryStream<Path> newDirectoryStream(Path dir,
+    public VfsCache<DcFile> getCache(){
+        return cache;
+    }
+    
+    @Override
+    public DcFile resolveFile(DcPath path) throws NoSuchFileException, IOException {
+        // Find this file in the cache. If it's not in the cache, resolve it's parents
+        // (thereby putting them in the cache), and eventually this file.
+        DcFile file = getCache().getFile(path);
+        if(file == null){
+            DcFile parent = null;
+            if(!path.equals( path.getRoot())){
+                parent = resolveFile(path.getParent());
+            }
+            file = retrieveFileAttributes(path, parent);
+            getCache().putFile(file);
+            return file;
+        }
+        return file;
+    }
+
+    public DirectoryStream<DcPath> newDirectoryStream(DcPath dir) throws IOException{
+        return newDirectoryStream(dir, ACCEPT_ALL_FILTER);
+    }
+    
+    @Override
+    public DirectoryStream newDirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
         return newOptimizedDirectoryStream(dir, filter, NO_MAX, DatasetView.EMPTY);
     }
 
-    public DirectoryStream<Path> newOptimizedDirectoryStream(Path dir,
+    public DirectoryStream<DcPath> newOptimizedDirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter, int max, DatasetView viewPrefetch) throws IOException{
         final DcPath dcPath = checkPath(dir);
         DcFile dirFile = resolveFile(dcPath);
@@ -114,8 +153,8 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         if(!dirFile.isDirectory()){
             throw new NotDirectoryException(dirFile.toString());
         }
-        ChildrenView<DcPath> view = dirFile.getAttributeView(ChildrenView.class);
-        DirectoryStream<? extends Path> stream;
+        ChildrenView view = dirFile.getAttributeView(ChildrenView.class);
+        DirectoryStream<DcPath> stream;
         boolean useCache = maybeUseCache(dirFile, viewPrefetch);
         if(view != null && useCache){
             if(!view.hasCache()){
@@ -126,10 +165,17 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             boolean fillCache = canFitDatasetsInCache(dirFile, max, viewPrefetch);
             stream = unCachedDirectoryStream(dir, filter, viewPrefetch, fillCache);
         }
-        return (DirectoryStream<Path>) stream;
+        return stream;
+    }
+    
+    public DirectoryStream<DcPath> cachedDirectoryStream(DcPath dir) throws IOException{
+        return cachedDirectoryStream(dir, ACCEPT_ALL_FILTER);
+    }
+    
+    public DirectoryStream<DcPath> unCachedDirectoryStream(DcPath dir) throws IOException{
+        return unCachedDirectoryStream(dir, ACCEPT_ALL_FILTER);
     }
 
-    @Override
     public DirectoryStream<DcPath> unCachedDirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
         return unCachedDirectoryStream(dir, filter, DatasetView.EMPTY, true);
@@ -208,13 +254,12 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         return wrapper;
     }
 
-    @Override
     public DirectoryStream<DcPath> cachedDirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
         final DcPath dcPath = checkPath(dir);
         final DcFile dirFile = resolveFile(dcPath);
         checkPermission(dcPath.getUserName(), dirFile, DcPermissions.READ);
-        final ChildrenView<DcPath> view = dirFile.getAttributeView(ChildrenView.class);
+        final ChildrenView view = dirFile.getAttributeView(ChildrenView.class);
         if(!view.hasCache()){
             throw new IOException("Error attempting to use cached child entries");
         }
@@ -230,7 +275,8 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                             /* TODO: Permissions check here?
                             DcFile file = DcFileSystemProvider.this.resolveFile(maybeNext);
                             try{
-                            DcFileSystemProvider.this.checkPermission(dcPath.getUserName(), file, DcPermissions.READ);
+                                DcFileSystemProvider.this.
+                                    checkPermission(dcPath.getUserName(), file, DcPermissions.READ);
                             } catch (AccessDeniedException ex){
                                 continue;
                             }
@@ -591,7 +637,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         return getFileSystem(uri);
     }
 
-    @Override
+    //@Override
     public DcFileSystem getFileSystem(URI uri){
         if(uri.getScheme().equalsIgnoreCase(getScheme())){
             return fileSystem;
@@ -599,7 +645,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         throw new UnsupportedOperationException();
     }
 
-    @Override
+    //@Override
     public void delete(Path path) throws IOException{
         DcPath dcPath = checkPath(path);
         try(BaseDAO dao = daoFactory.newBaseDAO()) {
@@ -671,5 +717,5 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException{
         throw new UnsupportedOperationException();
     }
-
+    
 }

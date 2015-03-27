@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.dao.ContainerDAO;
+import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.container.ContainerStat;
 import org.srs.datacat.model.container.DatasetContainerBuilder;
@@ -29,7 +29,7 @@ public class ContainerViewProvider implements DcViewProvider<Class<? extends Con
 
     public ContainerViewProvider(DcFile file){
         this.file = file;
-        this.provider = file.getPath().getFileSystem().provider();
+        this.provider = file.getPath().getFileSystem().getProvider();
     }
 
     @Override

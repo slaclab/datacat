@@ -13,11 +13,11 @@ import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.RecordType;
 import org.srs.datacat.model.security.DcAclEntry;
+import org.srs.datacat.vfs.attribute.ChildrenView;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 import org.srs.datacat.vfs.attribute.SubdirectoryView;
 import org.srs.vfs.AbstractVirtualFile;
-import org.srs.vfs.ChildrenView;
 import org.srs.vfs.FileType;
 
 /**
@@ -30,6 +30,7 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
 
     {
         addViewName(DcFile.class, "basic");
+        addViewName(ChildrenView.class, "children");
         addViewName(SubdirectoryView.class, "subdirectories");
     }
 
@@ -55,7 +56,7 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
             addAttributeViews(new DatasetViewProvider(this, (DatasetModel) orig));
         }
         if(isDirectory()){
-            addAttributeViews(new ChildrenView<>(getPath()));
+            addAttributeViews(new ChildrenView(getPath()));
             addAttributeViews(new SubdirectoryView(getPath()));
             addAttributeViews(new ContainerViewProvider(this));
         }

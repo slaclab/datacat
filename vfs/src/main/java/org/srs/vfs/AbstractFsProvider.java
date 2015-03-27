@@ -96,24 +96,6 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
         throw new UnsupportedOperationException( "Unimplemented feature" ); 
     }
     
-    public DirectoryStream<Path> newDirectoryStream(P dir) throws IOException{
-        return newDirectoryStream(dir, AcceptAllFilter);
-    }
-    
-    public DirectoryStream<? extends AbstractPath> cachedDirectoryStream(P dir) throws IOException{
-        return cachedDirectoryStream(dir, AcceptAllFilter);
-    }
-    
-    public abstract DirectoryStream<? extends AbstractPath> cachedDirectoryStream(Path dir,
-            DirectoryStream.Filter<? super Path> filter) throws IOException;
-    
-    public DirectoryStream<? extends AbstractPath> unCachedDirectoryStream(P dir) throws IOException{
-        return unCachedDirectoryStream(dir, AcceptAllFilter);
-    }
-    
-    public abstract DirectoryStream<? extends AbstractPath> unCachedDirectoryStream(Path dir,
-            DirectoryStream.Filter<? super Path> filter) throws IOException;
-    
     public static enum AfsException {
         ACCESS_DENIED(AccessDeniedException.class),
         NO_SUCH_FILE(NoSuchFileException.class),
