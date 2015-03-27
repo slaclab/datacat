@@ -193,7 +193,7 @@ public class PathResource extends BaseResource {
         List<DatacatNode> retList = new ArrayList<>();
         int count = 0;
         DirectoryStream<? super DcPath> stream = null;
-        try{
+        try {
             String childrenView = requestView.get("children");
             if("containers".equals(childrenView)){
                 stream = getProvider()
@@ -239,7 +239,9 @@ public class PathResource extends BaseResource {
                     .entity("Error accessing the file system: " + ex.getMessage()).build();
         } finally {
             try {
-                stream.close();
+                if(stream != null){
+                    stream.close();
+                }
             } catch(IOException ex) {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                         .entity("Error accessing the file system: " + ex.getMessage()).build();
