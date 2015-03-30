@@ -358,6 +358,7 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
                                 if(builder instanceof Dataset.Builder){
                                     checkResultSet((Dataset.Builder) builder, rsVer, rsLoc);
                                 }
+                                SqlContainerDAO.this.completeObject(builder);
                                 consumed = true;
                                 return builder.build();
                             } catch(SQLException ex) {

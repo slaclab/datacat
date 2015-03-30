@@ -158,7 +158,6 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
                     "select description from DatasetLogicalFolder where datasetlogicalfolder = ?");
             setContainerMetadata(builder);
         }
-
     }
 
     protected void completeDataset(Dataset.Builder builder) throws SQLException{
