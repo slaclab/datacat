@@ -360,6 +360,7 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
                                     checkResultSet((Dataset.Builder) builder, rsVer, rsLoc);
                                 }
                                 consumed = true;
+                                ContainerDAOMySQL.this.completeObject(builder);
                                 return builder.build();
                             } catch(SQLException ex) {
                                 throw new RuntimeException(ex);
