@@ -33,6 +33,7 @@ import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.model.RecordType;
 import org.srs.datacat.model.security.DcUser;
@@ -119,15 +120,16 @@ public class DcFileSystemProviderTest {
     public void testCacheStream() throws IOException{
         URI uri = DcUriUtils.toFsUri( "/", (DcUser) null, "SRS");
         DcPath rootPath = provider.getPath( uri );
-        try(DirectoryStream<DcPath> s = provider.newDirectoryStream( rootPath )){
+        try(DirectoryStream<DcPath> s = provider.newOptimizedDirectoryStream(rootPath, 
+                DcFileSystemProvider.ACCEPT_ALL_FILTER, Integer.MAX_VALUE, DatasetView.EMPTY)){
             for(Path p: s){
                 // Do nothing
             }
         }
 
-        DatacatRecord o = provider.resolveFile(rootPath.resolve("testpath")).getAttributeView(DcFile.class).getObject();
+        DatacatRecord o = provider.getFile(rootPath.resolve("testpath")).getAttributeView(DcFile.class).getObject();
         long t0 = System.currentTimeMillis();
-        try(DirectoryStream<? extends AbstractPath> cstream = provider.unCachedDirectoryStream( rootPath.resolve("testpath") )){
+        try(DirectoryStream<? extends AbstractPath> cstream = provider.unCachedDirectoryStream(rootPath.resolve("testpath"), DcFileSystemProvider.ACCEPT_ALL_FILTER, DatasetView.EMPTY, true )){
             for(Iterator<? extends AbstractPath> iter = cstream.iterator(); iter.hasNext();){
                 iter.next();
             }
@@ -136,7 +138,8 @@ public class DcFileSystemProviderTest {
         
         t0 = System.currentTimeMillis();
         for(int i = 0; i <100; i++){
-            try(DirectoryStream<DcPath> cstream = provider.newDirectoryStream( rootPath.resolve("testpath") )){
+            try(DirectoryStream<DcPath> cstream = provider.newOptimizedDirectoryStream( rootPath.resolve("testpath"),
+                    DcFileSystemProvider.ACCEPT_ALL_FILTER, Integer.MAX_VALUE, DatasetView.EMPTY)){
                 for(Iterator<DcPath> iter = cstream.iterator(); iter.hasNext();){
                     iter.next();
                 }
@@ -144,7 +147,7 @@ public class DcFileSystemProviderTest {
         }
         System.out.println("100 cached directory streams took:" + (System.currentTimeMillis() - t0));
         
-        Files.walkFileTree( rootPath.resolve("testpath"), new SimpleFileVisitor<Path>() {
+        /*Files.walkFileTree( rootPath.resolve("testpath"), new SimpleFileVisitor<Path>() {
             int filesVisited = 0;
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
@@ -166,7 +169,7 @@ public class DcFileSystemProviderTest {
                     throw e;
                 }
             }
-        } );
+        } );*/
     }
 
     @Test
@@ -235,7 +238,7 @@ public class DcFileSystemProviderTest {
         
         try {
             
-            Path target = path.resolve(folderName);
+            DcPath target = path.resolve(folderName);
             List<DcAclEntry> newAcl = new ArrayList<>();
             DcAclEntry entry = DcAclEntry.newBuilder()
                 .subject(DcGroup.PUBLIC_GROUP)

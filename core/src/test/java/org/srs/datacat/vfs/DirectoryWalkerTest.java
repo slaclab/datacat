@@ -53,11 +53,11 @@ public class DirectoryWalkerTest {
     public void testWalk() throws IOException{
         
         ContainerVisitor visitor;
-        visitor = new ContainerVisitor(root.getFileSystem(), "glob:/te*");
+        visitor = new ContainerVisitor(provider.getFileSystem(), "glob:/te*");
         DirectoryWalker walker = new DirectoryWalker(provider,visitor,2);
         walker.walk(root);
         
-        visitor = new ContainerVisitor(root.getFileSystem(), "glob:/te**");
+        visitor = new ContainerVisitor(provider.getFileSystem(), "glob:/te**");
         walker = new DirectoryWalker(provider,visitor,5);
         walker.walk(root);
         TestCase.assertEquals("/testpath/a/b/c", visitor.files.get(0).getPath().toString());
@@ -65,7 +65,7 @@ public class DirectoryWalkerTest {
         TestCase.assertEquals("/testpath/abc/def/xyz", visitor.files.get(3).getPath().toString());
         TestCase.assertEquals("/testpath/abc/def/zyx", visitor.files.get(4).getPath().toString());
         
-        visitor = new ContainerVisitor(root.getFileSystem(), "glob:/te**$");
+        visitor = new ContainerVisitor(provider.getFileSystem(), "glob:/te**$");
         walker = new DirectoryWalker(provider,visitor,5);
         walker.walk(root);
         TestCase.assertEquals("/testpath/a/b/c", visitor.files.get(0).getPath().toString());
@@ -73,26 +73,26 @@ public class DirectoryWalkerTest {
         TestCase.assertEquals("/testpath/abc/def/xyz", visitor.files.get(3).getPath().toString());
         TestCase.assertEquals("/testpath/abc/def", visitor.files.get(4).getPath().toString());
         
-        visitor = new ContainerVisitor(root.getFileSystem(), "glob:/te**^");
+        visitor = new ContainerVisitor(provider.getFileSystem(), "glob:/te**^");
         walker = new DirectoryWalker(provider,visitor,5);
         walker.walk(root);
         TestCase.assertEquals("/testpath/abc/def/zyx", visitor.files.get(0).getPath().toString());
         TestCase.assertEquals("/testpath/abc/fed", visitor.files.get(1).getPath().toString());
         
-        visitor = new ContainerVisitor(root.getFileSystem(), "glob:/**/te*");
+        visitor = new ContainerVisitor(provider.getFileSystem(), "glob:/**/te*");
         walker = new DirectoryWalker(provider,visitor, 4);
         walker.walk(root);
         TestCase.assertEquals("/testpath/testfolder", visitor.files.get(0).getPath().toString());
         TestCase.assertEquals("/testpath/testgroup", visitor.files.get(1).getPath().toString());
         
-        visitor = new ContainerVisitor(root.getFileSystem(), "glob:/**/te*^");
+        visitor = new ContainerVisitor(provider.getFileSystem(), "glob:/**/te*^");
         walker = new DirectoryWalker(provider,visitor, 4);
         walker.walk(root);
         System.out.println(visitor.files.toString());
         TestCase.assertEquals("/testpath/testgroup", visitor.files.get(0).getPath().toString());
         TestCase.assertTrue(visitor.files.size() == 1);
         
-        visitor = new ContainerVisitor(root.getFileSystem(), "glob:/**/te*$");
+        visitor = new ContainerVisitor(provider.getFileSystem(), "glob:/**/te*$");
         walker = new DirectoryWalker(provider,visitor, 4);
         walker.walk(root);
         TestCase.assertEquals("/testpath/testfolder", visitor.files.get(0).getPath().toString());
@@ -100,7 +100,7 @@ public class DirectoryWalkerTest {
         
         Boolean searchGroups = true;
         Boolean searchFolders = true;
-        visitor = new ContainerVisitor(root.getFileSystem(), "/testpath", searchGroups, searchFolders);
+        visitor = new ContainerVisitor(provider.getFileSystem(), "/testpath", searchGroups, searchFolders);
         walker = new DirectoryWalker(provider,visitor,5);
         walker.walk(root);
         TestCase.assertEquals("/testpath", visitor.files.get(0).getPath().toString());
@@ -108,14 +108,14 @@ public class DirectoryWalkerTest {
         
         searchGroups = true;
         searchFolders = false;
-        visitor = new ContainerVisitor(root.getFileSystem(), "/testpath", searchGroups, searchFolders);
+        visitor = new ContainerVisitor(provider.getFileSystem(), "/testpath", searchGroups, searchFolders);
         walker = new DirectoryWalker(provider,visitor,5);
         walker.walk(root);
         TestCase.assertTrue(visitor.files.size() == 0);
         
         searchGroups = false;
         searchFolders = true;
-        visitor = new ContainerVisitor(root.getFileSystem(), "/testpath/*", searchGroups, searchFolders);
+        visitor = new ContainerVisitor(provider.getFileSystem(), "/testpath/*", searchGroups, searchFolders);
         walker = new DirectoryWalker(provider,visitor,5);
         walker.walk(root);
         TestCase.assertEquals("/testpath/a", visitor.files.get(0).getPath().toString());
@@ -125,7 +125,7 @@ public class DirectoryWalkerTest {
         
         searchGroups = true;
         searchFolders = false;
-        visitor = new ContainerVisitor(root.getFileSystem(), "/testpath/*", searchGroups, searchFolders);
+        visitor = new ContainerVisitor(provider.getFileSystem(), "/testpath/*", searchGroups, searchFolders);
         walker = new DirectoryWalker(provider,visitor,5);
         walker.walk(root);
         TestCase.assertEquals("/testpath/testgroup", visitor.files.get(0).getPath().toString());
@@ -133,7 +133,7 @@ public class DirectoryWalkerTest {
         
         searchGroups = null;
         searchFolders = null;
-        visitor = new ContainerVisitor(root.getFileSystem(), "/testpath/test*^", searchGroups, searchFolders);
+        visitor = new ContainerVisitor(provider.getFileSystem(), "/testpath/test*^", searchGroups, searchFolders);
         walker = new DirectoryWalker(provider,visitor,5);
         walker.walk(root);
         TestCase.assertEquals("/testpath/testgroup", visitor.files.get(0).getPath().toString());
@@ -141,7 +141,7 @@ public class DirectoryWalkerTest {
         
         searchGroups = null;
         searchFolders = null;
-        visitor = new ContainerVisitor(root.getFileSystem(), "/testpath/test*$", searchGroups, searchFolders);
+        visitor = new ContainerVisitor(provider.getFileSystem(), "/testpath/test*$", searchGroups, searchFolders);
         walker = new DirectoryWalker(provider,visitor,5);
         walker.walk(root);
         TestCase.assertEquals("/testpath/testfolder", visitor.files.get(0).getPath().toString());
@@ -151,7 +151,7 @@ public class DirectoryWalkerTest {
         searchGroups = false;
         searchFolders = true;
         
-        visitor = new ContainerVisitor(root.getFileSystem(), PathUtils.normalize( "/testpath/."), searchGroups, searchFolders);
+        visitor = new ContainerVisitor(provider.getFileSystem(), PathUtils.normalize( "/testpath/."), searchGroups, searchFolders);
         walker = new DirectoryWalker(provider,visitor,5);
         walker.walk(root);
         TestCase.assertEquals("/testpath", visitor.files.get(0).getPath().toString());
