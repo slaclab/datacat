@@ -2,6 +2,7 @@
 package org.srs.vfs;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 import java.nio.file.attribute.AclFileAttributeView;
 import java.nio.file.attribute.AttributeView;
@@ -19,7 +20,7 @@ import java.util.Map;
  * @param <P> AbstractPath type
  * @param <F> fileKey type
  */
-public abstract class AbstractVirtualFile<P extends AbstractPath, F> implements VirtualFile, BasicFileAttributes  {
+public abstract class AbstractVirtualFile<P extends Path, F> implements VirtualFile, BasicFileAttributes  {
     private final P path;
     private final FileType type;
     private final HashMap<String, AttributeView> attributeViews = new HashMap<>();

@@ -1,6 +1,7 @@
 
 package org.srs.vfs;
 
+import java.nio.file.Path;
 import java.nio.file.attribute.AttributeView;
 import java.util.Collection;
 import java.util.Map;
@@ -11,7 +12,7 @@ import java.util.Map;
  */
 public interface VirtualFile  {
     
-    public AbstractPath getPath();
+    public Path getPath();
     public FileType getType();
     
     public Map<String, AttributeView> getAttributeViews();

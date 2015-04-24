@@ -296,7 +296,7 @@ public class DatacatSearchTest {
         queryString = "nRun == 239557414";
         searchPath = root.resolve("/testpath");
         System.out.println(datacatSearch.dmc.toString());
-        visitor = new ContainerVisitor(root.getFileSystem(), "/testpath", searchGroups, searchFolders);
+        visitor = new ContainerVisitor(provider.getFileSystem(), "/testpath", searchGroups, searchFolders);
         DirectoryWalker walker = new DirectoryWalker(provider, visitor, 100);
         walker.walk(searchPath);
         statement = datacatSearch.compileStatement(visitor.files, dsView, queryString, metaFieldsToRetrieve, sortFields,0,-1);
@@ -310,7 +310,7 @@ public class DatacatSearchTest {
         
         queryString = "sIntent == 'run'";
         searchPath = root.resolve("/testpath");
-        visitor = new ContainerVisitor(root.getFileSystem(), "/testpath", searchGroups, searchFolders);
+        visitor = new ContainerVisitor(provider.getFileSystem(), "/testpath", searchGroups, searchFolders);
         walker = new DirectoryWalker(provider, visitor, 100);
         walker.walk(searchPath);
         statement = datacatSearch.compileStatement(visitor.files, dsView, queryString, metaFieldsToRetrieve, sortFields,0,-1);
@@ -331,7 +331,7 @@ public class DatacatSearchTest {
         String[] sortFields = null;
         //String[] sortFields = new String[]{"num","alpha"};
         String[] sites = null;
-        ContainerVisitor visitor = new ContainerVisitor(root.getFileSystem(), pathPattern, searchGroups, searchFolders);
+        ContainerVisitor visitor = new ContainerVisitor(provider.getFileSystem(), pathPattern, searchGroups, searchFolders);
         System.out.println("With visitor: " + visitor.toString());
         DatasetView dsView = DatasetView.CURRENT_ALL;
         DirectoryWalker walker = new DirectoryWalker(provider, visitor, 100);
@@ -351,7 +351,7 @@ public class DatacatSearchTest {
         DcPath searchPath = root.resolve(searchBase);
         String[] metaFieldsToRetrieve = null;
         String[] sites = null;
-        ContainerVisitor visitor = new ContainerVisitor(root.getFileSystem(), pathPattern, searchGroups, searchFolders);
+        ContainerVisitor visitor = new ContainerVisitor(provider.getFileSystem(), pathPattern, searchGroups, searchFolders);
         System.out.println("With visitor: " + visitor.toString());
         DatasetView dsView = DatasetView.CURRENT_ALL;
         DirectoryWalker walker = new DirectoryWalker(provider, visitor, 100);

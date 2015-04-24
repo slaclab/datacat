@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  *
  * @author Colin Decker
  */
-final class PathMatchers {
+public final class PathMatchers {
 
   private PathMatchers() {}
 

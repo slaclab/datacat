@@ -30,6 +30,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetContainer;
+import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.RequestView;
 import org.srs.datacat.rest.BaseResource;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
@@ -45,6 +46,7 @@ import org.srs.datacat.model.RecordType;
 import org.srs.datacat.model.container.ContainerStat;
 import org.srs.datacat.model.container.DatasetContainerBuilder;
 import org.srs.datacat.rest.PATCH;
+import org.srs.datacat.vfs.DcFileSystemProvider;
 
 /**
  *
@@ -217,7 +219,7 @@ public class ContainerResource extends BaseResource {
     public Response deleteContainer() throws IOException{
         DcPath dcPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
         try {
-            if(!getProvider().resolveFile(dcPath).isDirectory()){
+            if(!getProvider().getFile(dcPath).isDirectory()){
                 throw new NoSuchFileException("Path doesn't resolve to a container");
             }
             getProvider().delete(dcPath);
@@ -248,14 +250,14 @@ public class ContainerResource extends BaseResource {
         }
         
         ArrayList<DatacatNode> retList = new ArrayList<>();
-        try (DirectoryStream<DcPath> stream = getProvider().newDirectoryStream(containerPath)){
+        try (DirectoryStream<DcPath> stream = getProvider().newOptimizedDirectoryStream(containerPath, DcFileSystemProvider.ACCEPT_ALL_FILTER, Integer.MAX_VALUE, DatasetView.EMPTY)){
             Iterator<DcPath> iter = stream.iterator();
             for(int i = 0; iter.hasNext() && retList.size() < max; i++){
-                java.nio.file.Path p = iter.next();
+                DcPath p = iter.next();
                 if(i < offset){
                     continue;
                 }
-                DcFile file = getProvider().getFile(p);
+                DcFile file = getProvider().getFile(p.withUser(containerPath.getUserName()));
                 if(!withDs && file.isRegularFile()){
                     continue;
                 }

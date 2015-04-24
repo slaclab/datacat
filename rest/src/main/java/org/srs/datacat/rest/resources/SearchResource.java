@@ -107,7 +107,7 @@ public class SearchResource extends BaseResource {
             String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern,"/"));
             DcPath root = getProvider().getPath(DcUriUtils.toFsUri("/", getUser(), "SRS"));
             DcPath searchPath = root.resolve(searchBase);
-            ContainerVisitor visitor = new ContainerVisitor(searchPath.getFileSystem(), pathPattern, checkGroups, checkFolders);
+            ContainerVisitor visitor = new ContainerVisitor(getProvider().getFileSystem(), pathPattern, checkGroups, checkFolders);
             DirectoryWalker walker = new DirectoryWalker(getProvider(), visitor, 100 /* max depth */);
             walker.walk(searchPath);
             datasets = datacatSearch.search(visitor.files, dv, queryString, metafields, sortFields, offset, max);

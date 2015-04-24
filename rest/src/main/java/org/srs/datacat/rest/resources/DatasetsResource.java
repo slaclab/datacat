@@ -66,7 +66,6 @@ public class DatasetsResource extends BaseResource  {
     @Context private HttpServletResponse response;
     
     private UriInfo ui;
-    private List<PathSegment> pathSegments;
     private String requestPath;
     private HashMap<String, List<String>> requestMatrixParams = new HashMap<>();
     private HashMap<String, List<String>> requestQueryParams = new HashMap<>();
@@ -182,7 +181,7 @@ public class DatasetsResource extends BaseResource  {
         dsReq = getProvider().getModelProvider().getDatasetBuilder().create(dsReq).build();
         return createDataset(targetPath, dsReq, viewRequestOpt, options);
     }
-            
+        
     public Response createDataset(DcPath datasetPath, DatasetModel reqDs,
             Optional<DatasetViewInfoModel> viewRequestOpt, Set<DatasetOption> options){
         DatasetModel.Builder requestBuilder = getProvider().getModelProvider()
@@ -325,7 +324,7 @@ public class DatasetsResource extends BaseResource  {
     public Response deleteDatasetOrView() throws IOException{
         DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
         try {
-            if(!getProvider().resolveFile(targetPath).isRegularFile()){
+            if(!getProvider().getFile(targetPath).isRegularFile()){
                 throw new NoSuchFileException("Path doesn't resolve to a Dataset");
             }
             getProvider().delete(targetPath);

@@ -43,6 +43,7 @@ import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 
 import org.srs.datacat.rest.RestException;
 import org.srs.datacat.shared.metadata.MetadataEntry;
+import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.vfs.AbstractFsProvider;
 
 
@@ -97,7 +98,7 @@ public class PathResource extends BaseResource {
         DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
         try {
             if(refresh){
-                getProvider().getCache().removeFile(dcp);
+                //getProvider().getCache().removeFile(dcp);
             }
             DcFile file = getProvider().getFile(dcp);
             if(file.isRegularFile()){
@@ -141,7 +142,7 @@ public class PathResource extends BaseResource {
         DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(path, getUser(), "SRS"));
         try {
             if(refresh){
-                getProvider().getCache().removeFile(dcp);
+                //getProvider().getCache().removeFile(dcp);
             }
             DcFile file = getProvider().getFile(dcp);
             DatacatNode ret;
@@ -153,7 +154,7 @@ public class PathResource extends BaseResource {
             }
             switch(rv.getPrimaryView()){
                 case RequestView.CHILDREN:
-                    return getChildren( file, rv, extraQueryParams );
+                    return getChildren(dcp, file, rv, extraQueryParams );
                 case RequestView.METADATA:
                     List<MetadataEntry> entries = null;
                     if(rv.containsKey("metadata") && ret instanceof HasMetadata){
@@ -180,7 +181,7 @@ public class PathResource extends BaseResource {
         }
     }
  
-    public Response getChildren(DcFile dirFile, RequestView requestView, HashMap<String, List<String>> queryParams){
+    public Response getChildren(DcPath dcp, DcFile dirFile, RequestView requestView, HashMap<String, List<String>> queryParams){
         boolean withDs = queryParams.containsKey("datasets") ? Boolean.valueOf( queryParams.get("datasets").get(0)) : true;
         Class<? extends ContainerStat> statType = null;
         if(queryParams.containsKey("stat")){
@@ -192,24 +193,24 @@ public class PathResource extends BaseResource {
     
         List<DatacatNode> retList = new ArrayList<>();
         int count = 0;
-        DirectoryStream<? super DcPath> stream = null;
+        DirectoryStream<DcPath> stream = null;
         try {
             String childrenView = requestView.get("children");
             if("containers".equals(childrenView)){
                 stream = getProvider()
-                        .directSubdirectoryStream(dirFile.getPath(), AbstractFsProvider.AcceptAllFilter);
+                        .unCachedDirectoryStream(dirFile.getPath(), AbstractFsProvider.AcceptAllFilter, null, false);
             } else {
                 stream = getProvider()
-                        .newOptimizedDirectoryStream(dirFile.getPath(), AbstractFsProvider.AcceptAllFilter, 
+                        .newOptimizedDirectoryStream(dirFile.getPath(), DcFileSystemProvider.ACCEPT_ALL_FILTER, 
                             max, requestView.getDatasetView(DatasetView.CURRENT_ALL));
             }
-            Iterator<? super DcPath> iter = stream.iterator();
+            Iterator<DcPath> iter = stream.iterator();
             
             while(iter.hasNext() && (retList.size() < max || showCount)){
-                java.nio.file.Path p = (java.nio.file.Path) iter.next();
+                DcPath p = iter.next();
                 DcFile file = null;
                 try {
-                    file = getProvider().getFile(p);
+                    file = getProvider().getFile(p.withUser(dcp.getUserName()));
                 } catch (AccessDeniedException ex){
                     continue;
                 }

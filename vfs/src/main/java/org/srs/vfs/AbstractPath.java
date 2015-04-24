@@ -25,22 +25,24 @@ public abstract class AbstractPath<T extends AbstractPath> implements Path {
     private final AbstractFs fileSystem;
     protected final String path;
     private volatile int[] offsets;
+    private final PathProvider<T> pathProvider;
     
     // cached version of the hash
     private volatile int hash;
     
-    protected AbstractPath(String userName, AbstractFs fileSystem, String path){
+    protected AbstractPath(String userName, PathProvider<T> pathProvider, String path){
         this.path = PathUtils.normalizeSeparators( path );
-        this.fileSystem = fileSystem;
+        this.pathProvider = pathProvider;
         this.userName = userName;
+        this.fileSystem = null;
     }
     
     private T createPath(String user, AbstractFs fs, String path){
-        return (T) fs.getPathProvider().getPath( user, path );
+        return pathProvider.getPath( user, path );
     }
     
     private T createPath(AbstractFs fs, String path){
-        return (T) fs.getPathProvider().getPath(userName, path);
+        return pathProvider.getPath(userName, path);
     }
     
     @Override
@@ -163,15 +165,15 @@ public abstract class AbstractPath<T extends AbstractPath> implements Path {
     
     @Override
     public final AbstractPath resolveSibling(Path other) {
-        if (other == null)
-            throw new NullPointerException();
-        Path parent = getParent();
-        return (T) ((parent == null) ? other : parent.resolve(other));
+        return resolveSibling(other.toString());
     }
 
     @Override
     public final AbstractPath resolveSibling(String other) {
-        return resolveSibling(getFileSystem().getPath(other));
+        if (other == null)
+            throw new NullPointerException();
+        Path parent = getParent();
+        return (T) ((parent == null) ? other : parent.resolve(other));
     }
 
     @Override

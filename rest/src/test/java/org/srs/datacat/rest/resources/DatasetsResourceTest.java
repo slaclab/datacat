@@ -138,6 +138,35 @@ public class DatasetsResourceTest extends JerseyTest {
         return resp;
     }
     
+    public Response createOneWithLocation(String site, String resource) throws JsonProcessingException{
+        String parent = "/testpath/folder00000";
+        String name = "dataset0001";
+        
+        MultivaluedHashMap<String,String> entity = new MultivaluedHashMap<>();
+        entity.add( "name", name);
+        entity.add( "dataType",HSqlDbHarness.JUNIT_DATASET_DATATYPE);
+        entity.add( "datasetSource", HSqlDbHarness.JUNIT_DATASET_DATASOURCE);
+        entity.add( "fileFormat", HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
+        entity.add( "versionId", Integer.toString(DatasetView.NEW_VER) );
+        HashMap<String, Object> metadata = new HashMap<>();
+        metadata.put(DbHarness.numberName, DbHarness.numberMdValues[0]);
+        metadata.put(DbHarness.alphaName, DbHarness.alphaMdValues[0]);
+
+        entity.add("versionMetadata",mdMapper.writeValueAsString(MetadataEntry.toList( metadata )));
+        entity.add("site", site);
+        entity.add("resource", resource);
+        
+        Response resp = target("/datasets.json" + parent)
+                .property( ClientProperties.FOLLOW_REDIRECTS, "false")
+                .request()
+                .header("authentication", DbHarness.TEST_USER)
+                .post(Entity.form(entity));
+        
+        
+        return resp;
+    }
+
+    
     @Test
     public void testCreation() throws JsonProcessingException, IOException {
         ContainerResourceTest.generateFolders(this, 1);
@@ -315,6 +344,27 @@ public class DatasetsResourceTest extends JerseyTest {
             .request()
             .get();
         printTrace(resp);
+        TestCase.assertEquals(200, resp.getStatus());
+    }
+    
+    @Test
+    public void testMergeCreation() throws JsonProcessingException, IOException{
+        ContainerResourceTest.generateFolders(this, 1);
+
+        Response resp = createOneWithLocation("SLAC","file://path/to/one.txt");
+        TestCase.assertEquals(201, resp.getStatus());
+        System.out.println(resp.readEntity(String.class));
+        resp = createOneWithLocation("SLAC2","file://path/to/two.txt");
+        
+        TestCase.assertEquals(303, resp.getStatus());
+        
+        resp.getLocation().getPath();
+        resp = target(resp.getLocation().getPath())
+            .property( ClientProperties.FOLLOW_REDIRECTS, "false")
+            .request()
+            .get();
+        printTrace(resp);
+        System.out.println(resp.readEntity(String.class));
         TestCase.assertEquals(200, resp.getStatus());
     }
     
