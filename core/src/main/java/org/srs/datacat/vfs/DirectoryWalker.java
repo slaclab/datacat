@@ -12,8 +12,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedList;
 import java.util.Objects;
 import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.security.CallContext;
 import org.srs.datacat.vfs.DcFile.GroupType;
-import org.srs.datacat.vfs.attribute.SubdirectoryView;
 
 /**
  * A Special walker mainly used for searching. 
@@ -36,16 +36,16 @@ public class DirectoryWalker {
         this(provider, new ContainerVisitor(fs, syntaxAndPattern), maxDepth);
     }
 
-    public void walk(Path start) throws IOException{
-        FileVisitResult result = walk(start, 0);
+    public void walk(Path start, CallContext auth) throws IOException{
+        FileVisitResult result = walk(start, auth, 0);
         Objects.requireNonNull(result, "FileVisitor returned null");
     }
 
-    private FileVisitResult walk(Path file, int depth) throws IOException{
+    private FileVisitResult walk(Path file, CallContext context, int depth) throws IOException{
 
         DcFile target = null;
         try {
-            target = provider.getFile(file);
+            target = provider.getFile(file, context);
         } catch(AccessDeniedException ex) {
             // Fail if this was the first directory, otherwise skip.
             if(depth == 0){
@@ -73,7 +73,7 @@ public class DirectoryWalker {
 
         try {
             for(Path dir: target.getAttributeView(SubdirectoryView.class).getChildrenPaths()){
-                result = walk(dir, depth + 1);
+                result = walk(dir, context, depth + 1);
 
                 // returning null will cause NPE to be thrown
                 if(result == null || result == FileVisitResult.TERMINATE) {

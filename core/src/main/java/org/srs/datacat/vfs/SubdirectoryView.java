@@ -1,14 +1,14 @@
 
-package org.srs.datacat.vfs.attribute;
+package org.srs.datacat.vfs;
 
+import com.google.common.base.Optional;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
-import org.srs.datacat.vfs.DcFileSystemProvider;
-import org.srs.datacat.vfs.DcPath;
+import org.srs.datacat.model.DatasetView;
 
 /**
- *
+ * Children view for subdirectories only.
  * @author bvan
  */
 public class SubdirectoryView extends ChildrenView {
@@ -27,7 +27,8 @@ public class SubdirectoryView extends ChildrenView {
     @Override
     protected void doRefreshCache() throws IOException{
         try(DirectoryStream<DcPath> stream = 
-                provider.unCachedDirectoryStream(getPath(), DcFileSystemProvider.ACCEPT_ALL_FILTER, null, false)){
+                provider.unCachedDirectoryStream(getPath(), 
+                        DcFileSystemProvider.ACCEPT_ALL_FILTER, Optional.<DatasetView>absent(), false)){
             for(DcPath child: stream){
                 children.put( child.getFileName().toString(), child );
             }

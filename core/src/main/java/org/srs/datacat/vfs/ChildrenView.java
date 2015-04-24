@@ -1,6 +1,7 @@
 
-package org.srs.datacat.vfs.attribute;
+package org.srs.datacat.vfs;
 
+import com.google.common.base.Optional;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
@@ -12,11 +13,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.vfs.DcFileSystemProvider;
-import org.srs.datacat.vfs.DcPath;
 
 /**
- *
+ * Internal view for caching of children.
  * @author bvan
  */
 public class ChildrenView implements FileAttributeView {
@@ -105,8 +104,8 @@ public class ChildrenView implements FileAttributeView {
     }
     
     protected void doRefreshCache() throws IOException{
-        try(DirectoryStream<DcPath> stream = provider.unCachedDirectoryStream(path, 
-                DcFileSystemProvider.ACCEPT_ALL_FILTER, DatasetView.EMPTY, true)){
+        try(DirectoryStream<DcPath> stream = provider.unCachedDirectoryStream(path,
+                DcFileSystemProvider.ACCEPT_ALL_FILTER, Optional.of(DatasetView.EMPTY), true)){
             for(DcPath child: stream){
                 children.put(child.getFileName().toString(), child);
             }

@@ -1,16 +1,13 @@
  
 package org.srs.datacat.vfs;
 
+import com.google.common.base.Optional;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,7 +18,6 @@ import java.util.List;
 import junit.framework.TestCase;
 import org.junit.AfterClass;
 
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.srs.datacat.dao.BaseDAO;
@@ -61,7 +57,7 @@ public class DcFileSystemProviderTest {
     public DcFileSystemProviderTest() throws IOException{ 
         DAOFactory factory = new DAOFactoryMySQL(harness.getDataSource());
         ModelProvider modelProvider = new Provider();
-        this.provider  = new DcFileSystemProvider(factory, modelProvider, TestUtils.getLookupService());
+        this.provider  = new DcFileSystemProvider(factory, modelProvider);
     }
     
     @BeforeClass
@@ -118,18 +114,18 @@ public class DcFileSystemProviderTest {
     
     @Test
     public void testCacheStream() throws IOException{
-        URI uri = DcUriUtils.toFsUri( "/", (DcUser) null, "SRS");
+        URI uri = DcUriUtils.toFsUri( "/", "SRS");
         DcPath rootPath = provider.getPath( uri );
-        try(DirectoryStream<DcPath> s = provider.newOptimizedDirectoryStream(rootPath, 
-                DcFileSystemProvider.ACCEPT_ALL_FILTER, Integer.MAX_VALUE, DatasetView.EMPTY)){
+        try(DirectoryStream<DcPath> s = provider.newOptimizedDirectoryStream(rootPath, TestUtils.DEFAULT_TEST_CONTEXT,
+                DcFileSystemProvider.ACCEPT_ALL_FILTER, Integer.MAX_VALUE, Optional.of(DatasetView.EMPTY))){
             for(Path p: s){
                 // Do nothing
             }
         }
 
-        DatacatRecord o = provider.getFile(rootPath.resolve("testpath")).getAttributeView(DcFile.class).getObject();
+        DatacatRecord o = provider.getFile(rootPath.resolve("testpath"), TestUtils.DEFAULT_TEST_CONTEXT).getAttributeView(DcFile.class).getObject();
         long t0 = System.currentTimeMillis();
-        try(DirectoryStream<? extends AbstractPath> cstream = provider.unCachedDirectoryStream(rootPath.resolve("testpath"), DcFileSystemProvider.ACCEPT_ALL_FILTER, DatasetView.EMPTY, true )){
+        try(DirectoryStream<? extends AbstractPath> cstream = provider.unCachedDirectoryStream(rootPath.resolve("testpath"), DcFileSystemProvider.ACCEPT_ALL_FILTER, Optional.of(DatasetView.EMPTY), true )){
             for(Iterator<? extends AbstractPath> iter = cstream.iterator(); iter.hasNext();){
                 iter.next();
             }
@@ -138,8 +134,8 @@ public class DcFileSystemProviderTest {
         
         t0 = System.currentTimeMillis();
         for(int i = 0; i <100; i++){
-            try(DirectoryStream<DcPath> cstream = provider.newOptimizedDirectoryStream( rootPath.resolve("testpath"),
-                    DcFileSystemProvider.ACCEPT_ALL_FILTER, Integer.MAX_VALUE, DatasetView.EMPTY)){
+            try(DirectoryStream<DcPath> cstream = provider.newOptimizedDirectoryStream( rootPath.resolve("testpath"), TestUtils.DEFAULT_TEST_CONTEXT,
+                    DcFileSystemProvider.ACCEPT_ALL_FILTER, Integer.MAX_VALUE, Optional.of(DatasetView.EMPTY))){
                 for(Iterator<DcPath> iter = cstream.iterator(); iter.hasNext();){
                     iter.next();
                 }
@@ -181,11 +177,11 @@ public class DcFileSystemProviderTest {
         builder.datasetSource( DbHarness.TEST_DATASET_SOURCE);
         
         DatasetModel request = builder.build();
-        DcPath parentPath = provider.getPath( DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, DbHarness.TEST_USER, "SRS"));
+        DcPath parentPath = provider.getPath(DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, "SRS"));
         DcPath filePath = parentPath.resolve(request.getName());
         HashSet<DatasetOption> options = new HashSet<>(Arrays.asList( DatasetOption.CREATE_NODE));
-        provider.createDataset( filePath, request, options);
-        provider.delete(filePath);
+        provider.createDataset( filePath, TestUtils.DEFAULT_TEST_CONTEXT, request, options);
+        provider.delete(filePath, TestUtils.DEFAULT_TEST_CONTEXT);
     }
     
     @Test
@@ -199,23 +195,23 @@ public class DcFileSystemProviderTest {
                 .build();
 
         ContainerCreationAttribute attr = new ContainerCreationAttribute(request);
-        URI uri = DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, DbHarness.TEST_USER, "SRS");
+        URI uri = DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, "SRS");
         DcPath path =  provider.getPath(uri);
-        provider.createDirectory(path.resolve(folderName), attr);
-        provider.createDirectory(path.resolve(folderName).resolve(folderName), attr);
+        provider.createDirectory(path.resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT, request);
+        provider.createDirectory(path.resolve(folderName).resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT, request);
         
         // directory not empty
         try {
-            provider.delete(path.resolve(folderName));
+            provider.delete(path.resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT);
             TestCase.fail( "Should have failed deleting directory");
         } catch (DirectoryNotEmptyException ex){}
         
-        provider.delete(path.resolve(folderName).resolve(folderName));
-        provider.delete(path.resolve(folderName));
+        provider.delete(path.resolve(folderName).resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT);
+        provider.delete(path.resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT);
         
         try {
             // File should already be deleted
-            provider.delete(path.resolve(folderName));
+            provider.delete(path.resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT);
         } catch (NoSuchFileException ex){}
     }
     
@@ -230,11 +226,10 @@ public class DcFileSystemProviderTest {
                 .type(RecordType.FOLDER)
                 .build();
 
-        ContainerCreationAttribute attr = new ContainerCreationAttribute(request);
-        URI uri = DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, DbHarness.TEST_USER, "SRS");
+        URI uri = DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, "SRS");
         DcPath path =  provider.getPath(uri);
-        provider.createDirectory(path.resolve(folderName), attr);
-        provider.createDirectory(path.resolve(folderName).resolve(folderName), attr);
+        provider.createDirectory(path.resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT, request);
+        provider.createDirectory(path.resolve(folderName).resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT, request);
         
         try {
             
@@ -246,10 +241,10 @@ public class DcFileSystemProviderTest {
                 .scope(DcAclEntryScope.DEFAULT)
                 .build();
             newAcl.add(entry);
-            provider.mergeContainerAclEntries(target, newAcl, false);
+            provider.mergeContainerAclEntries(target, TestUtils.DEFAULT_TEST_CONTEXT, newAcl, false);
             
             boolean okay = false;
-            for(DcAclEntry e: provider.getFile(target).getAcl()){
+            for(DcAclEntry e: provider.getFile(target, TestUtils.DEFAULT_TEST_CONTEXT).getAcl()){
                 if(e.getSubject().equals(DcGroup.PUBLIC_GROUP)){
                     if(e.getPermissions().contains(DcPermissions.WRITE)){
                         okay = true;
@@ -266,10 +261,10 @@ public class DcFileSystemProviderTest {
                 .build();
 
             newAcl.add(entry);
-            provider.mergeContainerAclEntries(target, newAcl, false);
+            provider.mergeContainerAclEntries(target, TestUtils.DEFAULT_TEST_CONTEXT, newAcl, false);
             
             okay = true;
-            for(DcAclEntry e: provider.getFile(target).getAcl()){
+            for(DcAclEntry e: provider.getFile(target, TestUtils.DEFAULT_TEST_CONTEXT).getAcl()){
                 if(e.getSubject().equals(DcGroup.PUBLIC_GROUP)){
                     if(e.getPermissions().contains(DcPermissions.WRITE)){
                         okay = false;
@@ -288,8 +283,8 @@ public class DcFileSystemProviderTest {
                 .build();
 
             newAcl.add(entry);
-            provider.mergeContainerAclEntries(target, newAcl, true);
-            TestCase.assertEquals("Only one entry should exist", 1, provider.getFile(target).getAcl().size());
+            provider.mergeContainerAclEntries(target, TestUtils.DEFAULT_TEST_CONTEXT, newAcl, true);
+            TestCase.assertEquals("Only one entry should exist", 1, provider.getFile(target, TestUtils.DEFAULT_TEST_CONTEXT).getAcl().size());
             
             /* TODO: Define this behavior - clear = true, permissions = empty
             newAcl = new ArrayList<>();
@@ -309,8 +304,8 @@ public class DcFileSystemProviderTest {
             ex.printStackTrace();
         }
 
-        provider.delete(path.resolve(folderName).resolve(folderName));
-        provider.delete(path.resolve(folderName));
+        provider.delete(path.resolve(folderName).resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT);
+        provider.delete(path.resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT);
     }
 
     

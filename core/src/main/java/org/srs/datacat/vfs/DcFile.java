@@ -14,10 +14,8 @@ import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.RecordType;
 import org.srs.datacat.model.security.DcAclEntry;
-import org.srs.datacat.vfs.attribute.ChildrenView;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
-import org.srs.datacat.vfs.attribute.SubdirectoryView;
 import org.srs.vfs.AbstractVirtualFile;
 import org.srs.vfs.FileType;
 

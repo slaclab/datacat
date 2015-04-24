@@ -3,7 +3,6 @@ package org.srs.datacat.vfs;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.Principal;
 
 /**
  * Static class to help out with composing URI. 
@@ -14,19 +13,10 @@ import java.security.Principal;
 public final class DcUriUtils {
     
     private DcUriUtils(){}
-    
-    public static URI toFsUri(String path, Principal principal, String experiment){
-        String userName = principal != null ? principal.getName() : null;
+        
+    public static URI toFsUri(String path, String experiment){
         try {
-            return new URI("dc", userName, experiment, -1, path, null, null);
-        } catch(URISyntaxException ex) {
-            throw new UriException("Path segnment likely incorrect", ex);
-        }
-    }
-    
-    public static URI toFsUri(String path, String user, String experiment){
-        try {
-            return new URI("dc", user, experiment, -1, path, null, null);
+            return new URI("dc", null, experiment, -1, path, null, null);
         } catch(URISyntaxException ex) {
             throw new UriException("Path segnment likely incorrect", ex);
         }

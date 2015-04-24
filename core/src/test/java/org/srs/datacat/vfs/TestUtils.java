@@ -12,12 +12,12 @@ import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.RecordType;
 import org.srs.datacat.model.dataset.DatasetOption;
 import org.srs.datacat.model.container.DatasetContainerBuilder;
+import org.srs.datacat.model.security.CallContext;
 import org.srs.datacat.model.security.DcGroup;
 import org.srs.datacat.model.security.DcUser;
 
 import org.srs.datacat.security.DcUserLookupService;
 import org.srs.datacat.test.HSqlDbHarness;
-import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 
 import org.srs.datacat.test.DbHarness;
 
@@ -27,6 +27,11 @@ import org.srs.datacat.test.DbHarness;
  */
 public class TestUtils {
     
+    public static final CallContext DEFAULT_TEST_CONTEXT = 
+            new CallContext(
+                    new DcUser(DbHarness.TEST_USER), 
+                    new HashSet<>(Arrays.asList(DcGroup.PUBLIC_GROUP, new DcGroup("test_group","SRS")))
+            );
     
     public static void generateDatasets(DcPath root, DcFileSystemProvider provider, int folders, int datasets) throws IOException{
         DcPath parent = root.resolve( "/testpath");
@@ -42,7 +47,7 @@ public class TestUtils {
             String name =String.format("folder%05d", i);
             DcPath newPath = parent.resolve(name);
             builder.name(name);
-            provider.createDirectory( newPath, new ContainerCreationAttribute(builder.build()) );
+            provider.createDirectory( newPath, DEFAULT_TEST_CONTEXT, builder.build());
         }
         
         List opts = Arrays.asList(DatasetOption.CREATE_NODE, DatasetOption.CREATE_VERSION, DatasetOption.SKIP_NODE_CHECK);
@@ -63,7 +68,7 @@ public class TestUtils {
                 metadata.put(DbHarness.numberName, DbHarness.numberMdValues[i % 4]);
                 metadata.put(DbHarness.alphaName, DbHarness.alphaMdValues[j % 4]);
                 dsBuilder.versionMetadata( metadata );
-                provider.createDataset(newPath.resolve(name), dsBuilder.build(), options );
+                provider.createDataset(newPath.resolve(name), DEFAULT_TEST_CONTEXT, dsBuilder.build(), options );
             }
         }
     
