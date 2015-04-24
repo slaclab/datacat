@@ -2,54 +2,42 @@
 package org.srs.datacat.vfs;
 
 import java.net.URI;
-import org.srs.vfs.AbstractFs;
+import java.nio.file.PathMatcher;
 import org.srs.vfs.PathProvider;
-import org.srs.datacat.security.DcUserLookupService;
+import org.srs.vfs.PathMatchers;
 
 /**
  *
  * @author bvan
  */
-public class DcFileSystem extends AbstractFs<DcPath> {
+public class DcFileSystem {
         
-    private final DcUserLookupService lookupService;
-    private final DcFileSystemProvider provider;
     private final PathProvider<DcPath> pathProvider = new PathProvider<DcPath>(){
 
         @Override
         public DcPath getRoot(){
-            return new DcPath(null, DcFileSystem.this, "/");
+            return new DcPath(null, this, "/");
         }
 
         @Override
         public DcPath getPath(URI uri){
-            return new DcPath(uri.getUserInfo(), DcFileSystem.this, uri.getPath());
+            return new DcPath(uri.getUserInfo(), this, uri.getPath());
         }
 
         @Override
         public DcPath getPath(String userName, String path){
-            return new DcPath(userName, DcFileSystem.this, path);
+            return new DcPath(userName, this, path);
         }
     };
 
-    public DcFileSystem(DcFileSystemProvider provider, DcUserLookupService lookupService){
-        super(provider);
-        this.provider = provider;
-        this.lookupService = lookupService;
-    }
+    public DcFileSystem(){}
 
-    @Override
     public PathProvider<DcPath> getPathProvider(){
         return pathProvider;
     }
     
-    @Override
-    public DcUserLookupService getUserPrincipalLookupService(){
-        return lookupService;
-    }
-
-    public DcFileSystemProvider getProvider(){
-        return provider;
+    public PathMatcher getPathMatcher(String syntaxAndPattern){
+        return PathMatchers.getPathMatcher(syntaxAndPattern, "/");
     }
 
 }

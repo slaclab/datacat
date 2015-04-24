@@ -1,6 +1,7 @@
 package org.srs.datacat.vfs;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 import java.nio.file.attribute.AttributeView;
 import java.nio.file.attribute.BasicFileAttributeView;
@@ -26,7 +27,7 @@ import org.srs.vfs.FileType;
  * 
  * @author bvan
  */
-public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFileAttributeView {
+public class DcFile extends AbstractVirtualFile<Path, Long> implements BasicFileAttributeView {
 
     {
         addViewName(DcFile.class, "basic");
@@ -42,9 +43,11 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     private final DatacatNode dcObject;
     private final List<DcAclEntry> acl;
     private final long dcObjectCreation = System.currentTimeMillis();
+    private final DcFileSystemProvider provider;
 
-    public DcFile(DcPath path, DatacatNode object, List<DcAclEntry> acl){
+    public DcFile(Path path, DcFileSystemProvider provider, DatacatNode object, List<DcAclEntry> acl){
         super(path, fileType(object));
+        this.provider = provider;
         this.dcObject = object;
         this.acl = acl;
         initViews(object);
@@ -53,12 +56,12 @@ public class DcFile extends AbstractVirtualFile<DcPath, Long> implements BasicFi
     private void initViews(DatacatNode orig){
         addAttributeViews(this);
         if(isRegularFile() && orig instanceof DatasetModel){
-            addAttributeViews(new DatasetViewProvider(this, (DatasetModel) orig));
+            addAttributeViews(new DatasetViewProvider(this, provider, (DatasetModel) orig));
         }
         if(isDirectory()){
-            addAttributeViews(new ChildrenView(getPath()));
-            addAttributeViews(new SubdirectoryView(getPath()));
-            addAttributeViews(new ContainerViewProvider(this));
+            addAttributeViews(new ChildrenView(getPath(), provider));
+            addAttributeViews(new SubdirectoryView(getPath(), provider));
+            addAttributeViews(new ContainerViewProvider(this, provider));
         }
     }
 

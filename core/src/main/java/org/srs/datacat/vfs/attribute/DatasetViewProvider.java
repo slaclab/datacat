@@ -26,9 +26,9 @@ public class DatasetViewProvider implements DcViewProvider<DatasetView> {
     
     private final HashMap<Integer, DatasetViewInfoModel> versionCache = new HashMap<>(4);
     
-    public DatasetViewProvider(DcFile file, DatasetModel object){
+    public DatasetViewProvider(DcFile file, DcFileSystemProvider provider, DatasetModel object){
         this.file = file;
-        this.provider = file.getPath().getFileSystem().getProvider();
+        this.provider = provider;
         if(object instanceof DatasetWithViewModel){
             DatasetWithViewModel objectWithView = ((DatasetWithViewModel) object);
             if(objectWithView.getViewInfo().locationsOpt().isPresent()){

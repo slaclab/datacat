@@ -4,21 +4,13 @@ import com.google.common.base.Optional;
 import org.srs.datacat.model.security.DcPermissions;
 import java.io.IOException;
 import java.net.URI;    
-import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessDeniedException;
-import java.nio.file.AccessMode;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
-import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 
-import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.FileAttributeView;
 import java.util.ArrayList;
 
 import java.util.Arrays;
@@ -26,7 +18,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -59,7 +50,6 @@ import org.srs.datacat.vfs.attribute.ChildrenView;
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 
-import org.srs.vfs.AbstractFsProvider;
 import org.srs.vfs.AbstractPath;
 import org.srs.vfs.AbstractFsProvider.AfsException;
 import org.srs.vfs.FileType;
@@ -70,7 +60,7 @@ import org.srs.vfs.VfsSoftCache;
  *
  * @author bvan
  */
-public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
+public class DcFileSystemProvider {
 
     private static final long MAX_CHILD_CACHE = 500;
     private static final int MAX_METADATA_STRING_BYTE_SIZE = 5000;
@@ -81,6 +71,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
     private final DcFileSystem fileSystem;
     private final DAOFactory daoFactory;
     private final ModelProvider modelProvider;
+    private final DcUserLookupService userLookupService;
     private final VfsCache<DcFile> cache = new VfsSoftCache<>();
     
     public DcFileSystemProvider(DAOFactory daoFactory, 
@@ -88,12 +79,12 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         super();
         this.daoFactory = daoFactory;
         this.modelProvider = modelProvider;
-        fileSystem = new DcFileSystem(this, userLookupService);
+        this.userLookupService = userLookupService;
+        this.fileSystem = new DcFileSystem();
     }
-
-    @Override
-    public String getScheme(){
-        return "dc";
+    
+    public DcFileSystem getFileSystem(){
+        return fileSystem;
     }
 
     public DAOFactory getDaoFactory(){
@@ -112,14 +103,11 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             }
         };
     
-    
-    @Override
-    public VfsCache<DcFile> getCache(){
+    private VfsCache<DcFile> getCache(){
         return cache;
     }
     
-    @Override
-    public DcFile resolveFile(DcPath path) throws NoSuchFileException, IOException {
+    private DcFile resolveFile(DcPath path) throws NoSuchFileException, IOException {
         // Find this file in the cache. If it's not in the cache, resolve it's parents
         // (thereby putting them in the cache), and eventually this file.
         DcFile file = getCache().getFile(path);
@@ -133,16 +121,6 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
             return file;
         }
         return file;
-    }
-
-    public DirectoryStream<DcPath> newDirectoryStream(DcPath dir) throws IOException{
-        return newDirectoryStream(dir, ACCEPT_ALL_FILTER);
-    }
-    
-    @Override
-    public DirectoryStream newDirectoryStream(Path dir,
-            final DirectoryStream.Filter<? super Path> filter) throws IOException{
-        return newOptimizedDirectoryStream(dir, filter, NO_MAX, DatasetView.EMPTY);
     }
 
     public DirectoryStream<DcPath> newOptimizedDirectoryStream(Path dir,
@@ -167,26 +145,8 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         return stream;
     }
-    
-    public DirectoryStream<DcPath> cachedDirectoryStream(DcPath dir) throws IOException{
-        return cachedDirectoryStream(dir, ACCEPT_ALL_FILTER);
-    }
-    
-    public DirectoryStream<DcPath> unCachedDirectoryStream(DcPath dir) throws IOException{
-        return unCachedDirectoryStream(dir, ACCEPT_ALL_FILTER);
-    }
 
-    public DirectoryStream<DcPath> unCachedDirectoryStream(Path dir,
-            final DirectoryStream.Filter<? super Path> filter) throws IOException{
-        return unCachedDirectoryStream(dir, filter, DatasetView.EMPTY, true);
-    }
-
-    public DirectoryStream<DcPath> directSubdirectoryStream(Path dir,
-            final DirectoryStream.Filter<? super Path> filter) throws IOException{
-        return unCachedDirectoryStream(dir, filter, null, false);
-    }
-
-    private DirectoryStream<DcPath> unCachedDirectoryStream(Path dir,
+    public DirectoryStream<DcPath> unCachedDirectoryStream(final Path dir,
             final DirectoryStream.Filter<? super Path> filter, final DatasetView viewPrefetch,
             final boolean cacheDatasets) throws IOException{
         final DcPath dcPath = checkPath(dir);
@@ -211,7 +171,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                 public boolean acceptNext() throws IOException{
                     while(iter.hasNext()){
                         DatacatNode child = iter.next();
-                        DcPath maybeNext = dcPath.resolve(child.getName());
+                        Path maybeNext = dcPath.resolve(child.getName());
                         DcFile file = DcFileSystemProvider.this.
                             buildChild(dirFile, maybeNext, child);
                         /* TODO: Permissions check here?
@@ -254,7 +214,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         return wrapper;
     }
 
-    public DirectoryStream<DcPath> cachedDirectoryStream(Path dir,
+    protected DirectoryStream<DcPath> cachedDirectoryStream(Path dir,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
         final DcPath dcPath = checkPath(dir);
         final DcFile dirFile = resolveFile(dcPath);
@@ -328,33 +288,6 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         return estimate < MAX_DATASET_CACHE_SIZE;
     }
 
-    @Override
-    public <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type,
-            LinkOption... options){
-        DcPath dcPath = checkPath(path);
-        try {
-            DcFile f = resolveFile(dcPath);
-            checkPermission(dcPath.getUserName(), f, DcPermissions.READ);
-            return f.getAttributeView(type);
-        } catch(IOException ex) {
-            // Do nothing, just return null
-            return null;
-        }
-    }
-
-    @Override
-    public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type,
-            LinkOption... options) throws IOException{
-        DcPath dcPath = checkPath(path);
-        DcFile f = resolveFile(dcPath);
-        checkPermission(dcPath.getUserName(), f, DcPermissions.READ);
-        if(type == BasicFileAttributes.class || type == DcFile.class){
-            return (A) f;
-        }
-        AfsException.NO_SUCH_FILE.throwError(dcPath, "Unable to resolve file");
-        return null; // Keep compiler happy
-    }
-
     /**
      * Gets a file.
      *
@@ -380,25 +313,11 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         return null; // Keep compiler happy
     }
     
-    @Override
     public DcPath getPath(URI uri){
         return fileSystem.getPathProvider().getPath(uri);
     }
 
-    @Override
-    public void checkAccess(Path path, AccessMode... modes) throws IOException{
-        DcPath dcPath = checkPath(path);
-        DcFile file = resolveFile(dcPath);
-        DcPermissions perm = DcPermissions.READ;
-        if(modes.length > 0){
-            if(modes[0] == AccessMode.WRITE){
-                perm = DcPermissions.WRITE;
-            }
-        }
-        checkPermission(dcPath.getUserName(), file, perm);
-    }
-
-    public boolean exists(Path path){
+    private boolean exists(Path path){
         try {
             resolveFile(checkPath(path));
             // file exists
@@ -417,8 +336,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         return fileSystem.getPathProvider().getPath(user, path.toString());
     }
 
-    @Override
-    public DcFile retrieveFileAttributes(DcPath path, DcFile parent) throws IOException{
+    private DcFile retrieveFileAttributes(Path path, DcFile parent) throws IOException{
         // LOG: Checking database
         try(BaseDAO dao = daoFactory.newBaseDAO()) {
             DatacatRecord parentRecord = parent != null ? parent.getObject() : null;
@@ -427,7 +345,9 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
     }
 
-    private static DcFile buildChild(DcFile parent, DcPath childPath, DatacatNode child) throws IOException{        
+    private DcFile buildChild(DcFile parent, Path childPath, DatacatNode child) throws IOException{
+        // Make copy with no userName
+        childPath = getFileSystem().getPathProvider().getPath(null, childPath.toString());
         List<DcAclEntry> acl = AclTransformation.parseAcl(child.getAcl()).orNull();
         if(acl == null){
             acl = new ArrayList<>();
@@ -439,7 +359,7 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
                 acl.add(defaultEntry);
             }
         }
-        return new DcFile(childPath, child, acl);
+        return new DcFile(childPath, this, child, acl);
     }
     
     /**
@@ -598,7 +518,6 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
     }
 
-    @Override
     public void createDirectory(Path dir,
             FileAttribute<?>... attrs) throws IOException{
         DcPath targetDir = checkPath(dir);
@@ -631,21 +550,6 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
     }
 
-    @Override
-    public FileSystem newFileSystem(URI uri,
-            Map<String, ?> env) throws IOException{
-        return getFileSystem(uri);
-    }
-
-    //@Override
-    public DcFileSystem getFileSystem(URI uri){
-        if(uri.getScheme().equalsIgnoreCase(getScheme())){
-            return fileSystem;
-        }
-        throw new UnsupportedOperationException();
-    }
-
-    //@Override
     public void delete(Path path) throws IOException{
         DcPath dcPath = checkPath(path);
         try(BaseDAO dao = daoFactory.newBaseDAO()) {
@@ -659,9 +563,9 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         parentFile.childRemoved(dcPath);
     }
 
-    public void checkPermission(String userName, DcFile file, DcPermissions permission) throws IOException{
-        DcUser user = fileSystem.getUserPrincipalLookupService().lookupPrincipalByName(userName);
-        Set<DcGroup> usersGroups = fileSystem.getUserPrincipalLookupService().lookupGroupsForUser(user);
+    private void checkPermission(String userName, DcFile file, DcPermissions permission) throws IOException{
+        DcUser user = userLookupService.lookupPrincipalByName(userName);
+        Set<DcGroup> usersGroups = userLookupService.lookupGroupsForUser(user);
         List<DcAclEntry> acl = file.getAcl();
 
         if(!permissionsCheck(usersGroups, acl, permission)){
@@ -688,34 +592,4 @@ public class DcFileSystemProvider extends AbstractFsProvider<DcPath, DcFile> {
         }
         return false;
     }
-
-    /* START NOT IMPLEMENTED */
-
-    @Override
-    public SeekableByteChannel newByteChannel(Path path,
-            Set<? extends OpenOption> options,
-            FileAttribute<?>... attrs) throws IOException{
-        throw new UnsupportedOperationException("Use createDataset method to create a dataset");
-    }
-
-    @Override
-    public boolean isSameFile(Path path, Path path2) throws IOException{
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public FileStore getFileStore(Path path) throws IOException{
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException{
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException{
-        throw new UnsupportedOperationException();
-    }
-    
 }

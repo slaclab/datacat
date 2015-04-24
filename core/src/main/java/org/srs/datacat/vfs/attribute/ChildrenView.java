@@ -3,6 +3,7 @@ package org.srs.datacat.vfs.attribute;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
+import java.nio.file.Path;
 import java.nio.file.attribute.FileAttributeView;
 import java.util.Collection;
 import java.util.Collections;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
+import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 import org.srs.datacat.vfs.DcPath;
 
@@ -21,11 +23,13 @@ public class ChildrenView implements FileAttributeView {
 
     private boolean hasCache = false;
     protected TreeMap<String, DcPath> children;
-    private final DcPath path;
+    private final Path path;
     private final ReentrantLock lock = new ReentrantLock();
+    private final DcFileSystemProvider provider;
     
-    public ChildrenView(DcPath path){
+    public ChildrenView(Path path, DcFileSystemProvider provider){
         this.path = path;
+        this.provider = provider;
     }
     
     @Override
@@ -101,15 +105,15 @@ public class ChildrenView implements FileAttributeView {
     }
     
     protected void doRefreshCache() throws IOException{
-        DcFileSystemProvider pro = path.getFileSystem().getProvider();
-        try(DirectoryStream<DcPath> stream = pro.unCachedDirectoryStream(path, DcFileSystemProvider.ACCEPT_ALL_FILTER)){
+        try(DirectoryStream<DcPath> stream = provider.unCachedDirectoryStream(path, 
+                DcFileSystemProvider.ACCEPT_ALL_FILTER, DatasetView.EMPTY, true)){
             for(DcPath child: stream){
                 children.put(child.getFileName().toString(), child);
             }
         }
     }
 
-    public DcPath getPath(){
+    public Path getPath(){
         return path;
     }
     

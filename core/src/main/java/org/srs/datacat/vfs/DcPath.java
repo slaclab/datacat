@@ -3,31 +3,23 @@ package org.srs.datacat.vfs;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import org.srs.datacat.model.DatasetView;
+import org.srs.vfs.AbstractFs;
 import org.srs.vfs.AbstractPath;
+import org.srs.vfs.PathProvider;
 
 /**
  *
  * @author bvan
  */
 public class DcPath extends AbstractPath<DcPath> {
-    private DatasetView view;
     
-    public DcPath(String userName, DcFileSystem fs, String path){
-        super(userName, fs, path);
+    protected DcPath(String userName, PathProvider<DcPath> pathProvider, String path){
+        super(userName, pathProvider, path);
     }
 
     @Override
-    public DcFileSystem getFileSystem(){
-        return (DcFileSystem) super.getFileSystem();
-    }
-    
-    public DatasetView getView(){
-        return view;
-    }
-    
-    public void setView(DatasetView view){
-        this.view = view;
+    public AbstractFs getFileSystem(){
+        return null;
     }
     
     @Override

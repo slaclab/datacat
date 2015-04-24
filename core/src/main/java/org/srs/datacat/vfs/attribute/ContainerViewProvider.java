@@ -27,9 +27,9 @@ public class ContainerViewProvider implements DcViewProvider<Class<? extends Con
     private final HashMap<DatasetView, AtomicInteger> viewCaches = new HashMap<>(3);
     private final Lock lock = new ReentrantLock();
 
-    public ContainerViewProvider(DcFile file){
+    public ContainerViewProvider(DcFile file, DcFileSystemProvider provider){
         this.file = file;
-        this.provider = file.getPath().getFileSystem().getProvider();
+        this.provider = provider;
     }
 
     @Override

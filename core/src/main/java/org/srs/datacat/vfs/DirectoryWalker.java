@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystem;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
@@ -103,7 +102,7 @@ public class DirectoryWalker {
         private final LinkedList<DcFile> folderStack = new LinkedList<>();
         public LinkedList<DatacatRecord> files = new LinkedList<>();
 
-        public ContainerVisitor(FileSystem fs, String syntaxAndPattern){
+        public ContainerVisitor(DcFileSystem fs, String syntaxAndPattern){
             boolean searchGroups = true;
             boolean searchFolders = true;
 
