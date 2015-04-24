@@ -1,6 +1,7 @@
 
 package org.srs.datacat.rest.resources;
 
+import com.google.common.base.Optional;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryNotEmptyException;
@@ -45,6 +46,7 @@ import org.srs.datacat.rest.RestException;
 import org.srs.datacat.model.RecordType;
 import org.srs.datacat.model.container.ContainerStat;
 import org.srs.datacat.model.container.DatasetContainerBuilder;
+import org.srs.datacat.model.security.CallContext;
 import org.srs.datacat.rest.PATCH;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 
@@ -99,10 +101,10 @@ public class ContainerResource extends BaseResource {
             throw new RestException(ex, 400, "Unable to validate request view", ex.getMessage());
         }
         
-        DcPath containerPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
+        DcPath containerPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
         
         try {
-            if(!getProvider().getFile(containerPath).isDirectory()){
+            if(!getProvider().getFile(containerPath, buildCallContext()).isDirectory()){
                 throw new NotDirectoryException(containerPath.toString());
             }
         } catch (NoSuchFileException ex){
@@ -138,16 +140,14 @@ public class ContainerResource extends BaseResource {
         }
 
         DatasetContainerBuilder builder = FormParamConverter.getContainerBuilder( type, formParams );
-        DcPath parentPath = getProvider().getPath(DcUriUtils.toFsUri(sParentPath, getUser(), "SRS"));
+        DcPath parentPath = getProvider().getPath(DcUriUtils.toFsUri(sParentPath, "SRS"));
+        CallContext callContext = buildCallContext();
         DcPath targetPath = parentPath.resolve(builder.build().getName());
         builder.path(targetPath.toString());
         
-        ContainerCreationAttribute request = new ContainerCreationAttribute(builder.build());
-        
         try {
-            getProvider().createDirectory(targetPath, request);
-            //System.out.println("req: " + parentPath.resolve(request.value().getName()));
-            return Response.created(DcUriUtils.toFsUri(targetPath.toString(), getUser(), "SRS")).entity(builder.build()).build();
+            getProvider().createDirectory(targetPath, callContext, builder.build());
+            return Response.created(DcUriUtils.toFsUri(targetPath.toString(), "SRS")).entity(builder.build()).build();
         } catch (NoSuchFileException ex){
              throw new RestException(ex ,404, "Parent file doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
@@ -173,15 +173,13 @@ public class ContainerResource extends BaseResource {
         }
         DatasetContainerBuilder builder = getProvider().getModelProvider().getContainerBuilder().create(container);
 
-        DcPath parentPath = getProvider().getPath(DcUriUtils.toFsUri(sParentPath, getUser(), "SRS"));
+        DcPath parentPath = getProvider().getPath(DcUriUtils.toFsUri(sParentPath, "SRS"));
         DcPath targetPath = parentPath.resolve(container.getName());
         builder.path(targetPath.toString());
         
-        ContainerCreationAttribute request = new ContainerCreationAttribute(container);
-        
         try {
-            getProvider().createDirectory(targetPath, request);
-            return Response.created(DcUriUtils.toFsUri(targetPath.toString(), getUser(), "SRS"))
+            getProvider().createDirectory(targetPath, buildCallContext(), container);
+            return Response.created(DcUriUtils.toFsUri(targetPath.toString(), "SRS"))
                     .entity(builder.build()).build();
         } catch (NoSuchFileException ex){
              throw new RestException(ex ,404, "Parent file doesn't exist", ex.getMessage());
@@ -201,9 +199,9 @@ public class ContainerResource extends BaseResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response patchDataset(DatasetContainer containerReq) throws IOException{
-        DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
+        DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
         try {
-            getProvider().patchContainer(targetPath, containerReq);
+            getProvider().patchContainer(targetPath, buildCallContext(), containerReq);
             return objectView(targetPath, null);
         } catch (NoSuchFileException ex) {
             throw new RestException(ex ,404, "Dataset doesn't exist", ex.getMessage());
@@ -217,12 +215,13 @@ public class ContainerResource extends BaseResource {
     @DELETE
     @Path(idRegex)
     public Response deleteContainer() throws IOException{
-        DcPath dcPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
+        DcPath dcPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
+        CallContext context = buildCallContext();
         try {
-            if(!getProvider().getFile(dcPath).isDirectory()){
+            if(!getProvider().getFile(dcPath, context).isDirectory()){
                 throw new NoSuchFileException("Path doesn't resolve to a container");
             }
-            getProvider().delete(dcPath);
+            getProvider().delete(dcPath, context);
             return Response.noContent().build();
         } catch (DirectoryNotEmptyException ex){
             throw new RestException(ex, 409, "Directory not empty");
@@ -236,7 +235,7 @@ public class ContainerResource extends BaseResource {
     }
     
     public Response objectView(DcPath containerPath, Class<? extends ContainerStat> statType) throws IOException{
-        DcFile file = getProvider().getFile(containerPath);
+        DcFile file = getProvider().getFile(containerPath, buildCallContext());
         return Response
                 .ok(file.getAttributeView(ContainerViewProvider.class)
                 .withView(statType)).build();
@@ -250,14 +249,15 @@ public class ContainerResource extends BaseResource {
         }
         
         ArrayList<DatacatNode> retList = new ArrayList<>();
-        try (DirectoryStream<DcPath> stream = getProvider().newOptimizedDirectoryStream(containerPath, DcFileSystemProvider.ACCEPT_ALL_FILTER, Integer.MAX_VALUE, DatasetView.EMPTY)){
+        try (DirectoryStream<DcPath> stream = getProvider().newOptimizedDirectoryStream(containerPath, 
+                buildCallContext(), DcFileSystemProvider.ACCEPT_ALL_FILTER, Integer.MAX_VALUE, Optional.of(DatasetView.EMPTY))){
             Iterator<DcPath> iter = stream.iterator();
             for(int i = 0; iter.hasNext() && retList.size() < max; i++){
                 DcPath p = iter.next();
                 if(i < offset){
                     continue;
                 }
-                DcFile file = getProvider().getFile(p.withUser(containerPath.getUserName()));
+                DcFile file = getProvider().getFile(p, buildCallContext());
                 if(!withDs && file.isRegularFile()){
                     continue;
                 }

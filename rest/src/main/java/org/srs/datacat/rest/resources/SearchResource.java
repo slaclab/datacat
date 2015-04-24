@@ -105,11 +105,11 @@ public class SearchResource extends BaseResource {
             String queryString = filter;
 
             String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern,"/"));
-            DcPath root = getProvider().getPath(DcUriUtils.toFsUri("/", getUser(), "SRS"));
+            DcPath root = getProvider().getPath(DcUriUtils.toFsUri("/",  "SRS"));
             DcPath searchPath = root.resolve(searchBase);
             ContainerVisitor visitor = new ContainerVisitor(getProvider().getFileSystem(), pathPattern, checkGroups, checkFolders);
             DirectoryWalker walker = new DirectoryWalker(getProvider(), visitor, 100 /* max depth */);
-            walker.walk(searchPath);
+            walker.walk(searchPath, buildCallContext());
             datasets = datacatSearch.search(visitor.files, dv, queryString, metafields, sortFields, offset, max);
         } catch (IllegalArgumentException ex){
             throw new RestException(ex,400, "Unable to process query, see message", ex.getMessage());

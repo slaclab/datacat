@@ -1,6 +1,7 @@
 
 package org.srs.datacat.rest;
 
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.security.Principal;
 import java.sql.Connection;
@@ -10,12 +11,17 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
+import org.srs.datacat.model.security.CallContext;
+import org.srs.datacat.model.security.DcGroup;
+import org.srs.datacat.model.security.DcUser;
+import org.srs.datacat.security.DcUserLookupService;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 
 /**
@@ -30,6 +36,7 @@ public class BaseResource {
     @Context HttpServletRequest request;
     @Context HttpServletResponse response;
     @Inject DcFileSystemProvider provider;
+    @Inject DcUserLookupService lookupService;
     @Inject DataSource dataSource;
 
     public Connection getConnection() throws SQLException {
@@ -112,6 +119,14 @@ public class BaseResource {
 
     public Principal getUser(){
         return securityContext.getUserPrincipal();
+    }
+    
+    public CallContext buildCallContext() throws IOException{
+        Principal prin = this.getUser();
+        String name = prin != null ?  prin.getName() : null;
+        DcUser user = lookupService.lookupPrincipalByName(name);
+        Set<DcGroup> groups = lookupService.lookupGroupsForUser(user);
+        return new CallContext(user, groups);
     }
 
 }

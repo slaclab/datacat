@@ -95,6 +95,19 @@ public class App extends ResourceConfig {
         }
     }
     
+    public static class LookupServiceBinder extends AbstractBinder {
+        private final DcUserLookupService lookupService;
+        
+        LookupServiceBinder(DcUserLookupService lookupService){
+            this.lookupService = lookupService;
+        }
+
+        @Override
+        protected void configure(){
+            bind(lookupService).to(DcUserLookupService.class);
+        }
+    }
+    
     public static class DataSourceBinder extends AbstractBinder {
         private final DataSource dataSource;
         
@@ -204,9 +217,10 @@ public class App extends ResourceConfig {
     void initPlugins() throws IOException {
         DAOFactory factory = new DAOFactoryMySQL(dataSource);
         ModelProvider modelProvider = new Provider();
-        fsProvider = new DcFileSystemProvider(factory, modelProvider, lookup);
+        fsProvider = new DcFileSystemProvider(factory, modelProvider);
         register(new DataSourceBinder(dataSource));
         register(new FsBinder(fsProvider));
+        register(new LookupServiceBinder(lookup));
         
         SearchPluginProvider provider = new SearchPluginProvider(
                 EXODatacatSearchPlugin.class,

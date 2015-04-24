@@ -9,9 +9,6 @@ import java.util.Objects;
  */
 public class DcGroup extends DcSubject implements GroupPrincipal {
 
-    public static final String PUBLIC_NAME = "$PUBLIC$";
-    public static final String PROTECTED_NAME = "$PROTECTED$";
-
     public static final DcGroup PUBLIC_GROUP = new DcGroup(PUBLIC_NAME, null);
     public static final DcGroup PROTECTED_GROUP = new DcGroup(PROTECTED_NAME, null);
 

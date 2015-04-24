@@ -68,7 +68,7 @@ public class SearchResourceTest extends JerseyTest{
     @Test
     public void testBasicSearch() throws IOException {
         DcFileSystemProvider provider = app.getFsProvider();
-        DcPath root = provider.getPath(DcUriUtils.toFsUri( "/", DbHarness.TEST_USER, "SRS"));
+        DcPath root = provider.getPath(DcUriUtils.toFsUri("/", "SRS"));
         TestUtils.generateDatasets( root, provider, 10, 100 );
         
         AnnotationIntrospector primary = new JacksonAnnotationIntrospector();

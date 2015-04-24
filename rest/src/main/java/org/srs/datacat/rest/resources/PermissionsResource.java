@@ -19,6 +19,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import org.srs.datacat.model.security.CallContext;
 import org.srs.datacat.model.security.DcAclEntry;
 import org.srs.datacat.rest.BaseResource;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
@@ -63,9 +64,9 @@ public class PermissionsResource extends BaseResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response getPermissions() {
         
-        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
+        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath,  "SRS"));
         try {
-            DcFile dcf = getProvider().getFile(dcp);
+            DcFile dcf = getProvider().getFile(dcp, buildCallContext());
             List<AclEntryProxy> acl = new ArrayList<>(dcf.getAcl().size());
             for(DcAclEntry e: dcf.getAcl()){
                 acl.add(new AclEntryProxy(e));
@@ -85,14 +86,14 @@ public class PermissionsResource extends BaseResource {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response setPermissions(List<AclEntryProxy> proxyAcl){
-        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
+        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath,  "SRS"));
 
         try {
             ArrayList<DcAclEntry> acl = new ArrayList<>(proxyAcl.size());
             for(AclEntryProxy p: proxyAcl){
                 acl.add(p.entry());
             }
-            getProvider().mergeContainerAclEntries(dcp, acl, true);
+            getProvider().mergeContainerAclEntries(dcp, buildCallContext(), acl, true);
             return Response.noContent().build();
         } catch (NoSuchFileException ex){
              throw new RestException(ex,404 , "File doesn't exist", ex.getMessage());
@@ -108,15 +109,16 @@ public class PermissionsResource extends BaseResource {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response mergePermissions(List<AclEntryProxy> proxyAcl){
-        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
+        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath,  "SRS"));
         
         try {
             ArrayList<DcAclEntry> acl = new ArrayList<>(proxyAcl.size());
             for(AclEntryProxy p: proxyAcl){
                 acl.add(p.entry());
             }
-            getProvider().mergeContainerAclEntries(dcp, acl, false);
-            DcFile dcf = getProvider().getFile(dcp);
+            CallContext context = buildCallContext();
+            getProvider().mergeContainerAclEntries(dcp, context, acl, false);
+            DcFile dcf = getProvider().getFile(dcp, context);
             
             proxyAcl = new ArrayList<>(dcf.getAcl().size());
             for(DcAclEntry e: dcf.getAcl()){

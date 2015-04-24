@@ -13,6 +13,10 @@ import java.util.Objects;
  */
 public abstract class DcSubject implements  UserPrincipal, Comparable<DcSubject> {
     private final String name;
+    
+    public static final String PUBLIC_NAME = "$PUBLIC$";
+    public static final String PROTECTED_NAME = "$PROTECTED$";
+    public static final String SYSTEM_NAME = "$SYSTEM$";
 
     public DcSubject(String name){
         this.name = checkNotNull(name);

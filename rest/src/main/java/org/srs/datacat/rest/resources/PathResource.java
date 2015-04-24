@@ -2,6 +2,7 @@
 package org.srs.datacat.rest.resources;
 
 
+import com.google.common.base.Optional;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryStream;
@@ -30,6 +31,7 @@ import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.dataset.DatasetWithViewModel;
 import org.srs.datacat.model.HasMetadata;
 import org.srs.datacat.model.container.ContainerStat;
+import org.srs.datacat.model.security.CallContext;
 
 import org.srs.datacat.rest.BaseResource;
 import org.srs.datacat.shared.RequestView;
@@ -95,12 +97,12 @@ public class PathResource extends BaseResource {
     
     @HEAD
     public Response getHead(@DefaultValue("false") @QueryParam("refresh") boolean refresh) throws IOException{
-        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath, getUser(), "SRS"));
+        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath,  "SRS"));
         try {
             if(refresh){
                 //getProvider().getCache().removeFile(dcp);
             }
-            DcFile file = getProvider().getFile(dcp);
+            DcFile file = getProvider().getFile(dcp, buildCallContext());
             if(file.isRegularFile()){
                 RequestView rv = new RequestView(file.getObject().getType(), requestMatrixParams);
                 file.getAttributeView(DatasetViewProvider.class).withView(rv.getDatasetView(), rv.includeMetadata());
@@ -139,12 +141,12 @@ public class PathResource extends BaseResource {
         if(st != null){
             statType = getProvider().getModelProvider().getStatByName(st);
         }
-        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(path, getUser(), "SRS"));
+        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(path,  "SRS"));
         try {
             if(refresh){
                 //getProvider().getCache().removeFile(dcp);
             }
-            DcFile file = getProvider().getFile(dcp);
+            DcFile file = getProvider().getFile(dcp, buildCallContext());
             DatacatNode ret;
             RequestView rv = new RequestView(file.getObject().getType(), matrixParams);
             if(file.isRegularFile()){
@@ -196,21 +198,21 @@ public class PathResource extends BaseResource {
         DirectoryStream<DcPath> stream = null;
         try {
             String childrenView = requestView.get("children");
-            if("containers".equals(childrenView)){
-                stream = getProvider()
-                        .unCachedDirectoryStream(dirFile.getPath(), AbstractFsProvider.AcceptAllFilter, null, false);
-            } else {
-                stream = getProvider()
-                        .newOptimizedDirectoryStream(dirFile.getPath(), DcFileSystemProvider.ACCEPT_ALL_FILTER, 
-                            max, requestView.getDatasetView(DatasetView.CURRENT_ALL));
+            CallContext context = buildCallContext();
+            DatasetView dsview = null;
+            if(!"containers".equals(childrenView)){
+                dsview = requestView.getDatasetView(DatasetView.CURRENT_ALL);
             }
+            stream = getProvider()
+                    .newOptimizedDirectoryStream(dirFile.getPath(), context, DcFileSystemProvider.ACCEPT_ALL_FILTER, 
+                        max, Optional.fromNullable(dsview));
             Iterator<DcPath> iter = stream.iterator();
             
             while(iter.hasNext() && (retList.size() < max || showCount)){
                 DcPath p = iter.next();
                 DcFile file = null;
                 try {
-                    file = getProvider().getFile(p.withUser(dcp.getUserName()));
+                    file = getProvider().getFile(p, context);
                 } catch (AccessDeniedException ex){
                     continue;
                 }
