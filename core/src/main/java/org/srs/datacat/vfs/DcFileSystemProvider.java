@@ -310,8 +310,6 @@ public class DcFileSystemProvider {
     }
 
     private DcFile buildChild(DcFile parent, Path childPath, DatacatNode child) throws IOException{
-        // Make copy with no userName
-        childPath = getFileSystem().getPathProvider().getPath(null, childPath.toString());
         List<DcAclEntry> acl = AclTransformation.parseAcl(child.getAcl()).orNull();
         if(acl == null){
             acl = new ArrayList<>();
