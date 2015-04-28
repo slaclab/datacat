@@ -84,7 +84,7 @@ public abstract class AbstractFs<P extends AbstractPath> extends FileSystem {
             }
             path = sb.toString();
         }
-        return getPathProvider().getPath( null, path, more);
+        return getPathProvider().getPath(path, more);
     }
 
     @Override

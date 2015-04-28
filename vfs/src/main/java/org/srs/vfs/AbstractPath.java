@@ -21,7 +21,6 @@ import java.util.NoSuchElementException;
  */
 public abstract class AbstractPath<T extends AbstractPath> implements Path {
     
-    private final String userName;
     private final AbstractFs fileSystem;
     protected final String path;
     private volatile int[] offsets;
@@ -30,19 +29,14 @@ public abstract class AbstractPath<T extends AbstractPath> implements Path {
     // cached version of the hash
     private volatile int hash;
     
-    protected AbstractPath(String userName, PathProvider<T> pathProvider, String path){
+    protected AbstractPath(PathProvider<T> pathProvider, String path){
         this.path = PathUtils.normalizeSeparators( path );
         this.pathProvider = pathProvider;
-        this.userName = userName;
         this.fileSystem = null;
     }
-    
-    private T createPath(String user, AbstractFs fs, String path){
-        return pathProvider.getPath( user, path );
-    }
-    
+        
     private T createPath(AbstractFs fs, String path){
-        return pathProvider.getPath(userName, path);
+        return pathProvider.getPath(path);
     }
     
     @Override
@@ -55,14 +49,6 @@ public abstract class AbstractPath<T extends AbstractPath> implements Path {
         return fileSystem;
     }
     
-    public String getUserName(){
-        return userName;
-    }
-    
-    public T withUser(String user){
-        return createPath(user, getFileSystem(), path);
-    }
-
     @Override
     public T getRoot() {
         if (path.length() > 0 && path.charAt(0) == '/') {

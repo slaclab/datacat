@@ -32,17 +32,17 @@ public class AbstractPathTest extends TestCase {
 
             @Override
             public AbstractPath getRoot(){
-                return new AbstractPath( null, MockAbstractFs.this.getPathProvider(), "/" ){};
+                return new AbstractPath(MockAbstractFs.this.getPathProvider(), "/" ){};
             }
 
             @Override
             public AbstractPath getPath(URI uri){
-                return new AbstractPath( uri.getUserInfo(), MockAbstractFs.this.getPathProvider(), uri.getPath()){};
+                return new AbstractPath(MockAbstractFs.this.getPathProvider(), uri.getPath()){};
             }
 
             @Override
-            public AbstractPath getPath(String userName, String path){
-                return new AbstractPath( null, MockAbstractFs.this.getPathProvider(), path ){};
+            public AbstractPath getPath(String path){
+                return new AbstractPath(MockAbstractFs.this.getPathProvider(), path ){};
             }
         };
 
@@ -66,7 +66,7 @@ public class AbstractPathTest extends TestCase {
     public void testCreate() throws IOException{
 
         AbstractFs fs = new MockAbstractFs();
-        AbstractPath path = new AbstractPath(null,fs.getPathProvider(),"/") {};
+        AbstractPath path = new AbstractPath(fs.getPathProvider(),"/") {};
         Path sysPath = Paths.get("/");
         
         assertTrue(path.equals(sysPath));

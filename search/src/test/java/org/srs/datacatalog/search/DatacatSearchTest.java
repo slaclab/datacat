@@ -2,6 +2,7 @@
 package org.srs.datacatalog.search;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -21,7 +22,6 @@ import org.srs.datacat.shared.Provider;
 import org.srs.datacat.test.DbHarness;
 
 import org.srs.datacat.vfs.DcFileSystemProvider;
-import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
 import org.srs.datacat.vfs.DirectoryWalker;
 import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
@@ -40,7 +40,7 @@ public class DatacatSearchTest {
     DatasetSearch datacatSearch;
     Class<? extends DatacatPlugin>[] plugins;
     public DataSource ds = null;
-    DcPath root;
+    Path root;
     DcFileSystemProvider provider;
     
     String query1 = "\nSELECT ds.latestVersion, ds.dataset pk, ds.datasetName name, ds.datasetFileFormat, ds.datasetGroup, ds.datasetDataType, ds.datasetlogicalfolder, v.masterLocation, v.dataset, v.versionId, v.datasetVersion, l.runMin, l.datasetLocation, l.datasetSite, l.checkSum, l.path, l.numberEvents, l.runMax, l.scanstatus, l.fileSizeBytes, 'DATASET' type, CASE WHEN ds.datasetlogicalfolder IS NOT NULL  THEN ds.datasetlogicalfolder ELSE ds.datasetGroup END  parent, dsmv0.metaValue \"nRun\", eri.fullTypeName runType, eri.quality runQuality, eri.runIndex runId, dsmv1.metaValue \"nSegment\"\n" +
@@ -116,7 +116,7 @@ public class DatacatSearchTest {
         ContainerVisitor visitor;
         Select statement;
         List<DatasetModel> datasets;
-        DcPath searchPath;
+        Path searchPath;
         String pathPattern;
         
         datacatSearch = new DatasetSearch(conn, plugins);
@@ -323,9 +323,9 @@ public class DatacatSearchTest {
         conn.close();
     }
     
-    private List<DatasetModel> doSearch(Connection conn, DcPath root, String pathPattern, Boolean searchFolders, Boolean searchGroups, String queryString, int expected) throws SQLException, ParseException, IOException{
+    private List<DatasetModel> doSearch(Connection conn, Path root, String pathPattern, Boolean searchFolders, Boolean searchGroups, String queryString, int expected) throws SQLException, ParseException, IOException{
         String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern,"/"));
-        DcPath searchPath = root.resolve(searchBase);
+        Path searchPath = root.resolve(searchBase);
         String[] metaFieldsToRetrieve = null;
         String[] sortFields = null;
         //String[] sortFields = new String[]{"num","alpha"};
@@ -345,9 +345,9 @@ public class DatacatSearchTest {
         return datasets;
     }
     
-    private List<DatasetModel> doSearch(Connection conn, DcPath root, String pathPattern, Boolean searchFolders, Boolean searchGroups, String queryString, String[] sortFields, int expected) throws SQLException, ParseException, IOException{
+    private List<DatasetModel> doSearch(Connection conn, Path root, String pathPattern, Boolean searchFolders, Boolean searchGroups, String queryString, String[] sortFields, int expected) throws SQLException, ParseException, IOException{
         String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern,"/"));
-        DcPath searchPath = root.resolve(searchBase);
+        Path searchPath = root.resolve(searchBase);
         String[] metaFieldsToRetrieve = null;
         String[] sites = null;
         ContainerVisitor visitor = new ContainerVisitor(provider.getFileSystem(), pathPattern, searchGroups, searchFolders);

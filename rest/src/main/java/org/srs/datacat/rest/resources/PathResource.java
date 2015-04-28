@@ -38,7 +38,6 @@ import org.srs.datacat.shared.RequestView;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.shared.BasicStat.StatType;
 import org.srs.datacat.vfs.DcFile;
-import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
@@ -46,7 +45,6 @@ import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 import org.srs.datacat.rest.RestException;
 import org.srs.datacat.shared.metadata.MetadataEntry;
 import org.srs.datacat.vfs.DcFileSystemProvider;
-import org.srs.vfs.AbstractFsProvider;
 
 
 /**
@@ -97,7 +95,7 @@ public class PathResource extends BaseResource {
     
     @HEAD
     public Response getHead(@DefaultValue("false") @QueryParam("refresh") boolean refresh) throws IOException{
-        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath,  "SRS"));
+        java.nio.file.Path dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath,  "SRS"));
         try {
             if(refresh){
                 //getProvider().getCache().removeFile(dcp);
@@ -141,7 +139,7 @@ public class PathResource extends BaseResource {
         if(st != null){
             statType = getProvider().getModelProvider().getStatByName(st);
         }
-        DcPath dcp = getProvider().getPath(DcUriUtils.toFsUri(path,  "SRS"));
+        java.nio.file.Path dcp = getProvider().getPath(DcUriUtils.toFsUri(path,  "SRS"));
         try {
             if(refresh){
                 //getProvider().getCache().removeFile(dcp);
@@ -183,7 +181,7 @@ public class PathResource extends BaseResource {
         }
     }
  
-    public Response getChildren(DcPath dcp, DcFile dirFile, RequestView requestView, HashMap<String, List<String>> queryParams){
+    public Response getChildren(java.nio.file.Path dcp, DcFile dirFile, RequestView requestView, HashMap<String, List<String>> queryParams){
         boolean withDs = queryParams.containsKey("datasets") ? Boolean.valueOf( queryParams.get("datasets").get(0)) : true;
         Class<? extends ContainerStat> statType = null;
         if(queryParams.containsKey("stat")){
@@ -195,7 +193,7 @@ public class PathResource extends BaseResource {
     
         List<DatacatNode> retList = new ArrayList<>();
         int count = 0;
-        DirectoryStream<DcPath> stream = null;
+        DirectoryStream<java.nio.file.Path> stream = null;
         try {
             String childrenView = requestView.get("children");
             CallContext context = buildCallContext();
@@ -206,10 +204,10 @@ public class PathResource extends BaseResource {
             stream = getProvider()
                     .newOptimizedDirectoryStream(dirFile.getPath(), context, DcFileSystemProvider.ACCEPT_ALL_FILTER, 
                         max, Optional.fromNullable(dsview));
-            Iterator<DcPath> iter = stream.iterator();
+            Iterator<java.nio.file.Path> iter = stream.iterator();
             
             while(iter.hasNext() && (retList.size() < max || showCount)){
-                DcPath p = iter.next();
+                java.nio.file.Path p = iter.next();
                 DcFile file = null;
                 try {
                     file = getProvider().getFile(p, context);

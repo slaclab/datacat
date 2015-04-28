@@ -30,7 +30,6 @@ import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.rest.SearchPluginProvider;
 import org.srs.datacat.shared.DatacatObject;
 import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
 import org.srs.datacat.vfs.DirectoryWalker;
 import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
@@ -105,8 +104,8 @@ public class SearchResource extends BaseResource {
             String queryString = filter;
 
             String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern,"/"));
-            DcPath root = getProvider().getPath(DcUriUtils.toFsUri("/",  "SRS"));
-            DcPath searchPath = root.resolve(searchBase);
+            java.nio.file.Path root = getProvider().getPath(DcUriUtils.toFsUri("/",  "SRS"));
+            java.nio.file.Path searchPath = root.resolve(searchBase);
             ContainerVisitor visitor = new ContainerVisitor(getProvider().getFileSystem(), pathPattern, checkGroups, checkFolders);
             DirectoryWalker walker = new DirectoryWalker(getProvider(), visitor, 100 /* max depth */);
             walker.walk(searchPath, buildCallContext());
@@ -167,8 +166,8 @@ public class SearchResource extends BaseResource {
             String queryString = filter;
 
             String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern,"/"));
-            DcPath root = getProvider().getPath(DcUriUtils.toFsUri("/", null, "SRS"));
-            DcPath searchPath = root.resolve(searchBase);
+            java.nio.file.Path root = getProvider().getPath(DcUriUtils.toFsUri("/", null, "SRS"));
+            java.nio.file.Path searchPath = root.resolve(searchBase);
             ContainerVisitor visitor = new ContainerVisitor(searchPath.getFileSystem(), pathPattern, checkGroups, checkFolders);
             DirectoryWalker walker = new DirectoryWalker(getProvider(), visitor, 100);
             walker.walk(searchPath);

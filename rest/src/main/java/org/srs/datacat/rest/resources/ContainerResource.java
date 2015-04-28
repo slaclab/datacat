@@ -37,7 +37,6 @@ import org.srs.datacat.rest.BaseResource;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.rest.FormParamConverter;
 import org.srs.datacat.vfs.DcFile;
-import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
 import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
@@ -101,7 +100,7 @@ public class ContainerResource extends BaseResource {
             throw new RestException(ex, 400, "Unable to validate request view", ex.getMessage());
         }
         
-        DcPath containerPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
+        java.nio.file.Path containerPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
         
         try {
             if(!getProvider().getFile(containerPath, buildCallContext()).isDirectory()){
@@ -140,9 +139,9 @@ public class ContainerResource extends BaseResource {
         }
 
         DatasetContainerBuilder builder = FormParamConverter.getContainerBuilder( type, formParams );
-        DcPath parentPath = getProvider().getPath(DcUriUtils.toFsUri(sParentPath, "SRS"));
+        java.nio.file.Path parentPath = getProvider().getPath(DcUriUtils.toFsUri(sParentPath, "SRS"));
         CallContext callContext = buildCallContext();
-        DcPath targetPath = parentPath.resolve(builder.build().getName());
+        java.nio.file.Path targetPath = parentPath.resolve(builder.build().getName());
         builder.path(targetPath.toString());
         
         try {
@@ -173,8 +172,8 @@ public class ContainerResource extends BaseResource {
         }
         DatasetContainerBuilder builder = getProvider().getModelProvider().getContainerBuilder().create(container);
 
-        DcPath parentPath = getProvider().getPath(DcUriUtils.toFsUri(sParentPath, "SRS"));
-        DcPath targetPath = parentPath.resolve(container.getName());
+        java.nio.file.Path parentPath = getProvider().getPath(DcUriUtils.toFsUri(sParentPath, "SRS"));
+        java.nio.file.Path targetPath = parentPath.resolve(container.getName());
         builder.path(targetPath.toString());
         
         try {
@@ -199,7 +198,7 @@ public class ContainerResource extends BaseResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response patchDataset(DatasetContainer containerReq) throws IOException{
-        DcPath targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
+        java.nio.file.Path targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
         try {
             getProvider().patchContainer(targetPath, buildCallContext(), containerReq);
             return objectView(targetPath, null);
@@ -215,7 +214,7 @@ public class ContainerResource extends BaseResource {
     @DELETE
     @Path(idRegex)
     public Response deleteContainer() throws IOException{
-        DcPath dcPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
+        java.nio.file.Path dcPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
         CallContext context = buildCallContext();
         try {
             if(!getProvider().getFile(dcPath, context).isDirectory()){
@@ -234,14 +233,14 @@ public class ContainerResource extends BaseResource {
         }
     }
     
-    public Response objectView(DcPath containerPath, Class<? extends ContainerStat> statType) throws IOException{
+    public Response objectView(java.nio.file.Path containerPath, Class<? extends ContainerStat> statType) throws IOException{
         DcFile file = getProvider().getFile(containerPath, buildCallContext());
         return Response
                 .ok(file.getAttributeView(ContainerViewProvider.class)
                 .withView(statType)).build();
     }
 
-    public Response childrenView(DcPath containerPath, RequestView rv, int offset, int max, Class<? extends ContainerStat> statType){
+    public Response childrenView(java.nio.file.Path containerPath, RequestView rv, int offset, int max, Class<? extends ContainerStat> statType){
         
         boolean withDs = true;
         if(rv.containsKey("datasets")){
@@ -249,11 +248,11 @@ public class ContainerResource extends BaseResource {
         }
         
         ArrayList<DatacatNode> retList = new ArrayList<>();
-        try (DirectoryStream<DcPath> stream = getProvider().newOptimizedDirectoryStream(containerPath, 
+        try (DirectoryStream<java.nio.file.Path> stream = getProvider().newOptimizedDirectoryStream(containerPath, 
                 buildCallContext(), DcFileSystemProvider.ACCEPT_ALL_FILTER, Integer.MAX_VALUE, Optional.of(DatasetView.EMPTY))){
-            Iterator<DcPath> iter = stream.iterator();
+            Iterator<java.nio.file.Path> iter = stream.iterator();
             for(int i = 0; iter.hasNext() && retList.size() < max; i++){
-                DcPath p = iter.next();
+                java.nio.file.Path p = iter.next();
                 if(i < offset){
                     continue;
                 }

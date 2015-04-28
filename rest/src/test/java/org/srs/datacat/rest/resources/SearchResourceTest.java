@@ -31,7 +31,6 @@ import org.srs.datacat.shared.FlatDataset;
 import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.DcFileSystemProvider;
-import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.DcUriUtils;
 import org.srs.datacat.vfs.TestUtils;
 
@@ -68,7 +67,7 @@ public class SearchResourceTest extends JerseyTest{
     @Test
     public void testBasicSearch() throws IOException {
         DcFileSystemProvider provider = app.getFsProvider();
-        DcPath root = provider.getPath(DcUriUtils.toFsUri("/", "SRS"));
+        java.nio.file.Path root = provider.getPath(DcUriUtils.toFsUri("/", "SRS"));
         TestUtils.generateDatasets( root, provider, 10, 100 );
         
         AnnotationIntrospector primary = new JacksonAnnotationIntrospector();

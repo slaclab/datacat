@@ -11,8 +11,8 @@ public abstract class PathProvider<T extends AbstractPath> {
 
     public abstract T getRoot();
     public abstract T getPath(URI uri);
-    public abstract T getPath(String userName, String path);
-    public T getPath(String userName, String path, String... more){
+    public abstract T getPath(String path);
+    public T getPath(String path, String... more){
         if (more.length != 0) {
             StringBuilder sb = new StringBuilder();
             sb.append(path);
@@ -25,7 +25,7 @@ public abstract class PathProvider<T extends AbstractPath> {
             }
             path = sb.toString();
         }
-        return getPath(userName, path);
+        return getPath(path);
     }
 
 }
