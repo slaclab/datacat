@@ -26,10 +26,10 @@ public class SubdirectoryView extends ChildrenView {
 
     @Override
     protected void doRefreshCache() throws IOException{
-        try(DirectoryStream<DcPath> stream = 
+        try(DirectoryStream<Path> stream = 
                 provider.unCachedDirectoryStream(getPath(), 
                         DcFileSystemProvider.ACCEPT_ALL_FILTER, Optional.<DatasetView>absent(), false)){
-            for(DcPath child: stream){
+            for(Path child: stream){
                 children.put( child.getFileName().toString(), child );
             }
         }

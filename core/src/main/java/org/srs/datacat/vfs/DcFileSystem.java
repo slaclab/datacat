@@ -16,17 +16,17 @@ public class DcFileSystem {
 
         @Override
         public DcPath getRoot(){
-            return new DcPath(null, this, "/");
+            return new DcPath(this, "/");
         }
 
         @Override
         public DcPath getPath(URI uri){
-            return new DcPath(uri.getUserInfo(), this, uri.getPath());
+            return new DcPath(this, uri.getPath());
         }
 
         @Override
-        public DcPath getPath(String userName, String path){
-            return new DcPath(userName, this, path);
+        public DcPath getPath(String path){
+            return new DcPath(this, path);
         }
     };
 

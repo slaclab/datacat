@@ -21,7 +21,7 @@ import org.srs.datacat.model.DatasetView;
 public class ChildrenView implements FileAttributeView {
 
     private boolean hasCache = false;
-    protected TreeMap<String, DcPath> children;
+    protected TreeMap<String, Path> children;
     private final Path path;
     private final ReentrantLock lock = new ReentrantLock();
     private final DcFileSystemProvider provider;
@@ -56,7 +56,7 @@ public class ChildrenView implements FileAttributeView {
      * @param path
      * @return 
      */
-    public boolean link(DcPath child){
+    public boolean link(Path child){
         lock.lock();
         try {  
             if(children == null){
@@ -104,9 +104,9 @@ public class ChildrenView implements FileAttributeView {
     }
     
     protected void doRefreshCache() throws IOException{
-        try(DirectoryStream<DcPath> stream = provider.unCachedDirectoryStream(path,
+        try(DirectoryStream<Path> stream = provider.unCachedDirectoryStream(path,
                 DcFileSystemProvider.ACCEPT_ALL_FILTER, Optional.of(DatasetView.EMPTY), true)){
-            for(DcPath child: stream){
+            for(Path child: stream){
                 children.put(child.getFileName().toString(), child);
             }
         }
@@ -116,7 +116,7 @@ public class ChildrenView implements FileAttributeView {
         return path;
     }
     
-    public Map<String, DcPath> getEntries() throws IOException{
+    public Map<String, Path> getEntries() throws IOException{
         lock.lock();
         try {
             if(children == null){
@@ -132,7 +132,7 @@ public class ChildrenView implements FileAttributeView {
         return getEntries().keySet();
     }
     
-    public Collection<DcPath> getChildrenPaths() throws IOException {
+    public Collection<Path> getChildrenPaths() throws IOException {
         return getEntries().values();
     }
 

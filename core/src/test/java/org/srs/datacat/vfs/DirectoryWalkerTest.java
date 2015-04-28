@@ -3,6 +3,7 @@ package org.srs.datacat.vfs;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 import javax.sql.DataSource;
@@ -27,7 +28,7 @@ import org.srs.vfs.PathUtils;
 public class DirectoryWalkerTest {
     static DbHarness harness;
     DcFileSystemProvider provider;
-    DcPath root;
+    Path root;
     CallContext callContext = TestUtils.DEFAULT_TEST_CONTEXT;
     
     public DirectoryWalkerTest() throws IOException{

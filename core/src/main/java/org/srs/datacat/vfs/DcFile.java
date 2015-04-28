@@ -81,8 +81,8 @@ public class DcFile extends AbstractVirtualFile<Path, Long> implements BasicFile
     }
 
     @Override
-    public DcPath getPath(){
-        return (DcPath) super.getPath();
+    public Path getPath(){
+        return super.getPath();
     }
 
     @Override
@@ -158,7 +158,7 @@ public class DcFile extends AbstractVirtualFile<Path, Long> implements BasicFile
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void childRemoved(DcPath child){
+    public void childRemoved(Path child){
         if(!isDirectory()){
             return;
         }
@@ -168,12 +168,12 @@ public class DcFile extends AbstractVirtualFile<Path, Long> implements BasicFile
         getAttributeView(ContainerViewProvider.class).clearStats();
     }
 
-    public void datasetAdded(DcPath child){
+    public void datasetAdded(Path child){
         getAttributeView(ChildrenView.class).link(child);
         getAttributeView(ContainerViewProvider.class).clearStats();
     }
 
-    public void childAdded(DcPath child, FileType fileType){
+    public void childAdded(Path child, FileType fileType){
         getAttributeView(ChildrenView.class).link(child);
         if(fileType instanceof FileType.Directory){
             getAttributeView(SubdirectoryView.class).link(child);
@@ -181,7 +181,7 @@ public class DcFile extends AbstractVirtualFile<Path, Long> implements BasicFile
         getAttributeView(ContainerViewProvider.class).clearStats();
     }
 
-    public void childModified(DcPath child){
+    public void childModified(Path child){
         if(!isDirectory()){
             return;
         }

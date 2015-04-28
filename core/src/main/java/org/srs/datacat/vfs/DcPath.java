@@ -13,8 +13,8 @@ import org.srs.vfs.PathProvider;
  */
 public class DcPath extends AbstractPath<DcPath> {
     
-    protected DcPath(String userName, PathProvider<DcPath> pathProvider, String path){
-        super(userName, pathProvider, path);
+    protected DcPath(PathProvider<DcPath> pathProvider, String path){
+        super(pathProvider, path);
     }
 
     @Override

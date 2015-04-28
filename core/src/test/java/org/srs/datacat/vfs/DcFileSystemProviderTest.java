@@ -115,8 +115,8 @@ public class DcFileSystemProviderTest {
     @Test
     public void testCacheStream() throws IOException{
         URI uri = DcUriUtils.toFsUri( "/", "SRS");
-        DcPath rootPath = provider.getPath( uri );
-        try(DirectoryStream<DcPath> s = provider.newOptimizedDirectoryStream(rootPath, TestUtils.DEFAULT_TEST_CONTEXT,
+        Path rootPath = provider.getPath( uri );
+        try(DirectoryStream<Path> s = provider.newOptimizedDirectoryStream(rootPath, TestUtils.DEFAULT_TEST_CONTEXT,
                 DcFileSystemProvider.ACCEPT_ALL_FILTER, Integer.MAX_VALUE, Optional.of(DatasetView.EMPTY))){
             for(Path p: s){
                 // Do nothing
@@ -125,8 +125,8 @@ public class DcFileSystemProviderTest {
 
         DatacatRecord o = provider.getFile(rootPath.resolve("testpath"), TestUtils.DEFAULT_TEST_CONTEXT).getAttributeView(DcFile.class).getObject();
         long t0 = System.currentTimeMillis();
-        try(DirectoryStream<? extends AbstractPath> cstream = provider.unCachedDirectoryStream(rootPath.resolve("testpath"), DcFileSystemProvider.ACCEPT_ALL_FILTER, Optional.of(DatasetView.EMPTY), true )){
-            for(Iterator<? extends AbstractPath> iter = cstream.iterator(); iter.hasNext();){
+        try(DirectoryStream<Path> cstream = provider.unCachedDirectoryStream(rootPath.resolve("testpath"), DcFileSystemProvider.ACCEPT_ALL_FILTER, Optional.of(DatasetView.EMPTY), true )){
+            for(Iterator<Path> iter = cstream.iterator(); iter.hasNext();){
                 iter.next();
             }
         }
@@ -134,9 +134,9 @@ public class DcFileSystemProviderTest {
         
         t0 = System.currentTimeMillis();
         for(int i = 0; i <100; i++){
-            try(DirectoryStream<DcPath> cstream = provider.newOptimizedDirectoryStream( rootPath.resolve("testpath"), TestUtils.DEFAULT_TEST_CONTEXT,
+            try(DirectoryStream<Path> cstream = provider.newOptimizedDirectoryStream( rootPath.resolve("testpath"), TestUtils.DEFAULT_TEST_CONTEXT,
                     DcFileSystemProvider.ACCEPT_ALL_FILTER, Integer.MAX_VALUE, Optional.of(DatasetView.EMPTY))){
-                for(Iterator<DcPath> iter = cstream.iterator(); iter.hasNext();){
+                for(Iterator<Path> iter = cstream.iterator(); iter.hasNext();){
                     iter.next();
                 }
             }   
@@ -177,8 +177,8 @@ public class DcFileSystemProviderTest {
         builder.datasetSource( DbHarness.TEST_DATASET_SOURCE);
         
         DatasetModel request = builder.build();
-        DcPath parentPath = provider.getPath(DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, "SRS"));
-        DcPath filePath = parentPath.resolve(request.getName());
+        Path parentPath = provider.getPath(DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, "SRS"));
+        Path filePath = parentPath.resolve(request.getName());
         HashSet<DatasetOption> options = new HashSet<>(Arrays.asList( DatasetOption.CREATE_NODE));
         provider.createDataset( filePath, TestUtils.DEFAULT_TEST_CONTEXT, request, options);
         provider.delete(filePath, TestUtils.DEFAULT_TEST_CONTEXT);
@@ -196,7 +196,7 @@ public class DcFileSystemProviderTest {
 
         ContainerCreationAttribute attr = new ContainerCreationAttribute(request);
         URI uri = DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, "SRS");
-        DcPath path =  provider.getPath(uri);
+        Path path =  provider.getPath(uri);
         provider.createDirectory(path.resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT, request);
         provider.createDirectory(path.resolve(folderName).resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT, request);
         
@@ -227,13 +227,13 @@ public class DcFileSystemProviderTest {
                 .build();
 
         URI uri = DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, "SRS");
-        DcPath path =  provider.getPath(uri);
+        Path path =  provider.getPath(uri);
         provider.createDirectory(path.resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT, request);
         provider.createDirectory(path.resolve(folderName).resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT, request);
         
         try {
             
-            DcPath target = path.resolve(folderName);
+            Path target = path.resolve(folderName);
             List<DcAclEntry> newAcl = new ArrayList<>();
             DcAclEntry entry = DcAclEntry.newBuilder()
                 .subject(DcGroup.PUBLIC_GROUP)

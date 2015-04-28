@@ -2,6 +2,7 @@
 package org.srs.datacat.vfs;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,8 +34,8 @@ public class TestUtils {
                     new HashSet<>(Arrays.asList(DcGroup.PUBLIC_GROUP, new DcGroup("test_group","SRS")))
             );
     
-    public static void generateDatasets(DcPath root, DcFileSystemProvider provider, int folders, int datasets) throws IOException{
-        DcPath parent = root.resolve( "/testpath");
+    public static void generateDatasets(Path root, DcFileSystemProvider provider, int folders, int datasets) throws IOException{
+        Path parent = root.resolve( "/testpath");
         DatasetContainerBuilder builder = (DatasetContainerBuilder) provider.getModelProvider()
                 .getContainerBuilder().type(RecordType.FOLDER);
 
@@ -45,7 +46,7 @@ public class TestUtils {
         // Create 10 folders
         for(int i = 0; i < folders; i++){
             String name =String.format("folder%05d", i);
-            DcPath newPath = parent.resolve(name);
+            Path newPath = parent.resolve(name);
             builder.name(name);
             provider.createDirectory( newPath, DEFAULT_TEST_CONTEXT, builder.build());
         }
@@ -55,7 +56,7 @@ public class TestUtils {
         // Create 20k datasets
         for(int i = 0; i < folders; i++){
             String name =String.format("folder%05d", i);
-            DcPath newPath = parent.resolve(name);
+            Path newPath = parent.resolve(name);
             for(int j = 0; j < datasets; j++){
             DatasetModel.Builder dsBuilder = provider.getModelProvider().getDatasetBuilder();
                 name = String.format("dataset%05d", j);
