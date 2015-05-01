@@ -127,10 +127,10 @@ def main():
     if url:
         config["url"] = url
 
-    client = HttpClient(**config)
+    auth_strategy = auth_from_config(config)
+    client = HttpClient(auth_strategy=auth_strategy, **config)
     client_method = getattr(client, command)
 
-    resp = None
     try:
         if len(params) > 0:
             resp = client_method(target, **params)
