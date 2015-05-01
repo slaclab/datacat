@@ -1,18 +1,18 @@
 __author__ = 'bvan'
 
-import requests
-import hmac
 import base64
-from urlparse import urlparse
 from email.utils import formatdate
 import hashlib
+import hmac
+import requests
+from urlparse import urlparse
 
 
-class HMACAuthBase(requests.auth.AuthBase):
-    def __init__(self, key_id, secret_key, header_name, signature_format, base_url=None):
+class HMACAuth(requests.auth.AuthBase):
+    def __init__(self, key_id, secret_key, header_name, signature_format, url=None):
         """key_id must not be base64"""
-        if base_url:
-            self.resource_base_url = base_url
+        if url:
+            self.resource_base_url = url
         self.key_id = str(key_id)
         self.secret_key = str(secret_key)
         self.header_name = header_name
@@ -62,7 +62,7 @@ auth_strategy = HMACAuthSRS(key, secret, "http://srs.slac.stanford.edu/datacat-v
 auth_strategy(r)
 """
 
-class HMACAuthSRS(HMACAuthBase):
-    def __init__(self, key_id, secret_key, base_url=None):
-        super(HMACAuthSRS, self).__init__(key_id, secret_key, u"Authorization", u"SRS:{0}:{1}", base_url)
+class HMACAuthSRS(HMACAuth):
+    def __init__(self, key_id, secret_key, url=None):
+        super(HMACAuthSRS, self).__init__(key_id, secret_key, u"Authorization", u"SRS:{0}:{1}", url)
 

@@ -4,10 +4,11 @@ import sys
 import pprint
 import argparse
 import collections
+from .config import *
+from .http_client import HttpClient
+from .error import DcException
+from .model import DatacatNode, unpack
 
-from model import DatacatNode, unpack
-from client import Client, DcException
-from config import *
 
 def build_argparser():
     parser = argparse.ArgumentParser(description="Python CLI for Data Catalog RESTful interfaces")
@@ -119,8 +120,8 @@ def main():
     params = args.__dict__
 
     base_url = args.base_url if hasattr(args, 'base_url') and args.base_url is not None \
-        else CONFIG_URL(args.experiment, args.mode)
-    client = Client(base_url)
+        else default_url(args.experiment, args.mode)
+    client = HttpClient(base_url)
     client_method = getattr(client, command)
 
     resp = None

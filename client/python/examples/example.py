@@ -6,12 +6,12 @@ Make sure you have your environment setup!
 2. You need the datacat module directory in your path.
 """
 
-from datacat import Client, unpack
-from datacat.config import CONFIG_URL
+from datacat import client_from_config
+from datacat.config import default_config
 
 import pprint
 
-client = Client(CONFIG_URL("exo", mode="prod"))
+client = client_from_config(default_config("exo", "prod"))
 
 # Path example
 print("\nPath Example:")

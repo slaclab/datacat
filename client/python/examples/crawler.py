@@ -15,8 +15,7 @@ import sys
 import os
 import sched, time
 import subprocess
-from datacat import Client, unpack
-from datacat.config import CONFIG_URL
+from datacat import Client
 
 
 WATCH_FOLDER = '/LSST'
@@ -56,7 +55,7 @@ class Crawler:
         print("Checking for new datasets at %s" %(datetime.now().ctime()))
         resp = None
         try:
-            resp = self.client.search(WATCH_FOLDER, version="current", site=WATCH_SITE,
+            results = self.client.search(WATCH_FOLDER, version="current", site=WATCH_SITE,
                                       query="scanStatus = 'UNSCANNED'", max_num=1000)
         except DcException as error:
             if hasattr(error, "message"):
@@ -69,8 +68,6 @@ class Crawler:
                 # Should have content
                 print(error.content)
             sys.exit(1)
-
-        results = unpack(resp.content)
 
         for dataset in results:
             locations = dataset.locations
@@ -99,11 +96,8 @@ class Crawler:
 
             print(scan_result)
             try:
-                patch_resp = self.client.patch_dataset(dataset_path, scan_result,
+                patched_ds = self.client.patch_dataset(dataset_path, scan_result,
                                                        versionId=dataset.versionId, site=WATCH_SITE)
-                if patch_resp.status == 200:
-                    patched_ds = unpack(patch_resp.content)
-
             except DcException as error:
                 print(error.content)
                 print("Encountered error while updating dataset")

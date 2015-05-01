@@ -1,24 +1,9 @@
 
 import os
-from .model import *
+from .config import auth_from_config, config_from_file
+from .error import DcException
 from .http_client import HttpClient
-
-class DcException(Exception):
-    def __init__(self, resp):
-        self.raw = resp
-        try:
-            err = resp.json()
-            for k, v in err.items():
-                setattr(self, k, v)
-        except Exception:
-            self.content = resp.content
-
-    def __repr__(self):
-        s = ""
-        for i in self.__dict__.keys():
-            s += "%s : %s\n" %(i, self.__dict__[i])
-        return s
-
+from .model import *
 
 class Client(object):
 
@@ -26,9 +11,9 @@ class Client(object):
     Pythonic Client for interacting with the data catalog. This client interacts solely through JSON.
     '''
 
-    def __init__(self, base_url, auth_strategy=None, *args, **kwargs):
-        self.http_client = HttpClient(base_url, auth_strategy, *args, **kwargs)
-        self.base_url = base_url
+    def __init__(self, url, auth_strategy=None, *args, **kwargs):
+        self.http_client = HttpClient(url, auth_strategy, *args, **kwargs)
+        self.url = url
 
     def path(self, path, versionId=None, site=None, **kwargs):
         resp = self.http_client.path(path, versionId, site, accept="json", **kwargs)
@@ -247,3 +232,11 @@ class Client(object):
             raise DcException(response)
         if expected_status and response.status_code != expected_status:
             raise DcException()
+
+def client_from_config_file(path=None, override_section=None):
+    config = config_from_file(path, override_section)
+    return client_from_config(config)
+
+def client_from_config(config):
+    auth_strategy = auth_from_config(config)
+    return Client(auth_strategy=auth_strategy, **config)
