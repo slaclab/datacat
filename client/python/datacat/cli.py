@@ -13,7 +13,7 @@ from .model import DatacatNode, unpack
 def build_argparser():
     parser = argparse.ArgumentParser(description="Python CLI for Data Catalog RESTful interfaces")
     parser.add_argument('-U', '--base-url', help="Override base URL for client", action="store")
-    parser.add_argument('-D', '--experiment', "--domain", help="Set experiment domain for requests", default="srs")
+    parser.add_argument('-D', '--domain', "--experiment", help="Set domain (experiment) for requests", default="srs")
     parser.add_argument('-M', '--mode', help="Set server mode", choices=("dev","prod"), default="prod")
     parser.add_argument('-f', '--format', dest="accept", default="json", help="Default format is JSON. JSON will attempted to be processed further")
     parser.add_argument('-r', '--show-request', action="store_true", dest="show_request",
@@ -119,9 +119,15 @@ def main():
     target = args.__dict__.pop("path")
     params = args.__dict__
 
-    base_url = args.base_url if hasattr(args, 'base_url') and args.base_url is not None \
-        else default_url(args.experiment, args.mode)
-    client = HttpClient(base_url)
+    config_file_path = args.config_file if hasattr("args", "config_file") else None
+    config_section = args.config_section if hasattr("args", "config_section") else None
+
+    config = config_from_file(config_file_path, config_section, args.experiment, args.mode)
+    url = args.base_url if hasattr(args, 'base_url') and args.base_url is not None else None
+    if url:
+        config["url"] = url
+
+    client = HttpClient(**config)
     client_method = getattr(client, command)
 
     resp = None
