@@ -4,8 +4,8 @@ import sys
 import pprint
 import argparse
 import collections
+from .client import Client
 from .config import *
-from .http_client import HttpClient
 from .error import DcException
 from .model import DatacatNode, unpack
 
@@ -15,7 +15,7 @@ def build_argparser():
     parser.add_argument('-U', '--base-url', help="Override base URL for client", action="store")
     parser.add_argument('-D', '--domain', "--experiment", help="Set domain (experiment) for requests", default="srs")
     parser.add_argument('-M', '--mode', help="Set server mode", choices=("dev","prod"), default="prod")
-    parser.add_argument('-f', '--format', dest="accept", default="json", help="Default format is JSON. JSON will attempted to be processed further")
+    #parser.add_argument('-f', '--format', dest="accept", default="json", help="Default format is JSON. JSON will attempted to be processed further")
     parser.add_argument('-r', '--show-request', action="store_true", dest="show_request",
                         help="Show request URL", default=False)
     parser.add_argument('-R', '--show-response', action="store_true", dest="show_response",
@@ -128,14 +128,14 @@ def main():
         config["url"] = url
 
     auth_strategy = auth_from_config(config)
-    client = HttpClient(auth_strategy=auth_strategy, **config)
+    client = Client(auth_strategy=auth_strategy, **config)
     client_method = getattr(client, command)
 
     try:
         if len(params) > 0:
-            resp = client_method(target, **params)
+            retObjects = client_method(target, **params)
         else:
-            resp = client_method(target)
+            retObjects = client_method(target)
     except DcException as error:
         if hasattr(error, "message"):
             print("Error occurred:\nMessage: %s" %(error.message))
@@ -149,22 +149,6 @@ def main():
         sys.exit(1)
 
     pp = pprint.PrettyPrinter(indent=2)
-
-    if(args.accept != 'json'):
-        sys.stderr.write("Response: %d\n" %(resp.status_code))
-        if(args.accept == 'xml'):
-            from xml.dom.minidom import parseString
-            xml= parseString(resp.content)
-            print(xml.toprettyxml())
-        if(args.accept == 'txt'):
-            print(resp.text)
-        sys.exit(1)
-
-    if(resp.status_code == 204):
-        print("No Content")
-        sys.exit(1)
-
-    retObjects = unpack(resp.content)
 
     if args.show_response:
         print("Object Response:")
