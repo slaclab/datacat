@@ -122,7 +122,7 @@ def main():
     config_file_path = args.config_file if hasattr("args", "config_file") else None
     config_section = args.config_section if hasattr("args", "config_section") else None
 
-    config = config_from_file(config_file_path, config_section, args.experiment, args.mode)
+    config = config_from_file(config_file_path, config_section, args.domain, args.mode)
     url = args.base_url if hasattr(args, 'base_url') and args.base_url is not None else None
     if url:
         config["url"] = url
