@@ -4,7 +4,7 @@ import gevent.monkey
 gevent.monkey.patch_socket()
 
 from datacat.client import Client
-from datacat.config import CONFIG_URL
+from datacat.config import default_url
 from datacat.model import pack
 
 from gevent.queue import Queue
@@ -16,7 +16,7 @@ default_template = Template("{{ name }}.{{ fileFormat }}")
 
 q = Queue()
 
-c = Client(CONFIG_URL("srs","prod"))
+c = Client(default_url("srs","prod"))
 
 for i in c.search("/LSST/mirror/BNL3/workarea/ccdtest/e2v/113-03/flat/20140709-112014", max_num=10):
     q.put(i)
