@@ -10,11 +10,11 @@ from urlparse import urlparse
 
 class HMACAuth(requests.auth.AuthBase):
     def __init__(self, key_id, secret_key, header_name, signature_format, url=None):
-        """key_id must not be base64"""
+        """key_id must be base64"""
         if url:
             self.resource_base_url = url
         self.key_id = str(key_id)
-        self.secret_key = str(secret_key)
+        self.secret_key = base64.b64decode(str(secret_key))
         self.header_name = header_name
         self.sig_fmt = signature_format
 
