@@ -27,7 +27,7 @@ class Container(DatacatNode):
     def __init__(self, **kwargs):
         super(Container, self).__init__(**kwargs)
         for k,v in kwargs.items():
-            if k != "_type" and not hasattr(self, k) and v:
+            if k != "_type" and not hasattr(self, k) and v is not None:
                 self.__dict__[k] = v
 
 class Folder(Container):
@@ -69,7 +69,7 @@ class Dataset(DatacatNode):
             self.locations=locations
         # ignore _type for now
         for k,v in kwargs.items():
-            if k != "_type" and not hasattr(self, k) and v:
+            if k != "_type" and not hasattr(self, k) and v is not None:
                 self.__dict__[k] = v
 
 class DatasetLocation(DatacatRecord):
@@ -80,7 +80,7 @@ class DatasetLocation(DatacatRecord):
         if resource:
             self.resource = resource
         for k,v in kwargs.items():
-            if k != "_type" and not hasattr(self, k) and v:
+            if k != "_type" and not hasattr(self, k) and v is not None:
                 self.__dict__[k] = v
 
 class Metadata(MutableMapping):
