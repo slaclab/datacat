@@ -156,7 +156,7 @@ class Client(object):
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
-        resp = self.http_client.mkds(path, pack(ds), versionId=versionId, site=site, **kwargs)
+        resp = self.http_client.mkds(path, pack(ds), **kwargs)
         self._check_response(resp)
         return unpack(resp.content)
 
@@ -176,7 +176,7 @@ class Client(object):
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
-        resp = self.http_client.mkds(path, pack(ds), versionId=versionId, site=site, **kwargs)
+        resp = self.http_client.mkds(path, pack(ds), versionId=versionId, **kwargs)
         self._check_response(resp)
         return unpack(resp.content)
 

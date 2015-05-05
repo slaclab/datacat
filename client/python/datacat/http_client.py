@@ -59,7 +59,7 @@ class HttpClient(object):
             endpoint = "groups"
         return self._req("post",self._target(endpoint, parentpath), data=payload, **kwargs)
 
-    def mkds(self, path, payload, **kwargs):
+    def mkds(self, path, payload, versionId=None, **kwargs):
         """
         Make a dataset.
         :param path: Container Target path
@@ -73,7 +73,7 @@ class HttpClient(object):
         :return: A :class`requests.Response` object. The content is a representation of the newly created Dataset.
         """
         endpoint = "datasets"
-        return self._req("post",self._target(endpoint, path), data=payload, **kwargs)
+        return self._req("post",self._target(endpoint, path, versionId, None), data=payload, **kwargs)
 
     def rmdir(self, path, type="folder", **kwargs):
         """
