@@ -132,6 +132,54 @@ class Client(object):
         return self.mkds(path, name, dataType, fileFormat, versionId, site, versionMetadata,
                         resource, datasetExtras, versionExtras, locationExtras, **kwargs)
 
+    def mkver(self, path, versionId="new", site=None, versionMetadata=None,
+             resource=None, versionExtras=None, locationExtras=None, **kwargs):
+        """
+        Make a dataset version.
+        :param path: Dataset path
+        :param versionId: Desired versionId. By default, it is set to "new", which will result in the next version id.
+        :param site: Site where the dataset physically resides (i.e. SLAC, IN2P3)
+        :param versionMetadata: Metadata to add
+        :param resource: The actual file resource path at the given site (i.e. /nfs/farm/g/glast/dataset.dat)
+        :return: A representation of the dataset that was just created.
+        """
+        has_location = site is not None and resource is not None
+        location = None
+        version = {"versionId":versionId, "versionMetadata":versionMetadata}
+        if versionExtras:
+            version.update(versionExtras)
+        if has_location:
+            location = {"site":site, "resource":resource}
+            if locationExtras:
+                location.update(locationExtras)
+        ds = Dataset(locations=[location] if location else None, **version)
+        headers = kwargs.get("headers", {})
+        headers["content-type"] = "application/json"
+        kwargs["headers"] = headers
+        resp = self.http_client.mkds(path, pack(ds), versionId=versionId, site=site, **kwargs)
+        self._check_response(resp)
+        return unpack(resp.content)
+
+    def mkloc(self, path, site, resource, versionId="current", locationExtras=None, **kwargs):
+        """
+        Make a dataset location.
+        :param path: Container Target path
+        :param site: Site where the dataset physically resides (i.e. SLAC, IN2P3)
+        :param versionId: Desired versionId to add this dataset to. Defaults to current version.
+        :param resource: The actual file resource path at the given site (i.e. /nfs/farm/g/glast/dataset.dat)
+        :return: A representation of the dataset that was just created.
+        """
+        location = {"site":site, "resource":resource}
+        if locationExtras:
+            location.update(locationExtras)
+        ds = Dataset(locations=[location])
+        headers = kwargs.get("headers", {})
+        headers["content-type"] = "application/json"
+        kwargs["headers"] = headers
+        resp = self.http_client.mkds(path, pack(ds), versionId=versionId, site=site, **kwargs)
+        self._check_response(resp)
+        return unpack(resp.content)
+
     def rmdir(self, path, type="folder", **kwargs):
         """
         Remove a container.
