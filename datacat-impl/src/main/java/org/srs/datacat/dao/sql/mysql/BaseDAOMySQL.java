@@ -95,7 +95,7 @@ public class BaseDAOMySQL extends org.srs.datacat.dao.sql.SqlBaseDAO {
     @Override
     protected String getVersionMetadataSql(){
         String sql= 
-            "SELECT md.datasetversion, md.type, md.metaname, "
+            "SELECT md.datasetversion, md.mdtype, md.metaname, "
             + " md.metastring, md.metanumber, md.metatimestamp FROM  "
             + " ( SELECT mn.datasetversion, 'N' mdtype, mn.metaname, "
             + "         null metastring, mn.metavalue metanumber, null metatimestamp   "
