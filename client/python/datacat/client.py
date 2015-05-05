@@ -85,8 +85,8 @@ class Client(object):
         """
         return self.mkdir(path, "group", parents, metadata, **kwargs)
 
-    def mkds(self, path, name, dataType, fileFormat, versionId="new", site=None, versionMetadata=None,
-             resource=None, datasetExtras=None, versionExtras=None, locationExtras=None, **kwargs):
+    def mkds(self, path, name, dataType, fileFormat, versionId="new", site=None, resource=None, versionMetadata=None,
+             datasetExtras=None, versionExtras=None, locationExtras=None, **kwargs):
         """
         Make a dataset.
         :param path: Container Target path
@@ -129,11 +129,11 @@ class Client(object):
         """
         See mkds
         """
-        return self.mkds(path, name, dataType, fileFormat, versionId, site, versionMetadata,
-                        resource, datasetExtras, versionExtras, locationExtras, **kwargs)
+        return self.mkds(path, name, dataType, fileFormat, versionId, site, resource, versionMetadata, datasetExtras,
+                         versionExtras, locationExtras)
 
-    def mkver(self, path, versionId="new", site=None, versionMetadata=None,
-             resource=None, versionExtras=None, locationExtras=None, **kwargs):
+    def mkver(self, path, versionId="new", site=None, resource=None, versionMetadata=None, versionExtras=None,
+              locationExtras=None, **kwargs):
         """
         Make a dataset version.
         :param path: Dataset path
