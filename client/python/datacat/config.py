@@ -20,7 +20,7 @@ LSST_DM_EXPERIMENT = "lsst-dm"
 
 def default_url(domain=None, mode=None):
     domain = domain if domain else "srs"
-    mode = mode if mode else "dev"
+    mode = mode if mode else "prod"
     is_srs = domain.lower() in SRS_EXPERIMENTS
     if is_srs:
         if mode == "dev":
