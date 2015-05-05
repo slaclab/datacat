@@ -458,20 +458,17 @@ public class Dataset extends DatacatObject implements DatasetModel {
 
         @Override
         public Dataset build(){
-            if(isType( FLAT )){
-                return new FlatDataset.Builder( this ).build();
+            switch(dsType){
+                case FULL:
+                case BASE | LOCATIONS:
+                    return new FullDataset.Builder(this).build();
+                case FLAT:
+                case BASE | VERSION:
+                case BASE | LOCATION:
+                    return new FlatDataset.Builder(this).build();
+                default:
+                    return new Dataset( this );
             }
-            if(isType( FULL )){
-                return new FullDataset.Builder( this ).build();
-            }
-            if(isType( BASE | VERSION ) | isType( BASE | LOCATION )){
-                return new FlatDataset.Builder( this ).build();
-            }
-            return new Dataset( this );
-        }
-
-        public boolean isType(int type){
-            return (dsType & type) == type;
         }
         
         public boolean checkType(int type){
