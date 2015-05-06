@@ -18,12 +18,12 @@ class HMACAuth(requests.auth.AuthBase):
         self.header_name = header_name
         self.sig_fmt = signature_format
 
-    def __call__(self, r):
+    def __call__(self, request):
         # Create date header if it is not created yet.
-        if not 'date' in r.headers:
-            r.headers['date'] = formatdate(timeval=None, localtime=False, usegmt=True)
-        r.headers[self.header_name] = self.sig_fmt.format(self.key_id, self.get_signature(r))
-        return r
+        if 'date' not in request.headers:
+            request.headers['date'] = formatdate(timeval=None, localtime=False, usegmt=True)
+        request.headers[self.header_name] = self.sig_fmt.format(self.key_id, self.get_signature(r))
+        return request
 
     def get_signature(self, r):
         canonical_string = self.get_canonical_string(r.url, r.headers, r.method)
@@ -62,7 +62,7 @@ auth_strategy = HMACAuthSRS(key, secret, "http://srs.slac.stanford.edu/datacat-v
 auth_strategy(r)
 """
 
+
 class HMACAuthSRS(HMACAuth):
     def __init__(self, key_id, secret_key, url=None):
         super(HMACAuthSRS, self).__init__(key_id, secret_key, u"Authorization", u"SRS:{0}:{1}", url)
-
