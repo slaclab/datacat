@@ -22,7 +22,7 @@ class HMACAuth(requests.auth.AuthBase):
         # Create date header if it is not created yet.
         if 'date' not in request.headers:
             request.headers['date'] = formatdate(timeval=None, localtime=False, usegmt=True)
-        request.headers[self.header_name] = self.sig_fmt.format(self.key_id, self.get_signature(r))
+        request.headers[self.header_name] = self.sig_fmt.format(self.key_id, self.get_signature(request))
         return request
 
     def get_signature(self, r):
