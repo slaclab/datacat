@@ -66,3 +66,26 @@ auth_strategy(r)
 class HMACAuthSRS(HMACAuth):
     def __init__(self, key_id, secret_key, url=None):
         super(HMACAuthSRS, self).__init__(key_id, secret_key, u"Authorization", u"SRS:{0}:{1}", url)
+
+def auth_from_config(config):
+    config = config.copy()
+    auth_type = config.get("auth_type", None)
+    if auth_type:
+        del config["auth_type"]
+        auth_params = {}
+        auth_params["url"] = config.get("url")
+
+        for key in config.keys():
+            if key.startswith("auth_"):
+                val = config.pop(key)
+                key = key[len("auth_"):]
+                auth_params[key] = val
+        if auth_type == HMACAuth.__name__:
+            auth_strategy = HMACAuth(**auth_params)
+        elif auth_type == HMACAuthSRS.__name__:
+            auth_strategy = HMACAuthSRS(**auth_params)
+        else:
+            auth_strategy = None
+        return auth_strategy
+    return None
+

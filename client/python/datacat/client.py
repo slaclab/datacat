@@ -1,6 +1,7 @@
 
 import os
-from .config import auth_from_config, config_from_file
+from .auth import auth_from_config
+from .config import config_from_file
 from .error import DcException
 from .http_client import HttpClient
 from .model import *

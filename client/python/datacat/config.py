@@ -1,6 +1,5 @@
 import ConfigParser
 import os
-from .auth import HMACAuth, HMACAuthSRS
 
 MODES = "prod dev test".split(" ")
 ENDPOINTS = "children path search datasets containers groups folders".split(" ")
@@ -55,26 +54,4 @@ def config_from_file(path=None, override_section=None, domain=None, mode=None):
     overrides = dict(config.items(override_section)) if config.has_section(override_section) else {}
     defaults.update(overrides)
     return defaults
-
-def auth_from_config(config):
-    config = config.copy()
-    auth_type = config.get("auth_type", None)
-    if auth_type:
-        del config["auth_type"]
-        auth_params = {}
-        auth_params["url"] = config.get("url")
-
-        for key in config.keys():
-            if key.startswith("auth_"):
-                val = config.pop(key)
-                key = key[len("auth_"):]
-                auth_params[key] = val
-        if auth_type == HMACAuth.__name__:
-            auth_strategy = HMACAuth(**auth_params)
-        elif auth_type == HMACAuthSRS.__name__:
-            auth_strategy = HMACAuthSRS(**auth_params)
-        else:
-            auth_strategy = None
-        return auth_strategy
-    return None
 
