@@ -53,7 +53,7 @@ public class ChildrenView implements FileAttributeView {
     
     /**
      * Return true if we were able to link the file to the current list of children.
-     * @param path
+     * @param child
      * @return 
      */
     public boolean link(Path child){
