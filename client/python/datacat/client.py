@@ -54,7 +54,7 @@ class Client(object):
             parts = []
             while not self.exists(parentpath):
                 parts.append(os.path.split(parentpath)[1])
-                parentpath = os.path.dirname(path)
+                parentpath = os.path.dirname(parentpath)
             if len(parts):
                 for part in parts:
                     parentpath = os.path.join(parentpath, parts.pop())
