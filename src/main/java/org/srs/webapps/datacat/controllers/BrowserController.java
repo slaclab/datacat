@@ -42,18 +42,23 @@ public class BrowserController extends HttpServlet {
         
         try {
             handleRequest(request, response);
-        } catch (DcException ex){
+        } catch (DcException ex){   
+            ex.printStackTrace();
+            System.out.println(ex.getMessage());
             request.setAttribute("error", ex);
             request.getRequestDispatcher( "/browseview/error.jsp" ).forward( request, response );
-        }    
+            return;
+        }
         request.getRequestDispatcher( "/browseview/browser.jsp" ).forward( request, response );
     }
     
     private void handleRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, MalformedURLException {
+        // This Assumes all REST requests are routed to the same base URL
         String localUrl = String.format("%s://%s:%s%s/r",
                 request.getScheme(), request.getServerName(), request.getServerPort(), 
                 request.getContextPath());
+        System.out.println(localUrl);
         Client client = new Client(localUrl, request);
         HashMap<String, List<String>> requestQueryParams = new HashMap<>();
         Map<String, String[]> params = request.getParameterMap();
@@ -93,7 +98,7 @@ public class BrowserController extends HttpServlet {
                 if(dsCount > 0){
                     ArrayList<DatacatNode> datasets = new ArrayList<>();
                     for(DatacatNode d: getDatasets(client, path, rv, requestQueryParams, offset, max)){
-                        if(!d.getType().isContainer()){
+                        if(!d.getType().isContainer()){ 
                             datasets.add(d);
                         }
                     }
