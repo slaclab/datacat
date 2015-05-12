@@ -4,7 +4,7 @@
     <parent>
         <groupId>srs</groupId>
         <artifactId>org-srs-datacat</artifactId>
-        <version>0.3-SNAPSHOT</version>
+        <version>0.3.0</version>
     </parent>
 
     <artifactId>org-srs-datacat-vfs</artifactId>
