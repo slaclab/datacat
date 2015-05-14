@@ -56,8 +56,8 @@ class Client(object):
                 parts.append(os.path.split(parentpath)[1])
                 parentpath = os.path.dirname(parentpath)
             if len(parts):
-                for part in parts:
-                    parentpath = os.path.join(parentpath, parts.pop())
+                for part in reversed(parts):
+                    parentpath = os.path.join(parentpath, part)
                     self.mkdir(parentpath)
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
