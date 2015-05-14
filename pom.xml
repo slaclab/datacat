@@ -10,14 +10,14 @@
 
     <groupId>srs</groupId>
     <artifactId>org-srs-datacat</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.3.2</version>
     <packaging>pom</packaging>
 
     <name>SRS DataCatalog Main Project</name>
 
     <scm>
-        <connection>scm:svn:file:///nfs/slac/g/srs/subversion/org-srs-datacat/trunk</connection>
-        <url>http://java.freehep.org/svn/repos/srs/list/org-srs-datacat/trunk</url>
+        <connection>scm:svn:file:///nfs/slac/g/srs/subversion/org-srs-datacat/tags/org-srs-datacat-0.3.2</connection>
+        <url>http://java.freehep.org/svn/repos/srs/list/org-srs-datacat/tags/org-srs-datacat-0.3.2</url>
     </scm>
     
     <distributionManagement>

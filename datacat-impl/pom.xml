@@ -4,7 +4,7 @@
     <parent>
         <groupId>srs</groupId>
         <artifactId>org-srs-datacat</artifactId>
-        <version>0.4-SNAPSHOT</version>
+        <version>0.3.2</version>
     </parent>
     <artifactId>org-srs-datacat-impl</artifactId>
     <packaging>jar</packaging>
@@ -15,17 +15,17 @@
         <dependency>
             <groupId>srs</groupId>
             <artifactId>org-srs-datacat-model</artifactId>
-            <version>0.4-SNAPSHOT</version>
+            <version>0.3.2</version>
         </dependency>
         <dependency>
             <groupId>srs</groupId>
             <artifactId>org-srs-datacat-vfs</artifactId>
-            <version>0.4-SNAPSHOT</version>
+            <version>0.3.2</version>
         </dependency>
         <dependency>
             <groupId>srs</groupId>
             <artifactId>org-srs-datacat-test</artifactId>
-            <version>0.4-SNAPSHOT</version>
+            <version>0.3.2</version>
             <scope>test</scope>
         </dependency>
         <!-- For the model -->
