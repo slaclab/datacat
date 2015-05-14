@@ -1,12 +1,12 @@
 from setuptools import setup
 
 requires = [
-    'requests>=2.3.0'
+    'requests>=2.3.0, <2.6'
 ]
 
 setup(
     name='datacat',
-    version='0.3.0',
+    version='0.3.2',
     packages=['datacat'],
     url='http://srs.slac.stanford.edu',
     license='',
