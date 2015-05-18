@@ -657,7 +657,10 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
                 if(!currentView.versionOpt().isPresent()){
                     throw new IOException("Unable to patch a non-existent version. Create a version first.");
                 }
-                patchDatasetLocation(currentView.singularLocationOpt().get(),
+                if(currentView.getLocation(view) == null){
+                    throw new IOException("Unable to patch a non-existent location. Check your location.");
+                }
+                patchDatasetLocation(currentView.getLocation(view),
                         requestView.singularLocationOpt().get());
             }
         }

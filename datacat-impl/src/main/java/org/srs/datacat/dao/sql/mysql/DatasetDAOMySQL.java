@@ -176,15 +176,15 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
     @Override
     public DatasetViewInfo getDatasetViewInfo(DatacatRecord dsRecord, DatasetView view) throws IOException{
         try {
-            return getDatasetViewInfoInternal(dsRecord, view );
+            return getDatasetViewInfoInternal(dsRecord, view);
         } catch (SQLException ex){
             throw new IOException("Failed to retrieve version", ex);
         }
     }
 
     private DatasetViewInfo getDatasetViewInfoInternal(DatacatRecord dsRecord, DatasetView view) throws SQLException{
-        String sqlWithMetadata = getVersionsSql(VersionParent.DATASET, view );
-        String sqlLocations = getLocationsSql(VersionParent.DATASET, view );
+        String sqlWithMetadata = getVersionsSql(VersionParent.DATASET, view);
+        String sqlLocations = getLocationsSql(VersionParent.DATASET, view);
         PreparedStatement stmt1 = null;
         PreparedStatement stmt2 = null;
         try {
@@ -661,7 +661,10 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
                 if(!currentView.versionOpt().isPresent()){
                     throw new IOException("Unable to patch a non-existent version. Create a version first.");
                 }
-                patchDatasetLocation(currentView.singularLocationOpt().get(),
+                if(currentView.getLocation(view) == null){
+                    throw new IOException("Unable to patch a non-existent location. Check your location.");
+                }
+                patchDatasetLocation(currentView.getLocation(view),
                         requestView.singularLocationOpt().get());
             }
         }
