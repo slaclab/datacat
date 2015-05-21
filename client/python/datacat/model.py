@@ -155,10 +155,10 @@ def _default_serializer(obj):
                             datetime:"timestamp"}
             ret = []
             for k,v in obj.dct.items():
-                typ = type_mapping[type(v)]
-                if v and type(v) == datetime:
-                    v = _totimestamp(v)
                 if v:
+                    if type(v) == datetime:
+                        v = _totimestamp(v)
+                    typ = type_mapping[type(v)]
                     ret.append(OrderedDict([("key",k), ("value",v), ("type",typ)]))
                 else:
                     ret.append(OrderedDict([("key",k), ("value",v)]))
