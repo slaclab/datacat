@@ -60,7 +60,7 @@ public class DcFileSystemProvider {
     private static final int MAX_METADATA_STRING_BYTE_SIZE = 5000;
     private static final long MAX_DATASET_CACHE_SIZE = 1 << 29; // Don't blow more than about 512MB
     private static final int NO_MAX = -1;
-    private static final long MAX_CACHE_TIME = 60000L; // TODO: Get rid of this - 60 seconds
+    private static final long MAX_CACHE_TIME = 10000L; // TODO: Get rid of this - 60 seconds
 
     private final DcFileSystem fileSystem;
     private final DAOFactory daoFactory;
@@ -101,6 +101,12 @@ public class DcFileSystemProvider {
         // Find this file in the cache. If it's not in the cache, resolve it's parents
         // (thereby putting them in the cache), and eventually this file.
         DcFile file = getCache().getFile(path);
+        if(file != null){
+            if((System.currentTimeMillis() - file.lastModifiedTime().toMillis()) > MAX_CACHE_TIME){
+                getCache().removeFile(path);
+                file = null;
+            }
+        }
         if(file == null){
             DcFile parent = null;
             if(!path.equals( path.getRoot())){
@@ -116,8 +122,7 @@ public class DcFileSystemProvider {
     public DirectoryStream<Path> newOptimizedDirectoryStream(Path dir, CallContext context,
             final DirectoryStream.Filter<? super Path> filter, int max, 
             Optional<DatasetView> viewPrefetch) throws IOException{
-        DcFile dirFile = resolveFile(dir);
-        checkPermission(context, dirFile, DcPermissions.READ);
+        DcFile dirFile = getFile(dir, context);
         if(!dirFile.isDirectory()){
             throw new NotDirectoryException(dirFile.toString());
         }
@@ -198,8 +203,7 @@ public class DcFileSystemProvider {
 
     protected DirectoryStream<Path> cachedDirectoryStream(Path dir, CallContext context,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
-        final DcFile dirFile = resolveFile(dir);
-        checkPermission(context, dirFile, DcPermissions.READ);
+        final DcFile dirFile = getFile(dir, context);
         final ChildrenView view = dirFile.getAttributeView(ChildrenView.class);
         if(!view.hasCache()){
             throw new IOException("Error attempting to use cached child entries");
@@ -261,7 +265,7 @@ public class DcFileSystemProvider {
     }
 
     /**
-     * Gets a file.
+     * Gets a file, checks read permission.
      *
      * @param path
      * @param context
@@ -269,20 +273,9 @@ public class DcFileSystemProvider {
      * @throws IOException
      */
     public DcFile getFile(Path path, CallContext context) throws IOException{
-        /* TODO: When we have control over file creation, remove this and replace it with
-         some sort of distributed consensus stuff potentially.
-         */
         DcFile f = resolveFile(path);
-        if((System.currentTimeMillis() - f.lastModifiedTime().toMillis()) > MAX_CACHE_TIME){
-            getCache().removeFile(path);
-            f = resolveFile(path);
-        }
-        if(f != null){
-            checkPermission(context, f, DcPermissions.READ);
-            return f;
-        }
-        AfsException.NO_SUCH_FILE.throwError(path, "Unable to resolve file");
-        return null; // Keep compiler happy
+        checkPermission(context, f, DcPermissions.READ);
+        return f;
     }
     
     public Path getPath(URI uri){
