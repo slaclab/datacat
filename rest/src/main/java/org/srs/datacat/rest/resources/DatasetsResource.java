@@ -202,7 +202,7 @@ public class DatasetsResource extends BaseResource  {
              throw new RestException(ex, 403);
         } catch (NotDirectoryException ex){
             throw new RestException(ex, 404, "File exists, but Path is not a container");
-        } catch (Exception ex){
+        } catch (IOException ex){
             ex.printStackTrace();
             throw new RestException(ex, 500);
         }
