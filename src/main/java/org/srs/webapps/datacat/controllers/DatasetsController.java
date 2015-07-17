@@ -13,15 +13,15 @@ import org.srs.datacat.client.Client.DcException;
  *
  * @author bvan
  */
-public class BrowserController extends HttpServlet {
+public class DatasetsController extends HttpServlet {
     
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException{
         
         try {
-            HashMap<String, Object> model = ControllerUtils.collectAttributes(request, false);
-            for(HashMap.Entry<String, Object> entry: model.entrySet()){
+            HashMap<String, Object> requestAttributes = ControllerUtils.collectAttributes(request, true);
+            for(HashMap.Entry<String, Object> entry: requestAttributes.entrySet()){
                 request.setAttribute(entry.getKey(), entry.getValue());
             }
         } catch (DcException ex){   
@@ -29,7 +29,7 @@ public class BrowserController extends HttpServlet {
             request.getRequestDispatcher( "/display/error.jsp" ).forward( request, response );
             return;
         }
-        request.getRequestDispatcher( "/display/browser.jsp" ).forward( request, response );
+        request.getRequestDispatcher( "/display/datasets.jsp" ).forward( request, response );
     }
     
 }

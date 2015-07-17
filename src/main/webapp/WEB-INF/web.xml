@@ -3,7 +3,7 @@
     <!--
     -->
 
-
+    
     <filter>
         <filter-name>LoginFilter</filter-name>
         <filter-class>org.srs.web.base.filters.login.LoginFilter</filter-class>
@@ -29,9 +29,54 @@
     <servlet-mapping>
         <servlet-name>BrowserController</servlet-name>
         <!-- using base of host/rest/datacat -->
-        <url-pattern>/browser/*</url-pattern>
+        <url-pattern>/display/browser/*</url-pattern>
     </servlet-mapping>
     
+    <servlet>
+        <servlet-name>TreeController</servlet-name>
+        <servlet-class>org.srs.webapps.datacat.controllers.TreeController</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TreeController</servlet-name>
+        <!-- using base of host/rest/datacat -->
+        <url-pattern>/display/tree/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>DatasetsController</servlet-name>
+        <servlet-class>org.srs.webapps.datacat.controllers.DatasetsController</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DatasetsController</servlet-name>
+        <!-- using base of host/rest/datacat -->
+        <url-pattern>/display/datasets/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>EditController</servlet-name>
+        <servlet-class>org.srs.webapps.datacat.controllers.EditController</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>EditController</servlet-name>
+        <!-- using base of host/rest/datacat -->
+        <url-pattern>/display/edit/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>NewController</servlet-name>
+        <servlet-class>org.srs.webapps.datacat.controllers.NewController</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>NewController</servlet-name>
+        <!-- using base of host/rest/datacat -->
+        <url-pattern>/display/new/*</url-pattern>
+    </servlet-mapping>
+
+
     <servlet>
         <servlet-name>Jersey REST Service</servlet-name>
         <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>

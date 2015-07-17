@@ -1,5 +1,5 @@
 (function( ldStack, $, rootPath) {
-    ldStack.basePath = rootPath || "http://localhost:8080/rest-datacat-v1/r";
+    ldStack.basePath = rootPath || pageContext.contextPath + "/r";
     
     ldStack.lock = false;
     var loadStack = new Array();
@@ -58,7 +58,7 @@
 	}*/
     }
     
-}( window.loadStack = window.loadStack || {}, jQuery, "http://localhost:8080/rest-datacat-v1/r" ));
+}( window.loadStack = window.loadStack || {}, jQuery, pageContext.contextPath + "/r"));
 
 
 (function( dynamicTree, $, ajaxHandler) {
@@ -133,16 +133,18 @@
     
     function addNode(childrenContainer,item){
 	var node = $('<li class="tree-node"/>').attr("id","/" + item.name);
-	var nodeAnchor = $('<a href="#" data-toggle="expand" />')
-                .text(item.name).bind("click",selected).bind("keydown", toggleOpen);
-	nodeAnchor.bind("contextmenu rightclick", rewriteHREF);
-	nodeAnchor.bind("copy", rewriteHREF);
+        var href = pageContext.endPoint + item.path;
+	var nodeAnchor = $('<a data-toggle="expand" />')
+                .attr("href", href)
+                .attr("path", item.path)
+                .text(item.name)
+                //.bind("click",selected)
+                .bind("keydown", toggleOpen);
 	if(item._type == "folder"){
-	    nodeAnchor = nodeAnchor.addClass("container-toggle").bind("dblclick",toggleOpen);
-	    node.append( $('<b class="tree-caret"></b>').bind("click",toggleOpen) );
+	    node.append( $('<span class="glyphicon tree-caret"></span>').bind("click", toggleOpen) );
 	} else {
 	    nodeAnchor = nodeAnchor.addClass("tree-file");
-	    node.append( $('<b class="tree-file-caret"></b>') );
+	    node.append( $('<span class="glyphicon tree-file-caret"></span>') );
 	}
 	
 	node.append( nodeAnchor );
@@ -228,9 +230,9 @@
     var openStack = new Array();
     function toggleOpen(event){
 	
-	var p = $(this).parent();
+	var p = $(event.target).parent();
 	var tNode = p.data("treeNode");
-	
+        
 	function toggle(){
 	    if(p.data("treeNode").children == null){
 		var path = findPath(tNode);
@@ -245,8 +247,6 @@
 		openStack.push(	p.data("treeNode").pk );
 	    }
 	    p.toggleClass("open");
-	    console.log(openStack);
-	    window.location.hash = "#" + findPath(tNode);
 	}
 	
 	if( event.type == "keydown" ){
@@ -254,12 +254,12 @@
 		toggle();
 	    else if( p.hasClass("open") && ( event.keyCode == left || event.keyCode == enter ) ){
 		toggle();
-	    }
+            }
 	} else {
 	    toggle();
 	}
     }
-    
+        
     function initObjects(){
 	$(".tree").bind("keydown",multiSet);
 	$(".tree").bind("keyup",multiSet);
@@ -267,7 +267,9 @@
     }
     
     dynamicTree.init = function(){
-	$(".tree").ready(initObjects);
+        if($(".tree") != null){
+            $(".tree").ready(initObjects);
+        }
     }
     
 }( window.dynamicTree = window.dynamicTree || {}, jQuery, window.loadStack.syncLoadStack ));

@@ -57,7 +57,7 @@
 	}*/
 	}
     
-}( window.loadStack = window.loadStack || {}, jQuery, "http://localhost:8080/rest/datacat/v1" ));
+}( window.loadStack = window.loadStack || {}, jQuery, pageContext.path ));
 
 
 (function( dynamicTree, $) {

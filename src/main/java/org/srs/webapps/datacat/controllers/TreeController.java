@@ -13,7 +13,7 @@ import org.srs.datacat.client.Client.DcException;
  *
  * @author bvan
  */
-public class BrowserController extends HttpServlet {
+public class TreeController extends HttpServlet {
     
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -29,7 +29,7 @@ public class BrowserController extends HttpServlet {
             request.getRequestDispatcher( "/display/error.jsp" ).forward( request, response );
             return;
         }
-        request.getRequestDispatcher( "/display/browser.jsp" ).forward( request, response );
+        request.getRequestDispatcher( "/display/tree.jsp" ).forward( request, response );
     }
     
 }

@@ -50,9 +50,11 @@ root {
 }
 
 .datacat-header {
-    padding-bottom: 4px;
     margin: 10px 0 5px;
-    border-bottom: 1px solid #eeeeee;
+}
+
+.datacat-header > div > h3 {
+    margin-top: 0px;
 }
 
 .datacat-component {
