@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.FeatureContext;
@@ -26,7 +27,9 @@ import org.glassfish.jersey.CommonProperties;
 import org.srs.datacat.client.resources.Path;
 import org.srs.datacat.client.resources.Search;
 import org.srs.datacat.model.DatacatNode;
+import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.model.DatasetResultSet;
 import org.srs.datacat.rest.ErrorResponse;
 import org.srs.datacat.shared.Provider;
 
@@ -178,14 +181,42 @@ public class Client {
         return resp.readEntity(new GenericType<DatacatNode>(){});
     }
     
-    public List<DatasetModel> searchForDatasets(String target, String versionId, String site, 
-            String query, String sort, String show, int offset, int max){
+    public DatacatNode patchContainer(String path, DatasetContainer payload){
+        Response resp = pathResource.patchContainer(path, 
+                Entity.entity(payload, MediaType.APPLICATION_JSON));
+        checkResponse(resp);
+        return resp.readEntity(new GenericType<DatacatNode>(){});
+    }
+    
+    public DatacatNode patchDataset(String path, String versionId, String site, 
+            DatasetModel payload){
+        Response resp = pathResource.patchDataset(path, Optional.of(versionId), Optional.of(site),
+                Entity.entity(payload, MediaType.APPLICATION_JSON));
+        checkResponse(resp);
+        return resp.readEntity(new GenericType<DatacatNode>(){});
+    }
+    
+    public DatasetResultSet searchForDatasets(String target, String versionId, String site, 
+            String query, String[] sort, String show, int offset, int max){
         Response resp = searchResource.searchForDatasets(target, Optional.fromNullable(versionId), 
                 Optional.fromNullable(site), Optional.fromNullable(query), 
                 Optional.fromNullable(sort), Optional.fromNullable(show), 
                 Optional.<Integer>fromNullable(offset), Optional.<Integer>fromNullable(max));
         checkResponse(resp);
-        return resp.readEntity(new GenericType<List<DatasetModel>>(){});
+        final List<DatasetModel> datasets = resp.readEntity(new GenericType<List<DatasetModel>>(){});
+        final int count = new Integer(resp.getHeaderString("x-count"));
+        return new DatasetResultSet() {
+
+            @Override
+            public List<DatasetModel> getResults(){
+                return datasets;
+            }
+
+            @Override
+            public int getCount(){
+                return count;
+            }
+        };
     }
 
     protected void checkResponse(Response resp) throws DcException {
@@ -214,7 +245,7 @@ public class Client {
         for(DatacatNode child: children){
             System.out.println(child.toString());
         }
-        children = c.searchForDatasets("/LSST", "current", "master", "", null, null, 0, 1000);
+        children = c.searchForDatasets("/LSST", "current", "master", "", null, null, 0, 1000).getResults();
         for(DatacatNode child: children){
             System.out.println(child.toString());
             System.out.println(child.getClass());

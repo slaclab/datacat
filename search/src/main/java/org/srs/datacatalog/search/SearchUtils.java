@@ -19,6 +19,7 @@ import org.zerorm.core.Select;
 
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.model.DatasetResultSet;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RecordType;
@@ -303,106 +304,49 @@ public class SearchUtils {
     }
     */
     
-    public static List<DatasetModel> getResults(final Connection conn, final Select sel, DatasetView dsView, List<String> metadataNames,
+    public static DatasetResultSet getResults(final Connection conn, final Select sel, DatasetView dsView, List<String> metadataNames,
             int offset, int max) throws SQLException{
-        ArrayList<DatasetModel> datasets = new ArrayList<>();        
+        int count = 0;
+        final ArrayList<DatasetModel> datasets = new ArrayList<>();
         try(PreparedStatement stmt = sel.prepareAndBind( conn )){
             ResultSet rs = stmt.executeQuery();
             if(!rs.next()){
                 rs.close();
             }
             
-            for(int i = 0; i < offset && !rs.isClosed(); i++){
+            // Consume until offset
+            for(int i = 0; i < offset && !rs.isClosed(); i++, count++){
                 SearchUtils.datasetFactory(rs, dsView, metadataNames);
             }
             
-            for(int i = 0; i < max && !rs.isClosed(); i++){
+            // Materialize to max
+            for(int i = 0; i < max && !rs.isClosed(); i++, count++){
                 datasets.add(SearchUtils.datasetFactory(rs, dsView, metadataNames));
             }
+            
+            // Consume to end
+            while(!rs.isClosed()){
+                SearchUtils.datasetFactory(rs, dsView, metadataNames);
+                count++;
+            }
         }
-        return datasets;
+        
+        final int total = count;
+        return new DatasetResultSet(){
+
+            @Override
+            public List<DatasetModel> getResults(){
+                return datasets;
+            }
+
+            @Override
+            public int getCount(){
+                return total;
+            }
+            
+        };
     }
-    
-    /*
-    public static List<Dataset> getResultsDeferredFill(final Connection conn, final Select sel, final boolean keepAlive) throws SQLException{
-        
-        final Iterator<Dataset> iter = new Iterator<Dataset>() {
-            PreparedStatement stmt = sel.prepareAndBind( conn );
-            ResultSet rs = stmt.executeQuery();
-            boolean advance = true;
-            boolean hasNext = false;
-
-            @Override
-            public boolean hasNext(){
-                try {
-                    if(advance){
-                        hasNext = rs.next();
-                        advance = false;
-                    }
-                    if(!hasNext){
-                        if(stmt != null){ stmt.close(); }
-                        if(conn != null && !keepAlive){ conn.close(); }
-                    }
-                } catch(SQLException ex) { throw new RuntimeException("Error handling list",ex);}
-                return hasNext;
-            }
-
-            @Override
-            public Dataset next(){
-                advance = hasNext() == true ? true : false;
-                try {
-                    return SearchUtils.datasetFactory(rs, null);
-                } catch(SQLException ex) { throw new RuntimeException("Error handling list", ex);}
-            }
-
-            @Override
-            public void remove(){ throw new UnsupportedOperationException( "Not implemented" ); }
-
-            // Last chance effort to try to close the statement
-            @Override
-            protected void finalize() throws Throwable{
-                try {
-                    if(stmt != null){ stmt.close(); }
-                    if(conn != null && !keepAlive){ conn.close(); }
-                } catch(SQLException ex) { }
-                super.finalize();
-            }
-        };
-        
-        return new ArrayList<Dataset>(){
-            boolean initialized = false;
-            @Override
-            public Iterator iterator(){ return !initialized ? iter: super.iterator(); }
-            
-            @Override
-            public Dataset get(int index){
-                verifyInitialized();
-                return super.get( index );
-            }
-
-            @Override
-            public int size(){
-                verifyInitialized();
-                return super.size();
-            }
-
-            @Override
-            public Object[] toArray(){
-                verifyInitialized();
-                return super.toArray();
-            }
-            
-            public void verifyInitialized(){
-                if(!initialized){
-                    while(iter.hasNext()){
-                        add(iter.next());
-                    }
-                }
-                initialized = true;
-            }
-        };
-    }*/
-    
+       
     public static Class<?> getParamType(Object tRight){
         if(tRight instanceof List){
             List r = ((List) tRight);

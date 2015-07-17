@@ -23,6 +23,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import org.srs.datacat.model.DatasetResultSet;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.RequestView;
 import org.srs.datacat.rest.BaseResource;
@@ -83,7 +84,6 @@ public class SearchResource extends BaseResource {
             @DefaultValue("0") @QueryParam("offset") int offset) {
 
         String pathPattern = requestPath;        
-        List<? super Dataset> datasets = new ArrayList<>();
         String[] metafields= metadata.toArray( new String[0]);
         String[] sortFields = sortParams.toArray(new String[0]);
         
@@ -98,6 +98,7 @@ public class SearchResource extends BaseResource {
             throw new RestException(ex, 400, "Unable to process view", ex.getMessage());
         }
         
+        DatasetResultSet searchResults = null;
         try(Connection conn = getConnection()){
             DatasetSearch datacatSearch = new DatasetSearch(conn, pluginProvider.getPlugins());
 
@@ -109,7 +110,7 @@ public class SearchResource extends BaseResource {
             ContainerVisitor visitor = new ContainerVisitor(getProvider().getFileSystem(), pathPattern, checkGroups, checkFolders);
             DirectoryWalker walker = new DirectoryWalker(getProvider(), visitor, 100 /* max depth */);
             walker.walk(searchPath, buildCallContext());
-            datasets = datacatSearch.search(visitor.files, dv, queryString, metafields, sortFields, offset, max);
+            searchResults = datacatSearch.search(visitor.files, dv, queryString, metafields, sortFields, offset, max);
         } catch (IllegalArgumentException ex){
             throw new RestException(ex,400, "Unable to process query, see message", ex.getMessage());
         } catch (NoSuchFileException ex){
@@ -119,8 +120,10 @@ public class SearchResource extends BaseResource {
         } catch(ParseException ex) {
             throw new RestException(ex, 422, "Unable to parse filter", ex.getMessage());
         }
+        List<? super Dataset> datasets = searchResults.getResults();
         return Response
                 .ok( new GenericEntity<List<DatacatObject>>((List<DatacatObject>) datasets) {})
+                .header("x-count", searchResults.getCount())
                 .build();
     }
     

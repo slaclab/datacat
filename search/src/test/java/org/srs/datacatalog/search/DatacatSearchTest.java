@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.srs.datacat.dao.DAOFactory;
 import org.srs.datacat.dao.sql.mysql.DAOFactoryMySQL;
 import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.model.DatasetResultSet;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.ModelProvider;
 import org.srs.datacatalog.search.plugins.DatacatPlugin;
@@ -336,7 +337,7 @@ public class DatacatSearchTest {
         DirectoryWalker walker = new DirectoryWalker(provider, visitor, 100);
         walker.walk(searchPath, TestUtils.DEFAULT_TEST_CONTEXT);
         Select statement = datacatSearch.compileStatement(visitor.files, dsView, queryString, metaFieldsToRetrieve, sortFields,0,-1);
-        List<DatasetModel> datasets = datacatSearch.retrieveDatasets();
+        List<DatasetModel> datasets = datacatSearch.retrieveDatasets().getResults();
         int ii = 0;
         for(DatasetModel d: datasets){
             ii++;
@@ -357,7 +358,7 @@ public class DatacatSearchTest {
         walker.walk(searchPath, TestUtils.DEFAULT_TEST_CONTEXT);
         Select statement = datacatSearch.compileStatement(visitor.files, dsView, queryString, metaFieldsToRetrieve, sortFields,0,-1);
         System.out.println("With statement" + statement.formatted());
-        List<DatasetModel> datasets = datacatSearch.retrieveDatasets();
+        List<DatasetModel> datasets = datacatSearch.retrieveDatasets().getResults();
         int ii = 0;
         for(DatasetModel d: datasets){
             ii++;

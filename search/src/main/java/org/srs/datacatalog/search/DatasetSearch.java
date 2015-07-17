@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,7 +21,7 @@ import org.freehep.commons.lang.bool.Lexer;
 import org.freehep.commons.lang.bool.Parser;
 import org.freehep.commons.lang.bool.sym;
 import org.srs.datacat.model.DatacatRecord;
-import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.model.DatasetResultSet;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacatalog.search.plugins.DatacatPlugin;
 import org.srs.datacatalog.search.tables.DatasetVersions;
@@ -55,7 +54,7 @@ public class DatasetSearch {
         this.conn = conn;
     }
     
-    public List<DatasetModel> search(LinkedList<DatacatRecord> containers, DatasetView datasetView, 
+    public DatasetResultSet search(LinkedList<DatacatRecord> containers, DatasetView datasetView, 
             String query, String[] metaFieldsToRetrieve, String[] sortFields, 
             int offset, int max) throws ParseException, IOException {
         try {
@@ -77,7 +76,7 @@ public class DatasetSearch {
         }
     }
     
-    protected List<DatasetModel> retrieveDatasets() throws IOException {
+    protected DatasetResultSet retrieveDatasets() throws IOException {
         try {
             return SearchUtils.getResults(conn, selectStatement, datasetView, metadataFields,
                     this.offset, this.max);
@@ -142,9 +141,12 @@ public class DatasetSearch {
                     s = s.substring(1);
                 }
 
+                // size and resource are reserved words in many DBMSs. Rewrite them.
+                s = doRewriteIdent(s);
+                
                 Column orderBy = null;
                 if(sd.inSelectionScope( s )){
-                    orderBy = getColumnFromSelectionScope( dsv, s );
+                    orderBy = getColumnFromAllScope(dsv, s);
                 } else if(sd.inPluginScope( s )){
                     // TODO: This should be cleaner
                     DatacatPlugin plugin = sd.pluginScope.getPlugin(s);

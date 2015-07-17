@@ -2,8 +2,11 @@
 package org.srs.datacat.client.resources;
 
 import com.google.common.base.Optional;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
+import org.srs.datacat.model.DatasetContainer;
+import org.srs.datacat.model.DatasetModel;
 
 /**
  * Helper class representing the path interface.
@@ -40,6 +43,16 @@ public class Path {
                 .get();
     }
     
+    public Response patchContainer(String path, Entity<DatasetContainer> payload){
+        return getTarget(target.path(path), Optional.<String>absent(), Optional.<String>absent())
+                .request().post(payload);
+    }
+    
+    public Response patchDataset(String path, Optional<String> versionId, Optional<String> site, 
+            Entity<DatasetModel> payload){
+        return getTarget(target.path(path), versionId, site).request().post(payload);
+    }
+        
     public static WebTarget getTarget(WebTarget base, Optional<String> versionId, Optional<String> site){
         if(versionId.isPresent()){
             base = base.matrixParam("v", versionId.get());
