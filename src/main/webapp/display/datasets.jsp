@@ -11,15 +11,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
     <head>  
-        <script>
-            var pageContext = new Object();
-            pageContext.endPoint = "${endPoint}";
-            pageContext.applicationBase = "${applicationBase}";
-            pageContext.target = new Object();
-            pageContext.target.name = "${target.name}";
-            pageContext.target.path = "${target.path}";
-            pageContext.target.type = "${target.type}";
-        </script>
+        <%@ include file="../views/jscontext.jsp" %>
 
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/browser.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.css">
@@ -48,7 +40,6 @@
                 <div class=" col-xs-12" id="info-views">
                     <c:choose>
                         <c:when test="${!target.type.container}" > <%@ include file="../views/dataset.jsp" %> </c:when>
-                        <%-- <c:when test="${overflow != null}" > Overflow </c:when> --%>
                         <c:otherwise>
                             <%@ include file="../views/datasets.jsp" %>
                         </c:otherwise>
