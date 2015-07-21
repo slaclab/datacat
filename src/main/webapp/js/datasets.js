@@ -124,7 +124,7 @@ function downloadUrl(){
 
 var textFile = null;
 function makeTextFile() {
-    var text = getChecked().toArray().join("\n");
+    var text = getChecked().toArray().join("\n") + "\n";
     var data = new Blob([text], {type: 'text/plain'});
 
     // If we are replacing a previously generated file we need to
