@@ -110,6 +110,16 @@ function getChecked() {
     });
 }
 
+var count = 0;
+function updateCount(){
+    count = $(".datatable-datasets input:checkbox:checked").size();
+    if(count){
+        $("#dl-actions").show();
+    } else {
+        $("#dl-actions").hide();
+    }
+}
+
 function downloadUrl(){
     $("#dl").attr("href", makeTextFile());
     $("#dl").attr("download", pageContext.target.name);
@@ -136,5 +146,7 @@ $("document").ready(function () {
     $(function () {
         $(".glyphicon").tooltip();
         paginateDatasets();
+        updateCount();
+        $(".datatable-datasets input:checkbox").click(updateCount);
     });
 });

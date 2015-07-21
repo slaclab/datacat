@@ -24,25 +24,25 @@
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a href="javascript:void(0)" onclick='$(".datatable-datasets input:checkbox").prop("checked", true)'>All</a></li>
-                    <li><a href="javascript:void(0)" onclick='$(".datatable-datasets input:checkbox").prop("checked", false)'>None</a></li>
-                    <li><a href="javascript:void(0)" onclick='$(".datatable-datasets input:checkbox").prop("checked", function (_, checked) {
-                                return !checked;
-                            })'>Toggle</a></li>
+                    <li><a href="#" onclick='$(".datatable-datasets input:checkbox").prop("checked", true)'>All</a></li>
+                    <li><a href="#" onclick='$(".datatable-datasets input:checkbox").prop("checked", false)'>None</a></li>
+                    <li><a href="#" onclick='$(".datatable-datasets input:checkbox").prop("checked", function (_, checked) { return !checked; })'>Toggle</a></li>
                 </ul>
             </div>
 
-            <div class="btn-group">
-                <a id="dl" onclick="downloadUrl()" type="button" class="btn btn-default btn-sm">
-                    <span class="glyphicon glyphicon-download-alt" aria-hidden="true" aria-label="Download"></span> Download
+            <div class="btn-group" id="dl-actions">
+                <a href="#" type="button" class="btn btn-default btn-sm">
+                    <span class="glyphicon glyphicon-download-alt" aria-hidden="true" aria-label="Download with Manager"></span> Download
                 </a>
                 <div class="btn-group" role="group">
                     <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         More <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu">
-                        <li><a href=href="javascript:void(0)">Skim</a></li>
-                        <li><a href=href="javascript:void(0)"><span class="glyphicon glyphicon-option-horizontal" aria-hidden="true"></span> </a></li>
+                        <li><a id="dl" onclick="downloadUrl()">
+                                <span class="glyphicon glyphicon-export" aria-hidden="true" aria-label="Export List"></span>Export as List</a></li>
+                        <li><a href="#">Skim</a></li>
+                        <li><a href="#"><span class="glyphicon glyphicon-option-horizontal" aria-hidden="true"></span> </a></li>
                     </ul>
                 </div>
             </div>
