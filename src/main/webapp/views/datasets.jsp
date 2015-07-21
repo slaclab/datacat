@@ -32,7 +32,7 @@
 
             <div class="btn-group" id="dl-actions">
                 <a href="#" type="button" class="btn btn-default btn-sm">
-                    <span class="glyphicon glyphicon-download-alt" aria-hidden="true" aria-label="Download with Manager"></span> Download
+                    <span class="glyphicon glyphicon-download-alt" aria-hidden="true" aria-label="Download with Manager"></span> Download (<span id="count"></span>)
                 </a>
                 <div class="btn-group" role="group">
                     <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

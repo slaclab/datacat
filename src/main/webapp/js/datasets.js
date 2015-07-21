@@ -110,6 +110,7 @@ function getChecked() {
 var count = 0;
 function updateCount(){
     count = $(".datatable-datasets input:checkbox:checked").size();
+    $("#count").text(count);
     if(count){
         $("#dl-actions").show();
     } else {
