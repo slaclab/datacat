@@ -24,9 +24,9 @@
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a href="#" onclick='$(".datatable-datasets input:checkbox").prop("checked", true)'>All</a></li>
-                    <li><a href="#" onclick='$(".datatable-datasets input:checkbox").prop("checked", false)'>None</a></li>
-                    <li><a href="#" onclick='$(".datatable-datasets input:checkbox").prop("checked", function (_, checked) { return !checked; })'>Toggle</a></li>
+                    <li><a href="#" onclick='doCheck(true)'>All</a></li>
+                    <li><a href="#" onclick='doCheck(false)'>None</a></li>
+                    <li><a href="#" onclick='doCheck(function (_, checked) { return !checked; })'>Toggle</a></li>
                 </ul>
             </div>
 
@@ -40,7 +40,7 @@
                     </button>
                     <ul class="dropdown-menu">
                         <li><a id="dl" onclick="downloadUrl()">
-                                <span class="glyphicon glyphicon-export" aria-hidden="true" aria-label="Export List"></span>Export as List</a></li>
+                                <span class="glyphicon glyphicon-export" aria-hidden="true" aria-label="Export List"></span> Export list</a></li>
                         <li><a href="#">Skim</a></li>
                         <li><a href="#"><span class="glyphicon glyphicon-option-horizontal" aria-hidden="true"></span> </a></li>
                     </ul>

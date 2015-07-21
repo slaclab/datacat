@@ -96,12 +96,9 @@ function paginateDatasets() {
     });
 }
 
-function checkAll() {
-    $(".datatable-datasets input:checkbox").prop("checked", true);
-}
-
-function unCheckAll() {
-    $(".datatable-datasets input:checkbox").prop("checked", false);
+function doCheck(val) {
+    $(".datatable-datasets input:checkbox").prop("checked", val);
+    updateCount();
 }
 
 function getChecked() {
