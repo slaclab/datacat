@@ -41,6 +41,8 @@ class HMACAuth(requests.auth.AuthBase):
             rpath = parsedurl.path.replace(urlparse(self.resource_base_url).path,"")
         else:
             rpath = "/" + "".join(parsedurl.path.split("/r/")[1:])
+        if parsedurl.params and len(parsedurl.params):
+            rpath = rpath + ";" + parsedurl.params
         content_md5 = d_headers['content-md5'] if 'content-md5' in d_headers else ""
         content_type = d_headers['content-type'] if 'content-type' in d_headers else ""
         date = d_headers['date']
