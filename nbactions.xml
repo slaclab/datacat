@@ -1,15 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <actions>
     <action>
-        <actionName>CUSTOM-fermi-deploy-dev</actionName>
-        <displayName>Fermi Tomcat 7 deploy (dev)</displayName>
+        <actionName>CUSTOM-srs-deploy-dev</actionName>
+        <displayName>SRS Tomcat 7 deploy (dev)</displayName>
         <goals>
             <goal>package</goal>
             <goal>tomcat7:deploy</goal>
         </goals>
         <activatedProfiles>
             <activatedProfile>deploy-dev</activatedProfile>
-            <activatedProfile>Fermi</activatedProfile>
+            <activatedProfile>SRS</activatedProfile>
+        </activatedProfiles>
+    </action>
+    <action>
+        <actionName>CUSTOM-lsst-deploy-dev</actionName>
+        <displayName>LSST-DM Tomcat 7 deploy (dev)</displayName>
+        <goals>
+            <goal>package</goal>
+            <goal>tomcat7:deploy</goal>
+        </goals>
+        <activatedProfiles>
+            <activatedProfile>deploy-dev</activatedProfile>
+            <activatedProfile>LSST</activatedProfile>
+        </activatedProfiles>
+    </action>
+    <action>
+        <actionName>CUSTOM-srs-deploy-prod</actionName>
+        <displayName>SRS Tomcat 7 deploy (prod)</displayName>
+        <goals>
+            <goal>package</goal>
+            <goal>tomcat7:deploy</goal>
+        </goals>
+        <activatedProfiles>
+            <activatedProfile>deploy-prod</activatedProfile>
+            <activatedProfile>SRS</activatedProfile>
         </activatedProfiles>
     </action>
 </actions>
