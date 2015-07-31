@@ -77,9 +77,8 @@ root {
 }
 
 .location-resource {
-    white-space: nowrap;
+    white-space: normal;
     overflow-x: hidden;
-    text-overflow: ellipsis;
 }
 
 /* If the screen is narrow, use this instead for the CSS */
@@ -99,10 +98,6 @@ only screen and (max-width: 760px),
         width: 5em;
     }
     
-    .location-resource {
-        white-space: normal;
-        overflow-x: hidden;
-    }
 }
 
 
