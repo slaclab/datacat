@@ -12,24 +12,24 @@ root {
 }
 
 .datacat-path {
-  padding: 8px 15px;
-  list-style: none;
-  background-color: #f5f5f5;
-  border-radius: 4px;
+    padding: 8px 15px;
+    list-style: none;
+    background-color: #f5f5f5;
+    border-radius: 4px;
 }
 
 .datacat-path > li {
-  display: inline-block;
+    display: inline-block;
 }
 
 .datacat-path > li + li:before {
-  padding: 0 5px;
-  color: #cccccc;
-  content: "/\00a0";
+    padding: 0 5px;
+    color: #cccccc;
+    content: "/\00a0";
 }
 
 .datacat-path > .active {
-  color: #999999;
+    color: #999999;
 }
 
 .table-file-info {
@@ -65,15 +65,15 @@ root {
 }
 
 .location-site {
-    width: 4em;
+    width: 8em;
 }
 
 .location-status {
-    width: 6em;
+    width: 8em;
 }
 
 .location-ts {
-    /*max-width: 200px;*/
+    width: 12em;
 }
 
 .location-resource {
@@ -81,6 +81,30 @@ root {
     overflow-x: hidden;
     text-overflow: ellipsis;
 }
+
+/* If the screen is narrow, use this instead for the CSS */
+@media 
+only screen and (max-width: 760px),
+(min-device-width: 768px) and (max-device-width: 1024px)  {
+
+    .location-site {
+        width: 8em;
+    }
+
+    .location-status {
+        width: 8em;
+    }
+
+    .location-ts {
+        width: 5em;
+    }
+    
+    .location-resource {
+        white-space: normal;
+        overflow-x: hidden;
+    }
+}
+
 
 .location-table {
     table-layout: fixed;

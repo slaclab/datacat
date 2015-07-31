@@ -36,7 +36,7 @@
     <table class="table table-condensed table-striped location-table">
         <thead>
             <tr>
-                <th>Name</th>
+                <th class="location-ts">Name</th>
                 <th>Value</th>
             </tr>
         </thead>
