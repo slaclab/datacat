@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.srs.datacat.dao.DAOFactory;
 import org.srs.datacat.dao.sql.mysql.DAOFactoryMySQL;
 import org.srs.datacat.model.DatasetModel;
-import org.srs.datacat.model.DatasetResultSet;
+import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.ModelProvider;
 import org.srs.datacatalog.search.plugins.DatacatPlugin;

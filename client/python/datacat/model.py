@@ -108,6 +108,11 @@ class Metadata(MutableMapping):
     def __str__(self):
         return str(self.dct)
 
+class SearchResults(list):
+    def __init__(self, results, count, **kwargs):
+        super(SearchResults, self).__init__(results)
+        self.count = count
+
 def unpack(content, default_type=None):
     def type_hook(raw):
         try:
@@ -192,6 +197,8 @@ def _default_hook(raw):
             d[name] = Metadata(d[name])
     fix_md("metadata", raw)
     fix_md("versionMetadata", raw)
+    if 'results' in raw:
+        return SearchResults(**raw)
     if '_type' in raw:
         _type = raw['_type']
         if _type.startswith("dataset"):

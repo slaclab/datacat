@@ -19,7 +19,7 @@ import org.zerorm.core.Select;
 
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetModel;
-import org.srs.datacat.model.DatasetResultSet;
+import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RecordType;
@@ -304,7 +304,7 @@ public class SearchUtils {
     }
     */
     
-    public static DatasetResultSet getResults(final Connection conn, final Select sel, DatasetView dsView, List<String> metadataNames,
+    public static DatasetResultSetModel getResults(final Connection conn, final Select sel, DatasetView dsView, List<String> metadataNames,
             int offset, int max) throws SQLException{
         int count = 0;
         final ArrayList<DatasetModel> datasets = new ArrayList<>();
@@ -332,7 +332,7 @@ public class SearchUtils {
         }
         
         final int total = count;
-        return new DatasetResultSet(){
+        return new DatasetResultSetModel(){
 
             @Override
             public List<DatasetModel> getResults(){
@@ -340,7 +340,7 @@ public class SearchUtils {
             }
 
             @Override
-            public int getCount(){
+            public Integer getCount(){
                 return total;
             }
             

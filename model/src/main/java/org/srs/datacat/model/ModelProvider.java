@@ -18,6 +18,7 @@ public interface ModelProvider {
     DatasetContainerBuilder getContainerBuilder();
     Class<? extends ContainerStat> getStatByName(String name);
     DatasetVersionModel.Builder getVersionBuilder();
+    DatasetResultSetModel.Builder getDatasetResultSetBuilder();
     
     Map<Class, Class> modelProviders();
     

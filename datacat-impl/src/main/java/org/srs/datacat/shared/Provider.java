@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.model.container.ContainerStat;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
@@ -53,6 +54,11 @@ public class Provider implements ModelProvider {
     public DatasetVersionModel.Builder getVersionBuilder(){
         return new DatasetVersion.Builder();
     }
+    
+    @Override
+    public DatasetResultSet.Builder getDatasetResultSetBuilder(){
+        return new DatasetResultSet.Builder();
+    }
 
     @Override
     public Map<Class, Class> modelProviders(){
@@ -63,6 +69,7 @@ public class Provider implements ModelProvider {
         providers.put(DatasetLocationModel.class, DatasetLocation.class);
         providers.put(DatasetVersionModel.class, DatasetVersion.class);
         providers.put(ContainerStat.class, BasicStat.class);
+        providers.put(DatasetResultSetModel.class, DatasetResultSet.class);
         return providers;
     }
 

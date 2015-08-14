@@ -29,7 +29,7 @@ import org.srs.datacat.client.resources.Search;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetModel;
-import org.srs.datacat.model.DatasetResultSet;
+import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.rest.ErrorResponse;
 import org.srs.datacat.shared.Provider;
 
@@ -196,27 +196,14 @@ public class Client {
         return resp.readEntity(new GenericType<DatacatNode>(){});
     }
     
-    public DatasetResultSet searchForDatasets(String target, String versionId, String site, 
+    public DatasetResultSetModel searchForDatasets(String target, String versionId, String site, 
             String query, String[] sort, String show, int offset, int max){
         Response resp = searchResource.searchForDatasets(target, Optional.fromNullable(versionId), 
                 Optional.fromNullable(site), Optional.fromNullable(query), 
                 Optional.fromNullable(sort), Optional.fromNullable(show), 
                 Optional.<Integer>fromNullable(offset), Optional.<Integer>fromNullable(max));
         checkResponse(resp);
-        final List<DatasetModel> datasets = resp.readEntity(new GenericType<List<DatasetModel>>(){});
-        final int count = new Integer(resp.getHeaderString("x-count"));
-        return new DatasetResultSet() {
-
-            @Override
-            public List<DatasetModel> getResults(){
-                return datasets;
-            }
-
-            @Override
-            public int getCount(){
-                return count;
-            }
-        };
+        return resp.readEntity(new GenericType<DatasetResultSetModel>(){});
     }
 
     protected void checkResponse(Response resp) throws DcException {

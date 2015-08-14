@@ -8,6 +8,7 @@ package org.srs.datacat.rest.resources;
 
 import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.AnnotationIntrospectorPair;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.type.TypeFactory;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
@@ -25,8 +27,9 @@ import junit.framework.TestCase;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
+import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.rest.App;
-import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.FlatDataset;
 import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.test.HSqlDbHarness;
@@ -75,6 +78,11 @@ public class SearchResourceTest extends JerseyTest{
         AnnotationIntrospector pair = new AnnotationIntrospectorPair(primary, secondary);
         
         ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        for(Map.Entry<Class, Class> e : app.fsProvider.getModelProvider().modelProviders().entrySet()){
+            mapper.addMixIn(e.getKey(), e.getValue());
+        }
+        
         mapper.setAnnotationIntrospector( pair );
         client().register( new JacksonJsonProvider( mapper ) );
         
@@ -163,13 +171,13 @@ public class SearchResourceTest extends JerseyTest{
 
     }
     
-    private List<Dataset> doSearch(String pathPattern, String filter, int status){
+    private List<DatasetModel> doSearch(String pathPattern, String filter, int status){
         Response resp = target("/search" + pathPattern)
                 .queryParam( "filter", filter )
                 .request( MediaType.APPLICATION_JSON )
                 .get();
         TestCase.assertEquals(status, resp.getStatus());
-        return resp.readEntity(new GenericType<List<Dataset>>(){});
+        return resp.readEntity(new GenericType<DatasetResultSetModel>(){}).getResults();
     }
     
 }

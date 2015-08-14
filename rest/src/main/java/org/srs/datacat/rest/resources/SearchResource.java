@@ -23,14 +23,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import org.srs.datacat.model.DatasetResultSet;
+import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.RequestView;
 import org.srs.datacat.rest.BaseResource;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.rest.SearchPluginProvider;
-import org.srs.datacat.shared.DatacatObject;
-import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.vfs.DcUriUtils;
 import org.srs.datacat.vfs.DirectoryWalker;
 import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
@@ -98,7 +96,7 @@ public class SearchResource extends BaseResource {
             throw new RestException(ex, 400, "Unable to process view", ex.getMessage());
         }
         
-        DatasetResultSet searchResults = null;
+        DatasetResultSetModel searchResults = null;
         try(Connection conn = getConnection()){
             DatasetSearch datacatSearch = new DatasetSearch(conn, pluginProvider.getPlugins());
 
@@ -120,10 +118,8 @@ public class SearchResource extends BaseResource {
         } catch(ParseException ex) {
             throw new RestException(ex, 422, "Unable to parse filter", ex.getMessage());
         }
-        List<? super Dataset> datasets = searchResults.getResults();
         return Response
-                .ok( new GenericEntity<List<DatacatObject>>((List<DatacatObject>) datasets) {})
-                .header("x-count", searchResults.getCount())
+                .ok( new GenericEntity<DatasetResultSetModel>(searchResults) {})
                 .build();
     }
     
