@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.srs.datacat.client.Client;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetContainer;
-import org.srs.datacat.model.DatasetResultSet;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RecordType;
 import org.srs.datacat.shared.DatasetStat;
@@ -24,6 +24,13 @@ import org.srs.vfs.PathUtils;
  */
 public class ControllerUtils {
     static final int DEFAULT_MAX = 100;
+    
+    public static Client getClient(HttpServletRequest request) throws MalformedURLException{
+        String localUrl = String.format("%s://%s:%s%s/r",
+                request.getScheme(), request.getServerName(), request.getServerPort(),
+                request.getContextPath());
+        return new Client(localUrl, request);
+    }
 
     public static HashMap<String, Object> collectAttributes(HttpServletRequest request, boolean withDatasets)
             throws ServletException, MalformedURLException{
@@ -37,10 +44,7 @@ public class ControllerUtils {
         requestAttributes.put("applicationBase", base);
         requestAttributes.put("endPoint", endPoint);
         // This Assumes all REST requests are routed to the same base URL
-        String localUrl = String.format("%s://%s:%s%s/r",
-                request.getScheme(), request.getServerName(), request.getServerPort(),
-                request.getContextPath());
-        Client client = new Client(localUrl, request);
+        Client client = getClient(request);
         HashMap<String, List<String>> requestQueryParams = new HashMap<>();
         Map<String, String[]> params = request.getParameterMap();
         for(Map.Entry<String, String[]> e: params.entrySet()){
@@ -76,28 +80,31 @@ public class ControllerUtils {
                 int max = requestQueryParams.containsKey("max")
                         ? Integer.valueOf(requestQueryParams.get("max").get(0)) : DEFAULT_MAX;
 
-                if(ccCount == 0){
-                    if(withDatasets && dsCount > 0){
-                        ArrayList<DatacatNode> datasets = new ArrayList<>();
-                        DatasetResultSet result = getDatasets(client, path, rv, requestQueryParams, offset, max);
-                        for(DatacatNode d: result.getResults()){
-                            if(!d.getType().isContainer()){
-                                datasets.add(d);
-                            }
-                        }
-                        requestAttributes.put("datasets", datasets);
-                        requestAttributes.put("datasetCount", result.getCount());
-                        // Paging
-                        StringBuffer reqUrl = request.getRequestURL();
-                        if(request.getQueryString() != null){
-                            reqUrl.append('?').append(request.getQueryString());
+                if(withDatasets && dsCount > 0){
+                    ArrayList<DatacatNode> datasets = new ArrayList<>();
+                    List<DatasetModel> results = getDatasets(client, path, rv, requestQueryParams, offset, max);
+                    for(DatacatNode d: results){
+                        if(!d.getType().isContainer()){
+                            datasets.add(d);
                         }
                     }
+                    requestAttributes.put("datasets", datasets);
+                    requestAttributes.put("datasetCount", results.size());
+                    // Paging
+                    StringBuffer reqUrl = request.getRequestURL();
+                    if(request.getQueryString() != null){
+                        reqUrl.append('?').append(request.getQueryString());
+                    }
                     requestAttributes.put("containers", getContainers(client, PathUtils.getParentPath(path), rv, requestQueryParams));
-                    requestAttributes.put("selected", target);
-                } else {
+                } else if (ccCount > 0){
                     requestAttributes.
                             put("containers", getContainers(client, path, rv, requestQueryParams));
+                }
+                if (ccCount == 0){
+                    if(!requestAttributes.containsKey("containers")){
+                        requestAttributes.put("containers", getContainers(client, PathUtils.getParentPath(path), rv, requestQueryParams));
+                    }
+                    requestAttributes.put("selected", target);
                 }
             }
 
@@ -106,16 +113,16 @@ public class ControllerUtils {
         return requestAttributes;
     }
 
-    private static DatasetResultSet getDatasets(Client c, String path, RequestView requestView,
+    private static List<DatasetModel> getDatasets(Client c, String path, RequestView requestView,
             HashMap<String, List<String>> queryParams, int offset, int max){
         String filter = queryParams.containsKey("filter") ? queryParams.get("filter").get(0) : "";
-        String[] sort = queryParams.containsKey("sort") ? queryParams.get("sort").
-                toArray(new String[0]) : null;
+        String sort = queryParams.containsKey("sort") ? queryParams.get("sort").
+                toArray(new String[0])[0] : null;
         DatasetView dsView = requestView.getDatasetView(DatasetView.MASTER);
-        DatasetResultSet result = c.searchForDatasets(path, Integer.toString(dsView.getVersionId()),
+        List<DatasetModel> results = c.searchForDatasets(path, Integer.toString(dsView.getVersionId()),
                 dsView.getSite(), filter, sort, null, offset, max);
 
-        return result;
+        return results;
     }
 
     private static List<DatacatNode> getContainers(Client c, String path, RequestView requestView,
