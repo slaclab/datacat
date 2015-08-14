@@ -193,7 +193,7 @@ class HttpClient(object):
         def resolve(path, part):
             path = path if path[-1] != '/' else path[:-1]
             part = part if part[0] != '/' else (part[1:] if len(part) > 0 else "")
-            return "%s/%s" %(path, urllib.quote(part))
+            return "%s/%s" %(path, urllib.quote(part, safe="/*$"))
         url = resolve(self.base_url, resource(endpoint, accept))
         view = ";v=" + str(version) if version is not None else ""
         view += ";s=" + site if site is not None else ""
