@@ -2,6 +2,7 @@ package org.srs.webapps.datacat.controllers;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -21,7 +22,7 @@ public class DatasetsController extends HttpServlet {
         
         try {
             HashMap<String, Object> requestAttributes = ControllerUtils.collectAttributes(request, true);
-            for(HashMap.Entry<String, Object> entry: requestAttributes.entrySet()){
+            for(Map.Entry<String, Object> entry: requestAttributes.entrySet()){
                 request.setAttribute(entry.getKey(), entry.getValue());
             }
         } catch (DcException ex){   
