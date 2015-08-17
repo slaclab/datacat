@@ -88,6 +88,10 @@ public class Client {
         init("http://lsst-db2.slac.stanford.edu:8180/rest-datacat-v1/r", delegatedRequest);
     }
     
+    public Client(String url) throws MalformedURLException{
+        init(url, null);
+    }
+    
     public Client(String url, HttpServletRequest delegatedRequest) throws MalformedURLException{
         init(url, delegatedRequest);
     }
