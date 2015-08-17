@@ -12,6 +12,7 @@ import org.srs.datacat.client.Client;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RecordType;
 import org.srs.datacat.shared.DatasetStat;
@@ -82,14 +83,14 @@ public class ControllerUtils {
 
                 if(withDatasets && dsCount > 0){
                     ArrayList<DatacatNode> datasets = new ArrayList<>();
-                    List<DatasetModel> results = getDatasets(client, path, rv, requestQueryParams, offset, max);
-                    for(DatacatNode d: results){
+                    DatasetResultSetModel searchResults = getDatasets(client, path, rv, requestQueryParams, offset, max);
+                    for(DatacatNode d: searchResults.getResults()){
                         if(!d.getType().isContainer()){
                             datasets.add(d);
                         }
                     }
                     requestAttributes.put("datasets", datasets);
-                    requestAttributes.put("datasetCount", results.size());
+                    requestAttributes.put("datasetCount", searchResults.getCount());
                     // Paging
                     StringBuffer reqUrl = request.getRequestURL();
                     if(request.getQueryString() != null){
@@ -113,13 +114,13 @@ public class ControllerUtils {
         return requestAttributes;
     }
 
-    private static List<DatasetModel> getDatasets(Client c, String path, RequestView requestView,
+    private static DatasetResultSetModel getDatasets(Client c, String path, RequestView requestView,
             HashMap<String, List<String>> queryParams, int offset, int max){
         String filter = queryParams.containsKey("filter") ? queryParams.get("filter").get(0) : "";
-        String sort = queryParams.containsKey("sort") ? queryParams.get("sort").
-                toArray(new String[0])[0] : null;
+        String sort[] = queryParams.containsKey("sort") ? queryParams.get("sort").
+                toArray(new String[0]) : null;
         DatasetView dsView = requestView.getDatasetView(DatasetView.MASTER);
-        List<DatasetModel> results = c.searchForDatasets(path, Integer.toString(dsView.getVersionId()),
+        DatasetResultSetModel results = c.searchForDatasets(path, Integer.toString(dsView.getVersionId()),
                 dsView.getSite(), filter, sort, null, offset, max);
 
         return results;
