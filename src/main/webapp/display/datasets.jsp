@@ -13,7 +13,7 @@
     <head>
         <title>Datacat Datasets</title>
         <%@ include file="../views/jscontext.jsp" %>
-
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/browser.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/dataTables.bootstrap.css">
