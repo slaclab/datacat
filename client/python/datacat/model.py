@@ -185,7 +185,7 @@ def _default_serializer(obj):
         print e
     else:
         return list(iterable)
-    return json.JSONEncoder.default(obj)
+    return json.JSONEncoder().default(obj)
 
 
 def _totimestamp(ts):
