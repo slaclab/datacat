@@ -149,7 +149,7 @@ class HttpClient(object):
         endpoint = "search"
         param_list = "query:filter sort:sort show:show offset:offset max_num:max".split(" ")
         param_map = dict([i.split(":") for i in param_list])
-        params = {param_map[k]:v for k,v in locals().items() if k in param_map and v is not None}
+        params = {param_map[k]: v for k, v in locals().items() if k in param_map and v is not None}
         return self._req("get",self._target(endpoint, target, versionId, site, accept), params, **kwargs)
 
     def _req(self, http_method, target, params=None, data=None, **kwargs):
@@ -192,7 +192,7 @@ class HttpClient(object):
         def resolve(path, part):
             path = path if path[-1] != '/' else path[:-1]
             part = part if part[0] != '/' else (part[1:] if len(part) > 0 else "")
-            return "%s/%s" %(path, urllib.quote(part, safe="/*$"))
+            return "%s/%s" % (path, urllib.quote(part, safe="/*$"))
         url = resolve(self.base_url, resource(endpoint, accept))
         view = ";v=" + str(version) if version is not None else ""
         view += ";s=" + site if site is not None else ""
