@@ -107,11 +107,11 @@ class Client(object):
         version = None
         location = None
         if has_version:
-            version = {"versionId":versionId, "versionMetadata":versionMetadata}
+            version = {"versionId": versionId, "versionMetadata": versionMetadata}
             if versionExtras:
                 version.update(versionExtras)
         if has_location:
-            location = {"site":site, "resource":resource}
+            location = {"site": site, "resource": resource}
             if locationExtras:
                 location.update(locationExtras)
         ds = Dataset(name=name, dataType=dataType, fileFormat=fileFormat,
@@ -168,7 +168,7 @@ class Client(object):
         :param resource: The actual file resource path at the given site (i.e. /nfs/farm/g/glast/dataset.dat)
         :return: A representation of the dataset that was just created.
         """
-        location = {"site":site, "resource":resource}
+        location = {"site": site, "resource": resource}
         if locationExtras:
             location.update(locationExtras)
         ds = Dataset(locations=[location])
@@ -205,8 +205,8 @@ class Client(object):
         Patch a container.
         :param path: Path of the dataset to patch.
         :param type: Container type. Defaults to folder.
-        :param container: A dict object or a dataset.model.Group/Folder object representing the changes to be applied to the
-        container.
+        :param container: A dict object or a dataset.model.Group/Folder object representing the changes to be applied
+        to the container.
         :param kwargs:
         :return: A representation of the patched dataset
         """
