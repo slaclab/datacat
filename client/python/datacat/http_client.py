@@ -40,7 +40,7 @@ class HttpClient(object):
         endpoint = "path"
         param_list = "offset:offset max_num:max".split(" ")
         param_map = dict([i.split(":") for i in param_list])
-        params = {param_map[k]:v for k,v in locals().items() if k in param_map and v is not None}
+        params = {param_map[k]: v for k, v in locals().items() if k in param_map and v is not None}
         target = self._target(endpoint, path, versionId, site, accept) + ";children"
         return self._req("get", target, params, **kwargs)
 
@@ -102,8 +102,8 @@ class HttpClient(object):
         Patch a container.
         :param path: Path of the dataset to patch.
         :param type: Container type. Defaults to folder.
-        :param container: A dict object or a dataset.model.Group/Folder object representing the changes to be applied to the
-        container.
+        :param container: A dict object or a dataset.model.Group/Folder object representing the changes to be
+        applied to the container.
         :param kwargs:
         :return: A :class`requests.Response` object. The content is a representation of the patched container
         """
@@ -165,7 +165,7 @@ class HttpClient(object):
             print("Request Headers:")
             print(resp.request.headers)
         if kwargs.get('show_response', False):
-            print("Response: %d" %resp.status_code)
+            print("Response: %d" % resp.status_code)
         if kwargs.get('response_headers', False):
             print("Response Headers:")
             print(resp.headers)
@@ -186,7 +186,7 @@ class HttpClient(object):
                 else:
                     raise e
 
-        def resource(endpoint, accept="json"):
+        def resource(endpoint, accept):
             if endpoint in ENDPOINTS and accept in DATATYPES:
                 return "%s.%s" %(endpoint, accept)
         def resolve(path, part):
