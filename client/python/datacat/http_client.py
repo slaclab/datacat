@@ -4,11 +4,12 @@ import requests
 import urllib
 from config import ENDPOINTS, DATATYPES
 
+
 class HttpClient(object):
 
-    '''
+    """
     HTTP-level abstraction over the RESTful Client.
-    '''
+    """
 
     ALLOWABLE_VERSIONS = "curr current latest new next".split(" ")
     ALLOWABLE_SITES = "master canonical all".split(" ")
@@ -53,11 +54,10 @@ class HttpClient(object):
         :return: A :class`requests.Response` object. The content is a representation of the newly created container.
         """
         parentpath = os.path.dirname(path)
-        if type.lower() == "folder":
-            endpoint = "folders"
-        elif type.lower() == "group":
+        endpoint = "folders"
+        if type.lower() == "group":
             endpoint = "groups"
-        return self._req("post",self._target(endpoint, parentpath), data=payload, **kwargs)
+        return self._req("post", self._target(endpoint, parentpath), data=payload, **kwargs)
 
     def mkds(self, path, payload, versionId=None, **kwargs):
         """
@@ -73,7 +73,7 @@ class HttpClient(object):
         :return: A :class`requests.Response` object. The content is a representation of the newly created Dataset.
         """
         endpoint = "datasets"
-        return self._req("post",self._target(endpoint, path, versionId, None), data=payload, **kwargs)
+        return self._req("post", self._target(endpoint, path, versionId, None), data=payload, **kwargs)
 
     def rmdir(self, path, type="folder", **kwargs):
         """
@@ -82,11 +82,10 @@ class HttpClient(object):
         :param type: Type of container (Group or Folder). This will be removed in a future version.
         :return: A :class`requests.Response` object. A client can inspect the status code.
         """
-        if type.lower() == "folder":
-            endpoint = "folders"
-        elif type.lower() == "group":
+        endpoint = "folders"
+        if type.lower() == "group":
             endpoint = "groups"
-        return self._req("delete",self._target(endpoint, path), **kwargs)
+        return self._req("delete", self._target(endpoint, path), **kwargs)
 
     def rmds(self, path, **kwargs):
         """
@@ -96,7 +95,7 @@ class HttpClient(object):
         :return: A :class`requests.Response` object.
         """
         endpoint = "datasets"
-        return self._req("delete",self._target(endpoint, path), **kwargs)
+        return self._req("delete", self._target(endpoint, path), **kwargs)
 
     def patchdir(self, path, payload, type="folder", **kwargs):
         """
@@ -108,11 +107,10 @@ class HttpClient(object):
         :param kwargs:
         :return: A :class`requests.Response` object. The content is a representation of the patched container
         """
-        if type.lower() == "folder":
-            endpoint = "folders"
-        elif type.lower() == "group":
+        endpoint = "folders"
+        if type.lower() == "group":
             endpoint = "groups"
-        return self._req("patch",self._target(endpoint, path), data=payload, **kwargs)
+        return self._req("patch", self._target(endpoint, path), data=payload, **kwargs)
 
     def patchds(self, path, payload, versionId="current", site=None, **kwargs):
         """
@@ -127,7 +125,7 @@ class HttpClient(object):
         :return: A :class`requests.Response` object. The content is a representation of the patched dataset
         """
         endpoint = "datasets"
-        return self._req("patch",self._target(endpoint, path, versionId, site), data=payload, **kwargs)
+        return self._req("patch", self._target(endpoint, path, versionId, site), data=payload, **kwargs)
 
     def search(self, target, versionId=None, site=None, query=None, sort=None, show=None, offset=None, max_num=None,
                accept="json", **kwargs):
@@ -175,6 +173,7 @@ class HttpClient(object):
             print(kwargs["show_raw_response"])
             print("Response:")
             print(resp.content)
+        resp.raise_for_status()
         return resp
 
     def _target(self, endpoint, path, version=None, site=None, accept="json"):
@@ -198,4 +197,3 @@ class HttpClient(object):
         view = ";v=" + str(version) if version is not None else ""
         view += ";s=" + site if site is not None else ""
         return resolve(url, path) + view
-

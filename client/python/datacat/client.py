@@ -1,39 +1,39 @@
 
 import os
+from requests import RequestException
 from .auth import auth_from_config
 from .config import config_from_file
-from .error import DcException
+from .error import DcClientException, checkedError
 from .http_client import HttpClient
 from .model import *
 
+
 class Client(object):
 
-    '''
+    """
     Pythonic Client for interacting with the data catalog. This client interacts solely through JSON.
-    '''
+    """
 
     def __init__(self, url, auth_strategy=None, *args, **kwargs):
         self.http_client = HttpClient(url, auth_strategy, *args, **kwargs)
         self.url = url
 
     def path(self, path, versionId=None, site=None, **kwargs):
-        resp = self.http_client.path(path, versionId, site, accept="json", **kwargs)
-        self._check_response(resp)
+        resp = self.doRequest(self.http_client.path, path, versionId, site, **kwargs)
         return unpack(resp.content)
 
     def children(self, path, versionId=None, site=None, offset=None, max_num=None, **kwargs):
-        resp = self.http_client.children(path, versionId, site, offset, max_num, accept="json", **kwargs)
-        self._check_response(resp)
+        resp = self.doRequest(self.http_client.children, path, versionId, site, offset, max_num, **kwargs)
         return unpack(resp.content)
 
     def exists(self, path, versionId=None, site=None, **kwargs):
         try:
-            self.path(path, versionId, site)
+            self.doRequest(self.path, path, versionId, site)
             return True
-        except DcException as e:
-            if e.raw.status_code > 404 or e.raw.status_code == 400:
-                raise e
-        return False
+        except DcClientException as e:
+            if "NoSuchFile" in e.type:
+                return False
+            raise e
 
     def mkdir(self, path, type="folder", parents=False, metadata=None, **kwargs):
         """
@@ -46,6 +46,7 @@ class Client(object):
         The object will be a Folder
         """
         parentpath = os.path.dirname(path)
+        container = None
         if type.lower() == "folder":
             container = Folder(path=path, name=path.split("/")[-1], metadata=metadata)
         elif type.lower() == "group":
@@ -62,8 +63,7 @@ class Client(object):
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
-        resp = self.http_client.mkdir(path, payload=pack(container), type=type, **kwargs)
-        self._check_response(resp)
+        resp = self.doRequest(self.http_client.mkdir, path, payload=pack(container), type=type, **kwargs)
         return unpack(resp.content)
 
     def mkfolder(self, path, parents=False, metadata=None, **kwargs):
@@ -119,8 +119,7 @@ class Client(object):
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
-        resp = self.http_client.mkds(path, pack(ds), **kwargs)
-        self._check_response(resp)
+        resp = self.doRequest(self.http_client.mkds, path, pack(ds), **kwargs)
         return unpack(resp.content)
 
     def create_dataset(self, path, name, dataType, fileFormat,
@@ -157,8 +156,7 @@ class Client(object):
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
-        resp = self.http_client.mkds(path, pack(ds), **kwargs)
-        self._check_response(resp)
+        resp = self.doRequest(self.http_client.mkds, path, pack(ds), **kwargs)
         return unpack(resp.content)
 
     def mkloc(self, path, site, resource, versionId="current", locationExtras=None, **kwargs):
@@ -177,8 +175,7 @@ class Client(object):
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
-        resp = self.http_client.mkds(path, pack(ds), versionId=versionId, **kwargs)
-        self._check_response(resp)
+        resp = self.doRequest(self.http_client.mkds, path, pack(ds), versionId=versionId, **kwargs)
         return unpack(resp.content)
 
     def rmdir(self, path, type="folder", **kwargs):
@@ -188,8 +185,7 @@ class Client(object):
         :param type: Type of container (Group or Folder). This will be removed in a future version.
         :return: A :class`requests.Response` object. A client can inspect the status code.
         """
-        resp = self.http_client.rmdir(path, type, **kwargs)
-        self._check_response(resp, 204)
+        self.doRequest(self.http_client.rmdir, path, type, **kwargs)
         return True
 
     def rmds(self, path, **kwargs):
@@ -198,8 +194,8 @@ class Client(object):
         :param path: Path of dataset to remove
         :param kwargs:
         """
-        resp = self.http_client.rmds(path, **kwargs)
-        self._check_response(resp, 204)
+        self.doRequest(self.http_client.rmds, path, **kwargs)
+        return True
 
     def delete_dataset(self, path, **kwargs):
         return self.rmds(path, **kwargs)
@@ -225,8 +221,7 @@ class Client(object):
         elif type == "folder":
             container = Folder(**container)
 
-        resp = self.http_client.patchdir(path, pack(container), type, **kwargs)
-        self._check_response(resp)
+        resp = self.doRequest(self.http_client.patchdir, path, pack(container), type, **kwargs)
         return unpack(resp.content)
 
     def patchds(self, path, dataset, versionId="current", site=None, **kwargs):
@@ -245,8 +240,7 @@ class Client(object):
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
         ds = dataset if type(dataset) == Dataset else Dataset(**dataset)
-        resp = self.http_client.patchds(path, pack(ds), versionId, site, **kwargs)
-        self._check_response(resp)
+        resp = self.doRequest(self.http_client.patchds, path, pack(ds), versionId, site, **kwargs)
         return unpack(resp.content)
 
     def patch_container(self, path, container, type="folder", **kwargs):
@@ -270,21 +264,22 @@ class Client(object):
         :param show: Metadata fields to optionally return
         :param offset: Offset at which to start returning objects.
         :param max_num: Maximum number of objects to return.
-        :param accept: Format of the response object which is returned.
         """
-        resp = self.http_client.search(target, versionId, site, query, sort, show, offset, max_num, **kwargs)
-        self._check_response(resp)
+        resp = self.doRequest(self.http_client.search, target, versionId, site, query,
+                              sort, show, offset, max_num, **kwargs)
         return unpack(resp.content)
 
-    def _check_response(self, response, expected_status=None):
-        if response.status_code >= 300:
-            raise DcException(response)
-        if expected_status and response.status_code != expected_status:
-            raise DcException()
+    def doRequest(self, method, *args, **kwargs):
+        try:
+            return method(*args, accept="json", **kwargs)
+        except RequestException as e:
+            raise checkedError(e)
+
 
 def client_from_config_file(path=None, override_section=None):
     config = config_from_file(path, override_section)
     return client_from_config(config)
+
 
 def client_from_config(config):
     auth_strategy = auth_from_config(config)
