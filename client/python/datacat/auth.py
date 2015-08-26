@@ -38,7 +38,7 @@ class HMACAuth(requests.auth.AuthBase):
             d_headers[lk] = headers[key]
         # hacky way of doing this...
         if self.resource_base_url:
-            rpath = parsedurl.path.replace(urlparse(self.resource_base_url).path,"")
+            rpath = parsedurl.path.replace(urlparse(self.resource_base_url).path, "")
         else:
             rpath = "/" + "".join(parsedurl.path.split("/r/")[1:])
         if parsedurl.params and len(parsedurl.params):
@@ -46,7 +46,7 @@ class HMACAuth(requests.auth.AuthBase):
         content_md5 = d_headers['content-md5'] if 'content-md5' in d_headers else ""
         content_type = d_headers['content-type'] if 'content-type' in d_headers else ""
         date = d_headers['date']
-        hash_buf = "%s\n%s\n%s\n%s\n%s\n" %(method, rpath, content_md5, content_type, date)
+        hash_buf = "%s\n%s\n%s\n%s\n%s\n" % (method, rpath, content_md5, content_type, date)
         return hash_buf
 
 
@@ -69,13 +69,13 @@ class HMACAuthSRS(HMACAuth):
     def __init__(self, key_id, secret_key, url=None):
         super(HMACAuthSRS, self).__init__(key_id, secret_key, u"Authorization", u"SRS:{0}:{1}", url)
 
+
 def auth_from_config(config):
     config = config.copy()
     auth_type = config.get("auth_type", None)
     if auth_type:
         del config["auth_type"]
-        auth_params = {}
-        auth_params["url"] = config.get("url")
+        auth_params = {"url": config.get("url")}
 
         for key in config.keys():
             if key.startswith("auth_"):
@@ -90,4 +90,3 @@ def auth_from_config(config):
             auth_strategy = None
         return auth_strategy
     return None
-
