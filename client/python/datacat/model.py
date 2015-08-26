@@ -169,7 +169,7 @@ def _default_serializer(obj):
             return ret
         if isinstance(obj, Metadata):
             type_mapping = {int: "integer", long: "integer", float: "decimal",
-                            unicode: "string", str: "string", datetime:"timestamp"}
+                            unicode: "string", str: "string", datetime: "timestamp"}
             ret = []
             for k, v in obj.dct.items():
                 if v:
