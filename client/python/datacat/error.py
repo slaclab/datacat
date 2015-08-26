@@ -1,7 +1,7 @@
 __author__ = 'bvan'
 
 EXCEPTION_TYPES = "AccessDenied DirectoryNotEmpty FileAlreadyExists " \
-"IllegalArgument NotDirectory NoSuchFile".split(" ")
+    "IllegalArgument NotDirectory NoSuchFile".split(" ")
 
 
 class DcException(Exception):
@@ -13,7 +13,7 @@ class DcException(Exception):
     def __repr__(self):
         s = ""
         for i in self.__dict__.keys():
-            s += "%s : %s\n" %(i, self.__dict__[i])
+            s += "%s : %s\n" % (i, self.__dict__[i])
         return s
 
 
@@ -26,7 +26,7 @@ class DcRequestException(DcException):
 
     def __init__(self, http_error):
         self.url = http_error.request.url
-        response = http_error.response or {}
+        response = http_error.response if http_error.response is not None else {}
         self.status_code = getattr(response, "status_code", None)
         self.headers = getattr(response, "headers", None)
         self.content = getattr(response, "content", None)
