@@ -17,6 +17,7 @@ PROD_LSST_DM_URL = "http://lsst-db2.slac.stanford.edu:8180/datacat-v%s/r" %(__ve
 SRS_EXPERIMENTS = "srs exo cdms lsst lsst-desc lsst-camera".split(" ")
 LSST_DM_EXPERIMENT = "lsst-dm"
 
+
 def default_url(domain=None, mode=None):
     domain = domain if domain else "srs"
     mode = mode if mode else "prod"
@@ -33,14 +34,16 @@ def default_url(domain=None, mode=None):
             return PROD_LSST_DM_URL
     return None
 
+
 def default_config(domain=None, mode=None):
     defaults = {}
     defaults.setdefault("url", default_url(domain, mode))
     return defaults
 
+
 def config_from_file(path=None, override_section=None, domain=None, mode=None):
     config = ConfigParser.SafeConfigParser()
-    defaults = default_config(domain, mode)    
+    defaults = default_config(domain, mode)
     if path:
         config.read([path])
     else:
@@ -54,4 +57,3 @@ def config_from_file(path=None, override_section=None, domain=None, mode=None):
     overrides = dict(config.items(override_section)) if config.has_section(override_section) else {}
     defaults.update(overrides)
     return defaults
-
