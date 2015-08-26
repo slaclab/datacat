@@ -145,11 +145,11 @@ class Client(object):
         """
         has_location = site is not None and resource is not None
         location = None
-        version = {"versionId":versionId, "versionMetadata":versionMetadata}
+        version = {"versionId": versionId, "versionMetadata": versionMetadata}
         if versionExtras:
             version.update(versionExtras)
         if has_location:
-            location = {"site":site, "resource":resource}
+            location = {"site": site, "resource": resource}
             if locationExtras:
                 location.update(locationExtras)
         ds = Dataset(locations=[location] if location else None, **version)
@@ -269,7 +269,8 @@ class Client(object):
                                sort, show, offset, max_num, **kwargs)
         return unpack(resp.content)
 
-    def do_request(self, method, *args, **kwargs):
+    @staticmethod
+    def do_request(method, *args, **kwargs):
         try:
             return method(*args, accept="json", **kwargs)
         except RequestException as e:
