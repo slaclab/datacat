@@ -24,13 +24,13 @@ class DcRequestException(DcException):
     exception to something a bit simpler and friendly.
     """
 
-    def __init__(self, httpError):
-        self.url = httpError.request.url
-        response = httpError.response or {}
+    def __init__(self, http_error):
+        self.url = http_error.request.url
+        response = http_error.response or {}
         self.status_code = getattr(response, "status_code", None)
         self.headers = getattr(response, "headers", None)
         self.content = getattr(response, "content", None)
-        super(DcRequestException, self).__init__(httpError.message)
+        super(DcRequestException, self).__init__(http_error.message)
 
     def __str__(self):
         formatted_string = "(HTTP Error: %s): %s" % (self.status_code, self.content)
@@ -53,12 +53,12 @@ class DcClientException(DcException):
         return formatted_string
 
 
-def checkedError(requestException):
+def checked_error(request_exception):
 
-    resp = requestException.response
+    resp = request_exception.response
     if resp and resp.headers["content-type"] == "application/json":
         err = resp.json()
         if "type" in err:
             return DcClientException(err["type"], message=err.get("message", None),
                                      cause=err.get("cause", None), code=err.get("code", None))
-    return DcRequestException(requestException)
+    return DcRequestException(request_exception)
