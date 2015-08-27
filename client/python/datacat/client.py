@@ -28,7 +28,7 @@ class Client(object):
 
     def exists(self, path, versionId=None, site=None, **kwargs):
         try:
-            self.do_request(self.path, path, versionId, site)
+            self.path(path, versionId, site)
             return True
         except DcClientException as e:
             if "NoSuchFile" in e.type:
@@ -198,6 +198,9 @@ class Client(object):
         return True
 
     def delete_dataset(self, path, **kwargs):
+        """
+        See rmds
+        """
         return self.rmds(path, **kwargs)
 
     def patchdir(self, path, container, type="folder", **kwargs):
@@ -244,9 +247,15 @@ class Client(object):
         return unpack(resp.content)
 
     def patch_container(self, path, container, type="folder", **kwargs):
+        """
+        See patchdir.
+        """
         return self.patchdir(path, container, type, **kwargs)
 
     def patch_dataset(self, path, dataset, versionId="current", site=None, **kwargs):
+        """
+        See patchds
+        """
         return self.patchds(path, dataset, versionId, site, **kwargs)
 
     def search(self, target, versionId=None, site=None, query=None, sort=None, show=None, offset=None, max_num=None,
