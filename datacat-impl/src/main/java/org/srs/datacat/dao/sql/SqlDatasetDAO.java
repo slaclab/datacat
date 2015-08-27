@@ -305,8 +305,8 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
                 + "vdl.numberevents, vdl.filesizebytes, vdl.checksum, vdl.lastmodified, "
                 + "vdl.lastscanned, vdl.scanstatus, vdl.registered, "
                 + "CASE WHEN dsv.masterlocation = vdl.datasetlocation THEN 1 ELSE 0 END isMaster "
-                + "FROM datasetversion dsv "
-                + "JOIN verdatasetlocation vdl on (dsv.masterlocation = vdl.datasetlocation) "
+                + "FROM DatasetVersion dsv "
+                + "JOIN VerDatasetLocation vdl on (dsv.masterlocation = vdl.datasetlocation) "
                 + "WHERE dsv.datasetversion = ? ";
         try (PreparedStatement stmt = getConnection().prepareStatement( sql )){
             stmt.setLong( 1, versionPk );
@@ -421,7 +421,7 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
     }
     
     protected void deleteDatasetFileFormat(String fileFormat) throws SQLException {
-        String deleteSql = "DELETE FROM DatasetDataType where DatasetDataType=?";
+        String deleteSql = "DELETE FROM DatasetFileFormat where DatasetFileFormat=?";
         delete1(deleteSql.toLowerCase(), fileFormat);
     }
     
@@ -519,7 +519,7 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
     protected DatasetLocation insertDatasetLocation(Long datasetVersionPk,
             DatasetLocationModel request) throws SQLException{
         String insertSql = 
-              "insert into VerDataSetLocation (DatasetVersion, DatasetSite, Path, RunMin, RunMax, "
+              "insert into VerDatasetLocation (DatasetVersion, DatasetSite, Path, RunMin, RunMax, "
               + " NumberEvents, FileSizeBytes) values (?, ?, ?, ?, ?, ?, ?)";
         
         int i = 0;
@@ -535,7 +535,7 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
             stmt.setObject(++i, ((DatasetLocation) request).getEventCount() );
             stmt.setObject(++i, request.getSize() );
             stmt.executeUpdate();   // will throw exception if required parameter is empty...
-            DatasetLocation.Builder builder = new DatasetLocation.Builder(((DatasetLocation) request));
+            DatasetLocation.Builder builder = new DatasetLocation.Builder((DatasetLocation) request);
             // now retrieve the primary key:
 
             try(ResultSet rs = stmt.getGeneratedKeys()){
@@ -549,12 +549,7 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
         }
         // If this is to be the master
         if(retLoc.isMaster()){
-            String sql = "UPDATE DatasetVersion set MasterLocation = ? WHERE DatasetVersion = ?";
-            try(PreparedStatement stmt = getConnection().prepareStatement( sql )) {
-                stmt.setLong(1, retLoc.getPk());
-                stmt.setLong(2, datasetVersionPk );
-                stmt.executeUpdate();
-            }
+            updateMasterLocation(datasetVersionPk, retLoc);
         }
         return retLoc;
     }
@@ -581,7 +576,7 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
             }
         }
         
-        String deleteSql = "delete from DatasetLocation where DatasetLocation=?";
+        String deleteSql = "delete from VerDatasetLocation where DatasetLocation=?";
         delete1(deleteSql, location.getPk() );
     }
 
@@ -664,12 +659,15 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
                     currentLocation = currentView.getLocation(view);
                 }
                 if(currentLocation == null){
-                    throw new IOException("Unable to patch a non-existent location. Check your location.");
+                    createDatasetLocation(currentView.getVersion(), requestView.singularLocationOpt().get(), true);
+                } else {
+                    patchDatasetLocation(currentView.getVersion(), currentLocation, 
+                            requestView.singularLocationOpt().get());
                 }
-                patchDatasetLocation(currentLocation, requestView.singularLocationOpt().get());
             }
         }
     }
+    
     private void patchDataset(DatacatRecord existing, DatasetModel patch) throws IOException {
         try {
             for(Method method: patch.getClass().getMethods()){
@@ -741,7 +739,8 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
         }
     }
     
-    private void patchDatasetLocation(DatacatRecord existing, DatasetLocationModel patch) throws IOException {
+    private void patchDatasetLocation(DatasetVersionModel existingVersion, 
+            DatacatRecord existing, DatasetLocationModel patch) throws IOException {
         try {
             for(Method method: existing.getClass().getMethods()){
                 if(method.isAnnotationPresent(Patchable.class)){
@@ -763,6 +762,13 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
                     if("checksum".equalsIgnoreCase(p.column())){
                         patchedValue = new BigInteger(patchedValue.toString(), 16);
                     }
+                    if("masterlocation".equalsIgnoreCase(p.column())){
+                        if(patch.isMaster()){
+                            updateMasterLocation(existingVersion.getPk(), existing);
+                        }
+                        // TODO: Allow removing a dataset from being a master
+                        continue;
+                    }
                     try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
                         stmt.setObject(1, patchedValue);
                         stmt.setLong(2, existing.getPk());
@@ -778,5 +784,13 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
         }
     }
     
+    private void updateMasterLocation(Long datasetVersionPk, DatacatRecord location) throws SQLException{
+        String sql = "UPDATE DatasetVersion set MasterLocation = ? WHERE DatasetVersion = ?";
+        try(PreparedStatement stmt = getConnection().prepareStatement( sql )) {
+            stmt.setLong(1, location.getPk());
+            stmt.setLong(2, datasetVersionPk);
+            stmt.executeUpdate();
+        }
+    }
     
 }
