@@ -422,7 +422,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
     }
     
     protected void deleteDatasetFileFormat(String fileFormat) throws SQLException {
-        String deleteSql = "DELETE FROM DatasetFileFormat where DatasetDataType=?";
+        String deleteSql = "DELETE FROM DatasetFileFormat where DatasetFileFormat=?";
         delete1(deleteSql.toLowerCase(), fileFormat);
     }
     
@@ -547,18 +547,13 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
                 builder.parentPk(datasetVersionPk);
                 //builder.created(rs.getTimestamp(2))
                 builder.created(new Timestamp(System.currentTimeMillis()));
-                builder.master(isMaster);
+                builder.master(isMaster || request.isMaster());
             }
             retLoc = builder.build();
         }
         // If this is to be the master
         if(retLoc.isMaster()){
-            String sql = "UPDATE DatasetVersion set MasterLocation = ? WHERE DatasetVersion = ?";
-            try(PreparedStatement stmt = getConnection().prepareStatement( sql )) {
-                stmt.setLong(1, retLoc.getPk());
-                stmt.setLong(2, datasetVersionPk );
-                stmt.executeUpdate();
-            }
+            updateMasterLocation(datasetVersionPk, retLoc);
         }
         return retLoc;
     }
@@ -668,9 +663,11 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
                     currentLocation = currentView.getLocation(view);
                 }
                 if(currentLocation == null){
-                    throw new IOException("Unable to patch a non-existent location. Check your location.");
+                    createDatasetLocation(currentView.getVersion(), requestView.singularLocationOpt().get(), true);
+                } else {
+                    patchDatasetLocation(currentView.getVersion(), currentLocation, 
+                            requestView.singularLocationOpt().get());
                 }
-                patchDatasetLocation(currentLocation, requestView.singularLocationOpt().get());
             }
         }
     }
@@ -746,7 +743,8 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         }
     }
     
-    private void patchDatasetLocation(DatacatRecord existing, DatasetLocationModel patch) throws IOException {
+    private void patchDatasetLocation(DatasetVersionModel existingVersion, 
+            DatacatRecord existing, DatasetLocationModel patch) throws IOException {
         try {
             for(Method method: existing.getClass().getMethods()){
                 if(method.isAnnotationPresent(Patchable.class)){
@@ -768,6 +766,13 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
                     if("checksum".equalsIgnoreCase(p.column())){
                         patchedValue = new BigInteger(patchedValue.toString(), 16);
                     }
+                    if("masterlocation".equalsIgnoreCase(p.column())){
+                        if(patch.isMaster()){
+                            updateMasterLocation(existingVersion.getPk(), existing);
+                        }
+                        // TODO: Allow removing a dataset from being a master
+                        continue;
+                    }
                     try(PreparedStatement stmt = getConnection().prepareStatement(sql)) {
                         stmt.setObject(1, patchedValue);
                         stmt.setLong(2, existing.getPk());
@@ -780,6 +785,15 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
             throw new IOException("Unable to perform patch", ex);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex){
             throw new IOException("FATAL error in defined model", ex);
+        }
+    }
+    
+    private void updateMasterLocation(Long datasetVersionPk, DatacatRecord location) throws SQLException{
+        String sql = "UPDATE DatasetVersion set MasterLocation = ? WHERE DatasetVersion = ?";
+        try(PreparedStatement stmt = getConnection().prepareStatement( sql )) {
+            stmt.setLong(1, location.getPk());
+            stmt.setLong(2, datasetVersionPk);
+            stmt.executeUpdate();
         }
     }
     

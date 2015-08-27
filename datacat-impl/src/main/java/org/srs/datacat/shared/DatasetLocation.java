@@ -6,11 +6,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.srs.datacat.model.dataset.DatasetLocationModel;
-import java.sql.Timestamp;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.sql.Timestamp;
 import java.util.Objects;
+import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.shared.DatasetLocation.Builder;
 
 
@@ -133,6 +133,7 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     @Patchable(column="ScanStatus")
     @Override public String getScanStatus() { return this.scanStatus; }
     
+    @Patchable(column="MasterLocation")
     @Override public Boolean isMaster(){ return master; }
 
     @Override

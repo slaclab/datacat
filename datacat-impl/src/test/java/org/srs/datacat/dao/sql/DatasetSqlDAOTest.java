@@ -90,6 +90,8 @@ public class DatasetSqlDAOTest {
         SqlContainerDAO dao = new SqlContainerDAO(conn);
         DatacatNode folder = getDatacatObject(dao, DbHarness.TEST_BASE_PATH);
         dao.deleteFolder(folder.getPk());
+        DatacatNode group = getDatacatObject(dao, "/testpath/testgroup");
+        dao.deleteGroup(group.getPk());
         SqlDatasetDAO dsDao = new SqlDatasetDAO(conn);
         dsDao.deleteDatasetDataType(DbHarness.TEST_DATATYPE_01);
         dsDao.deleteDatasetFileFormat(DbHarness.TEST_FILEFORMAT_01);
