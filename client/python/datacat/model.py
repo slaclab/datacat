@@ -21,10 +21,12 @@ class DatacatNode(DatacatRecord):
             self.parentPk = parentPk
 
     def __repr__(self):
+        return "{}.{}(**{})".format(type(self).__module__, type(self).__name__, repr(self.__dict__))
+
+    def __str__(self):
         name = " Name: %s" % (self.name if hasattr(self, "name") else "")
         path = " Path: %s" % (self.path if hasattr(self, "path") else "")
         return u'<{}.{}{}{}>'.format(type(self).__module__, type(self).__name__, name, path)
-
 
 class Container(DatacatNode):
     def __init__(self, **kwargs):
