@@ -524,7 +524,7 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
         
         int i = 0;
         DatasetLocation retLoc;
-        boolean isMaster = getDatasetLocations(datasetVersionPk).isEmpty();
+        boolean isFirstLocation = getDatasetLocations(datasetVersionPk).isEmpty();
         try(PreparedStatement stmt = getConnection().prepareStatement(insertSql, 
                 new String[]{"DATASETLOCATION", "REGISTERED"})) {
             stmt.setLong(++i, datasetVersionPk );
@@ -543,7 +543,7 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
                 builder.pk(rs.getLong(1));
                 builder.parentPk(datasetVersionPk);
                 builder.created(rs.getTimestamp(2));
-                builder.master(isMaster);
+                builder.master(isFirstLocation || (request.isMaster() != null && request.isMaster()));
             }
             retLoc = builder.build();
         }
