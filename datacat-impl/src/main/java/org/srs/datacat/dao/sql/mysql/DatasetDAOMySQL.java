@@ -526,7 +526,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         
         int i = 0;
         DatasetLocation retLoc;
-        boolean isMaster = getDatasetLocations(datasetVersionPk).isEmpty();
+        boolean isFirstLocation = getDatasetLocations(datasetVersionPk).isEmpty();
         try(PreparedStatement stmt = getConnection().prepareStatement(insertSql, 
                 new String[]{"DATASETLOCATION"/*, "REGISTERED"*/})) {
             stmt.setLong(++i, datasetVersionPk );
@@ -547,7 +547,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
                 builder.parentPk(datasetVersionPk);
                 //builder.created(rs.getTimestamp(2))
                 builder.created(new Timestamp(System.currentTimeMillis()));
-                builder.master(isMaster || request.isMaster());
+                builder.master(isFirstLocation || (request.isMaster() != null && request.isMaster()));
             }
             retLoc = builder.build();
         }
