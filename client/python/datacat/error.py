@@ -49,7 +49,7 @@ class DcClientException(DcException):
         super(DcClientException, self).__init__(str(self))
 
     def __str__(self):
-        formatted_string = "datacat sent Exception %s with message: %s" % (self.type, self.message)
+        formatted_string = "Datacat Exception: (%s): %s" % (self.type, self.message)
         return formatted_string
 
 
