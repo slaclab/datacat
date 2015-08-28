@@ -1,8 +1,11 @@
 
+import logging
 import os
 import requests
 import urllib
 from config import ENDPOINTS, DATATYPES
+
+_logger = logging.getLogger(__name__)
 
 
 class HttpClient(object):
@@ -14,9 +17,10 @@ class HttpClient(object):
     ALLOWABLE_VERSIONS = "curr current latest new next".split(" ")
     ALLOWABLE_SITES = "master canonical all".split(" ")
 
-    def __init__(self, url, auth_strategy=None, *args, **kwargs):
+    def __init__(self, url, auth_strategy=None, debug=False, *args, **kwargs):
         self.base_url = url
         self.auth_strategy = auth_strategy
+        self.debug = debug
 
     def path(self, path, versionId=None, site=None, accept="json", **kwargs):
         """
@@ -152,29 +156,46 @@ class HttpClient(object):
         params = {param_map[k]: v for k, v in locals().items() if k in param_map and v is not None}
         return self._req("get",self._target(endpoint, target, versionId, site, accept), params, **kwargs)
 
+    def _log_request(self, request):
+        if not self.debug:
+            return
+        url = request.url
+        http_method = request.method
+        headers = getattr(request, "headers", None)
+        data = getattr(request, "data", None)
+
+        _logger.debug("Request: %s %s" % (http_method, url))
+        if headers:
+            for header in headers.items():
+                _logger.debug("Request Header: %s" % ": ".join(header))
+
+        if data:
+            _logger.debug("Entity: %s\n" % data)
+
+    def _log_response(self, response):
+        headers = getattr(response, "headers", None)
+        if not self.debug:
+            return
+        _logger.debug("Response: (%s)", response.status_code)
+
+        if headers:
+            for header in headers.items():
+                _logger.debug("Response Header: %s" % ": ".join(header))
+
+        if response.content:
+            _logger.debug("Entity: %s\n", response.content)
+
     def _req(self, http_method, target, params=None, data=None, **kwargs):
         headers = kwargs["headers"] if "headers" in kwargs else None
         requests_method = getattr(requests, http_method)
-        resp = requests_method(target, params=params, headers=headers, data=data, auth=self.auth_strategy)
-        if kwargs.get('show_request', False):
-            print("Request")
-            if data:
-                print("Data:\n" + str(data))
-            print(resp.request.url)
-        if kwargs.get('request_headers', False):
-            print("Request Headers:")
-            print(resp.request.headers)
-        if kwargs.get('show_response', False):
-            print("Response: %d" % resp.status_code)
-        if kwargs.get('response_headers', False):
-            print("Response Headers:")
-            print(resp.headers)
-        if kwargs.get('show_raw_response', False):
-            print(kwargs["show_raw_response"])
-            print("Response:")
-            print(resp.content)
-        resp.raise_for_status()
-        return resp
+        response = requests_method(target, params=params, headers=headers, data=data, auth=self.auth_strategy)
+        self._log_request(response.request)
+        self._log_response(response)
+        # response evaluates to false if it's a 4xx or 5xx
+        if not response:
+            _logger.debug("HTTP Request returned failure status: %s", response.status_code)
+        response.raise_for_status()
+        return response
 
     def _target(self, endpoint, path, version=None, site=None, accept="json"):
         if version is not None:
