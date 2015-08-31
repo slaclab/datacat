@@ -189,7 +189,7 @@ create index IDX_VDSMS_NameValue on VerDatasetMetaString(MetaName, MetaValue);
 create table VerDatasetMetaNumber (
 	DatasetVersion		bigint unsigned not null,
 	MetaName		varchar(64) not null,
-	MetaValue		numeric,
+	MetaValue		double,
 	constraint FK_VDSMN_DSVersion foreign key (DatasetVersion)
 		references DatasetVersion (DatasetVersion)
 		on delete cascade,
@@ -256,7 +256,7 @@ create index IDX_DSGMS_MetaName on DatasetGroupMetaString (MetaName);
 create table DatasetGroupMetaNumber (
 	DatasetGroup		bigint unsigned not null,
 	MetaName		varchar(64) not null,
-	MetaValue		numeric,
+	MetaValue		double,
 	constraint FK_DSGMN_DatasetGroup foreign key (DatasetGroup)
 		references DatasetGroup (DatasetGroup)
 		on delete cascade,
@@ -304,7 +304,7 @@ create index IDX_LFMS_MetaName on LogicalFolderMetaString (MetaName);
 create table LogicalFolderMetaNumber (
 	LogicalFolder		bigint unsigned not null,
 	MetaName		varchar(64) not null,
-	MetaValue		numeric,
+	MetaValue		double,
 	constraint FK_LFMN_LogicalFolder foreign key (LogicalFolder)
 		references DatasetLogicalFolder (DatasetLogicalFolder)
 		on delete cascade,

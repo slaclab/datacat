@@ -234,7 +234,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             ResultSet rs = stmt.executeQuery();
             while(rs.next()){
                 Number n;
-                java.math.BigDecimal v = (java.math.BigDecimal) rs.getObject("metavalue");
+                java.math.BigDecimal v = (java.math.BigDecimal) rs.getBigDecimal("metavalue");
                 n = v.scale() == 0 ? v.toBigIntegerExact() : v;
                 metadata.put(rs.getString("metaname"), (Number) n);
             }
