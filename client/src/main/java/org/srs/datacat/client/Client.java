@@ -1,29 +1,28 @@
 
 package org.srs.datacat.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import com.fasterxml.jackson.jaxrs.xml.JacksonXMLProvider;
 import com.google.common.base.Optional;
-
-import java.net.MalformedURLException;
+import java.net.URI;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.ClientRequestFilter;
+import javax.ws.rs.client.ClientResponseFilter;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Feature;
-import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-import org.glassfish.jersey.CommonProperties;
+import org.glassfish.jersey.client.HttpUrlConnectorProvider;
+import org.srs.datacat.client.exception.DcClientException;
+import org.srs.datacat.client.exception.DcException;
+import org.srs.datacat.client.exception.DcRequestException;
+import org.srs.datacat.client.impl.JacksonFeature;
+import org.srs.datacat.client.resources.Containers;
+import org.srs.datacat.client.resources.Datasets;
 import org.srs.datacat.client.resources.Path;
 import org.srs.datacat.client.resources.Search;
 import org.srs.datacat.model.DatacatNode;
@@ -31,7 +30,6 @@ import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.rest.ErrorResponse;
-import org.srs.datacat.shared.Provider;
 
 /**
  * Main client interface for RESTful API.
@@ -42,107 +40,45 @@ public class Client {
     private WebTarget baseTarget;
     private Path pathResource;
     private Search searchResource;
-    private AuthenticationFilter filter;
+    private Datasets datasetsResource;
+    private Containers  containersResource;
     
-    /**
-     * Exceptions that occur when making calls into the API.
-     */
-    public static class DcException extends RuntimeException { 
+    public Client(URI url, List<ClientRequestFilter> requestFilters, 
+            List<ClientResponseFilter> responseFilters, List<Feature> features) {
+        init(url, requestFilters, responseFilters, features);
+    }
+    
+    public Client(URI url){
+        init(url,
+                Collections.<ClientRequestFilter>emptyList(),
+                Collections.<ClientResponseFilter>emptyList(),
+                Collections.<Feature>emptyList());
+    }
         
-        private String type;
-        private String code;
-        private int status;
-        
-        public DcException(String resp, int status){
-            super(resp);
-            this.status = status;
-            this.type = "ApplicationError";
-        }
-    
-        public DcException(ErrorResponse err, int status){
-            super(err.getMessage(), new Throwable(err.getCause()));
-            this.type = err.getType();
-            this.code = err.getCode();
-            this.status = status;
-        }
-        
-        public String getType(){
-            return type;
-        }
-
-        public String getCode(){
-            return code;
-        }
-
-        public int getStatus(){
-            return status;
-        }
-    
-    }
-    
-    public Client() throws MalformedURLException{
-        init("http://lsst-db2.slac.stanford.edu:8180/rest-datacat-v1/r", null);
-    }
-    
-    public Client(HttpServletRequest delegatedRequest) throws MalformedURLException{
-        init("http://lsst-db2.slac.stanford.edu:8180/rest-datacat-v1/r", delegatedRequest);
-    }
-    
-    public Client(String url) throws MalformedURLException{
-        init(url, null);
-    }
-    
-    public Client(String url, HttpServletRequest delegatedRequest) throws MalformedURLException{
-        init(url, delegatedRequest);
-    }
-    
-    /**
-     * Jackson JSON/XML support.
-     */
-    public static class JacksonFeature implements Feature {
-        static JacksonJsonProvider jsonProvider;
-        static JacksonXMLProvider xmlProvider;
-        
-        public JacksonFeature(){
-            if(jsonProvider == null){
-                ObjectMapper jsonMapper = new ObjectMapper();
-                jsonMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-                XmlMapper xmlMapper = new XmlMapper();
-                for(Map.Entry<Class, Class> e : new Provider().modelProviders().entrySet()){
-                    jsonMapper.addMixIn(e.getKey(), e.getValue());
-                    xmlMapper.addMixIn(e.getKey(), e.getValue());
-                }
-
-                jsonProvider = new JacksonJsonProvider(jsonMapper);
-                xmlProvider = new JacksonXMLProvider(xmlMapper);
-            }
-        }
-
-        @Override
-        public boolean configure(final FeatureContext context){
-            final String disableMoxy = CommonProperties.MOXY_JSON_FEATURE_DISABLE + '.'
-                    + context.getConfiguration().getRuntimeType().name().toLowerCase();
-            context.property( disableMoxy, true );
-
-            context.register( xmlProvider, MessageBodyReader.class, 
-                    MessageBodyWriter.class );
-
-            context.register( jsonProvider, MessageBodyReader.class, 
-                    MessageBodyWriter.class );
-            return true;
-        }
-    }
-    
-    private void init(String baseUrl, HttpServletRequest delegatedRequest) throws MalformedURLException{
-        this.filter = new AuthenticationFilter(delegatedRequest);
-        
-        client = ClientBuilder.newBuilder()
-                .register(this.filter)
+    private void init(URI baseUrl, List<ClientRequestFilter> requestFilters, 
+            List<ClientResponseFilter> responseFilters, List<Feature> features){
+        ClientBuilder builder = ClientBuilder.newBuilder()
                 .register(new JacksonFeature())
-                .build();
-        baseTarget = client.target(baseUrl);
+                .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
+        
+        for(ClientRequestFilter filter: requestFilters){
+            builder.register(filter);
+        }
+        
+        for(ClientResponseFilter filter: responseFilters){
+            builder.register(filter);
+        }
+        
+        for(Feature feature: features){
+            builder.register(feature);
+        }
+        
+        this.client = builder.build();
+        this.baseTarget = client.target(baseUrl);
         this.pathResource = new Path(baseTarget);
         this.searchResource = new Search(baseTarget);
+        this.datasetsResource = new Datasets(baseTarget);
+        this.containersResource = new Containers(baseTarget);
     }
     
     public List<DatacatNode> getChildren(String path){
@@ -179,14 +115,14 @@ public class Client {
     }
     
     public DatacatNode getContainer(String path, String stat){
-        Response resp = pathResource.getContainer(path, Optional.<String>absent(), Optional.<String>absent(),
+        Response resp = containersResource.getContainer(path, Optional.<String>absent(), Optional.<String>absent(),
                 Optional.of(stat));
         checkResponse(resp);
         return resp.readEntity(new GenericType<DatacatNode>(){});
     }
     
     public DatacatNode patchContainer(String path, DatasetContainer payload){
-        Response resp = pathResource.patchContainer(path, 
+        Response resp = containersResource.patchContainer(path, 
                 Entity.entity(payload, MediaType.APPLICATION_JSON));
         checkResponse(resp);
         return resp.readEntity(new GenericType<DatacatNode>(){});
@@ -194,53 +130,44 @@ public class Client {
     
     public DatacatNode patchDataset(String path, String versionId, String site, 
             DatasetModel payload){
-        Response resp = pathResource.patchDataset(path, Optional.of(versionId), Optional.of(site),
-                Entity.entity(payload, MediaType.APPLICATION_JSON));
+        Response resp = datasetsResource.patchDataset(path, Optional.fromNullable(versionId), 
+                Optional.fromNullable(site), Entity.entity(payload, MediaType.APPLICATION_JSON));
         checkResponse(resp);
         return resp.readEntity(new GenericType<DatacatNode>(){});
     }
     
     public DatasetResultSetModel searchForDatasets(String target, String versionId, String site, 
             String query, String[] sort, String show, int offset, int max){
-        Response resp = searchResource.searchForDatasets(target, Optional.fromNullable(versionId), 
+        try {
+            Response resp = searchResource.searchForDatasets(target, Optional.fromNullable(versionId), 
                 Optional.fromNullable(site), Optional.fromNullable(query), 
                 Optional.fromNullable(sort), Optional.fromNullable(show), 
                 Optional.<Integer>fromNullable(offset), Optional.<Integer>fromNullable(max));
-        checkResponse(resp);
-        return resp.readEntity(new GenericType<DatasetResultSetModel>(){});
+            checkResponse(resp);
+            return resp.readEntity(new GenericType<DatasetResultSetModel>(){});
+        } catch (WebApplicationException ex){
+            throw new DcRequestException(ex);
+        }
     }
 
-    protected void checkResponse(Response resp) throws DcException {
+    public static void checkResponse(Response resp) throws DcException{
         if(resp.getStatusInfo().getFamily() == Status.Family.SUCCESSFUL){
             return;
         }
-        if(resp.getStatusInfo().getFamily() == Status.Family.CLIENT_ERROR ||
-                resp.getStatusInfo().getFamily() == Status.Family.SERVER_ERROR){
-            if(MediaType.APPLICATION_JSON_TYPE.isCompatible(resp.getMediaType())){
-                ErrorResponse err = resp.readEntity(ErrorResponse.class);
-                throw new DcException(err, resp.getStatus());
-            }
-            throw new DcException(resp.readEntity(String.class), resp.getStatus());
+        // Assume an error we can parse.
+        if(MediaType.APPLICATION_JSON_TYPE.isCompatible(resp.getMediaType())){
+            ErrorResponse err = resp.readEntity(ErrorResponse.class);
+            throw new DcClientException(err.getType(), err.getMessage(), 
+                    err.getCause(), err.getCode(), resp.getStatus());
         }
-    }
 
-    public static void main(String[] argv) throws MalformedURLException{
-        Client c = new Client();
-        DatacatNode n = c.getContainer("/LSST", "dataset");
-        n = c.getContainer("/LSST", "basic");
-        n = c.getObject("/LSST");
-        
-        
-        System.out.println(n.toString());
-        List<? extends DatacatNode> children = c.getChildren("/LSST", "current", "master");
-        for(DatacatNode child: children){
-            System.out.println(child.toString());
+        if(resp.getStatusInfo().getFamily() == Status.Family.CLIENT_ERROR){
+            throw new DcRequestException(String.format("Unknown HTTP Client Error (%d)", resp.getStatus()), resp);
         }
-        children = c.searchForDatasets("/LSST", "current", "master", "", null, null, 0, 1000).getResults();
-        for(DatacatNode child: children){
-            System.out.println(child.toString());
-            System.out.println(child.getClass());
+        if(resp.getStatusInfo().getFamily() == Status.Family.SERVER_ERROR){
+            throw new DcRequestException(String.format("Unknown HTTP Server Error (%d)", resp.getStatus()), resp);
         }
+        throw new DcRequestException("Unknown HTTP Error", resp);
     }
 
 }

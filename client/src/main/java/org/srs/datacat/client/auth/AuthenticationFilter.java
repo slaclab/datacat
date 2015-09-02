@@ -1,5 +1,5 @@
 
-package org.srs.datacat.client;
+package org.srs.datacat.client.auth;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ public class AuthenticationFilter implements ClientRequestFilter {
     private Map<String, Object> headers;
     
     static final HashSet<String> ALLOWED_HEADERS = new HashSet<>(Arrays.asList(new String[]{
-        "authenticaiton"
+        "authentication"
     }));
     
     public AuthenticationFilter(){
