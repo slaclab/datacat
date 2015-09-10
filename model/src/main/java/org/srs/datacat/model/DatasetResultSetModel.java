@@ -7,7 +7,7 @@ import java.util.List;
  * A result set from a  search operation.
  * @author bvan
  */
-public interface DatasetResultSetModel {
+public interface DatasetResultSetModel extends Iterable<DatasetModel> {
     
     /**
      * Return the datasets that matched the search.

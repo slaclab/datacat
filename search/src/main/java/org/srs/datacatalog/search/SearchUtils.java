@@ -11,6 +11,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -342,6 +343,11 @@ public class SearchUtils {
             @Override
             public Integer getCount(){
                 return total;
+            }
+
+            @Override
+            public Iterator<DatasetModel> iterator(){
+                return datasets.iterator();
             }
             
         };

@@ -1,9 +1,11 @@
 package org.srs.datacat.shared;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.Iterator;
 import java.util.List;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetResultSetModel;
@@ -34,6 +36,12 @@ public class DatasetResultSet implements DatasetResultSetModel {
     @Override
     public Integer getCount(){
         return count;
+    }
+
+    @Override
+    @JsonIgnore
+    public Iterator<DatasetModel> iterator(){
+        return results.iterator();
     }
 
     /**
