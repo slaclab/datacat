@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.shared.DatasetContainerBuilder;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.DatasetView;
@@ -610,7 +611,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         }
         // It should be a container
         SqlContainerDAO dao = new SqlContainerDAO(getConnection());
-        return (T) dao.createContainer(parent, path, request);
+        return (T) dao.createContainer(parent, path, (DatasetContainer) request);
     }
 
     @Override
