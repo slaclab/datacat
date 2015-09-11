@@ -38,7 +38,6 @@ import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.rest.FormParamConverter;
 import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcUriUtils;
-import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 import org.srs.datacat.rest.RestException;

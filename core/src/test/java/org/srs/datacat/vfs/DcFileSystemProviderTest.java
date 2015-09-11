@@ -32,17 +32,16 @@ import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.model.RecordType;
-import org.srs.datacat.model.security.DcUser;
+
 import org.srs.datacat.test.DbHarness;
 
-import org.srs.datacat.vfs.attribute.ContainerCreationAttribute;
 import org.srs.datacat.model.dataset.DatasetOption;
 import org.srs.datacat.model.security.DcAclEntry;
 import org.srs.datacat.model.security.DcAclEntryScope;
 import org.srs.datacat.model.security.DcGroup;
 import org.srs.datacat.model.security.DcPermissions;
 import org.srs.datacat.shared.Provider;
-import org.srs.vfs.AbstractPath;
+
 import org.srs.vfs.PathUtils;
 
 /**
@@ -193,7 +192,6 @@ public class DcFileSystemProviderTest {
                 .type(RecordType.FOLDER)
                 .build();
 
-        ContainerCreationAttribute attr = new ContainerCreationAttribute(request);
         Path path =  provider.getPath(DbHarness.TEST_BASE_PATH);
         provider.createDirectory(path.resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT, request);
         provider.createDirectory(path.resolve(folderName).resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT, request);
