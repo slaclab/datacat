@@ -53,9 +53,10 @@ public class ContainerDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.d
         super(conn, lock);
     }
 
-    public DatasetContainer createContainer(DatacatRecord parent, String name, DatacatNode request) throws IOException{
+    public DatasetContainer createContainer(DatacatRecord parent, String name, 
+            DatasetContainer request) throws IOException{
         try {
-            return insertContainer(parent, name, (DatasetContainer) request);
+            return insertContainer(parent, name, request);
         } catch(SQLException ex) {
             throw new IOException("Unable to create container: " + PathUtils.resolve(parent.
                     getPath(), name), ex);

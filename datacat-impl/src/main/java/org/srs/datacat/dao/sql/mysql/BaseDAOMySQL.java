@@ -9,8 +9,9 @@ import java.sql.Connection;
 import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.shared.Dataset;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.vfs.AbstractFsProvider.AfsException;
 
 /**
@@ -30,13 +31,13 @@ public class BaseDAOMySQL extends org.srs.datacat.dao.sql.SqlBaseDAO {
     @Override
     public <T extends DatacatNode> T createNode(DatacatRecord parent, String path,
             T request) throws IOException, FileSystemException{
-        if(request instanceof Dataset){
+        if(request instanceof DatasetModel){
             DatasetDAOMySQL dao = new DatasetDAOMySQL(getConnection());
-            return (T) dao.createDatasetNode(parent, path, (Dataset) request);
+            return (T) dao.createDatasetNode(parent, path, (DatasetModel) request);
         }
         // It should be a container
         ContainerDAOMySQL dao = new ContainerDAOMySQL(getConnection());
-        return (T) dao.createContainer(parent, path, request);
+        return (T) dao.createContainer(parent, path, (DatasetContainer) request);
     }
     
     @Override

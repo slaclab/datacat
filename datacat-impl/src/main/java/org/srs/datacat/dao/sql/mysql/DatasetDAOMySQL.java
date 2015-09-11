@@ -54,7 +54,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
     }
     
     public Dataset createDatasetNode(DatacatRecord parent, String name, 
-            Dataset request) throws IOException, FileSystemException{
+            DatasetModel request) throws IOException, FileSystemException{
         try {
             return insertDataset(parent, name, request);
         } catch (SQLException ex){
@@ -86,7 +86,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
                 patchDataset(target, dsReq.get());
                 target = getObjectInParent(parent, dsName);
             } else {
-                target = createNode(parent, dsName, (Dataset) dsReq.get());
+                target = createNode(parent, dsName, dsReq.get());
                 // If we added a node, skip version check
                 dsOptions.add(DatasetOption.SKIP_VERSION_CHECK); 
             }
@@ -248,7 +248,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
             }
             DatasetVersionModel maybeVersion = skipVersionCheck ? null : getCurrentVersion(dsRecord);
             Optional<DatasetVersionModel> versionOpt = Optional.fromNullable(maybeVersion);
-            curVersion = createOrMergeDatasetVersion(dsRecord, (DatasetVersion) reqView.getVersion(),
+            curVersion = createOrMergeDatasetVersion(dsRecord, (DatasetVersionModel) reqView.getVersion(),
                     versionOpt, mergeVersion);
             skipLocationCheck = true;
         } else {
@@ -339,7 +339,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
         }        
     }
     
-    protected Dataset insertDataset(DatacatRecord parent, String name, Dataset request) throws SQLException {
+    protected Dataset insertDataset(DatacatRecord parent, String name, DatasetModel request) throws SQLException {
         Long parentPk = parent.getPk();
         RecordType parentType = parent.getType();
         String insertSql = "insert into VerDataset (DatasetName, DataSetFileFormat, DataSetDataType, "
@@ -453,12 +453,16 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
             stmt.setLong(1, dsRecord.getPk());
             stmt.setInt(2, newVersionId );
             stmt.setString(3, datasetSource);
-            if(((DatasetVersion) request).getProcessInstance() != null){
-                stmt.setLong(4, ((DatasetVersion) request).getProcessInstance() );
-            } else {
-                stmt.setNull(4, java.sql.Types.BIGINT);
+            stmt.setNull(4, java.sql.Types.BIGINT);
+            stmt.setNull(5, java.sql.Types.VARCHAR);
+            
+            if(request instanceof DatasetVersion){
+                if(((DatasetVersion) request).getProcessInstance() != null){
+                    stmt.setLong(4, ((DatasetVersion) request).getProcessInstance() );
+                }
+                stmt.setString(5, ((DatasetVersion) request).getTaskName());
             }
-            stmt.setString(5, ((DatasetVersion) request).getTaskName());
+            
             stmt.executeUpdate();   // will throw exception if required parameter is empty...
             
             DatasetVersion.Builder builder = new DatasetVersion.Builder(request);
