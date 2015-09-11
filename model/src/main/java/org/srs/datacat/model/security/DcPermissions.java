@@ -102,4 +102,15 @@ public enum DcPermissions {
         return perms;
     }
     
+    public static boolean check(Set<DcGroup> usersGroups, List<DcAclEntry> acl, DcPermissions permission){
+        for(DcAclEntry entry: acl){
+            if(usersGroups.contains((DcGroup) entry.getSubject())){
+                if(entry.getPermissions().contains(permission)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }    
+    
 }

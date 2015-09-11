@@ -226,7 +226,7 @@ public class DcFileSystemProvider {
         }
 
         final Iterator<Path> iter = view.getChildrenPaths().iterator();
-        DirectoryStreamWrapper<Path> wrapper = new DirectoryStreamWrapper<>(iter,
+        DirectoryStreamWrapper<Path> wrapper = new DirectoryStreamWrapper<>(
                 new DirectoryStreamWrapper.IteratorAcceptor() {
 
                     @Override
@@ -571,28 +571,10 @@ public class DcFileSystemProvider {
         Set<DcGroup> usersGroups = context.getGroups();
         List<DcAclEntry> acl = file.getAcl();
 
-        if(!permissionsCheck(usersGroups, acl, permission)){
+        if(!DcPermissions.check(usersGroups, acl, permission)){
             String err = String.format("No permission entries for %s found", permission);
             AfsException.ACCESS_DENIED.throwError(file.getPath(), err);
         }
     }
 
-    /**
-     * Do the actual permissions check.
-     *
-     * @param usersGroups all the groups the user is in
-     * @param acl the acl for the file
-     * @param permission The permission requested
-     * @return
-     */
-    private boolean permissionsCheck(Set<DcGroup> usersGroups, List<DcAclEntry> acl, DcPermissions permission){
-        for(DcAclEntry entry: acl){
-            if(usersGroups.contains((DcGroup) entry.getSubject())){
-                if(entry.getPermissions().contains(permission)){
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 }

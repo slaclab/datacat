@@ -12,7 +12,6 @@ import java.util.NoSuchElementException;
 public class DirectoryStreamWrapper<T> implements DirectoryStream<T> {
 
     private AutoCloseable closeable;
-    private final Iterator iter;
     private final IteratorAcceptor acceptor;
     T next = null;
     
@@ -29,14 +28,12 @@ public class DirectoryStreamWrapper<T> implements DirectoryStream<T> {
         }
     }
 
-    public DirectoryStreamWrapper(Iterator iterator, IteratorAcceptor acceptor){
-        this.iter = iterator;
+    public DirectoryStreamWrapper(IteratorAcceptor acceptor){
         this.acceptor = acceptor;
         this.acceptor.thisWrapper = this;
     }
 
     public DirectoryStreamWrapper(DirectoryStream dStream, IteratorAcceptor acceptor){
-        this.iter = dStream.iterator();
         this.closeable = dStream;
         this.acceptor = acceptor;
         this.acceptor.thisWrapper = this;
