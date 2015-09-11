@@ -19,7 +19,7 @@ import java.util.NoSuchElementException;
  *
  * @author bvan
  */
-public abstract class AbstractPath<T extends AbstractPath> implements Path {
+public class AbstractPath<T extends AbstractPath> implements Path {
     
     private final AbstractFs fileSystem;
     protected final String path;
@@ -36,7 +36,7 @@ public abstract class AbstractPath<T extends AbstractPath> implements Path {
     }
         
     private T createPath(AbstractFs fs, String path){
-        return pathProvider.getPath(path);
+        return (T) pathProvider.getPath(path);
     }
     
     @Override

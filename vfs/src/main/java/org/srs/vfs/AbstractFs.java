@@ -68,7 +68,7 @@ public abstract class AbstractFs<P extends AbstractPath> extends FileSystem {
     }
 
     @Override
-    public P getPath(String first, String... more) {
+    public AbstractPath getPath(String first, String... more) {
         String path;
         if (more.length == 0) {
             path = first;
