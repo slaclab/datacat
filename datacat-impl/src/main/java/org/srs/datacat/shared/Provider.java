@@ -54,6 +54,11 @@ public class Provider implements ModelProvider {
     public DatasetVersionModel.Builder getVersionBuilder(){
         return new DatasetVersion.Builder();
     }
+
+    @Override
+    public DatasetLocationModel.Builder getLocationBuilder(){
+        return new DatasetLocation.Builder();
+    }
     
     @Override
     public DatasetResultSet.Builder getDatasetResultSetBuilder(){

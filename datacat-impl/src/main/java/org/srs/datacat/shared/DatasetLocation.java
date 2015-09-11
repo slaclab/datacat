@@ -158,7 +158,8 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
     /**
      * Builder.
      */
-    public static class Builder extends DatacatObject.Builder<Builder>{
+    public static class Builder extends DatacatObject.Builder<Builder> 
+            implements DatasetLocationModel.Builder<Builder>{
         private String resource;
         private Long size;
         private String site;
@@ -174,21 +175,23 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
         
         public Builder(){}
         
-        public Builder(DatasetLocation location){
+        public Builder(DatasetLocationModel location){
             super(location);
-            this.name = location.site;
-            this.resource = location.resource;
-            this.size = location.size;
-            this.site = location.site;
-            this.runMin = location.runMin;
-            this.runMax = location.runMax;
-            this.checksum = location.checksum;
-            this.dateModified = location.dateModified;
-            this.dateCreated = location.dateCreated;
-            this.dateScanned = location.dateScanned;
-            this.scanStatus = location.scanStatus;
-            this.eventCount = location.eventCount;
-            this.master = location.master;
+            this.name = location.getSite();
+            this.resource = location.getResource();
+            this.site = location.getSite();
+            this.size = location.getSize();
+            this.checksum = location.getChecksum();
+            this.dateModified = location.getDateModified();
+            this.dateCreated = location.getDateCreated();
+            this.dateScanned = location.getDateScanned();
+            this.scanStatus = location.getScanStatus();
+            if(location instanceof DatasetLocation){
+                this.master = ((DatasetLocation) location).master;
+                this.runMin = ((DatasetLocation) location).runMin;
+                this.runMax = ((DatasetLocation) location).runMax;
+                this.eventCount = ((DatasetLocation) location).eventCount;
+            }
         }
         
         public Builder(Dataset.Builder builder){
@@ -228,6 +231,10 @@ public class DatasetLocation extends DatacatObject implements DatasetLocationMod
         @JsonSetter public Builder modified(Timestamp val) { this.dateModified = val; return this; }
         @JsonSetter public Builder scanned(Timestamp val) { this.dateScanned = val; return this; }
         @JsonSetter public Builder scanStatus(String val){ this.scanStatus = val; return this; }
+
+        @Override
+        public Builder create(DatasetLocationModel val){
+            return new Builder(val);
+        }
     }
-   
 }
