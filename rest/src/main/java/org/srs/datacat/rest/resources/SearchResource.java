@@ -3,10 +3,7 @@ package org.srs.datacat.rest.resources;
 
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import javax.inject.Inject;
@@ -29,14 +26,8 @@ import org.srs.datacat.shared.RequestView;
 import org.srs.datacat.rest.BaseResource;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.rest.SearchPluginProvider;
-import org.srs.datacat.vfs.DcUriUtils;
-import org.srs.datacat.vfs.DirectoryWalker;
-import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
-import org.srs.datacatalog.search.DatasetSearch;
 import org.srs.datacat.rest.RestException;
 import org.srs.datacat.model.RecordType;
-import org.srs.vfs.GlobToRegex;
-import org.srs.vfs.PathUtils;
 
 /**
  *
@@ -97,23 +88,14 @@ public class SearchResource extends BaseResource {
         }
         
         DatasetResultSetModel searchResults = null;
-        try(Connection conn = getConnection()){
-            DatasetSearch datacatSearch = new DatasetSearch(conn, pluginProvider.getPlugins());
-
-            String queryString = filter;
-
-            String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern,"/"));
-            java.nio.file.Path root = getProvider().getPath(DcUriUtils.toFsUri("/",  "SRS"));
-            java.nio.file.Path searchPath = root.resolve(searchBase);
-            ContainerVisitor visitor = new ContainerVisitor(getProvider().getFileSystem(), pathPattern, checkGroups, checkFolders);
-            DirectoryWalker walker = new DirectoryWalker(getProvider(), visitor, 100 /* max depth */);
-            walker.walk(searchPath, buildCallContext());
-            searchResults = datacatSearch.search(visitor.files, dv, queryString, metafields, sortFields, offset, max);
+        try {
+            searchResults = getProvider().search(pathPattern, buildCallContext(), checkFolders, checkGroups, 
+                    dv, filter, metafields, sortFields, offset, max);
         } catch (IllegalArgumentException ex){
             throw new RestException(ex,400, "Unable to process query, see message", ex.getMessage());
         } catch (NoSuchFileException ex){
              throw new RestException(ex,404, "File doesn't exist", ex.getMessage());
-        } catch(SQLException | IOException ex) {
+        } catch(IOException ex) {
             throw new RestException(ex, 500);
         } catch(ParseException ex) {
             throw new RestException(ex, 422, "Unable to parse filter", ex.getMessage());
@@ -174,7 +156,7 @@ public class SearchResource extends BaseResource {
             datasets = datacatSearch.retrieveDatasets();
         } catch (IllegalArgumentException ex){
             throw new RestException(ex,400, "Unable to process query, see message", ex.getMessage());
-        } catch (FileNotFoundException ex){
+        } catch (NoSuchFile ex){
              throw new RestException(ex,404, "File doesn't exist", ex.getMessage());
         } catch(SQLException | IOException ex) {
             throw new RestException(ex, 500);

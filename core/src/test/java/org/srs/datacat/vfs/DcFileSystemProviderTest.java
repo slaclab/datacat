@@ -114,8 +114,7 @@ public class DcFileSystemProviderTest {
     
     @Test
     public void testCacheStream() throws IOException{
-        URI uri = DcUriUtils.toFsUri( "/", "SRS");
-        Path rootPath = provider.getPath( uri );
+        Path rootPath = provider.getPath("/");
         try(DirectoryStream<Path> s = provider.newOptimizedDirectoryStream(rootPath, TestUtils.DEFAULT_TEST_CONTEXT,
                 DcFileSystemProvider.ACCEPT_ALL_FILTER, Integer.MAX_VALUE, Optional.of(DatasetView.EMPTY))){
             for(Path p: s){
@@ -177,7 +176,7 @@ public class DcFileSystemProviderTest {
         builder.datasetSource( DbHarness.TEST_DATASET_SOURCE);
         
         DatasetModel request = builder.build();
-        Path parentPath = provider.getPath(DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, "SRS"));
+        Path parentPath = provider.getPath(DbHarness.TEST_BASE_PATH);
         Path filePath = parentPath.resolve(request.getName());
         HashSet<DatasetOption> options = new HashSet<>(Arrays.asList( DatasetOption.CREATE_NODE));
         provider.createDataset( filePath, TestUtils.DEFAULT_TEST_CONTEXT, request, options);
@@ -195,8 +194,7 @@ public class DcFileSystemProviderTest {
                 .build();
 
         ContainerCreationAttribute attr = new ContainerCreationAttribute(request);
-        URI uri = DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, "SRS");
-        Path path =  provider.getPath(uri);
+        Path path =  provider.getPath(DbHarness.TEST_BASE_PATH);
         provider.createDirectory(path.resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT, request);
         provider.createDirectory(path.resolve(folderName).resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT, request);
         
@@ -226,8 +224,7 @@ public class DcFileSystemProviderTest {
                 .type(RecordType.FOLDER)
                 .build();
 
-        URI uri = DcUriUtils.toFsUri(DbHarness.TEST_BASE_PATH, "SRS");
-        Path path =  provider.getPath(uri);
+        Path path =  provider.getPath(DbHarness.TEST_BASE_PATH);
         provider.createDirectory(path.resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT, request);
         provider.createDirectory(path.resolve(folderName).resolve(folderName), TestUtils.DEFAULT_TEST_CONTEXT, request);
         

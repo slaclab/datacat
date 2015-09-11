@@ -1,5 +1,5 @@
 
-package org.srs.datacatalog.search.plugins;
+package org.srs.datacat.dao.sql.search.plugins;
 
 /**
  *

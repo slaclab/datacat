@@ -1,10 +1,10 @@
-package org.srs.datacatalog.search;
+package org.srs.datacat.dao.sql.search;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import org.srs.datacatalog.search.MetanameContext.Entry;
+import org.srs.datacat.dao.sql.search.MetanameContext.Entry;
 
 /**
  * A treeset with prefix elements that can be embedded tree sets.
@@ -12,6 +12,9 @@ import org.srs.datacatalog.search.MetanameContext.Entry;
  */
 public class MetanameContext extends TreeSet<Entry> {
     
+    /**
+     * Entry class.
+     */
     public static class Entry implements Comparable {
         String metaname;
         TreeSet<Entry> postfixes;

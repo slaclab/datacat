@@ -1,5 +1,5 @@
 
-package org.srs.datacatalog.search.tables;
+package org.srs.datacat.dao.sql.search.tables;
 
 import java.sql.Timestamp;
 import java.util.Map;
@@ -28,21 +28,21 @@ public class DatasetVersions extends MetajoinedStatement {
                 .selection( new Case(l.datasetLocation.eq( v.masterLocation), new Val(1), new Val(0)).as("master"));
         
         if(dsView.isCurrent()){
-            leftOuterJoin( v, ds.latestVersion.eq( v.datasetVersion ) );
+            leftOuterJoin(v, ds.latestVersion.eq(v.datasetVersion));
         } else {
-            leftOuterJoin( v, ds.dataset.eq( v.dataset ) );
-            Param<Integer> p = v.versionId.checkedParam( "vid", dsView.getVersionId());
-            where(v.versionId.eq( p ) );
+            leftOuterJoin(v, ds.dataset.eq(v.dataset));
+            Param<Integer> p = v.versionId.checkedParam("vid", dsView.getVersionId());
+            where(v.versionId.eq(p));
         }
-        
+
         if(dsView.isCanonical()){
-            leftOuterJoin( l, v.masterLocation.eq( l.datasetLocation ) );
+            leftOuterJoin(l, v.masterLocation.eq(l.datasetLocation));
         } else {
-            leftOuterJoin( l, v.datasetVersion.eq( l.datasetVersion ) );
+            leftOuterJoin(l, v.datasetVersion.eq(l.datasetVersion));
             if(!dsView.allSites()){
                 Param<String> pl = l.datasetSite.checkedParam();
                 pl.setValue(dsView.getSite());
-                where( l.datasetSite.eq( pl ) );
+                where(l.datasetSite.eq(pl));
             }
         }
     }
@@ -50,14 +50,12 @@ public class DatasetVersions extends MetajoinedStatement {
     @Override
     public Metatable getMetatableForType(String alias, Class type){
         Metatable ms = null;
-        if(Number.class.isAssignableFrom( type ) || Boolean.class.isAssignableFrom( type )){
-            ms = new DatasetMetanumber().as( alias, Metatable.class );
-        }
-        else if(String.class.isAssignableFrom( type )){
-            ms = new DatasetMetastring().as( alias, Metatable.class );
-        }
-        else if(Timestamp.class.isAssignableFrom( type )){
-            ms = new DatasetMetatimestamp().as( alias, Metatable.class );
+        if(Number.class.isAssignableFrom(type) || Boolean.class.isAssignableFrom(type)){
+            ms = new DatasetMetanumber().as(alias, Metatable.class);
+        } else if(String.class.isAssignableFrom(type)){
+            ms = new DatasetMetastring().as(alias, Metatable.class);
+        } else if(Timestamp.class.isAssignableFrom(type)){
+            ms = new DatasetMetatimestamp().as(alias, Metatable.class);
         }
         return ms;
     }

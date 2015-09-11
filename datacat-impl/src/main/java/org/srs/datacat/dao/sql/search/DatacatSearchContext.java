@@ -1,9 +1,8 @@
 
-package org.srs.datacatalog.search;
+package org.srs.datacat.dao.sql.search;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import org.freehep.commons.lang.AST;
 import org.freehep.commons.lang.bool.sym;
 import org.zerorm.core.Column;
@@ -14,9 +13,9 @@ import org.zerorm.core.Select;
 import org.zerorm.core.interfaces.MaybeHasAlias;
 import org.zerorm.core.interfaces.MaybeHasParams;
 import org.zerorm.core.interfaces.SimpleTable;
-import org.srs.datacatalog.search.plugins.DatacatPlugin;
-import org.srs.datacatalog.search.plugins.DatacatPluginProvider;
-import org.srs.datacatalog.search.tables.MetajoinedStatement;
+import org.srs.datacat.dao.sql.search.plugins.DatacatPlugin;
+import org.srs.datacat.dao.sql.search.plugins.DatacatPluginProvider;
+import org.srs.datacat.dao.sql.search.tables.MetajoinedStatement;
 
 /**
  *
@@ -24,6 +23,9 @@ import org.srs.datacatalog.search.tables.MetajoinedStatement;
  */
 public class DatacatSearchContext implements SearchContext {
 
+    /**
+     * Class representing the keyword scope of all the plugins.
+     */
     public static class PluginScope implements DatacatPluginProvider {
         HashMap<String, DatacatPlugin> pluginMap;
 
@@ -42,9 +44,9 @@ public class DatacatSearchContext implements SearchContext {
         @Override
         public boolean hasPlugin(String ident){
             if(ident.contains( "." )){
-                String[] ns_plugin = ident.split( "\\." );
-                if(pluginMap.containsKey( ns_plugin[0] )){
-                    return pluginMap.get( ns_plugin[0] ).containsKey( ns_plugin[1] );
+                String[] nsPlugin = ident.split( "\\." );
+                if(pluginMap.containsKey(nsPlugin[0] )){
+                    return pluginMap.get(nsPlugin[0] ).containsKey(nsPlugin[1] );
                 }
             }
             return false;        
@@ -53,27 +55,15 @@ public class DatacatSearchContext implements SearchContext {
         @Override
         public DatacatPlugin getPlugin(String ident){
             if(ident.contains( "." )){
-                String[] ns_plugin = ident.split( "\\." );
-                if(pluginMap.containsKey( ns_plugin[0] )){
-                    return pluginMap.get( ns_plugin[0] );
+                String[] nsPlugin = ident.split( "\\." );
+                if(pluginMap.containsKey(nsPlugin[0] )){
+                    return pluginMap.get(nsPlugin[0] );
                 }
             }
             return null;
         }
     }
-    
-    public static class MetavalueScope {
-        MetanameContext context;
-
-        public MetavalueScope(MetanameContext context){
-            this.context = context;
-        }
-
-        public boolean contains(String ident){
-            return context.contains( ident );
-        }
-    }
-    
+        
     final MetajoinedStatement dsv;
     final PluginScope pluginScope;
     final MetanameContext metanameContext;
@@ -154,9 +144,12 @@ public class DatacatSearchContext implements SearchContext {
                         case sym.STRINGRANGE:
                         case sym.DATERANGE:
                             opName = "BETWEEN";
+                        default:
+                            break;
                     }
                     break;
-                
+                default:
+                    break;
             }
             tOper = Op.valueOf(opName);
         }
@@ -183,15 +176,18 @@ public class DatacatSearchContext implements SearchContext {
             if(inSelectionScope( strVal )){
                 return getColumnFromSelectionScope( strVal );
             }
-
+            /*
+            TODO: Optionally, Join plugin/ foreign table here
             if(pluginScope.hasPlugin(strVal)){
-                // Optionally, Join plugin/ foreign table here
-            }
+                
+                
+            })*/
         }
         return nodeValue;
     }
     
-    private Expr preEvaluateExpression(MetajoinedStatement statement, AST.Node leftNode, Object tLeft, Op tOper, Object tRight){
+    private Expr preEvaluateExpression(MetajoinedStatement statement, 
+            AST.Node leftNode, Object tLeft, Op tOper, Object tRight){
         String ident = leftNode.getLeft().getValue().toString();
         
         if( tLeft instanceof Column){

@@ -1,5 +1,5 @@
 
-package org.srs.datacatalog.search.tables;
+package org.srs.datacat.dao.sql.search.tables;
 
 import java.sql.Timestamp;
 import org.zerorm.core.interfaces.Schema;

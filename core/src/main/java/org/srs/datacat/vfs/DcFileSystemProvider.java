@@ -1,7 +1,7 @@
 package org.srs.datacat.vfs;
 
 import com.google.common.base.Optional;
-import org.srs.datacat.model.security.DcPermissions;
+
 import java.io.IOException;
 import java.net.URI;    
 import java.nio.file.AccessDeniedException;
@@ -9,6 +9,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
+import java.text.ParseException;
 
 import java.util.ArrayList;
 
@@ -26,27 +27,34 @@ import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.DatasetResultSetModel;
+import org.srs.datacat.model.ModelProvider;
+import org.srs.datacat.model.dataset.DatasetViewInfoModel;
 import org.srs.datacat.model.dataset.DatasetWithViewModel;
 import org.srs.datacat.model.dataset.DatasetOption;
 import org.srs.datacat.model.container.ContainerStat;
+
+import org.srs.datacat.model.security.AclTransformation;
+import org.srs.datacat.model.security.CallContext;
+import org.srs.datacat.model.security.DcAclEntry;
+import org.srs.datacat.model.security.DcAclEntryScope;
+import org.srs.datacat.model.security.DcGroup;
+import org.srs.datacat.model.security.DcPermissions;
 
 import org.srs.datacat.dao.BaseDAO;
 import org.srs.datacat.dao.ContainerDAO;
 import org.srs.datacat.dao.DatasetDAO;
 import org.srs.datacat.dao.DAOFactory;
-import org.srs.datacat.model.ModelProvider;
-import org.srs.datacat.model.dataset.DatasetViewInfoModel;
+import org.srs.datacat.dao.SearchDAO;
 
-import org.srs.datacat.model.security.DcAclEntry;
-import org.srs.datacat.model.security.DcAclEntryScope;
-import org.srs.datacat.model.security.DcGroup;
-import org.srs.datacat.model.security.AclTransformation;
-import org.srs.datacat.model.security.CallContext;
-
+import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 
 import org.srs.vfs.AbstractFsProvider.AfsException;
 import org.srs.vfs.FileType;
+import org.srs.vfs.GlobToRegex;
+import org.srs.vfs.PathProvider;
+import org.srs.vfs.PathUtils;
 import org.srs.vfs.VfsCache;
 import org.srs.vfs.VfsSoftCache;
 
@@ -62,7 +70,6 @@ public class DcFileSystemProvider {
     private static final int NO_MAX = -1;
     private static final long MAX_CACHE_TIME = 60000L; // TODO: Get rid of this - 60 seconds
 
-    private final DcFileSystem fileSystem;
     private final DAOFactory daoFactory;
     private final ModelProvider modelProvider;
     private final VfsCache<DcFile> cache = new VfsSoftCache<>();
@@ -70,13 +77,8 @@ public class DcFileSystemProvider {
     public DcFileSystemProvider(DAOFactory daoFactory, ModelProvider modelProvider) throws IOException{
         this.daoFactory = daoFactory;
         this.modelProvider = modelProvider;
-        this.fileSystem = new DcFileSystem();
     }
     
-    public DcFileSystem getFileSystem(){
-        return fileSystem;
-    }
-
     public DAOFactory getDaoFactory(){
         return daoFactory;
     }
@@ -92,6 +94,24 @@ public class DcFileSystemProvider {
                 return true;
             }
         };
+    
+    private static final PathProvider<DcPath> PATH_PROVIDER = new PathProvider<DcPath>(){
+
+        @Override
+        public DcPath getRoot(){
+            return new DcPath(this, "/");
+        }
+
+        @Override
+        public DcPath getPath(URI uri){
+            return new DcPath(this, uri.getPath());
+        }
+
+        @Override
+        public DcPath getPath(String path){
+            return new DcPath(this, path);
+        }
+    };
     
     private VfsCache<DcFile> getCache(){
         return cache;
@@ -285,8 +305,8 @@ public class DcFileSystemProvider {
         return null; // Keep compiler happy
     }
     
-    public Path getPath(URI uri){
-        return fileSystem.getPathProvider().getPath(uri);
+    public Path getPath(String path){
+        return PATH_PROVIDER.getPath(path);
     }
     
     private boolean exists(Path path){
@@ -434,6 +454,36 @@ public class DcFileSystemProvider {
         }
         getCache().removeFile(path);
         return getFile(path, context);
+    }
+    
+    /**
+     * Search using a path pattern and a query.
+     * @param pathPattern A glob or regex pattern
+     * @param context
+     * @param checkFolders
+     * @param checkGroups
+     * @param datasetView
+     * @param query A Query String
+     * @param retrieveFields
+     * @param sortFields
+     * @param offset
+     * @param max
+     * @return
+     * @throws IOException
+     * @throws ParseException 
+     */
+    public DatasetResultSetModel search(String pathPattern, CallContext context, 
+            Boolean checkFolders, Boolean checkGroups, DatasetView datasetView, String query, 
+            String[] retrieveFields, String[] sortFields, int offset, int max) throws IOException, ParseException{
+        String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern, "/"));
+        Path root = PATH_PROVIDER.getRoot();
+        Path searchPath = root.resolve(searchBase);
+        ContainerVisitor visitor= new ContainerVisitor(pathPattern, checkGroups, checkFolders);
+        DirectoryWalker walker = new DirectoryWalker(this, visitor, 100 /* max depth */);
+        walker.walk(searchPath, context);
+        try(SearchDAO dao = daoFactory.newSearchDAO()) {
+            return dao.search(visitor.files, datasetView, query, sortFields, sortFields, offset, max);
+        }
     }
     
     /**

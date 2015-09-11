@@ -1,4 +1,4 @@
-package org.srs.datacatalog.search.plugins;
+package org.srs.datacat.dao.sql.search.plugins;
 
 import java.util.HashMap;
 import org.zerorm.core.Column;
@@ -6,7 +6,7 @@ import org.zerorm.core.Select;
 import org.zerorm.core.Table;
 import org.zerorm.core.interfaces.Schema;
 import org.zerorm.core.interfaces.SimpleTable;
-import org.srs.datacatalog.search.tables.DatasetVersions;
+import org.srs.datacat.dao.sql.search.tables.DatasetVersions;
 
 /**
  *
@@ -28,7 +28,7 @@ public class LsstFilesSearchPlugin implements DatacatPlugin {
         
     };
     
-    final private String namespace = "files";
+    private static final String NAMESPACE = "files";
     FitsFiles lsstff = new FitsFiles();
     private boolean joined;
     
@@ -41,14 +41,17 @@ public class LsstFilesSearchPlugin implements DatacatPlugin {
         }
     }
 
+    @Override
     public String getNamespace(){
-        return this.namespace;
+        return NAMESPACE;
     }
 
+    @Override
     public boolean containsKey(String key){
         return mappings.containsKey( key );
     }
 
+    @Override
     public SimpleTable joinToStatement(String key, Select statement){
         if(joined){
             return lsstff;

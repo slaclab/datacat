@@ -27,14 +27,14 @@ import junit.framework.TestCase;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
+import org.srs.datacat.dao.DAOFactory;
+import org.srs.datacat.dao.DAOTestUtils;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.rest.App;
 import org.srs.datacat.shared.FlatDataset;
 import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.test.HSqlDbHarness;
-import org.srs.datacat.vfs.DcFileSystemProvider;
-import org.srs.datacat.vfs.DcUriUtils;
 import org.srs.datacat.vfs.TestUtils;
 
 /**
@@ -69,9 +69,8 @@ public class SearchResourceTest extends JerseyTest{
 
     @Test
     public void testBasicSearch() throws IOException {
-        DcFileSystemProvider provider = app.getFsProvider();
-        java.nio.file.Path root = provider.getPath(DcUriUtils.toFsUri("/", "SRS"));
-        TestUtils.generateDatasets( root, provider, 10, 100 );
+        DAOFactory factory = app.getFsProvider().getDaoFactory();
+        DAOTestUtils.generateDatasets(factory, 10, 100);
         
         AnnotationIntrospector primary = new JacksonAnnotationIntrospector();
         AnnotationIntrospector secondary = new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());

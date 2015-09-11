@@ -4,23 +4,20 @@ package org.srs.datacat.vfs;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Set;
-import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.model.DatasetModel;
-import org.srs.datacat.model.RecordType;
-import org.srs.datacat.model.dataset.DatasetOption;
-import org.srs.datacat.model.container.DatasetContainerBuilder;
+
+import org.srs.datacat.dao.DAOFactory;
+import org.srs.datacat.model.DatacatNode;
+import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.model.security.CallContext;
 import org.srs.datacat.model.security.DcGroup;
 import org.srs.datacat.model.security.DcUser;
-
 import org.srs.datacat.security.DcUserLookupService;
-import org.srs.datacat.test.HSqlDbHarness;
 
 import org.srs.datacat.test.DbHarness;
+import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
 
 /**
  *
@@ -28,52 +25,12 @@ import org.srs.datacat.test.DbHarness;
  */
 public class TestUtils {
     
-    public static final CallContext DEFAULT_TEST_CONTEXT = 
+    protected static final CallContext DEFAULT_TEST_CONTEXT = 
             new CallContext(
                     new DcUser(DbHarness.TEST_USER), 
                     new HashSet<>(Arrays.asList(DcGroup.PUBLIC_GROUP, new DcGroup("test_group","SRS")))
             );
-    
-    public static void generateDatasets(Path root, DcFileSystemProvider provider, int folders, int datasets) throws IOException{
-        Path parent = root.resolve( "/testpath");
-        DatasetContainerBuilder builder = (DatasetContainerBuilder) provider.getModelProvider()
-                .getContainerBuilder().type(RecordType.FOLDER);
-
-        /*
-            The following is faster:
-            To create 100 folders, THEN create datasets in each of those folders
-        */
-        // Create 10 folders
-        for(int i = 0; i < folders; i++){
-            String name =String.format("folder%05d", i);
-            Path newPath = parent.resolve(name);
-            builder.name(name);
-            provider.createDirectory( newPath, DEFAULT_TEST_CONTEXT, builder.build());
-        }
         
-        List opts = Arrays.asList(DatasetOption.CREATE_NODE, DatasetOption.CREATE_VERSION, DatasetOption.SKIP_NODE_CHECK);
-        HashSet<DatasetOption> options = new HashSet<>(opts);
-        // Create 20k datasets
-        for(int i = 0; i < folders; i++){
-            String name =String.format("folder%05d", i);
-            Path newPath = parent.resolve(name);
-            for(int j = 0; j < datasets; j++){
-            DatasetModel.Builder dsBuilder = provider.getModelProvider().getDatasetBuilder();
-                name = String.format("dataset%05d", j);
-                dsBuilder.name(name);
-                dsBuilder.dataType(HSqlDbHarness.JUNIT_DATASET_DATATYPE);
-                dsBuilder.datasetSource(HSqlDbHarness.JUNIT_DATASET_DATASOURCE);
-                dsBuilder.fileFormat(HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
-                dsBuilder.versionId( DatasetView.NEW_VER );
-                HashMap<String, Object> metadata = new HashMap<>();
-                metadata.put(DbHarness.numberName, DbHarness.numberMdValues[i % 4]);
-                metadata.put(DbHarness.alphaName, DbHarness.alphaMdValues[j % 4]);
-                dsBuilder.versionMetadata( metadata );
-                provider.createDataset(newPath.resolve(name), DEFAULT_TEST_CONTEXT, dsBuilder.build(), options );
-            }
-        }
-    
-    }
     
     public static DcUserLookupService getLookupService(){
         return new DcUserLookupService(){
@@ -99,5 +56,13 @@ public class TestUtils {
             }
         };
     }
-
+    
+    public static LinkedList<DatacatNode> walkPath(DAOFactory factory, ModelProvider modelProvider,
+            Path searchPath, String pathPattern, Boolean searchGroups, Boolean searchFolders) throws IOException{
+        DcFileSystemProvider provider = new DcFileSystemProvider(factory, modelProvider);
+        ContainerVisitor visitor = new ContainerVisitor(pathPattern, searchGroups, searchFolders);
+        DirectoryWalker walker = new DirectoryWalker(provider, visitor, 100);
+        walker.walk(searchPath, TestUtils.DEFAULT_TEST_CONTEXT);
+        return visitor.files;
+    }    
 }

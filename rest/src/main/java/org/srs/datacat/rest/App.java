@@ -32,10 +32,10 @@ import org.srs.datacat.rest.security.GroupManagerLookupService;
 import org.srs.datacat.security.DcUserLookupService;    
 import org.srs.datacat.shared.Provider;
 import org.srs.datacat.vfs.DcFileSystemProvider;
-import org.srs.datacatalog.search.plugins.EXODatacatSearchPlugin;
-import org.srs.datacatalog.search.plugins.LsstFilesSearchPlugin;
-import org.srs.datacatalog.search.plugins.LsstKVSearchPlugin;
-import org.srs.datacatalog.search.plugins.LsstPositionsSearchPlugin;
+import org.srs.datacat.dao.sql.search.plugins.EXODatacatSearchPlugin;
+import org.srs.datacat.dao.sql.search.plugins.LsstFilesSearchPlugin;
+import org.srs.datacat.dao.sql.search.plugins.LsstKVSearchPlugin;
+import org.srs.datacat.dao.sql.search.plugins.LsstPositionsSearchPlugin;
 
 /**
  *

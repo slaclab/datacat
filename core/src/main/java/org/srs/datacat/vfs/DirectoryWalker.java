@@ -11,9 +11,10 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedList;
 import java.util.Objects;
-import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.security.CallContext;
 import org.srs.datacat.vfs.DcFile.GroupType;
+import org.srs.vfs.PathMatchers;
 
 /**
  * A Special walker mainly used for searching. 
@@ -31,9 +32,8 @@ public class DirectoryWalker {
         this.provider = provider;
     }
 
-    public DirectoryWalker(DcFileSystemProvider provider, DcFileSystem fs, String syntaxAndPattern,
-            int maxDepth){
-        this(provider, new ContainerVisitor(fs, syntaxAndPattern), maxDepth);
+    public DirectoryWalker(DcFileSystemProvider provider, String syntaxAndPattern, int maxDepth){
+        this(provider, new ContainerVisitor(syntaxAndPattern), maxDepth);
     }
 
     public void walk(Path start, CallContext auth) throws IOException{
@@ -100,9 +100,9 @@ public class DirectoryWalker {
     public static class ContainerVisitor extends SimpleFileVisitor<Path> {
         protected final ContainerFilter filter;
         private final LinkedList<DcFile> folderStack = new LinkedList<>();
-        public LinkedList<DatacatRecord> files = new LinkedList<>();
+        public LinkedList<DatacatNode> files = new LinkedList<>();
 
-        public ContainerVisitor(DcFileSystem fs, String syntaxAndPattern){
+        public ContainerVisitor(String syntaxAndPattern){
             boolean searchGroups = true;
             boolean searchFolders = true;
 
@@ -115,7 +115,8 @@ public class DirectoryWalker {
             if(!searchFolders || !searchGroups){
                 syntaxAndPattern = syntaxAndPattern.substring(0, syntaxAndPattern.length() - 1);
             }
-            filter = new ContainerFilter(fs.getPathMatcher(syntaxAndPattern), searchGroups, searchFolders);
+            filter = new ContainerFilter(PathMatchers.getPathMatcher(syntaxAndPattern, "/"), 
+                    searchGroups, searchFolders);
         }
 
         /**
@@ -126,8 +127,7 @@ public class DirectoryWalker {
          * @param searchGroups
          * @param searchFolders
          */
-        public ContainerVisitor(DcFileSystem fs, String path, Boolean searchGroups,
-                Boolean searchFolders){
+        public ContainerVisitor(String path, Boolean searchGroups, Boolean searchFolders){
             // TODO: This should do some checks to make sure $ is escaped for a regex
             if(path.endsWith("$")){
                 searchGroups = false;
@@ -140,7 +140,7 @@ public class DirectoryWalker {
             searchFolders = searchFolders == null ? true : searchFolders;
             // TODO: Glob check?
             String globPath = "glob:" + path;
-            filter = new ContainerFilter(fs.getPathMatcher(globPath), searchGroups, searchFolders);
+            filter = new ContainerFilter(PathMatchers.getPathMatcher(globPath, "/"), searchGroups, searchFolders);
         }
 
         public void accept(DcFile file){

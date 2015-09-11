@@ -1,11 +1,11 @@
 
-package org.srs.datacatalog.search.tables;
+package org.srs.datacat.dao.sql.search.tables;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.srs.datacatalog.search.SearchUtils;
+import org.srs.datacat.dao.sql.search.SearchUtils;
 import org.zerorm.core.Column;
 import org.zerorm.core.Expr;
 import org.zerorm.core.Op;

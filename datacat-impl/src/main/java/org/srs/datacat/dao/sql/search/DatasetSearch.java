@@ -1,6 +1,7 @@
 
-package org.srs.datacatalog.search;
+package org.srs.datacat.dao.sql.search;
 
+import com.google.common.base.Optional;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigInteger;
@@ -20,11 +21,12 @@ import org.freehep.commons.lang.AST;
 import org.freehep.commons.lang.bool.Lexer;
 import org.freehep.commons.lang.bool.Parser;
 import org.freehep.commons.lang.bool.sym;
-import org.srs.datacat.model.DatacatRecord;
+import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacatalog.search.plugins.DatacatPlugin;
-import org.srs.datacatalog.search.tables.DatasetVersions;
+import org.srs.datacat.model.ModelProvider;
+import org.srs.datacat.dao.sql.search.plugins.DatacatPlugin;
+import org.srs.datacat.dao.sql.search.tables.DatasetVersions;
 import org.zerorm.core.Column;
 import org.zerorm.core.Op;
 import org.zerorm.core.Select;
@@ -42,68 +44,61 @@ public class DatasetSearch {
     private Class<? extends DatacatPlugin>[] plugins;
     protected MetanameContext dmc;
     private ArrayList<String> metadataFields = new ArrayList<>();
-    private DatasetView datasetView;
     private Connection conn;
     private Select selectStatement;
-    private int offset = 0;
-    private int max = Integer.MAX_VALUE;
+    private ModelProvider modelProvider;
     
-    public DatasetSearch(Connection conn, Class<? extends DatacatPlugin>... plugins) throws SQLException {
+    public DatasetSearch(Connection conn, ModelProvider modelProvider, 
+            Class<? extends DatacatPlugin>... plugins) throws IOException {
         this.plugins = plugins;
         this.dmc = SearchUtils.buildMetaInfoGlobalContext( conn );
         this.conn = conn;
+        this.modelProvider = modelProvider;
     }
     
-    public DatasetResultSetModel search(LinkedList<DatacatRecord> containers, DatasetView datasetView, 
+    public DatasetResultSetModel search(LinkedList<DatacatNode> containers, DatasetView datasetView, 
             String query, String[] metaFieldsToRetrieve, String[] sortFields, 
             int offset, int max) throws ParseException, IOException {
         try {
-            compileStatement(containers, datasetView, query, metaFieldsToRetrieve, sortFields, offset, max);
-            return retrieveDatasets();
+            compileStatement(containers, datasetView, 
+                    Optional.fromNullable(query), 
+                    Optional.fromNullable(metaFieldsToRetrieve), 
+                    Optional.fromNullable(sortFields));
+            if(offset < 0){
+                offset = 0;
+            }
+            if(max < 0){
+                max = Integer.MAX_VALUE;
+            }
+            return retrieveDatasets(offset, max);
         } catch (SQLException ex) {
             throw new IOException("Error retrieving results", ex);
         }
     }
     
-    protected void compile(LinkedList<DatacatRecord> containers, DatasetView datasetView, 
-            String queryString, String[] metaFieldsToRetrieve, String[] sortFields, 
-            int offset, int max) throws ParseException, IOException {
+    protected DatasetResultSetModel retrieveDatasets(int offset, int max) throws IOException {
         try {
-            compileStatement( containers, datasetView, queryString, 
-                    metaFieldsToRetrieve, sortFields, offset, max );
-        } catch (SQLException ex){
-            throw new IOException("Error talking to database", ex);
-        }
-    }
-    
-    protected DatasetResultSetModel retrieveDatasets() throws IOException {
-        try {
-            return SearchUtils.getResults(conn, selectStatement, datasetView, metadataFields,
-                    this.offset, this.max);
+            return SearchUtils.getResults(conn, modelProvider, selectStatement, metadataFields,
+                    offset, max);
         } catch (SQLException ex) {
             throw new IOException("Error retrieving results", ex);
         }
     }
     
-    protected Select compileStatement(LinkedList<DatacatRecord> containers, DatasetView datasetView, 
-            String queryString, String[] metaFieldsToRetrieve, String[] sortFields, 
-            int offset, int max) throws ParseException, SQLException, IOException {
-        if(offset > 0){
-            this.offset = offset;
-        }
-        if(max > 0){
-            this.max = max;
-        }
-        this.datasetView = datasetView;
-        AST ast = parseQueryString(queryString);
+    protected Select compileStatement(LinkedList<DatacatNode> containers, DatasetView datasetView, 
+            Optional<String> query, 
+            Optional<String[]> retrieveFields, 
+            Optional<String[]> sortFields) throws ParseException, SQLException, IOException {
+        
         // Prepare DatasetVersions Selection 
         DatasetVersions dsv = prepareDatasetVersion(datasetView);
         
         // Prepare Search Context
         DatacatSearchContext sd = new DatacatSearchContext(dsv, plugins, dmc);
         
-        // Process AST
-        if(ast != null){
+        // Process AST if there's a query
+        if(query.isPresent()){
+            AST ast = parseQueryString(query.get());
             // Allows us to do any last minute translation
             doRewrite(ast);
             sd.assertIdentsValid(ast);
@@ -122,17 +117,24 @@ public class DatasetSearch {
         Table containerSearch = new Table("ContainerSearch", "cp");
         
         this.selectStatement = containerSearch
-                .select( containerSearch.$("ContainerPath"))
-                .join( dsv, 
-                    Op.or( 
+            .select( containerSearch.$("ContainerPath"))
+            .join( dsv, 
+                Op.or( 
                         dsv.getSelection(dsv.ds.datasetlogicalfolder).eq(containerSearch.$("DatasetLogicalFolder")), 
                         dsv.getSelection(dsv.ds.datasetGroup).eq(containerSearch.$("DatasetGroup"))
-                    )
-                ).selection(dsv.getColumns());
+                )
+            ).selection(dsv.getColumns());
         
-
-        if(sortFields != null){
-            for(String s: sortFields){
+        handleSortFields(sd, dsv, sortFields);
+        handleRetrieveFields(sd, dsv, retrieveFields);
+        
+        return selectStatement;
+    }            
+        
+    private void handleSortFields(DatacatSearchContext sd, DatasetVersions dsv, Optional<String[]> sortFields){
+        
+        if(sortFields.isPresent()){
+            for(String s: sortFields.get()){
                 boolean desc = s.startsWith("-") || s.endsWith("-");
                 if(s.endsWith("-") || s.endsWith("+")){
                     s = s.substring( 0, s.length() - 1);
@@ -183,9 +185,13 @@ public class DatasetSearch {
                 selectStatement.orderBy(orderBy, desc ? "DESC":"ASC");
             }
         }
+    }
+    
+    private void handleRetrieveFields(DatacatSearchContext sd, DatasetVersions dsv, 
+            Optional<String[]> retrieveFields){
         
-        if(metaFieldsToRetrieve != null){
-            for(String s: metaFieldsToRetrieve){
+        if(retrieveFields.isPresent()){
+            for(String s: retrieveFields.get()){
                 Column retrieve = null;
                 if(sd.inSelectionScope( s )){
                     retrieve = getColumnFromSelectionScope( dsv, s );
@@ -226,8 +232,6 @@ public class DatasetSearch {
                 selectStatement.selection(retrieve);
             }
         }
-        
-        return selectStatement;
     }
     
     protected String doRewriteIdent(String ident){
@@ -236,8 +240,9 @@ public class DatasetSearch {
                 return "path";
             case "size":
                 return "fileSizeBytes";
+            default:
+                return ident;
         }
-        return ident;
     }
     
     protected void doRewrite(AST ast){
@@ -332,7 +337,7 @@ public class DatasetSearch {
     }
    
     private AST parseQueryString(String queryString) throws ParseException {
-        if(queryString == null || queryString.isEmpty()){
+        if(queryString.isEmpty()){
             return null;
         }
         Lexer scanner = new Lexer( new StringReader(queryString) );

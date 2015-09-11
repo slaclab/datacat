@@ -63,6 +63,13 @@
         </dependency>
         <dependency>
             <groupId>srs</groupId>
+            <artifactId>org-srs-datacat-model</artifactId>
+            <version>0.4-SNAPSHOT</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>srs</groupId>
             <artifactId>org-srs-datacat-impl</artifactId>
             <version>0.4-SNAPSHOT</version>
             <type>jar</type>

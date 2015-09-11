@@ -1,5 +1,5 @@
 
-package org.srs.datacatalog.search.tables;
+package org.srs.datacat.dao.sql.search.tables;
 
 import org.zerorm.core.Column;
 import org.zerorm.core.Table;

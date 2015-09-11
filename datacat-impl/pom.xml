@@ -19,6 +19,13 @@
         </dependency>
         <dependency>
             <groupId>srs</groupId>
+            <artifactId>org-srs-datacat-model</artifactId>
+            <version>0.4-SNAPSHOT</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>srs</groupId>
             <artifactId>org-srs-datacat-vfs</artifactId>
             <version>0.4-SNAPSHOT</version>
         </dependency>
@@ -28,6 +35,20 @@
             <version>0.4-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+        
+        
+        <!-- For search -->
+        <dependency>
+            <groupId>org.freehep.commons</groupId>
+            <artifactId>freehep-lang</artifactId>
+            <version>0.4</version>
+        </dependency>
+        <dependency>    
+            <groupId>org.zerorm</groupId>
+            <artifactId>zerorm-core</artifactId>
+            <version>0.2</version>
+        </dependency>
+        
         <!-- For the model -->
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>

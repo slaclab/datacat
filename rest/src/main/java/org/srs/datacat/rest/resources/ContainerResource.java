@@ -100,7 +100,7 @@ public class ContainerResource extends BaseResource {
             throw new RestException(ex, 400, "Unable to validate request view", ex.getMessage());
         }
         
-        java.nio.file.Path containerPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
+        java.nio.file.Path containerPath = getProvider().getPath(requestPath);
         
         try {
             if(!getProvider().getFile(containerPath, buildCallContext()).isDirectory()){
@@ -139,14 +139,14 @@ public class ContainerResource extends BaseResource {
         }
 
         DatasetContainerBuilder builder = FormParamConverter.getContainerBuilder( type, formParams );
-        java.nio.file.Path parentPath = getProvider().getPath(DcUriUtils.toFsUri(sParentPath, "SRS"));
+        java.nio.file.Path parentPath = getProvider().getPath(sParentPath);
         CallContext callContext = buildCallContext();
         java.nio.file.Path targetPath = parentPath.resolve(builder.build().getName());
         builder.path(targetPath.toString());
         
         try {
             getProvider().createDirectory(targetPath, callContext, builder.build());
-            return Response.created(DcUriUtils.toFsUri(targetPath.toString(), "SRS")).entity(builder.build()).build();
+            return Response.created(DcUriUtils.toFsUri(targetPath.toString())).entity(builder.build()).build();
         } catch (NoSuchFileException ex){
              throw new RestException(ex ,404, "Parent file doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
@@ -172,13 +172,13 @@ public class ContainerResource extends BaseResource {
         }
         DatasetContainerBuilder builder = getProvider().getModelProvider().getContainerBuilder().create(container);
 
-        java.nio.file.Path parentPath = getProvider().getPath(DcUriUtils.toFsUri(sParentPath, "SRS"));
+        java.nio.file.Path parentPath = getProvider().getPath(sParentPath);
         java.nio.file.Path targetPath = parentPath.resolve(container.getName());
         builder.path(targetPath.toString());
         
         try {
             getProvider().createDirectory(targetPath, buildCallContext(), container);
-            return Response.created(DcUriUtils.toFsUri(targetPath.toString(), "SRS"))
+            return Response.created(DcUriUtils.toFsUri(targetPath.toString()))
                     .entity(builder.build()).build();
         } catch (NoSuchFileException ex){
              throw new RestException(ex ,404, "Parent file doesn't exist", ex.getMessage());
@@ -198,7 +198,7 @@ public class ContainerResource extends BaseResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response patchDataset(DatasetContainer containerReq) throws IOException{
-        java.nio.file.Path targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
+        java.nio.file.Path targetPath = getProvider().getPath(requestPath);
         try {
             getProvider().patchContainer(targetPath, buildCallContext(), containerReq);
             return objectView(targetPath, null);
@@ -214,7 +214,7 @@ public class ContainerResource extends BaseResource {
     @DELETE
     @Path(idRegex)
     public Response deleteContainer() throws IOException{
-        java.nio.file.Path dcPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
+        java.nio.file.Path dcPath = getProvider().getPath(requestPath);
         CallContext context = buildCallContext();
         try {
             if(!getProvider().getFile(dcPath, context).isDirectory()){

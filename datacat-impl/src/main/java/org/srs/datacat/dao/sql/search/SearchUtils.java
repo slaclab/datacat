@@ -1,6 +1,7 @@
 
-package org.srs.datacatalog.search;
+package org.srs.datacat.dao.sql.search;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,28 +17,27 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.freehep.commons.lang.AST;
+import org.srs.datacat.model.DatacatNode;
 import org.zerorm.core.Select;
 
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
-import org.srs.datacat.model.DatasetView;
+import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.model.RecordType;
+import org.srs.datacat.shared.DatasetLocation;
 
-//import org.srs.datacat.vfs.DirectoryWalker;
 import org.srs.vfs.PathUtils;
 
-// Using builders
-import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.DatasetLocation;
 
 /**
  *
  * @author bvan
  */
-public class SearchUtils {
+public final class SearchUtils {
     
+    private SearchUtils(){}
     
     public static String getErrorString(AST ast, final String ident){
         if(ast.toString().length() < 32){
@@ -77,8 +77,9 @@ public class SearchUtils {
         return startOfError.toString();
     }
 
-    public static DatasetModel datasetFactory(ResultSet rs, DatasetView dsView, List<String> includedMetadata) throws SQLException{
-        DatasetModel.Builder builder = new Dataset.Builder();
+    public static DatasetModel datasetFactory(ResultSet rs, ModelProvider modelProvider, 
+            List<String> includedMetadata) throws SQLException{
+        DatasetModel.Builder builder = modelProvider.getDatasetBuilder();
 
         String name = rs.getString("name");
         builder.pk(rs.getLong("pk"));
@@ -98,7 +99,7 @@ public class SearchUtils {
         HashMap<String, Object> metadata = new HashMap<>();
         
         for(String s: includedMetadata){
-            Object o = rs.getObject(s);;
+            Object o = rs.getObject(s);
             if(o != null){
                 if(o instanceof BigDecimal){
                     BigDecimal v = (BigDecimal) o;
@@ -109,7 +110,7 @@ public class SearchUtils {
         }
         
         while(!rs.isClosed() && rs.getInt("datasetversion") == versionPk){
-            DatasetLocationModel next = processLocation(rs);
+            DatasetLocationModel next = processLocation(rs, modelProvider);
             if(next != null){
                 locations.add(next);
             }
@@ -122,8 +123,9 @@ public class SearchUtils {
         return builder.build();
     }
     
-    private static DatasetLocationModel processLocation(ResultSet rs) throws SQLException{
-        DatasetLocation.Builder builder = new DatasetLocation.Builder();
+    private static DatasetLocationModel processLocation(ResultSet rs, 
+            ModelProvider modelProvider) throws SQLException{
+        DatasetLocation.Builder builder = (DatasetLocation.Builder) modelProvider.getLocationBuilder();
         Long pk = rs.getLong("datasetlocation");
         if(rs.wasNull()){
             return null;
@@ -173,14 +175,14 @@ public class SearchUtils {
                     lastPrefix = maybePrefix;
                     postfixes.add( metaname );
                 } else {
-                        dmc.add( new MetanameContext.Entry( metaname ));
+                    dmc.add( new MetanameContext.Entry( metaname ));
                 }
             }
             return dmc;
         }
     }
     
-    public static MetanameContext buildMetaInfoGlobalContext(Connection conn) throws SQLException {
+    public static MetanameContext buildMetaInfoGlobalContext(Connection conn) throws IOException {
         
         String sql = "select metaname, ValueType, prefix " +
                         "    from DatasetMetaInfo vx " +
@@ -230,6 +232,8 @@ public class SearchUtils {
                 }
             }
             return dmc;
+        } catch (SQLException e){
+            throw new IOException("Error retrieving metadata for search", e);
         }
     }
     
@@ -243,8 +247,7 @@ public class SearchUtils {
         return buildContainerMetanameContext( conn, sql );
     }
 
-    protected static MetanameContext buildContainerMetanameContext(Connection conn, String sql)
-            throws SQLException{
+    protected static MetanameContext buildContainerMetanameContext(Connection conn, String sql) throws SQLException{
         try(PreparedStatement stmt = conn.prepareStatement( sql )) {
             ResultSet rs = stmt.executeQuery();
             MetanameContext mnc = new MetanameContext();
@@ -255,14 +258,15 @@ public class SearchUtils {
         }
     }
     
-    public static void populateParentTempTable(Connection conn, LinkedList<DatacatRecord> containers) throws SQLException {
+    public static void populateParentTempTable(Connection conn, 
+            LinkedList<DatacatNode> containers) throws SQLException {
 
         if(conn.getMetaData().getDatabaseProductName().contains("MySQL")){
             String dropSql = "drop temporary table if exists ContainerSearch";
             String tableSql = 
                     "create temporary table ContainerSearch ( "
-                    + "    DatasetLogicalFolder	bigint, "
-                    + "    DatasetGroup		bigint, "
+                    + "    DatasetLogicalFolder bigint, "
+                    + "    DatasetGroup         bigint, "
                     + "    ContainerPath varchar(500) "
                     + ")";
             try (PreparedStatement stmt  = conn.prepareStatement(dropSql)){
@@ -287,7 +291,8 @@ public class SearchUtils {
     }
     
     /*
-    public static void pruneParentTempTable(Connection conn, DirectoryWalker.ContainerVisitor visitor) throws SQLException {
+    public static void pruneParentTempTable(Connection conn, 
+    DirectoryWalker.ContainerVisitor visitor) throws SQLException {
         String sql = 
                 "DELETE FROM ContainerSearch "
                 + " WHERE (DatasetLogicalFolder is not null AND DatasetLogicalFolder NOT IN (%s)) "
@@ -305,7 +310,8 @@ public class SearchUtils {
     }
     */
     
-    public static DatasetResultSetModel getResults(final Connection conn, final Select sel, DatasetView dsView, List<String> metadataNames,
+    public static DatasetResultSetModel getResults(final Connection conn, ModelProvider modelProvider, 
+            final Select sel, List<String> metadataNames,
             int offset, int max) throws SQLException{
         int count = 0;
         final ArrayList<DatasetModel> datasets = new ArrayList<>();
@@ -317,17 +323,17 @@ public class SearchUtils {
             
             // Consume until offset
             for(int i = 0; i < offset && !rs.isClosed(); i++, count++){
-                SearchUtils.datasetFactory(rs, dsView, metadataNames);
+                SearchUtils.datasetFactory(rs, modelProvider, metadataNames);
             }
             
             // Materialize to max
             for(int i = 0; i < max && !rs.isClosed(); i++, count++){
-                datasets.add(SearchUtils.datasetFactory(rs, dsView, metadataNames));
+                datasets.add(SearchUtils.datasetFactory(rs, modelProvider, metadataNames));
             }
             
             // Consume to end
             while(!rs.isClosed()){
-                SearchUtils.datasetFactory(rs, dsView, metadataNames);
+                SearchUtils.datasetFactory(rs, modelProvider, metadataNames);
                 count++;
             }
         }

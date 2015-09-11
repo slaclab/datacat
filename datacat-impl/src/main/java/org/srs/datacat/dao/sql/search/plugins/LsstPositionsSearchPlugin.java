@@ -1,4 +1,4 @@
-package org.srs.datacatalog.search.plugins;
+package org.srs.datacat.dao.sql.search.plugins;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -7,7 +7,7 @@ import org.zerorm.core.Select;
 import org.zerorm.core.Table;
 import org.zerorm.core.interfaces.Schema;
 import org.zerorm.core.interfaces.SimpleTable;
-import org.srs.datacatalog.search.tables.DatasetVersions;
+import org.srs.datacat.dao.sql.search.tables.DatasetVersions;
 
 /**
  *
@@ -31,7 +31,7 @@ public class LsstPositionsSearchPlugin implements DatacatPlugin {
         
     };
     
-    final private String namespace = "pos";
+    private static final String NAMESPACE = "pos";
     FitsPositions lsstpos = new FitsPositions();
     private boolean joined;
     
@@ -40,27 +40,30 @@ public class LsstPositionsSearchPlugin implements DatacatPlugin {
     public LsstPositionsSearchPlugin(){
 
         for(Column c: new FitsPositions().getColumns()){
-            mappings.put( c.canonical(), c);
+            mappings.put(c.canonical(), c);
         }
     }
 
+    @Override
     public String getNamespace(){
-        return this.namespace;
+        return NAMESPACE;
     }
 
+    @Override
     public boolean containsKey(String key){
         return mappings.containsKey( key );
     }
 
+    @Override
     public SimpleTable joinToStatement(String key, Select statement){
         if(joined){
             return lsstpos;
         }
         String metadataPivot = "fileId";
         DatasetVersions dsv = (DatasetVersions) statement;
-        Column vecColumn = dsv.setupMetadataOuterJoin( metadataPivot,  Number.class );
+        Column vecColumn = dsv.setupMetadataOuterJoin(metadataPivot, Number.class);
 
-        dsv.selection( lsstpos.getColumns() ).leftOuterJoin( lsstpos, vecColumn.eq( lsstpos.fileId )  );
+        dsv.selection(lsstpos.getColumns()).leftOuterJoin(lsstpos, vecColumn.eq(lsstpos.fileId));
         joined = true;
         return lsstpos;
     }

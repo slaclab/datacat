@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.sql.DataSource;
+import org.srs.datacat.dao.SearchDAO;
+import org.srs.datacat.dao.sql.SqlSearchDAO;
 
 /**
  *
@@ -140,6 +142,15 @@ public class DAOFactoryMySQL implements org.srs.datacat.dao.DAOFactory {
             ReentrantLock lock = locker.prepareLease(lockPath);
             lock.lock();
             return new DatasetDAOMySQL(dataSource.getConnection(), lock);
+        } catch(SQLException ex) {
+            throw new IOException("Error connecting to data source", ex);
+        }
+    }
+
+    @Override
+    public SearchDAO newSearchDAO(Object... plugins) throws IOException{
+        try {
+            return new SqlSearchDAO(dataSource.getConnection(), null);
         } catch(SQLException ex) {
             throw new IOException("Error connecting to data source", ex);
         }

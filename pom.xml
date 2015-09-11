@@ -48,12 +48,12 @@
     <modules>
       <module>core</module>
       <module>client</module>
-      <module>rest</module>
-      <module>search</module>
+      <!--<module>search</module>-->
       <module>vfs</module>
       <module>test</module>
       <module>model</module>
       <module>datacat-impl</module>
+      <module>rest</module>
     </modules>
 
     <dependencies>
@@ -61,6 +61,12 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.10.19</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -2,12 +2,12 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.srs.datacatalog.search;
+package org.srs.datacat.dao.sql.search;
 
-import org.srs.datacatalog.search.MetanameContext;
+import org.srs.datacat.dao.sql.search.MetanameContext;
 import java.util.TreeSet;
 import junit.framework.TestCase;
-import org.srs.datacatalog.search.MetanameContext.Entry;
+import org.srs.datacat.dao.sql.search.MetanameContext.Entry;
 
 /**
  *

@@ -63,7 +63,7 @@ public class PermissionsResource extends BaseResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response getPermissions() {
         
-        java.nio.file.Path dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath,  "SRS"));
+        java.nio.file.Path dcp = getProvider().getPath(requestPath);
         try {
             DcFile dcf = getProvider().getFile(dcp, buildCallContext());
             List<AclEntryProxy> acl = new ArrayList<>(dcf.getAcl().size());
@@ -85,7 +85,7 @@ public class PermissionsResource extends BaseResource {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response setPermissions(List<AclEntryProxy> proxyAcl){
-        java.nio.file.Path dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath,  "SRS"));
+        java.nio.file.Path dcp = getProvider().getPath(requestPath);
 
         try {
             ArrayList<DcAclEntry> acl = new ArrayList<>(proxyAcl.size());
@@ -108,7 +108,7 @@ public class PermissionsResource extends BaseResource {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response mergePermissions(List<AclEntryProxy> proxyAcl){
-        java.nio.file.Path dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath,  "SRS"));
+        java.nio.file.Path dcp = getProvider().getPath(requestPath);
         
         try {
             ArrayList<DcAclEntry> acl = new ArrayList<>(proxyAcl.size());

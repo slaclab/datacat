@@ -90,7 +90,7 @@ public class DatasetsResource extends BaseResource  {
             @MatrixParam("v") List<String> versions,
             @MatrixParam("l") List<String> locations) throws IOException{
         System.out.println(ui.getAbsolutePath());
-        java.nio.file.Path targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
+        java.nio.file.Path targetPath = getProvider().getPath(requestPath);
         try {
             DcFile file = getProvider().getFile(targetPath, buildCallContext());
             DatacatNode ret;
@@ -134,7 +134,7 @@ public class DatasetsResource extends BaseResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response createDataset(DatasetModel dsReq) throws IOException{
-        java.nio.file.Path targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
+        java.nio.file.Path targetPath = getProvider().getPath(requestPath);
         DcFile parentFile = null;
         RecordType targetType = null;
         RequestView rv = null;
@@ -192,7 +192,7 @@ public class DatasetsResource extends BaseResource  {
         reqDs = requestBuilder.build();
         try {
             DatasetModel ret = getProvider().createDataset(datasetPath, buildCallContext(), reqDs, options);
-            return Response.created(DcUriUtils.toFsUri(datasetPath.toString(), "SRS"))
+            return Response.created(DcUriUtils.toFsUri(datasetPath.toString()))
                     .entity(ret).build();
         } catch (FileAlreadyExistsException ex) {
             return handleFileAlreadyExists(ex, datasetPath, viewRequestOpt, options);
@@ -295,7 +295,7 @@ public class DatasetsResource extends BaseResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
     public Response patchDataset(DatasetModel dsReq) throws IOException{
-        java.nio.file.Path targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
+        java.nio.file.Path targetPath = getProvider().getPath(requestPath);
         RequestView rv = null;
         try {
             rv = new RequestView(RecordType.DATASET, requestMatrixParams);
@@ -323,7 +323,7 @@ public class DatasetsResource extends BaseResource  {
     @DELETE
     @Path(idRegex)
     public Response deleteDatasetOrView() throws IOException{
-        java.nio.file.Path targetPath = getProvider().getPath(DcUriUtils.toFsUri(requestPath, "SRS"));
+        java.nio.file.Path targetPath = getProvider().getPath(requestPath);
         try {
             if(!getProvider().getFile(targetPath, buildCallContext()).isRegularFile()){
                 throw new NoSuchFileException("Path doesn't resolve to a Dataset");

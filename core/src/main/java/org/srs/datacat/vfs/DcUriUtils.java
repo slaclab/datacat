@@ -14,9 +14,9 @@ public final class DcUriUtils {
     
     private DcUriUtils(){}
         
-    public static URI toFsUri(String path, String experiment){
+    public static URI toFsUri(String path){
         try {
-            return new URI("dc", null, experiment, -1, path, null, null);
+            return new URI("dc", null, null, -1, path, null, null);
         } catch(URISyntaxException ex) {
             throw new UriException("Path segnment likely incorrect", ex);
         }

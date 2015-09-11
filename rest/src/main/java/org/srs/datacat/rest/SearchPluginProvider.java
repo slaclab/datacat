@@ -2,7 +2,7 @@
 package org.srs.datacat.rest;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
-import org.srs.datacatalog.search.plugins.DatacatPlugin;
+import org.srs.datacat.dao.sql.search.plugins.DatacatPlugin;
 
 /**
  *

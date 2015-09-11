@@ -27,4 +27,6 @@ public interface DAOFactory {
      */
     DatasetDAO newDatasetDAO(Path lockPath) throws IOException;
     
+    SearchDAO newSearchDAO(Object... plugins) throws IOException;
+    
 }

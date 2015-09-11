@@ -95,7 +95,7 @@ public class PathResource extends BaseResource {
     
     @HEAD
     public Response getHead(@DefaultValue("false") @QueryParam("refresh") boolean refresh) throws IOException{
-        java.nio.file.Path dcp = getProvider().getPath(DcUriUtils.toFsUri(requestPath,  "SRS"));
+        java.nio.file.Path dcp = getProvider().getPath(requestPath);
         try {
             if(refresh){
                 //getProvider().getCache().removeFile(dcp);
@@ -139,7 +139,7 @@ public class PathResource extends BaseResource {
         if(st != null){
             statType = getProvider().getModelProvider().getStatByName(st);
         }
-        java.nio.file.Path dcp = getProvider().getPath(DcUriUtils.toFsUri(path,  "SRS"));
+        java.nio.file.Path dcp = getProvider().getPath(path);
         try {
             if(refresh){
                 //getProvider().getCache().removeFile(dcp);
