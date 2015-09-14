@@ -1,13 +1,13 @@
 #!/usr/bin/python
 
+import logging
 import sys
-import pprint
 import argparse
-import collections
+from .auth import auth_from_config
 from .client import Client
-from .config import *
-from .error import DcException
-from .model import DatacatNode, unpack
+from .config import config_from_file
+from .error import DcException, DcClientException, DcRequestException
+from .model import Container
 
 
 def build_argparser():
@@ -15,17 +15,7 @@ def build_argparser():
     parser.add_argument('-U', '--base-url', help="Override base URL for client", action="store")
     parser.add_argument('-D', '--domain', "--experiment", help="Set domain (experiment) for requests", default="srs")
     parser.add_argument('-M', '--mode', help="Set server mode", choices=("dev","prod"), default="prod")
-    #parser.add_argument('-f', '--format', dest="accept", default="json", help="Default format is JSON. JSON will attempted to be processed further")
-    parser.add_argument('-r', '--show-request', action="store_true", dest="show_request",
-                        help="Show request URL", default=False)
-    parser.add_argument('-R', '--show-response', action="store_true", dest="show_response",
-                        help="Attempt to show formatted response", default=False)
-    parser.add_argument('-Rw', '--show-raw-response', action="store_true", dest="show_raw_response",
-                        help="Show raw response", default=False)
-    parser.add_argument('-rH', '--show-request-headers', action="store_true", dest="request_headers",
-                        help="Show HTTP headers", default=False)
-    parser.add_argument('-RH', '--show-response-headers', action="store_true", dest="response_headers",
-                        help="Show HTTP headers", default=False)
+    parser.add_argument('-d', '--debug', help="Debug Level", action="store_true")
     subparsers = parser.add_subparsers(help="Command help")
     
     def add_search(subparsers):
@@ -38,9 +28,13 @@ def build_argparser():
                                    help="Site to query (default equivalent to 'canonical' for master site)")
         parser_search.add_argument('-q', '--query', dest="query", help="Query String for datasets")
         parser_search.add_argument('--show', nargs="*", metavar="FIELD", help="List of columns to return")
-        parser_search.add_argument('--sort', nargs="*", metavar="FIELD", help=
-        "Fields and metadata to sort by. \nIf sorting in descending order, \nappend a dash to the end of the field. " +
-        "\n\nExamples: \n --sort nRun- nEvents\n --sort nEvents+ nRun-")
+        parser_search.add_argument('--sort', nargs="*", metavar="FIELD",
+                                   help="Fields and metadata to sort by. \n"
+                                   "If sorting in descending order, \n"
+                                   "append a dash to the end of the field. \n\n"
+                                   "Examples: \n"
+                                   " --sort nRun- nEvents\n"
+                                   " --sort nEvents+ nRun-")
         parser_search.set_defaults(command="search")
     
     def add_path(subparsers):
@@ -64,7 +58,7 @@ def build_argparser():
         parser_children.add_argument('-s', '--site', dest="site",
                                      help="Site to query (default equivalent to 'canonical' for master site)")
         parser_children.add_argument('-S', '--stat', dest="stat",
-                                 help="Type of stat to return", choices=("none","basic","dataset"))
+                                     help="Type of stat to return", choices=("none","basic","dataset"))
         parser_children.set_defaults(command=cmd)
 
     def add_mkds(subparsers):
@@ -117,7 +111,7 @@ def main():
 
     command = args.command
     target = args.__dict__.pop("path")
-    params = args.__dict__
+    params = args.__dict__ or {}
 
     config_file_path = args.config_file if hasattr("args", "config_file") else None
     config_section = args.config_section if hasattr("args", "config_section") else None
@@ -126,63 +120,85 @@ def main():
     url = args.base_url if hasattr(args, 'base_url') and args.base_url is not None else None
     if url:
         config["url"] = url
+    if args.debug:
+        config["debug"] = True
+        logging.basicConfig(level=logging.DEBUG)
+        requests_log = logging.getLogger("requests")
+        requests_log.setLevel(logging.DEBUG)
 
     auth_strategy = auth_from_config(config)
     client = Client(auth_strategy=auth_strategy, **config)
     client_method = getattr(client, command)
 
     try:
-        if len(params) > 0:
-            retObjects = client_method(target, **params)
-        else:
-            retObjects = client_method(target)
-    except DcException as error:
-        if hasattr(error, "message"):
-            print("Error occurred:\nMessage: %s" %(error.message))
-            if hasattr(error, "type"):
-                print("Type: %s" %(error.type))
-            if hasattr(error, "cause"):
-                print("Cause: %s" %(error.cause))
-        else:
-            # Should have content
-            print(error.content)
+        result = client_method(target, **params)
+    except DcClientException as error:
+        print error
         sys.exit(1)
-
-    pp = pprint.PrettyPrinter(indent=2)
-
-    if args.show_response:
-        print("Object Response:")
-        show = retObjects if isinstance(retObjects, collections.Iterable) else [retObjects]
-        pp.pprint([i.__dict__ if isinstance(i, DatacatNode) else i for i in show])
+    except DcRequestException as error:
+        print error
+        sys.exit(2)
+    except DcException as error:
+        print error
+        sys.exit(3)
 
     if command == "search":
-        def print_search_info(datasets, metanames):
-            print("\nListing locations...")
-            print( "Resource\tPath\t%s" %("\t".join(metanames)))
-            for dataset in datasets:
-                extra = ""
-                if hasattr(dataset, "metadata"):
-                    extra = "\t".join([str(dataset.metadata.get(i)) for i in metanames])
-                if hasattr(dataset, "resource"):
-                    print( "%s\t%s\t%s" %(dataset.resource, dataset.path, extra))
-                elif hasattr(dataset, "locations"):
-                    for location in dataset.locations:
-                        print( "%s\t%s\t%s" %(location.resource, dataset.path, extra))
+        format_search_results(result, args.show, args.sort)
 
-        metanames = []
-        if args.show is not None:
-            metanames.extend(args.show)
-        if args.sort is not None:
-            s = []
-            s.extend(args.sort)
-            for i in s:
-                if i[-1] in ("+", "-"):
-                    metanames.append(i[0:-1])
-                else:
-                    metanames.append(i)
-        metanames = set(metanames)
-        print_search_info(retObjects, metanames)
+    if command == "path":
+        format_path_result(result)
 
+    if command == "children":
+        format_children(result)
+
+
+def format_search_results(datasets, show=None, sort=None):
+    def print_search_info(datasets, metanames):
+        print("\nListing locations...")
+        print("Resource\tPath\t%s" % ("\t".join(metanames)))
+        for dataset in datasets:
+            extra = ""
+            if hasattr(dataset, "metadata"):
+                extra = "\t".join([str(dataset.metadata.get(i)) for i in metanames])
+            if hasattr(dataset, "resource"):
+                print("%s\t%s\t%s" % (dataset.resource, dataset.path, extra))
+            elif hasattr(dataset, "locations"):
+                for location in dataset.locations:
+                    print("%s\t%s\t%s" % (location.resource, dataset.path, extra))
+
+    metanames = []
+    if show is not None:
+        metanames.extend(show)
+    if sort is not None:
+        s = []
+        s.extend(sort)
+        for i in s:
+            if i[-1] in ("+", "-"):
+                metanames.append(i[0:-1])
+            else:
+                metanames.append(i)
+    metanames = set(metanames)
+    print_search_info(datasets, metanames)
+
+
+def format_path_result(obj):
+    print "{}: {}".format(type(object).__name__, obj.path)
+    if isinstance(obj, Container):
+        if hasattr(obj, "stat"):
+            print "Stat:"
+            for name, value in obj.stat.items():
+                if "Count" in name:
+                    print "    {}: {}".format(name, value)
+    if hasattr(obj, "versionMetadata"):
+        print "Version Metadata: \n{}".format(obj.versionMetadata)
+
+    if hasattr(obj, "metadata"):
+        print "Metadata: \n{}".format(obj.metadata)
+
+
+def format_children(objects):
+    for obj in objects:
+        print repr(obj)
 
 if __name__ == '__main__':
     main()
