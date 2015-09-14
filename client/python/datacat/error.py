@@ -56,7 +56,7 @@ class DcClientException(DcException):
 def checked_error(request_exception):
 
     resp = request_exception.response
-    if resp is not None and resp.headers["content-type"] == "application/json":
+    if resp is not None and resp.headers.get("content-type", None) == "application/json":
         err = resp.json()
         if "type" in err:
             return DcClientException(err["type"], message=err.get("message", None),
