@@ -14,7 +14,7 @@ class DatacatRecord(object):
 
 class DatacatNode(DatacatRecord):
     def __init__(self, name=None, parentPk=None, **kwargs):
-        super(DatacatNode, self).__init__(**kwargs)
+        super(DatacatNode, self).__init__(pk=kwargs.get("pk", None), path=kwargs.get("path", None))
         if name is not None:
             self.name = name
         if parentPk is not None:
@@ -98,8 +98,8 @@ class Metadata(MutableMapping):
     def __init__(self, seq=None):
         self.dct = OrderedDict(seq) if seq else OrderedDict()
 
-    def __contains__(self, key):
-        return self.dct.__contains__(key)
+    def __contains__(self, ):
+        return self.dct.__contains__()
 
     def __getitem__(self, key):
         return self.dct.__getitem__(key)
@@ -124,7 +124,7 @@ class Metadata(MutableMapping):
 
 
 class SearchResults(list):
-    def __init__(self, results, count):
+    def __init__(self, results, count, **kwargs):
         super(SearchResults, self).__init__(results)
         self.count = count
 
@@ -133,7 +133,7 @@ def unpack(content, default_type=None):
     def type_hook(raw):
         try:
             ret = _default_hook(raw)
-        except TypeError:
+        except TypeError as e:
             ret = default_type(**raw)
         return ret
     return json.loads(content, object_hook=_default_hook if not default_type else type_hook)

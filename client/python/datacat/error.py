@@ -1,3 +1,5 @@
+from requests import RequestException
+
 __author__ = 'bvan'
 
 EXCEPTION_TYPES = "AccessDenied DirectoryNotEmpty FileAlreadyExists " \
@@ -53,8 +55,16 @@ class DcClientException(DcException):
         return formatted_string
 
 
-def checked_error(request_exception):
+def checked_error(method):
+    def wrap(*args, **kwargs):
+        try:
+            return method(*args, accept="json", **kwargs)
+        except RequestException as e:
+            raise _check(e)
+    return wrap
 
+
+def _check(request_exception):
     resp = request_exception.response
     if resp is not None and resp.headers.get("content-type", None) == "application/json":
         err = resp.json()

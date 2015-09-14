@@ -1,6 +1,5 @@
 
 import os
-from requests import RequestException
 from .auth import auth_from_config
 from .config import config_from_file
 from .error import DcClientException, checked_error
@@ -18,12 +17,14 @@ class Client(object):
         self.http_client = HttpClient(url, auth_strategy, *args, **kwargs)
         self.url = url
 
+    @checked_error
     def path(self, path, versionId=None, site=None, **kwargs):
-        resp = self.do_request(self.http_client.path, path, versionId, site, **kwargs)
+        resp = self.http_client.path(path, versionId, site, **kwargs)
         return unpack(resp.content)
 
+    @checked_error
     def children(self, path, versionId=None, site=None, offset=None, max_num=None, **kwargs):
-        resp = self.do_request(self.http_client.children, path, versionId, site, offset, max_num, **kwargs)
+        resp = self.http_client.children(path, versionId, site, offset, max_num, **kwargs)
         return unpack(resp.content)
 
     def exists(self, path, versionId=None, site=None, **kwargs):
@@ -35,6 +36,7 @@ class Client(object):
                 return False
             raise e
 
+    @checked_error
     def mkdir(self, path, type="folder", parents=False, metadata=None, **kwargs):
         """
         Make a new Container
@@ -63,7 +65,7 @@ class Client(object):
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
-        resp = self.do_request(self.http_client.mkdir, path, payload=pack(container), type=type, **kwargs)
+        resp = self.http_client.mkdir(path, payload=pack(container), type=type, **kwargs)
         return unpack(resp.content)
 
     def mkfolder(self, path, parents=False, metadata=None, **kwargs):
@@ -86,6 +88,7 @@ class Client(object):
         """
         return self.mkdir(path, "group", parents, metadata, **kwargs)
 
+    @checked_error
     def mkds(self, path, name, dataType, fileFormat, versionId="new", site=None, resource=None, versionMetadata=None,
              datasetExtras=None, versionExtras=None, locationExtras=None, **kwargs):
         """
@@ -119,7 +122,7 @@ class Client(object):
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
-        resp = self.do_request(self.http_client.mkds, path, pack(ds), **kwargs)
+        resp = self.http_client.mkd(path, pack(ds), **kwargs)
         return unpack(resp.content)
 
     def create_dataset(self, path, name, dataType, fileFormat,
@@ -132,6 +135,7 @@ class Client(object):
         return self.mkds(path, name, dataType, fileFormat, versionId, site, resource, versionMetadata, datasetExtras,
                          versionExtras, locationExtras)
 
+    @checked_error
     def mkver(self, path, versionId="new", site=None, resource=None, versionMetadata=None, versionExtras=None,
               locationExtras=None, **kwargs):
         """
@@ -156,9 +160,10 @@ class Client(object):
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
-        resp = self.do_request(self.http_client.mkds, path, pack(ds), **kwargs)
+        resp = self.http_client.mkds(path, pack(ds), **kwargs)
         return unpack(resp.content)
 
+    @checked_error
     def mkloc(self, path, site, resource, versionId="current", locationExtras=None, **kwargs):
         """
         Make a dataset location.
@@ -175,9 +180,10 @@ class Client(object):
         headers = kwargs.get("headers", {})
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
-        resp = self.do_request(self.http_client.mkds, path, pack(ds), versionId=versionId, **kwargs)
+        resp = self.http_client.mkds(path, pack(ds), versionId=versionId, **kwargs)
         return unpack(resp.content)
 
+    @checked_error
     def rmdir(self, path, type="folder", **kwargs):
         """
         Remove a container.
@@ -185,16 +191,17 @@ class Client(object):
         :param type: Type of container (Group or Folder). This will be removed in a future version.
         :return: A :class`requests.Response` object. A client can inspect the status code.
         """
-        self.do_request(self.http_client.rmdir, path, type, **kwargs)
+        self.http_client.rmdir(path, type, **kwargs)
         return True
 
+    @checked_error
     def rmds(self, path, **kwargs):
         """
         Remove a dataset.
         :param path: Path of dataset to remove
         :param kwargs:
         """
-        self.do_request(self.http_client.rmds, path, **kwargs)
+        self.http_client.rmds(path, **kwargs)
         return True
 
     def delete_dataset(self, path, **kwargs):
@@ -203,6 +210,7 @@ class Client(object):
         """
         return self.rmds(path, **kwargs)
 
+    @checked_error
     def patchdir(self, path, container, type="folder", **kwargs):
         """
         Patch a container.
@@ -224,9 +232,10 @@ class Client(object):
         elif type == "folder":
             container = Folder(**container)
 
-        resp = self.do_request(self.http_client.patchdir, path, pack(container), type, **kwargs)
+        resp = self.http_client.patchdir(path, pack(container), type, **kwargs)
         return unpack(resp.content)
 
+    @checked_error
     def patchds(self, path, dataset, versionId="current", site=None, **kwargs):
         """
         Patch a dataset.
@@ -243,7 +252,7 @@ class Client(object):
         headers["content-type"] = "application/json"
         kwargs["headers"] = headers
         ds = dataset if type(dataset) == Dataset else Dataset(**dataset)
-        resp = self.do_request(self.http_client.patchds, path, pack(ds), versionId, site, **kwargs)
+        resp = self.http_client.patchds(path, pack(ds), versionId, site, **kwargs)
         return unpack(resp.content)
 
     def patch_container(self, path, container, type="folder", **kwargs):
@@ -258,6 +267,7 @@ class Client(object):
         """
         return self.patchds(path, dataset, versionId, site, **kwargs)
 
+    @checked_error
     def search(self, target, versionId=None, site=None, query=None, sort=None, show=None, offset=None, max_num=None,
                **kwargs):
         """Search a target. A target is a Container of some sort. It may also be specified as a glob, as in:
@@ -274,16 +284,9 @@ class Client(object):
         :param offset: Offset at which to start returning objects.
         :param max_num: Maximum number of objects to return.
         """
-        resp = self.do_request(self.http_client.search, target, versionId, site, query,
-                               sort, show, offset, max_num, **kwargs)
+        resp = self.http_client.search(target, versionId, site, query,
+                                       sort, show, offset, max_num, **kwargs)
         return unpack(resp.content)
-
-    @staticmethod
-    def do_request(method, *args, **kwargs):
-        try:
-            return method(*args, accept="json", **kwargs)
-        except RequestException as e:
-            raise checked_error(e)
 
 
 def client_from_config_file(path=None, override_section=None):
