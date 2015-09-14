@@ -9,10 +9,10 @@ __version__ = "0.3"
 
 INSTALLATIONS = "srs fermi".split(" ")
 
-DEV_SRS_URL = "http://srs.slac.stanford.edu/datacat-v%s-SNAPSHOT/r" %(__version__)
-PROD_SRS_URL = "http://srs.slac.stanford.edu/datacat-v%s/r" %(__version__)
-DEV_LSST_DM_URL = "http://lsst-db2.slac.stanford.edu:8180/datacat-v%s-SNAPSHOT/r" %(__version__)
-PROD_LSST_DM_URL = "http://lsst-db2.slac.stanford.edu:8180/datacat-v%s/r" %(__version__)
+DEV_SRS_URL = "http://srs.slac.stanford.edu/datacat-v%s-SNAPSHOT/r" % __version__
+PROD_SRS_URL = "http://srs.slac.stanford.edu/datacat-v%s/r" % __version__
+DEV_LSST_DM_URL = "http://lsst-db2.slac.stanford.edu:8180/datacat-v%s-SNAPSHOT/r" % __version__
+PROD_LSST_DM_URL = "http://lsst-db2.slac.stanford.edu:8180/datacat-v%s/r" % __version__
 
 SRS_EXPERIMENTS = "srs exo cdms lsst lsst-desc lsst-camera".split(" ")
 LSST_DM_EXPERIMENT = "lsst-dm"
