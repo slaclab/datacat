@@ -181,23 +181,23 @@ def format_search_results(results, show=None, sort=None):
     print_search_info(results, metanames)
 
 
-def format_path_result(obj):
-    print "{}: {}".format(type(object).__name__, obj.path)
-    if isinstance(obj, Container):
-        if hasattr(obj, "stat"):
+def format_path_result(result):
+    print "{}: {}".format(type(object).__name__, result.path)
+    if isinstance(result, Container):
+        if hasattr(result, "stat"):
             print "Stat:"
-            for name, value in obj.stat.items():
+            for name, value in result.stat.items():
                 if "Count" in name:
                     print "    {}: {}".format(name, value)
-    if hasattr(obj, "versionMetadata"):
-        print "Version Metadata: \n{}".format(obj.versionMetadata)
+    if hasattr(result, "versionMetadata"):
+        print "Version Metadata: \n{}".format(result.versionMetadata)
 
-    if hasattr(obj, "metadata"):
-        print "Metadata: \n{}".format(obj.metadata)
+    if hasattr(result, "metadata"):
+        print "Metadata: \n{}".format(result.metadata)
 
 
-def format_children(objects):
-    for obj in objects:
+def format_children(results):
+    for obj in results:
         print repr(obj)
 
 if __name__ == '__main__':
