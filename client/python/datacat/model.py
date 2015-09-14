@@ -5,7 +5,7 @@ from datetime import datetime
 
 
 class DatacatRecord(object):
-    def __init__(self, pk=None, path=None, **kwargs):
+    def __init__(self, pk=None, path=None):
         if path is not None:
             self.path = path
         if pk is not None:
@@ -27,6 +27,7 @@ class DatacatNode(DatacatRecord):
         name = " Name: %s" % (self.name if hasattr(self, "name") else "")
         path = " Path: %s" % (self.path if hasattr(self, "path") else "")
         return u'<{}.{}{}{}>'.format(type(self).__module__, type(self).__name__, name, path)
+
 
 class Container(DatacatNode):
     def __init__(self, **kwargs):
@@ -97,6 +98,9 @@ class Metadata(MutableMapping):
     def __init__(self, seq=None):
         self.dct = OrderedDict(seq) if seq else OrderedDict()
 
+    def __contains__(self, key):
+        return self.dct.__contains__(key)
+
     def __getitem__(self, key):
         return self.dct.__getitem__(key)
 
@@ -120,7 +124,7 @@ class Metadata(MutableMapping):
 
 
 class SearchResults(list):
-    def __init__(self, results, count, **kwargs):
+    def __init__(self, results, count):
         super(SearchResults, self).__init__(results)
         self.count = count
 
@@ -129,7 +133,7 @@ def unpack(content, default_type=None):
     def type_hook(raw):
         try:
             ret = _default_hook(raw)
-        except TypeError as e:
+        except TypeError:
             ret = default_type(**raw)
         return ret
     return json.loads(content, object_hook=_default_hook if not default_type else type_hook)
