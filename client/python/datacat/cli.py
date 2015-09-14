@@ -14,9 +14,9 @@ def build_argparser():
     parser = argparse.ArgumentParser(description="Python CLI for Data Catalog RESTful interfaces")
     parser.add_argument('-U', '--base-url', help="Override base URL for client", action="store")
     parser.add_argument('-D', '--domain', "--experiment", help="Set domain (experiment) for requests", default="srs")
-    parser.add_argument('-M', '--mode', help="Set server mode", choices=("dev","prod"), default="prod")
+    parser.add_argument('-M', '--mode', help="Set server mode", choices=("dev", "prod"), default="prod")
     parser.add_argument('-d', '--debug', help="Debug Level", action="store_true")
-    subparsers = parser.add_subparsers(help="Command help")
+    sub = parser.add_subparsers(help="Command help")
     
     def add_search(subparsers):
         parser_search = subparsers.add_parser("search", help="Search command help",
@@ -46,7 +46,7 @@ def build_argparser():
         parser_path.add_argument('-s', '--site', dest="site",
                                  help="Site to query (default equivalent to 'canonical' for master site)")
         parser_path.add_argument('-S', '--stat', dest="stat",
-                                 help="Type of stat to return (for containers)", choices=("none","basic","dataset"))
+                                 help="Type of stat to return (for containers)", choices=("none", "basic", "dataset"))
         parser_path.set_defaults(command=cmd)
     
     def add_children(subparsers):
@@ -58,7 +58,7 @@ def build_argparser():
         parser_children.add_argument('-s', '--site', dest="site",
                                      help="Site to query (default equivalent to 'canonical' for master site)")
         parser_children.add_argument('-S', '--stat', dest="stat",
-                                     help="Type of stat to return", choices=("none","basic","dataset"))
+                                     help="Type of stat to return", choices=("none", "basic", "dataset"))
         parser_children.set_defaults(command=cmd)
 
     def add_mkds(subparsers):
@@ -84,23 +84,23 @@ def build_argparser():
         cmd = "mkdir"
         parser_children = subparsers.add_parser(cmd, help="Help with the children command")
         parser_children.add_argument('path', help="Container path")
-        parser_children.add_argument('type', help="Container Type (defaults to folder)", choices=("folder","group"))
+        parser_children.add_argument('type', help="Container Type (defaults to folder)", choices=("folder", "group"))
         parser_children.set_defaults(command=cmd)
 
     def add_rmdir(subparsers):
         cmd = "rmdir"
         parser_children = subparsers.add_parser(cmd, help="Remove a container (group or folder)")
         parser_children.add_argument('path', help="Path of container to remove")
-        parser_children.add_argument('type', help="Container Type (defaults to folder)", choices=("folder","group"))
+        parser_children.add_argument('type', help="Container Type (defaults to folder)", choices=("folder", "group"))
         parser_children.set_defaults(command=cmd)
 
-    add_path(subparsers)
-    add_children(subparsers)
-    add_search(subparsers)
-    add_mkds(subparsers)
-    add_rmds(subparsers)
-    add_mkdir(subparsers)
-    add_rmdir(subparsers)
+    add_path(sub)
+    add_children(sub)
+    add_search(sub)
+    add_mkds(sub)
+    add_rmds(sub)
+    add_mkdir(sub)
+    add_rmdir(sub)
     
     return parser
 
@@ -152,14 +152,14 @@ def main():
         format_children(result)
 
 
-def format_search_results(datasets, show=None, sort=None):
+def format_search_results(results, show=None, sort=None):
     def print_search_info(datasets, metanames):
         print("\nListing locations...")
         print("Resource\tPath\t%s" % ("\t".join(metanames)))
         for dataset in datasets:
             extra = ""
             if hasattr(dataset, "metadata"):
-                extra = "\t".join([str(dataset.metadata.get(i)) for i in metanames])
+                extra = "\t".join([str(dataset.metadata.get(mn)) for mn in metanames])
             if hasattr(dataset, "resource"):
                 print("%s\t%s\t%s" % (dataset.resource, dataset.path, extra))
             elif hasattr(dataset, "locations"):
@@ -178,7 +178,7 @@ def format_search_results(datasets, show=None, sort=None):
             else:
                 metanames.append(i)
     metanames = set(metanames)
-    print_search_info(datasets, metanames)
+    print_search_info(results, metanames)
 
 
 def format_path_result(obj):
