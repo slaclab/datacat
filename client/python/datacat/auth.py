@@ -1,4 +1,3 @@
-__author__ = 'bvan'
 
 import base64
 from email.utils import formatdate
@@ -6,6 +5,8 @@ import hashlib
 import hmac
 import requests
 from urlparse import urlparse
+
+__author__ = 'bvan'
 
 
 class HMACAuth(requests.auth.AuthBase):
