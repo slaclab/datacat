@@ -98,8 +98,8 @@ class Metadata(MutableMapping):
     def __init__(self, seq=None):
         self.dct = OrderedDict(seq) if seq else OrderedDict()
 
-    def __contains__(self, ):
-        return self.dct.__contains__()
+    def __contains__(self, key):
+        return self.dct.__contains__(key)
 
     def __getitem__(self, key):
         return self.dct.__getitem__(key)
