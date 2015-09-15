@@ -1,6 +1,7 @@
 package org.srs.webapps.datacat.controllers;
 
-import java.net.MalformedURLException;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -9,9 +10,10 @@ import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import org.srs.datacat.client.Client;
+import org.srs.datacat.client.ClientBuilder;
+import org.srs.datacat.client.auth.AuthenticationFilter;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetContainer;
-import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RecordType;
@@ -26,15 +28,22 @@ import org.srs.vfs.PathUtils;
 public class ControllerUtils {
     static final int DEFAULT_MAX = 100;
     
-    public static Client getClient(HttpServletRequest request) throws MalformedURLException{
+    public static Client getClient(HttpServletRequest request) throws IOException{
         String localUrl = String.format("%s://%s:%s%s/r",
                 request.getScheme(), request.getServerName(), request.getServerPort(),
                 request.getContextPath());
-        return new Client(localUrl, request);
+        try {
+            return ClientBuilder.newBuilder()
+                    .setUrl(localUrl)
+                    .addClientRequestFilter(new AuthenticationFilter(request))
+                    .build();
+        } catch(URISyntaxException ex) {
+            throw new IOException(ex);
+        }
     }
 
     public static HashMap<String, Object> collectAttributes(HttpServletRequest request, boolean withDatasets)
-            throws ServletException, MalformedURLException{
+            throws ServletException, IOException{
 
         HashMap<String, Object> requestAttributes = new HashMap<>();
 

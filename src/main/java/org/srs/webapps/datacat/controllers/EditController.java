@@ -7,7 +7,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.srs.datacat.client.Client;
+import org.srs.datacat.client.exception.DcException;
 
 /**
  *
@@ -24,7 +24,7 @@ public class EditController extends HttpServlet {
             for(Map.Entry<String, Object> entry: model.entrySet()){
                 request.setAttribute(entry.getKey(), entry.getValue());
             }
-        } catch (Client.DcException ex){   
+        } catch (DcException ex){   
             request.setAttribute("error", ex);
             request.getRequestDispatcher( "/display/error.jsp" ).forward( request, response );
             return;
