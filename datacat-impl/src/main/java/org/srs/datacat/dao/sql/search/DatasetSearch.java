@@ -337,9 +337,6 @@ public class DatasetSearch {
     }
    
     private AST parseQueryString(String queryString) throws ParseException {
-        if(queryString.isEmpty()){
-            return null;
-        }
         Lexer scanner = new Lexer( new StringReader(queryString) );
         Parser p = new Parser( scanner );
         try {
