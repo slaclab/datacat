@@ -14,8 +14,7 @@
         
         <div class="error">
             Error: ${error.message} <br/>
-            Error: ${error.type} <br/>
-            Status: ${error.code} <br/>
+            Error detail: ${error.cause} <br/>
 
         </div>
     </body>
