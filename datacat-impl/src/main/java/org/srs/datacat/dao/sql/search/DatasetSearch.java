@@ -97,7 +97,7 @@ public class DatasetSearch {
         DatacatSearchContext sd = new DatacatSearchContext(dsv, plugins, dmc);
         
         // Process AST if there's a query
-        if(query.isPresent()){
+        if(query.isPresent() && !query.get().isEmpty()){
             AST ast = parseQueryString(query.get());
             // Allows us to do any last minute translation
             doRewrite(ast);
