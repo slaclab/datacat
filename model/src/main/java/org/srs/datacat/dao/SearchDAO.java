@@ -22,8 +22,6 @@ public interface SearchDAO extends BaseDAO{
      * @param query
      * @param metaFieldsToRetrieve
      * @param sortFields
-     * @param offset
-     * @param max
      * @return
      * @throws ParseException
      * @throws IOException 
