@@ -2,17 +2,18 @@
 package org.srs.datacat.dao.sql;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.sql.Connection;
 import java.text.ParseException;
 import java.util.LinkedList;
 import org.srs.datacat.model.DatacatNode;
-import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.dao.sql.search.DatasetSearch;
 import org.srs.datacat.dao.sql.search.plugins.EXODatacatSearchPlugin;
 import org.srs.datacat.dao.sql.search.plugins.LsstFilesSearchPlugin;
 import org.srs.datacat.dao.sql.search.plugins.LsstKVSearchPlugin;
 import org.srs.datacat.dao.sql.search.plugins.LsstPositionsSearchPlugin;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.shared.Provider;
 
 /**
@@ -34,10 +35,10 @@ public class SqlSearchDAO extends SqlBaseDAO implements org.srs.datacat.dao.Sear
     }
 
     @Override
-    public DatasetResultSetModel search(LinkedList<DatacatNode> containers,
+    public DirectoryStream<DatasetModel> search(LinkedList<DatacatNode> containers,
             DatasetView datasetView, String query, String[] retrieveFields,
-            String[] sortFields, int offset, int max) throws ParseException, IOException{
-        return search.search(containers, datasetView, query, sortFields, sortFields, offset, max);
+            String[] sortFields) throws ParseException, IOException{
+        return search.search(containers, datasetView, query, sortFields, sortFields);
     }
  
 }

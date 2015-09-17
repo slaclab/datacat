@@ -3,6 +3,7 @@ package org.srs.datacat.dao.sql.search;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.DirectoryStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.freehep.commons.lang.AST;
 import org.srs.datacat.model.DatacatNode;
@@ -22,7 +24,6 @@ import org.zerorm.core.Select;
 
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetModel;
-import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.model.RecordType;
@@ -310,53 +311,70 @@ public final class SearchUtils {
     }
     */
     
-    public static DatasetResultSetModel getResults(final Connection conn, ModelProvider modelProvider, 
-            final Select sel, List<String> metadataNames,
-            int offset, int max) throws SQLException{
-        int count = 0;
-        final ArrayList<DatasetModel> datasets = new ArrayList<>();
-        try(PreparedStatement stmt = sel.prepareAndBind( conn )){
-            ResultSet rs = stmt.executeQuery();
-            if(!rs.next()){
-                rs.close();
-            }
-            
-            // Consume until offset
-            for(int i = 0; i < offset && !rs.isClosed(); i++, count++){
-                SearchUtils.datasetFactory(rs, modelProvider, metadataNames);
-            }
-            
-            // Materialize to max
-            for(int i = 0; i < max && !rs.isClosed(); i++, count++){
-                datasets.add(SearchUtils.datasetFactory(rs, modelProvider, metadataNames));
-            }
-            
-            // Consume to end
-            while(!rs.isClosed()){
-                SearchUtils.datasetFactory(rs, modelProvider, metadataNames);
-                count++;
-            }
+    public static DirectoryStream<DatasetModel> getResults(final Connection conn, final ModelProvider modelProvider, 
+            final Select sel, final List<String> metadataNames) throws SQLException{
+        final PreparedStatement stmt = sel.prepareAndBind(conn);
+        final ResultSet rs = stmt.executeQuery();
+        if(!rs.next()){
+            rs.close();
         }
-        
-        final int total = count;
-        return new DatasetResultSetModel(){
-
-            @Override
-            public List<DatasetModel> getResults(){
-                return datasets;
-            }
-
-            @Override
-            public Integer getCount(){
-                return total;
-            }
+        DirectoryStream<DatasetModel> stream = new DirectoryStream<DatasetModel>() {
+            Iterator<DatasetModel> iter = null;
 
             @Override
             public Iterator<DatasetModel> iterator(){
-                return datasets.iterator();
+                if(iter == null){
+                    iter = new Iterator<DatasetModel>() {
+                        private DatasetModel ds = null;
+                        @Override
+                        public boolean hasNext(){
+                            try {
+                                if(ds == null){
+                                    if(rs.isClosed()){
+                                        return false;
+                                    }
+                                    ds = SearchUtils.datasetFactory(rs, modelProvider, metadataNames);
+                                    return true;
+                                }
+                                return true;
+                            } catch(NoSuchElementException ex) {
+                                return false;
+                            } catch(SQLException ex){
+                                throw new RuntimeException("Error processing search results", ex);
+                            }
+                        }
+
+                        @Override
+                        public DatasetModel next(){
+                            if(!hasNext()){
+                                throw new NoSuchElementException();
+                            }
+                            DatasetModel ret = ds;
+                            ds = null;
+                            return ret;
+                        }
+
+                        @Override
+                        public void remove(){
+                            throw new UnsupportedOperationException();
+                        }
+
+                    };
+                }
+                return iter;
             }
-            
+
+            @Override
+            public void close() throws IOException{
+                try {
+                    stmt.close();
+                } catch(SQLException ex) {
+                    throw new IOException("Error closing statement", ex);
+                }
+            }
         };
+
+        return stream;
     }
        
     public static Class<?> getParamType(Object tRight){

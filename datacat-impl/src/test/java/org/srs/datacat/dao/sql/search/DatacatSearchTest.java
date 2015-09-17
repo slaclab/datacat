@@ -4,10 +4,13 @@ package org.srs.datacat.dao.sql.search;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import javax.sql.DataSource;
@@ -272,13 +275,19 @@ public class DatacatSearchTest {
                 Optional.fromNullable(queryString), 
                 Optional.fromNullable(metaFieldsToRetrieve), 
                 Optional.fromNullable(sortFields));
-        List<DatasetModel> datasets = datacatSearch.retrieveDatasets(0, Integer.MAX_VALUE).getResults();
-        int ii = 0;
-        for(DatasetModel d: datasets){
-            ii++;
+        try (DirectoryStream<DatasetModel> stream = datacatSearch.retrieveDatasets()){
+            Iterator<DatasetModel> iter = stream.iterator();
+            List<DatasetModel> datasets = new ArrayList<>();
+            while(iter.hasNext()){
+                datasets.add(iter.next());
+            }
+            int ii = 0;
+            for(DatasetModel d: datasets){
+                ii++;
+            }
+            TestCase.assertEquals("Should have found "+ expected + " datasets out of 20000",expected, ii);
+            return datasets;
         }
-        TestCase.assertEquals("Should have found "+ expected + " datasets out of 20000",expected, ii);
-        return datasets;
     }
     
 }

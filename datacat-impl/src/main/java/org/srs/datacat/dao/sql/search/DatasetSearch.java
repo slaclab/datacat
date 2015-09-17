@@ -5,6 +5,7 @@ import com.google.common.base.Optional;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigInteger;
+import java.nio.file.DirectoryStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -22,11 +23,11 @@ import org.freehep.commons.lang.bool.Lexer;
 import org.freehep.commons.lang.bool.Parser;
 import org.freehep.commons.lang.bool.sym;
 import org.srs.datacat.model.DatacatNode;
-import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.dao.sql.search.plugins.DatacatPlugin;
 import org.srs.datacat.dao.sql.search.tables.DatasetVersions;
+import org.srs.datacat.model.DatasetModel;
 import org.zerorm.core.Column;
 import org.zerorm.core.Op;
 import org.zerorm.core.Select;
@@ -56,30 +57,22 @@ public class DatasetSearch {
         this.modelProvider = modelProvider;
     }
     
-    public DatasetResultSetModel search(LinkedList<DatacatNode> containers, DatasetView datasetView, 
-            String query, String[] metaFieldsToRetrieve, String[] sortFields, 
-            int offset, int max) throws ParseException, IOException {
+    public DirectoryStream<DatasetModel> search(LinkedList<DatacatNode> containers, DatasetView datasetView, 
+            String query, String[] metaFieldsToRetrieve, String[] sortFields) throws ParseException, IOException {
         try {
             compileStatement(containers, datasetView, 
                     Optional.fromNullable(query), 
                     Optional.fromNullable(metaFieldsToRetrieve), 
                     Optional.fromNullable(sortFields));
-            if(offset < 0){
-                offset = 0;
-            }
-            if(max < 0){
-                max = Integer.MAX_VALUE;
-            }
-            return retrieveDatasets(offset, max);
+            return retrieveDatasets();
         } catch (SQLException ex) {
             throw new IOException("Error retrieving results", ex);
         }
     }
     
-    protected DatasetResultSetModel retrieveDatasets(int offset, int max) throws IOException {
+    protected DirectoryStream<DatasetModel> retrieveDatasets() throws IOException {
         try {
-            return SearchUtils.getResults(conn, modelProvider, selectStatement, metadataFields,
-                    offset, max);
+            return SearchUtils.getResults(conn, modelProvider, selectStatement, metadataFields);
         } catch (SQLException ex) {
             throw new IOException("Error retrieving results", ex);
         }

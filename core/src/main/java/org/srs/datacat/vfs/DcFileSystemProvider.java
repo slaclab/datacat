@@ -27,7 +27,6 @@ import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.model.dataset.DatasetViewInfoModel;
 import org.srs.datacat.model.dataset.DatasetWithViewModel;
@@ -466,24 +465,43 @@ public class DcFileSystemProvider {
      * @param query A Query String
      * @param retrieveFields
      * @param sortFields
-     * @param offset
-     * @param max
      * @return
      * @throws IOException
      * @throws ParseException 
      */
-    public DatasetResultSetModel search(String pathPattern, CallContext context, 
+    public DirectoryStream<DatasetModel> search(String pathPattern, CallContext context, 
             Boolean checkFolders, Boolean checkGroups, DatasetView datasetView, String query, 
-            String[] retrieveFields, String[] sortFields, int offset, int max) throws IOException, ParseException{
+            String[] retrieveFields, String[] sortFields) throws IOException, ParseException{
         String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern, "/"));
         Path root = PATH_PROVIDER.getRoot();
         Path searchPath = root.resolve(searchBase);
         ContainerVisitor visitor= new ContainerVisitor(pathPattern, checkGroups, checkFolders);
         DirectoryWalker walker = new DirectoryWalker(this, visitor, 100 /* max depth */);
         walker.walk(searchPath, context);
-        try(SearchDAO dao = daoFactory.newSearchDAO()) {
-            return dao.search(visitor.files, datasetView, query, sortFields, sortFields, offset, max);
-        }
+        final SearchDAO dao = daoFactory.newSearchDAO();
+        
+        final DirectoryStream<DatasetModel> search = 
+                dao.search(visitor.files, datasetView, query, sortFields, sortFields);
+        
+        // Wrap the actual DirectoryStream and add method to close DAO
+        return new DirectoryStream<DatasetModel>(){
+
+            @Override
+            public Iterator<DatasetModel> iterator(){
+                return search.iterator();
+            }
+
+            @Override
+            public void close() throws IOException{
+                if(search != null){
+                    search.close();
+                }
+                if(dao != null){
+                    dao.close();
+                }
+            }
+            
+        };
     }
     
     /**

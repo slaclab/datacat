@@ -2,9 +2,12 @@
 package org.srs.datacat.rest.resources;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.NoSuchFileException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
@@ -20,6 +23,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.shared.RequestView;
@@ -69,7 +73,7 @@ public class SearchResource extends BaseResource {
             @QueryParam("show") List<String> metadata, 
             @QueryParam("checkFolders") Boolean checkFolders,
             @QueryParam("checkGroups") Boolean checkGroups,
-            @DefaultValue("-1") @QueryParam("max") int max,
+            @DefaultValue("100000") @QueryParam("max") int max,
             @DefaultValue("0") @QueryParam("offset") int offset) {
 
         String pathPattern = requestPath;        
@@ -88,9 +92,21 @@ public class SearchResource extends BaseResource {
         }
         
         DatasetResultSetModel searchResults = null;
-        try {
-            searchResults = getProvider().search(pathPattern, buildCallContext(), checkFolders, checkGroups, 
-                    dv, filter, metafields, sortFields, offset, max);
+        try (DirectoryStream<DatasetModel> stream = 
+                    getProvider().search(pathPattern, buildCallContext(), checkFolders, checkGroups, 
+                            dv, filter, metafields, sortFields)){
+            List<DatasetModel> datasets = new ArrayList<>();
+            int count = 0;
+            Iterator<DatasetModel> iter = stream.iterator();
+            for(int i = 0; iter.hasNext(); i++, count++){
+                if(i >= offset && i < max){
+                    datasets.add(iter.next());
+                } else {
+                    iter.next();
+                }
+            }
+            searchResults = getProvider().getModelProvider().getDatasetResultSetBuilder()
+                    .results(datasets).count(count).build();
         } catch (IllegalArgumentException ex){
             throw new RestException(ex,400, "Unable to process query, see message", ex.getMessage());
         } catch (NoSuchFileException ex){
