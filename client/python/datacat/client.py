@@ -290,6 +290,15 @@ class Client(object):
 
 
 def client_from_config_file(path=None, override_section=None):
+    """
+    Return a new client from a config file.
+    :param path: Path to read file from. If None, will read from
+     default locations.
+    :param override_section: Section in config file with overridden
+     values. If None, only defaults section will be read.
+    :return: Configured client
+    :except: OSError if path is provided and the file doesn't exist.
+    """
     config = config_from_file(path, override_section)
     return client_from_config(config)
 

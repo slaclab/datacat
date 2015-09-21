@@ -42,9 +42,20 @@ def default_config(domain=None, mode=None):
 
 
 def config_from_file(path=None, override_section=None, domain=None, mode=None):
+    """
+    Return a new client from a config file.
+    :param path: Path to read file from. If None, will read from
+     default locations.
+    :param override_section: Section in config file with overridden
+     values. If None, only defaults section will be read.
+    :param domain: Used to construct endpoint URL based on domain.
+    :return: Configured client
+    :except: OSError if path is provided and the file doesn't exist.
+    """
     config = ConfigParser.SafeConfigParser()
     defaults = default_config(domain, mode)
     if path:
+        os.stat(path) # Check path exists, will throw OSError if it doesn't.
         config.read([path])
     else:
         config.read([
