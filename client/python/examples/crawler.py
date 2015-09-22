@@ -1,5 +1,12 @@
-from datacat.client import DcException
+from datacat import client_from_config_file
+from datacat.error import DcException
 from datetime import datetime
+import os
+import sched
+import subprocess
+import sys
+import time
+
 __author__ = 'bvan'
 
 """
@@ -11,22 +18,16 @@ It searches for datasets which are unscanned for a particular location.
 
 """
 
-import sys
-import os
-import sched, time
-import subprocess
-from datacat import Client
-
-
 WATCH_FOLDER = '/LSST'
 WATCH_SITE = 'SLAC'
 
-class Crawler:
 
+# noinspection PyMethodMayBeStatic
+class Crawler:
     RERUN_SECONDS = 5
 
     def __init__(self):
-        self.client = Client("http://lsst-db2.slac.stanford.edu:8180/rest-datacat-v1/r")
+        self.client = client_from_config_file()  # Reads default config files or returns a default config
         self.sched = sched.scheduler(time.time, time.sleep)
         self._run()
 
@@ -47,26 +48,20 @@ class Crawler:
         cksum = cksum_out[0]
         return cksum
 
+    # noinspection PyUnusedLocal
     def get_metadata(self, path):
-        return {"FITS_RADIUS":30}
-
+        """
+        Extract metadata from :param path
+        """
+        return {"FITS_RADIUS": 30}
 
     def run(self):
-        print("Checking for new datasets at %s" %(datetime.now().ctime()))
-        resp = None
+        print("Checking for new datasets at %s" % (datetime.now().ctime()))
         try:
             results = self.client.search(WATCH_FOLDER, version="current", site=WATCH_SITE,
-                                      query="scanStatus = 'UNSCANNED'", max_num=1000)
+                                         query="scanStatus = 'UNSCANNED'", max_num=1000)
         except DcException as error:
-            if hasattr(error, "message"):
-                print("Error occurred:\nMessage: %s" %(error.message))
-                if hasattr(error, "type"):
-                    print("Type: %s" %(error.type))
-                if hasattr(error, "cause"):
-                    print("Cause: %s" %(error.cause))
-            else:
-                # Should have content
-                print(error.content)
+            print error
             sys.exit(1)
 
         for dataset in results:
@@ -83,12 +78,11 @@ class Crawler:
 
             # Note: While there may only be one version of a dataset,
             # we tie the metadata to versionMetadata
-            scan_result = {}
-            scan_result["size"] = stat.st_size
-            scan_result["checksum"] = str(cksum)
+            scan_result = {"size": stat.st_size,
+                           "checksum": str(cksum),
+                           "locationScanned": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+                           "scanStatus": "OK"}
             # UTC datetime in ISO format (Note: We need Z to denote UTC Time Zone)
-            scan_result["locationScanned"] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-            scan_result["scanStatus"] = "OK"
 
             md = self.get_metadata(file_path)
             if md:
@@ -98,16 +92,19 @@ class Crawler:
             try:
                 patched_ds = self.client.patch_dataset(dataset_path, scan_result,
                                                        versionId=dataset.versionId, site=WATCH_SITE)
+                print "Updated Dataset:"
+                print patched_ds
             except DcException as error:
-                print(error.content)
                 print("Encountered error while updating dataset")
-
+                print error
 
         return True
+
 
 def main():
     c = Crawler()
     c.start()
+
 
 if __name__ == '__main__':
     main()
