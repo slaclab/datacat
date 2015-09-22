@@ -3,13 +3,13 @@ import base64
 from email.utils import formatdate
 import hashlib
 import hmac
-import requests
+from requests.auth import AuthBase
 from urlparse import urlparse
 
 __author__ = 'bvan'
 
 
-class HMACAuth(requests.auth.AuthBase):
+class HMACAuth(AuthBase):
     def __init__(self, key_id, secret_key, header_name, signature_format, url=None):
         """key_id must be base64"""
         if url:
@@ -66,6 +66,7 @@ auth_strategy(r)
 """
 
 
+# noinspection PyAbstractClass
 class HMACAuthSRS(HMACAuth):
     def __init__(self, key_id, secret_key, url=None):
         super(HMACAuthSRS, self).__init__(key_id, secret_key, u"Authorization", u"SRS:{0}:{1}", url)
