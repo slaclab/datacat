@@ -8,6 +8,7 @@ from config import ENDPOINTS, DATATYPES
 _logger = logging.getLogger(__name__)
 
 
+# noinspection PyPep8Naming,PyShadowingBuiltins,PyUnusedLocal
 class HttpClient(object):
 
     """
@@ -43,7 +44,7 @@ class HttpClient(object):
         """
         endpoint = "path"
         param_list = "offset:offset max_num:max".split(" ")
-        param_map = dict([i.split(":") for i in param_list])
+        param_map = dict([tuple(i.split(":")) for i in param_list])
         params = {param_map[k]: v for k, v in locals().items() if k in param_map and v is not None}
         target = self._target(endpoint, path, versionId, site, accept) + ";children"
         return self._req("get", target, params, **kwargs)
@@ -152,9 +153,9 @@ class HttpClient(object):
         """
         endpoint = "search"
         param_list = "query:filter sort:sort show:show offset:offset max_num:max".split(" ")
-        param_map = dict([i.split(":") for i in param_list])
+        param_map = dict([tuple(i.split(":")) for i in param_list])
         params = {param_map[k]: v for k, v in locals().items() if k in param_map and v is not None}
-        return self._req("get",self._target(endpoint, target, versionId, site, accept), params, **kwargs)
+        return self._req("get", self._target(endpoint, target, versionId, site, accept), params, **kwargs)
 
     def _log_request(self, request):
         if not self.debug:
@@ -207,13 +208,15 @@ class HttpClient(object):
                 else:
                     raise e
 
-        def resource(endpoint, accept):
-            if endpoint in ENDPOINTS and accept in DATATYPES:
-                return "%s.%s" %(endpoint, accept)
-        def resolve(path, part):
-            path = path if path[-1] != '/' else path[:-1]
+        def resource(_endpoint, _accept):
+            if _endpoint in ENDPOINTS and _accept in DATATYPES:
+                return "%s.%s" % (_endpoint, _accept)
+
+        def resolve(_path, part):
+            _path = _path if _path[-1] != '/' else _path[:-1]
             part = part if part[0] != '/' else (part[1:] if len(part) > 0 else "")
-            return "%s/%s" % (path, urllib.quote(part, safe="/*$"))
+            return "%s/%s" % (_path, urllib.quote(part, safe="/*$"))
+
         url = resolve(self.base_url, resource(endpoint, accept))
         view = ";v=" + str(version) if version is not None else ""
         view += ";s=" + site if site is not None else ""
