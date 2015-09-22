@@ -39,6 +39,7 @@ class DcRequestException(DcException):
         return formatted_string
 
 
+# noinspection PyShadowingBuiltins
 class DcClientException(DcException):
     """
     The base exception class for all datacat returned client exceptions.
