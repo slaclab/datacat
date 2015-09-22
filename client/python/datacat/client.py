@@ -7,6 +7,7 @@ from .http_client import HttpClient
 from .model import *
 
 
+# noinspection PyPep8Naming,PyShadowingBuiltins,PyUnusedLocal
 class Client(object):
 
     """
@@ -62,9 +63,6 @@ class Client(object):
                 for part in reversed(parts):
                     parentpath = os.path.join(parentpath, part)
                     self.mkdir(parentpath)
-        headers = kwargs.get("headers", {})
-        headers["content-type"] = "application/json"
-        kwargs["headers"] = headers
         resp = self.http_client.mkdir(path, payload=pack(container), type=type, **kwargs)
         return unpack(resp.content)
 
@@ -119,10 +117,7 @@ class Client(object):
                 location.update(locationExtras)
         ds = Dataset(name=name, dataType=dataType, fileFormat=fileFormat,
                      locations=[location] if location else None, **version)
-        headers = kwargs.get("headers", {})
-        headers["content-type"] = "application/json"
-        kwargs["headers"] = headers
-        resp = self.http_client.mkd(path, pack(ds), **kwargs)
+        resp = self.http_client.mkds(path, pack(ds), **kwargs)
         return unpack(resp.content)
 
     def create_dataset(self, path, name, dataType, fileFormat,
@@ -157,9 +152,6 @@ class Client(object):
             if locationExtras:
                 location.update(locationExtras)
         ds = Dataset(locations=[location] if location else None, **version)
-        headers = kwargs.get("headers", {})
-        headers["content-type"] = "application/json"
-        kwargs["headers"] = headers
         resp = self.http_client.mkds(path, pack(ds), **kwargs)
         return unpack(resp.content)
 
@@ -177,9 +169,6 @@ class Client(object):
         if locationExtras:
             location.update(locationExtras)
         ds = Dataset(locations=[location])
-        headers = kwargs.get("headers", {})
-        headers["content-type"] = "application/json"
-        kwargs["headers"] = headers
         resp = self.http_client.mkds(path, pack(ds), versionId=versionId, **kwargs)
         return unpack(resp.content)
 
@@ -221,10 +210,6 @@ class Client(object):
         :param kwargs:
         :return: A representation of the patched dataset
         """
-        headers = kwargs.get("headers", {})
-        headers["content-type"] = "application/json"
-        kwargs["headers"] = headers
-
         if isinstance(container, Container):
             pass
         elif type == "group":
@@ -248,9 +233,6 @@ class Client(object):
         :param kwargs:
         :return: A representation of the patched dataset
         """
-        headers = kwargs.get("headers", {})
-        headers["content-type"] = "application/json"
-        kwargs["headers"] = headers
         ds = dataset if type(dataset) == Dataset else Dataset(**dataset)
         resp = self.http_client.patchds(path, pack(ds), versionId, site, **kwargs)
         return unpack(resp.content)
