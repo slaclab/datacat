@@ -56,5 +56,3 @@ try:
         print("\t" + str(dataset.metadata))
 except Exception as e:
     print("Error processing request:" + str(e))
-
-
