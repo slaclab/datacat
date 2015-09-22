@@ -153,32 +153,33 @@ def main():
 
 
 def format_search_results(results, show=None, sort=None):
-    def print_search_info(datasets, metanames):
+    # noinspection PyShadowingNames
+    def print_search_info(datasets, meta_names):
         print("\nListing locations...")
-        print("Resource\tPath\t%s" % ("\t".join(metanames)))
+        print("Resource\tPath\t%s" % ("\t".join(meta_names)))
         for dataset in datasets:
             extra = ""
             if hasattr(dataset, "metadata"):
-                extra = "\t".join([str(dataset.metadata.get(mn)) for mn in metanames])
+                extra = "\t".join([str(dataset.metadata.get(mn)) for mn in meta_names])
             if hasattr(dataset, "resource"):
                 print("%s\t%s\t%s" % (dataset.resource, dataset.path, extra))
             elif hasattr(dataset, "locations"):
                 for location in dataset.locations:
                     print("%s\t%s\t%s" % (location.resource, dataset.path, extra))
 
-    metanames = []
+    meta_names = []
     if show is not None:
-        metanames.extend(show)
+        meta_names.extend(show)
     if sort is not None:
         s = []
         s.extend(sort)
         for i in s:
             if i[-1] in ("+", "-"):
-                metanames.append(i[0:-1])
+                meta_names.append(i[0:-1])
             else:
-                metanames.append(i)
-    metanames = set(metanames)
-    print_search_info(results, metanames)
+                meta_names.append(i)
+    meta_names = set(meta_names)
+    print_search_info(results, meta_names)
 
 
 def format_path_result(result):
