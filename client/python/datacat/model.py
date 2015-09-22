@@ -12,6 +12,7 @@ class DatacatRecord(object):
             self.pk = pk
 
 
+# noinspection PyPep8Naming
 class DatacatNode(DatacatRecord):
     def __init__(self, name=None, parentPk=None, **kwargs):
         super(DatacatNode, self).__init__(pk=kwargs.get("pk", None), path=kwargs.get("path", None))
@@ -49,6 +50,7 @@ class Dataset(DatacatNode):
     REQ_JSON_ALLOWED = "name path dataType fileFormat metadata" \
         "versionId processInstance taskName versionMetadata locations".split(" ")
 
+    # noinspection PyPep8Naming
     def __init__(self,
                  dataType=None,
                  fileFormat=None,
@@ -124,7 +126,7 @@ class Metadata(MutableMapping):
 
 
 class SearchResults(list):
-    def __init__(self, results, count, **kwargs):
+    def __init__(self, results, count):
         super(SearchResults, self).__init__(results)
         self.count = count
 
@@ -133,7 +135,7 @@ def unpack(content, default_type=None):
     def type_hook(raw):
         try:
             ret = _default_hook(raw)
-        except TypeError as e:
+        except TypeError:
             ret = default_type(**raw)
         return ret
     return json.loads(content, object_hook=_default_hook if not default_type else type_hook)
@@ -180,7 +182,7 @@ def _default_serializer(obj):
             for k, v in obj.dct.items():
                 if v:
                     if type(v) == datetime:
-                        v = _totimestamp(v)
+                        v = _to_timestamp(v)
                     typ = type_mapping[type(v)]
                     ret.append(OrderedDict([("key", k), ("value", v), ("type", typ)]))
                 else:
@@ -194,7 +196,7 @@ def _default_serializer(obj):
     return json.JSONEncoder().default(obj)
 
 
-def _totimestamp(ts):
+def _to_timestamp(ts):
     return ts.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
 
