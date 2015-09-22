@@ -55,7 +55,7 @@ def config_from_file(path=None, override_section=None, domain=None, mode=None):
     config = ConfigParser.SafeConfigParser()
     defaults = default_config(domain, mode)
     if path:
-        os.stat(path) # Check path exists, will throw OSError if it doesn't.
+        os.stat(path)  # Check path exists, will throw OSError if it doesn't.
         config.read([path])
     else:
         config.read([
