@@ -122,10 +122,9 @@ public class DirectoryWalker {
         /**
          * Defaults to glob.
          *
-         * @param fs
-         * @param path
-         * @param searchGroups
-         * @param searchFolders
+         * @param path A Globbular path
+         * @param searchGroups Force search in Groups
+         * @param searchFolders Force search in folders
          */
         public ContainerVisitor(String path, Boolean searchGroups, Boolean searchFolders){
             // TODO: This should do some checks to make sure $ is escaped for a regex

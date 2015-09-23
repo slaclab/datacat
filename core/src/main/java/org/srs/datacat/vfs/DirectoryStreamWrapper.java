@@ -17,7 +17,7 @@ public class DirectoryStreamWrapper<T> implements DirectoryStream<T> {
     
     /**
      * Used to verify entries.
-     * @param <U> 
+     * @param <U> Type of object to be processed by this class.
      */
     public static class IteratorAcceptor<U> {
         private DirectoryStreamWrapper<U> thisWrapper;

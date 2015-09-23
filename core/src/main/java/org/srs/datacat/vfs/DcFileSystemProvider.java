@@ -282,12 +282,11 @@ public class DcFileSystemProvider {
     /**
      * Gets a file.
      *
-     * @param path
-     * @param context
-     * @return
-     * @throws IOException
+     * @param path Datacat path
+     * @param context Call context.
+     * @return The DcFile at given path
      */
-    public DcFile getFile(Path path, CallContext context) throws IOException{
+    public DcFile getFile(Path path, CallContext context) throws IOException, NoSuchFileException{
         /* TODO: When we have control over file creation, remove this and replace it with
          some sort of distributed consensus stuff potentially.
          */
@@ -347,11 +346,10 @@ public class DcFileSystemProvider {
      * This will fail if there already exists a Dataset record.
      *
      * @param path Path of this new dataset
-     * @param context
-     * @param dsReq
-     * @param options
+     * @param context Call context.
+     * @param dsReq Representation of dataset to create.
+     * @param options Optimization flags.
      * @return Dataset, FlatDataset, or FullDataset
-     * @throws IOException
      */
     public DatasetModel createDataset(Path path, CallContext context, 
             DatasetModel dsReq, Set<DatasetOption> options) throws IOException{
@@ -397,12 +395,11 @@ public class DcFileSystemProvider {
     /**
      * Patch ACLs.
      *
-     * @param path
-     * @param context
-     * @param request
+     * @param path Path of this DatacatNode to patch
+     * @param context Call context.
+     * @param request List of ACLs to to merge.
      * @param clear Flag to overwrite access-scoped entries and ignore default-scoped entries
-     * @return
-     * @throws IOException
+     * @return Updated representation of the DcFile.
      */
     public DcFile mergeContainerAclEntries(Path path, CallContext context, 
             List<DcAclEntry> request, boolean clear) throws IOException{
@@ -431,11 +428,10 @@ public class DcFileSystemProvider {
     /**
      * Patch a container.
      *
-     * @param path
-     * @param context
-     * @param request
-     * @return
-     * @throws IOException
+     * @param path Path of container to patch.
+     * @param context Call context.
+     * @param request An object representing the diff of the object to be patched.
+     * @return DcFile representing updated container
      */
     public DcFile patchContainer(Path path, CallContext context, DatasetContainer request) throws IOException{
         DcFile f = getFile(path, context);
@@ -458,16 +454,14 @@ public class DcFileSystemProvider {
     /**
      * Search using a path pattern and a query.
      * @param pathPattern A glob or regex pattern
-     * @param context
-     * @param checkFolders
-     * @param checkGroups
-     * @param datasetView
+     * @param context Call Context
+     * @param checkFolders Check inside folders
+     * @param checkGroups Check inside Groups
+     * @param datasetView Apply this view to all datasets
      * @param query A Query String
-     * @param retrieveFields
-     * @param sortFields
-     * @return
-     * @throws IOException
-     * @throws ParseException 
+     * @param retrieveFields Metadata fields to retrieve
+     * @param sortFields Fields to sort on.
+     * @return Stream of datasets. Make sure to close the stream when done.
      */
     public DirectoryStream<DatasetModel> search(String pathPattern, CallContext context, 
             Boolean checkFolders, Boolean checkGroups, DatasetView datasetView, String query, 
@@ -507,12 +501,11 @@ public class DcFileSystemProvider {
     /**
      * Patch a dataset.
      *
-     * @param path
-     * @param context
-     * @param view
-     * @param request
-     * @return
-     * @throws IOException
+     * @param path Path of dataset to patch. Dataset must exist.
+     * @param context Call Context.
+     * @param view DatasetView to patch.
+     * @param request A diff representation of the dataset to be patched
+     * @return DcFile representing the updated DcFile and dataset
      */
     public DcFile patchDataset(Path path, CallContext context, 
             DatasetView view, DatasetModel request) throws IOException{
