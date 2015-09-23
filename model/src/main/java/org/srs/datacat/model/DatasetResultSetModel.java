@@ -11,19 +11,18 @@ public interface DatasetResultSetModel extends Iterable<DatasetModel> {
     
     /**
      * Return the datasets that matched the search.
-     * @return 
+     * @return List of Datasets
      */
     List<DatasetModel> getResults();
     
     /**
      * The total count of all results.
-     * @return 
+     * @return the count
      */
     Integer getCount();
     
     /**
      * Version Builder interface.
-     * @param <U> 
      */
     public interface Builder {
         

@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 import org.srs.datacat.model.DatacatRecord;
 
 /**
- *
+ * DatasetLocationModel is the model interface for a location.
  * @author bvan
  */
 public interface DatasetLocationModel extends DatacatRecord {
@@ -22,10 +22,11 @@ public interface DatasetLocationModel extends DatacatRecord {
     
     /**
      * Version Builder interface.
-     * @param <U> 
+     * @param <U> Implementation class.
      */
     public interface Builder<U extends Builder> extends DatacatRecordBuilder<U> {
         
+        @Override
         DatasetLocationModel build();
         U create(DatasetLocationModel val);
         U site(String val);

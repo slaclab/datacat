@@ -7,7 +7,7 @@ import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.HasMetadata;
 
 /**
- *
+ * DatasetVersionModel is the model for versions.
  * @author bvan
  */
 public interface DatasetVersionModel extends DatacatRecord, HasMetadata {
@@ -20,7 +20,7 @@ public interface DatasetVersionModel extends DatacatRecord, HasMetadata {
     
     /**
      * Version Builder interface.
-     * @param <U> 
+     * @param <U> Implementation class.
      */
     public interface Builder<U extends Builder> extends DatacatRecordBuilder<U> {
         

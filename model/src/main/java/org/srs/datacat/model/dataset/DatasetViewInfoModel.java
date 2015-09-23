@@ -7,7 +7,8 @@ import org.srs.datacat.model.DatasetView;
 
 
 /**
- *
+ * The DatasetViewInfoModel is a class which helps define views, which are
+ * a combination of a version and/or one or more locations.
  * @author bvan
  */
 public interface DatasetViewInfoModel {

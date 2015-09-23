@@ -27,8 +27,8 @@ public interface BaseDAO extends AutoCloseable {
      * @param name The name of the target node
      * @param request The request Object representing the node to be created
      * @return The representation of the node that was created
-     * @throws IOException
-     * @throws FileSystemException 
+     * @throws IOException An exception occurred performing the operation or talking to the data source.
+     * @throws FileSystemException An illegal action occurred. 
      */
     <T extends DatacatNode> T createNode(DatacatRecord parent, String name, 
             T request) throws IOException, FileSystemException;
@@ -39,8 +39,8 @@ public interface BaseDAO extends AutoCloseable {
      * @param parent
      * @param name The file name
      * @return
-     * @throws IOException
-     * @throws NoSuchFileException 
+     * @throws IOException An exception occurred performing the operation or talking to the data source.
+     * @throws NoSuchFileException No parent with the name found in parent.
      */
     DatacatNode getObjectInParent(DatacatRecord parent, String name) throws IOException, NoSuchFileException;
         
@@ -49,7 +49,7 @@ public interface BaseDAO extends AutoCloseable {
      * 
      * @param record A Folder, Group, or DatasetVersion
      * @param metaData Metadata to be merged
-     * @throws IOException 
+     * @throws IOException An exception occurred performing the operation or talking to the data source.
      */
     void mergeMetadata(DatacatRecord record, Map<String, Object> metaData) throws IOException;
     
@@ -58,7 +58,7 @@ public interface BaseDAO extends AutoCloseable {
      * 
      * @param record A Folder, Group, or DatasetVersion
      * @param acl String version of the acl to be set.
-     * @throws IOException 
+     * @throws IOException An exception occurred performing the operation or talking to the data source.
      */
     void setAcl(DatacatRecord record, String acl) throws IOException;
     
@@ -66,7 +66,7 @@ public interface BaseDAO extends AutoCloseable {
      * Delete a DatacatRecord.
      * 
      * @param record A Folder, Group, or Dataset
-     * @throws IOException 
+     * @throws IOException An exception occurred performing the operation or talking to the data source.
      */
     void delete(DatacatRecord record) throws IOException;
 
