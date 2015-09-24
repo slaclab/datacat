@@ -52,6 +52,7 @@ public class ControllerUtils {
 
         String base = endPoint.substring(0, endPoint.lastIndexOf("/"));
         requestAttributes.put("applicationBase", base);
+        requestAttributes.put("contextPath", request.getContextPath());
         requestAttributes.put("endPoint", endPoint);
         // This Assumes all REST requests are routed to the same base URL
         Client client = getClient(request);

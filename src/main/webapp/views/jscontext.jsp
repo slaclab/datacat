@@ -10,6 +10,7 @@
     var pageContext = new Object();
     pageContext.endPoint = "${endPoint}";
     pageContext.applicationBase = "${applicationBase}";
+    pageContext.contextPath = "${contextPath}";
     pageContext.target = new Object();
     pageContext.target.name = "${target.name}";
     pageContext.target.path = "${target.path}";
