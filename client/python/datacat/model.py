@@ -95,6 +95,8 @@ class DatasetLocation(DatacatRecord):
             if k != "_type" and not hasattr(self, k) and v is not None:
                 self.__dict__[k] = v
 
+    def __repr__(self):
+        return "{}.{}(**{})".format(type(self).__module__, type(self).__name__, repr(self.__dict__))
 
 class Metadata(MutableMapping):
     def __init__(self, seq=None):
@@ -126,7 +128,7 @@ class Metadata(MutableMapping):
 
 
 class SearchResults(list):
-    def __init__(self, results, count):
+    def __init__(self, results, count, **kwargs):
         super(SearchResults, self).__init__(results)
         self.count = count
 
