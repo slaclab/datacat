@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.text.SimpleDateFormat;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 import javax.naming.InitialContext;
@@ -56,6 +57,9 @@ public class App extends ResourceConfig {
                 ObjectMapper jsonMapper = new ObjectMapper();
                 jsonMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
                 XmlMapper xmlMapper = new XmlMapper();
+                final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+                jsonMapper.setDateFormat(dateFormat);
+                xmlMapper.setDateFormat(dateFormat);
                 for(Entry<Class, Class> e
                         : fsProvider.getModelProvider().modelProviders().entrySet()){
                     jsonMapper.addMixIn(e.getKey(), e.getValue());
