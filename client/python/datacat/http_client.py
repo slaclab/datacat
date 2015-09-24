@@ -9,7 +9,7 @@ _logger = logging.getLogger(__name__)
 
 
 # noinspection PyPep8Naming,PyShadowingBuiltins,PyUnusedLocal
-class HttpClient(object):
+class HttpClient:
 
     """
     HTTP-level abstraction over the RESTful Client.
@@ -49,7 +49,7 @@ class HttpClient(object):
         target = self._target(endpoint, path, versionId, site, accept) + ";children"
         return self._req("get", target, params, **kwargs)
 
-    def mkdir(self, path, payload=None, type="folder", **kwargs):
+    def mkdir(self, path, payload=None, type="folder", content_type="application/json", **kwargs):
         """
         Make a new Container
         :param path: Container Target path
@@ -62,9 +62,11 @@ class HttpClient(object):
         endpoint = "folders"
         if type.lower() == "group":
             endpoint = "groups"
+        headers = kwargs.setdefault("headers", {})
+        headers["Content-Type"] = content_type
         return self._req("post", self._target(endpoint, parentpath), data=payload, **kwargs)
 
-    def mkds(self, path, payload, versionId=None, **kwargs):
+    def mkds(self, path, payload, versionId=None, content_type="application/json", **kwargs):
         """
         Make a dataset.
         :param path: Container Target path
@@ -78,6 +80,8 @@ class HttpClient(object):
         :return: A :class`requests.Response` object. The content is a representation of the newly created Dataset.
         """
         endpoint = "datasets"
+        headers = kwargs.setdefault("headers", {})
+        headers["Content-Type"] = content_type
         return self._req("post", self._target(endpoint, path, versionId, None), data=payload, **kwargs)
 
     def rmdir(self, path, type="folder", **kwargs):
@@ -102,7 +106,7 @@ class HttpClient(object):
         endpoint = "datasets"
         return self._req("delete", self._target(endpoint, path), **kwargs)
 
-    def patchdir(self, path, payload, type="folder", **kwargs):
+    def patchdir(self, path, payload, type="folder", content_type="application/json", **kwargs):
         """
         Patch a container.
         :param path: Path of the dataset to patch.
@@ -115,9 +119,11 @@ class HttpClient(object):
         endpoint = "folders"
         if type.lower() == "group":
             endpoint = "groups"
+        headers = kwargs.setdefault("headers", {})
+        headers["Content-Type"] = content_type
         return self._req("patch", self._target(endpoint, path), data=payload, **kwargs)
 
-    def patchds(self, path, payload, versionId="current", site=None, **kwargs):
+    def patchds(self, path, payload, versionId="current", site=None, content_type="application/json", **kwargs):
         """
         Patch a dataset.
         :param path: Path of the dataset to patch.
@@ -130,6 +136,8 @@ class HttpClient(object):
         :return: A :class`requests.Response` object. The content is a representation of the patched dataset
         """
         endpoint = "datasets"
+        headers = kwargs.setdefault("headers", {})
+        headers["Content-Type"] = content_type
         return self._req("patch", self._target(endpoint, path, versionId, site), data=payload, **kwargs)
 
     def search(self, target, versionId=None, site=None, query=None, sort=None, show=None, offset=None, max_num=None,
@@ -187,9 +195,9 @@ class HttpClient(object):
             _logger.debug("Entity: %s\n", response.content)
 
     def _req(self, http_method, target, params=None, data=None, **kwargs):
-        headers = kwargs["headers"] if "headers" in kwargs else None
+        headers = kwargs.get("headers", {})
         requests_method = getattr(requests, http_method)
-        response = requests_method(target, params=params, headers=headers, data=data, auth=self.auth_strategy)
+        response = requests_method(target, params=params, data=data, headers=headers, auth=self.auth_strategy)
         self._log_request(response.request)
         self._log_response(response)
         # response evaluates to false if it's a 4xx or 5xx
