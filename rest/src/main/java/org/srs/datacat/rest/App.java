@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.text.SimpleDateFormat;
 import java.util.Map.Entry;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -57,7 +58,8 @@ public class App extends ResourceConfig {
                 ObjectMapper jsonMapper = new ObjectMapper();
                 jsonMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
                 XmlMapper xmlMapper = new XmlMapper();
-                final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+                final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+                dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
                 jsonMapper.setDateFormat(dateFormat);
                 xmlMapper.setDateFormat(dateFormat);
                 for(Entry<Class, Class> e
