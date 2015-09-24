@@ -5,7 +5,7 @@ from datetime import datetime
 
 
 class DatacatRecord(object):
-    def __init__(self, pk=None, path=None):
+    def __init__(self, pk=None, path=None, **kwargs):
         if path is not None:
             self.path = path
         if pk is not None:
