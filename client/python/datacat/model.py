@@ -209,6 +209,10 @@ def _timestamp(ts):
         return datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S.%f%zZ')
     except ValueError:
         pass
+    try:
+        return datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S.%fZ')
+    except ValueError:
+        pass
 
     return datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S.%f%Z')
 
