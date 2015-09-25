@@ -475,7 +475,7 @@ public class DcFileSystemProvider {
         final SearchDAO dao = daoFactory.newSearchDAO();
         
         final DirectoryStream<DatasetModel> search = 
-                dao.search(visitor.files, datasetView, query, sortFields, sortFields);
+                dao.search(visitor.files, datasetView, query, retrieveFields, sortFields);
         
         // Wrap the actual DirectoryStream and add method to close DAO
         return new DirectoryStream<DatasetModel>(){

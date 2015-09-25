@@ -38,7 +38,7 @@ public class SqlSearchDAO extends SqlBaseDAO implements org.srs.datacat.dao.Sear
     public DirectoryStream<DatasetModel> search(LinkedList<DatacatNode> containers,
             DatasetView datasetView, String query, String[] retrieveFields,
             String[] sortFields) throws ParseException, IOException{
-        return search.search(containers, datasetView, query, sortFields, sortFields);
+        return search.search(containers, datasetView, query, retrieveFields, sortFields);
     }
  
 }
