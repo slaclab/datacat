@@ -102,8 +102,8 @@ public final class SearchUtils {
         for(String s: includedMetadata){
             Object o = rs.getObject(s);
             if(o != null){
-                if(o instanceof BigDecimal){
-                    BigDecimal v = (BigDecimal) o;
+                if(o instanceof Number){
+                    BigDecimal v = rs.getBigDecimal(s);
                     o = v.scale() == 0 ? v.toBigIntegerExact() : v;
                 }
                 metadata.put(s, o);

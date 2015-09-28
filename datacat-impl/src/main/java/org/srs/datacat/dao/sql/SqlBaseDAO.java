@@ -234,10 +234,9 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             stmt.setLong(1, pk);
             ResultSet rs = stmt.executeQuery();
             while(rs.next()){
-                Number n;
-                java.math.BigDecimal v = (java.math.BigDecimal) rs.getBigDecimal("metavalue");
-                n = v.scale() == 0 ? v.toBigIntegerExact() : v;
-                metadata.put(rs.getString("metaname"), (Number) n);
+                java.math.BigDecimal v = rs.getBigDecimal("metavalue");
+                Number n = v.scale() == 0 ? v.toBigIntegerExact() : v;
+                metadata.put(rs.getString("metaname"),  n);
             }
         }
         sql = String.format(mdBase, tablePrefix, "Timestamp", column);
