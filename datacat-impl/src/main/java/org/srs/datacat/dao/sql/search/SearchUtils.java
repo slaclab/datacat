@@ -221,7 +221,7 @@ public final class SearchUtils {
                         type = String.class;
                 }
                 
-                if(maybePrefix != null){
+                if(maybePrefix != null && !maybePrefix.isEmpty()){
                     if (lastPrefix != null && !lastPrefix.equals( maybePrefix) ){
                         dmc.add( new MetanameContext.Entry(lastPrefix, postfixes, lastPrefix.length(), type ));
                         postfixes.clear();
