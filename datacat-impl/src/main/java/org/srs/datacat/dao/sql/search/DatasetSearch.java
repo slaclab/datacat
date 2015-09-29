@@ -212,7 +212,8 @@ public class DatasetSearch {
                     String aliased = "\"" + s + "\"";
                     retrieve = getColumnFromAllScope( dsv, aliased);
                     if(retrieve == null){
-                        Class type = dmc.getTypes( s ).toArray( new Class[0])[0];
+                        Iterator<Class> typeIter = dmc.getTypes(s).iterator();
+                        Class type = typeIter.hasNext() ? typeIter.next() : null;
                         dsv.setupMetadataOuterJoin( s, type);
                         retrieve = getColumnFromAllScope( dsv, aliased);
                     }

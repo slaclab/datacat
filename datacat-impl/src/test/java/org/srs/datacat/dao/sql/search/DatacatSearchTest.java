@@ -39,7 +39,6 @@ public class DatacatSearchTest {
     Class<? extends DatacatPlugin>[] plugins;
     public DataSource ds = null;
     DAOFactory factory;
-    PathProvider PATH_PROVIDER = new PathProvider();
     
     public DatacatSearchTest() throws SQLException, IOException {
         ds = harness.getDataSource();
