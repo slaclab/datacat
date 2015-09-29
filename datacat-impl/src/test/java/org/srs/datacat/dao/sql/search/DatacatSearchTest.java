@@ -50,7 +50,7 @@ public class DatacatSearchTest {
     @BeforeClass
     public static void setUpDb() throws SQLException, IOException{
         harness = DbHarness.getDbHarness();
-        DataSource d = harness.getDataSource();
+        harness.getDataSource();
     }
     
     @Test
@@ -219,7 +219,7 @@ public class DatacatSearchTest {
     public void testWithSortFields() throws IOException, SQLException, ParseException{
             
         DAOTestUtils.generateDatasets(factory, 20, 1000);
-        List<DatacatNode> folders = DAOTestUtils.getFolders(factory, 20);
+        DAOTestUtils.getFolders(factory, 20);
         Connection conn = ds.getConnection();
         conn.commit();
         conn.close();

@@ -29,7 +29,7 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
     private Long processInstance;
     private String taskName;
     private Boolean isLatest;
-    private Timestamp versionRegistrationDate;
+    private Timestamp created;
     
     public static final DatasetVersion NEW_VERSION = 
             new DatasetVersion.Builder().versionId( DatasetView.NEW_VER).build();
@@ -49,6 +49,7 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
         this.processInstance = dataset.processInstance;
         this.taskName = dataset.taskName;
         this.isLatest = dataset.isLatest;
+        this.created = dataset.created;
     }
 
     public DatasetVersion(Builder builder){
@@ -58,6 +59,7 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
         this.processInstance = builder.processInstance;
         this.taskName = builder.taskName;
         this.isLatest = builder.latest;
+        this.created = builder.created;
     }
     
     @Override
@@ -81,7 +83,7 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
 
     @Override
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public Timestamp getDateCreated() { return this.versionRegistrationDate; }
+    public Timestamp getDateCreated() { return this.created; }
 
     @Override
     @JsonIgnore
@@ -96,7 +98,7 @@ public class DatasetVersion extends DatacatObject implements DatasetVersionModel
         sb.append(omitNull("processInstance:", processInstance));
         sb.append(omitNull("taskName:", taskName));
         sb.append(omitNull("isLatest:", isLatest));
-        sb.append(omitNull("versionRegistrationDate:", versionRegistrationDate));
+        sb.append(omitNull("created:", created));
         sb.append("}");
         return sb.toString();
     }

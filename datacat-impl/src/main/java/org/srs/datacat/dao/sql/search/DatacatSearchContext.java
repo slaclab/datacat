@@ -15,7 +15,7 @@ import org.zerorm.core.interfaces.MaybeHasParams;
 import org.zerorm.core.interfaces.SimpleTable;
 import org.srs.datacat.dao.sql.search.plugins.DatacatPlugin;
 import org.srs.datacat.dao.sql.search.plugins.DatacatPluginProvider;
-import org.srs.datacat.dao.sql.search.tables.MetajoinedStatement;
+import org.srs.datacat.dao.sql.search.tables.DatasetVersions;
 
 /**
  *
@@ -64,12 +64,12 @@ public class DatacatSearchContext implements SearchContext {
         }
     }
         
-    final MetajoinedStatement dsv;
+    final DatasetVersions dsv;
     final PluginScope pluginScope;
     final MetanameContext metanameContext;
     private Expr evaluatedExpr;
     
-    public DatacatSearchContext(MetajoinedStatement dsv, Class<? extends DatacatPlugin>[] plugins, 
+    public DatacatSearchContext(DatasetVersions dsv, Class<? extends DatacatPlugin>[] plugins, 
             MetanameContext context){
         this.dsv = dsv;
         this.pluginScope = new PluginScope(plugins);
@@ -79,7 +79,7 @@ public class DatacatSearchContext implements SearchContext {
     @Override
     public boolean inSelectionScope(String ident){
         for(MaybeHasAlias selection: getStatement().getAvailableSelections()){
-            if(selection.canonical().equals( ident ) && selection instanceof MaybeHasAlias){
+            if(selection.canonical().equals( ident )){
                 return true;
             }
         }
@@ -124,7 +124,7 @@ public class DatacatSearchContext implements SearchContext {
         this.evaluatedExpr = evaluateNode(node, dsv);
     }
     
-    private Expr evaluateNode(AST.Node node, MetajoinedStatement statement){
+    private Expr evaluateNode(AST.Node node, DatasetVersions statement){
         Object tLeft = getTokenOrExpression( node.getLeft(), statement );
         Object tRight = getTokenOrExpression( node.getRight(), statement );
         Op tOper = null;
@@ -163,7 +163,7 @@ public class DatacatSearchContext implements SearchContext {
         return null;
     }
     
-    private Object getTokenOrExpression(AST.Node node, MetajoinedStatement statement){
+    private Object getTokenOrExpression(AST.Node node, DatasetVersions statement){
         if(node == null) {
             return null;
         }
@@ -186,7 +186,7 @@ public class DatacatSearchContext implements SearchContext {
         return nodeValue;
     }
     
-    private Expr preEvaluateExpression(MetajoinedStatement statement, 
+    private Expr preEvaluateExpression(DatasetVersions statement, 
             AST.Node leftNode, Object tLeft, Op tOper, Object tRight){
         String ident = leftNode.getLeft().getValue().toString();
         

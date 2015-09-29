@@ -198,7 +198,6 @@ public class DatacatObject implements DatacatNode, HasMetadata {
         public String name;
         public Long pk;
         public Long parentPk;
-        public RecordType parentType = null;
         public String path;
         public RecordType type;
         public String acl;
@@ -303,12 +302,6 @@ public class DatacatObject implements DatacatNode, HasMetadata {
         @Override
         public U parentPk(Long val){
             this.parentPk = val;
-            return (U) this;
-        }
-
-        @JsonSetter
-        public U parentType(RecordType val){
-            this.parentType = val;
             return (U) this;
         }
 

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.dataset.DatasetVersionModel;
@@ -89,8 +90,8 @@ public class DatasetViewInfo implements DatasetViewInfoModel {
     public Optional<DatasetLocationModel> singularLocationOpt(){
         if(locationOpt.isPresent()){
             if(locationOpt.get().size() == 1){
-                return Optional.fromNullable(locationOpt.get()
-                        .toArray(new DatasetLocationModel[0])[0]);
+                Iterator<DatasetLocationModel> iter = locationOpt.get().iterator();
+                return Optional.fromNullable(iter.hasNext() ? iter.next() : null);
             }
         }
         return Optional.absent();
@@ -101,7 +102,8 @@ public class DatasetViewInfo implements DatasetViewInfoModel {
         DatasetView view = new DatasetView(DatasetView.EMPTY_VER, DatasetView.CANONICAL_SITE);
         Optional<Set<DatasetLocationModel>> maybeLocations = fromView(view).locationsOpt();
         if(maybeLocations.isPresent() && !maybeLocations.get().isEmpty()){
-            return Optional.fromNullable(maybeLocations.get().toArray(new DatasetLocationModel[0])[0]);
+            Iterator<DatasetLocationModel> iter = maybeLocations.get().iterator();
+            return Optional.fromNullable(iter.hasNext() ? iter.next() : null);
         }
         return Optional.absent();
     }

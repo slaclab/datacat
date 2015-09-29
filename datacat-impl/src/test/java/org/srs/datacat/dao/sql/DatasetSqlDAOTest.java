@@ -41,7 +41,7 @@ import org.srs.vfs.PathUtils;
 public class DatasetSqlDAOTest {
     
     static DbHarness harness;
-    Connection conn;
+    Connection conn = null;
     
     public DatasetSqlDAOTest(){ }
     

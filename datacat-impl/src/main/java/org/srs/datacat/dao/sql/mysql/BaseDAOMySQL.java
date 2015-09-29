@@ -35,9 +35,12 @@ public class BaseDAOMySQL extends org.srs.datacat.dao.sql.SqlBaseDAO {
             DatasetDAOMySQL dao = new DatasetDAOMySQL(getConnection());
             return (T) dao.createDatasetNode(parent, path, (DatasetModel) request);
         }
-        // It should be a container
-        ContainerDAOMySQL dao = new ContainerDAOMySQL(getConnection());
-        return (T) dao.createContainer(parent, path, (DatasetContainer) request);
+        if(request instanceof DatasetContainer){
+            // It should be a container
+            ContainerDAOMySQL dao = new ContainerDAOMySQL(getConnection());
+            return (T) dao.createContainer(parent, path, (DatasetContainer) request);
+        }
+        throw new IOException(new IllegalArgumentException("Unable to process request object"));
     }
     
     @Override

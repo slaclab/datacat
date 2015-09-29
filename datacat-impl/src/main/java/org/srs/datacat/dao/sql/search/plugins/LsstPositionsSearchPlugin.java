@@ -3,7 +3,6 @@ package org.srs.datacat.dao.sql.search.plugins;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import org.zerorm.core.Column;
-import org.zerorm.core.Select;
 import org.zerorm.core.Table;
 import org.zerorm.core.interfaces.Schema;
 import org.zerorm.core.interfaces.SimpleTable;
@@ -55,7 +54,7 @@ public class LsstPositionsSearchPlugin implements DatacatPlugin {
     }
 
     @Override
-    public SimpleTable joinToStatement(String key, Select statement){
+    public SimpleTable joinToStatement(String key, DatasetVersions statement){
         if(joined){
             return lsstpos;
         }

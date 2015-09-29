@@ -1,6 +1,6 @@
 package org.srs.datacat.dao.sql.search.plugins;
 
-import org.zerorm.core.Select;
+import org.srs.datacat.dao.sql.search.tables.DatasetVersions;
 import org.zerorm.core.interfaces.SimpleTable;
 
 /**
@@ -10,7 +10,7 @@ import org.zerorm.core.interfaces.SimpleTable;
 public interface DatacatPlugin {
 
     String getNamespace();
-    SimpleTable joinToStatement(String key, Select statement);
+    SimpleTable joinToStatement(String key, DatasetVersions statement);
     boolean containsKey(String key);
     
 }

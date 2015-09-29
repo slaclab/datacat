@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import java.util.Set;
@@ -162,7 +163,8 @@ public class DatasetSearch {
                     String aliased = "\"" + s + "\"";
                     orderBy = getColumnFromAllScope( dsv, aliased);
                     if(orderBy == null){
-                        Class type = dmc.getTypes( s ).toArray( new Class[0])[0];
+                        Iterator<Class> typeIter = dmc.getTypes(s).iterator();
+                        Class type = typeIter.hasNext() ? typeIter.next() : null;
                         dsv.setupMetadataJoin(s, type);
                         orderBy = getColumnFromAllScope( dsv, aliased);
                     }
@@ -336,8 +338,9 @@ public class DatasetSearch {
             return (AST) p.parse().value;
         } catch(Exception ex) {
             if(ex instanceof RuntimeException){
-                if(ex.getCause() instanceof ParseException){
-                    throw (ParseException) ex.getCause();
+                Throwable cause = ex.getCause();
+                if(cause instanceof ParseException){
+                    throw (ParseException) cause;
                 }
                 throw (RuntimeException) ex;
             }

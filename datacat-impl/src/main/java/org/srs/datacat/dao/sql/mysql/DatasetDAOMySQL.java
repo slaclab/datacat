@@ -366,7 +366,6 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
                 rs.next();
                 builder.pk(rs.getLong(1));
                 builder.parentPk(parentPk);
-                builder.parentType(parentType);
                 builder.path(PathUtils.resolve(parent.getPath(), name));
                 builder.created(new Timestamp(System.currentTimeMillis()));
             }

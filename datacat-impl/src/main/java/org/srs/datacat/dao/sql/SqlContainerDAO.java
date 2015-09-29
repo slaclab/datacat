@@ -86,8 +86,7 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
         String insertSqlTemplate = "INSERT INTO %s (NAME, %s, DESCRIPTION) VALUES (?,?,?)";
         String sql = String.format(insertSqlTemplate, tableName, parentColumn);
 
-        String description = request instanceof DatasetContainer ? ((DatasetContainer) request).
-                getDescription() : null;
+        String description = request.getDescription();
 
         try(PreparedStatement stmt = getConnection().prepareStatement(sql, new String[]{tableName.toUpperCase()})) {
             stmt.setString(1, name);

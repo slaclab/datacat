@@ -2,7 +2,6 @@ package org.srs.datacat.dao.sql.search.plugins;
 
 import java.util.HashMap;
 import org.zerorm.core.Column;
-import org.zerorm.core.Select;
 import org.zerorm.core.Table;
 import org.zerorm.core.interfaces.Schema;
 import org.zerorm.core.interfaces.SimpleTable;
@@ -52,7 +51,7 @@ public class LsstFilesSearchPlugin implements DatacatPlugin {
     }
 
     @Override
-    public SimpleTable joinToStatement(String key, Select statement){
+    public SimpleTable joinToStatement(String key, DatasetVersions statement){
         if(joined){
             return lsstff;
         }

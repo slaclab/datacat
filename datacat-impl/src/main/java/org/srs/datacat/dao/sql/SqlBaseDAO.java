@@ -608,9 +608,12 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             SqlDatasetDAO dao = new SqlDatasetDAO(getConnection());
             return (T) dao.createDatasetNode(parent, path, (Dataset) request);
         }
-        // It should be a container
-        SqlContainerDAO dao = new SqlContainerDAO(getConnection());
-        return (T) dao.createContainer(parent, path, (DatasetContainer) request);
+        if(request instanceof DatasetContainer){
+            // It should be a container
+            SqlContainerDAO dao = new SqlContainerDAO(getConnection());
+            return (T) dao.createContainer(parent, path, (DatasetContainer) request);            
+        }
+        throw new IOException(new IllegalArgumentException("Unable to process request object"));
     }
 
     @Override

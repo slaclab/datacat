@@ -365,7 +365,6 @@ public class SqlDatasetDAO extends SqlBaseDAO implements org.srs.datacat.dao.Dat
                 rs.next();
                 builder.pk(rs.getLong(1));
                 builder.parentPk(parentPk);
-                builder.parentType(parentType);
                 builder.path(PathUtils.resolve(parent.getPath(), name));
                 builder.created(rs.getTimestamp(2));
             }
