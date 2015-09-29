@@ -25,14 +25,10 @@ public class DcPath extends AbstractPath<DcPath> {
     @Override
     public URI toUri() {
         String scheme = "dc";
-        String userInfo = null;
-        String host = null;
         int port = -1;
-        String query = null;
-        String fragment = null;
         
         try {
-            return new URI(scheme, userInfo, host, port, path, query, fragment);
+            return new URI(scheme, null, null, port, path, null, null);
         } catch(URISyntaxException ex) {
             return null;
         }

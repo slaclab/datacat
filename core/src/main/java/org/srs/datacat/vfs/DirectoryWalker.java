@@ -135,8 +135,8 @@ public class DirectoryWalker {
                 searchFolders = false;
                 path = path.substring(0, path.length() - 1);
             }
-            searchGroups = searchGroups == null ? true : searchGroups;
-            searchFolders = searchFolders == null ? true : searchFolders;
+            searchGroups = searchGroups == null ? Boolean.TRUE : searchGroups;
+            searchFolders = searchFolders == null ? Boolean.TRUE : searchFolders;
             // TODO: Glob check?
             String globPath = "glob:" + path;
             filter = new ContainerFilter(PathMatchers.getPathMatcher(globPath, "/"), searchGroups, searchFolders);

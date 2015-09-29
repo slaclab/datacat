@@ -64,7 +64,7 @@ import org.srs.vfs.VfsSoftCache;
 public class DcFileSystemProvider {
 
     private static final long MAX_CHILD_CACHE = 500;
-    private static final int MAX_METADATA_STRING_BYTE_SIZE = 5000;
+    private static final long MAX_METADATA_STRING_BYTE_SIZE = 5000;
     private static final long MAX_DATASET_CACHE_SIZE = 1 << 29; // Don't blow more than about 512MB
     private static final int NO_MAX = -1;
     private static final long MAX_CACHE_TIME = 60000L; // TODO: Get rid of this - 60 seconds
@@ -266,7 +266,7 @@ public class DcFileSystemProvider {
         // TODO: Improve logic
         ContainerViewProvider cstat = dirFile.getAttributeView(ContainerViewProvider.class);
         DatasetContainer container = (DatasetContainer) cstat.withView(ContainerStat.class);
-        int count = max;
+        long count = max;
         if(count <= 0){
             count = container.getStat().getChildCount();
         }
@@ -295,12 +295,8 @@ public class DcFileSystemProvider {
             getCache().removeFile(path);
             f = resolveFile(path);
         }
-        if(f != null){
-            checkPermission(context, f, DcPermissions.READ);
-            return f;
-        }
-        AfsException.NO_SUCH_FILE.throwError(path, "Unable to resolve file");
-        return null; // Keep compiler happy
+        checkPermission(context, f, DcPermissions.READ);
+        return f;
     }
     
     public Path getPath(String path){
