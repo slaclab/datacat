@@ -68,8 +68,10 @@ public final class SearchUtils {
 
                 if(!continueVisit){
                     int partial = ident.length() + 25;
-                    startOfError.delete( 0, startOfError.length() - partial );
-                    startOfError.insert( 0, "..." );
+                    if((startOfError.length() + 3) > partial){
+                        startOfError.delete( 0, startOfError.length() - partial );
+                        startOfError.insert( 0, "..." );
+                    }
                 }
                 return continueVisit;
             }
