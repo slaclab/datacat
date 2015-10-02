@@ -9,23 +9,46 @@
 <%@taglib uri="http://srs.slac.stanford.edu/web_datacat" prefix="web_dc" %>
 
 
-<c:forEach var="location" items="${dataset.viewInfo.locations}" varStatus="status">
+<c:forEach var="location" items="${target.viewInfo.locations}" varStatus="status">
     <c:if test="${location.isMaster().booleanValue()}">
         <c:set var="master" value="${location}" />
     </c:if>
 </c:forEach>
 
-<%--
-    <c:if test="${param.action=='download'}">            
-        <datacat:downloadLink datasetList="${paramValues.dataset}" datasetVersionList="${paramValues.datasetVersion}" redirect="true"/>                    
-    </c:if>
---%>
+
+<script>
+    $("document").ready(function(){
+        $(".location-table").editableTableWidget({cellSelector: "td.edit-patchable"});
+
+        $(".edit-submit").on("click", function() { 
+
+            $("body").append('<form style="display: hidden" id="edit-form" method="POST"/>');
+            var form = $("#edit-form");
+            form.attr("action", pageContext.endPoint + pageContext.target.path);
+            
+            $(".edit-patchable").each(function(i, item){
+                item = $(item);
+                var input = $('<input type="hidden" value=""/>');
+                input.attr("name", item.attr("id"))
+                input.val(item.text())
+                form.append(input);
+            });
+
+            var mdItems = mdhandler.getData();
+            var mdInput = $('<input type="hidden" id="md-form-data" name="versionMetadata" value=""/>');
+            form.append(mdInput);
+            $("#md-form-data").val(JSON.stringify(mdItems));
+            $("#edit-form").submit();
+        });
+    });
+</script>
+
 <div class="datacat-component">
     <div class="datacat-header">
 
-        <h3>Editing Dataset ${dataset.name}
+        <h3>Editing Dataset ${target.name}
             <br>
-            <small>Version ${dataset.versionId}</small><br>
+            <small>Version ${target.versionId}</small><br>
         </h3>
     </div>
 
@@ -38,19 +61,19 @@
         </thead>
         <tbody>
             <c:catch var="exception">
-                <tr><th>Created (UTC):</th><td>${web_dc:formatTimestamp(dataset.dateCreated)}</td></tr>
+                <tr><th>Created (UTC):</th><td class="edit-patchable">${web_dc:formatTimestamp(target.dateCreated)}</td></tr>
                     </c:catch>
 
-            <tr><th>File Format:</th><td>${dataset.fileFormat}</td></tr>
-            <tr><th>Data Type:</th><td>${dataset.dataType}</td></tr>
+            <tr><th>File Format:</th><td>${target.fileFormat}</td></tr>
+            <tr><th>Data Type:</th><td>${target.dataType}</td></tr>
 
             <c:catch var="exception">
-                <c:if test="${dataset.dataSource != null}">
-                    <tr><th>Source:</th><td>${dataset.dataSource}</td></tr>
+                <c:if test="${target.dataSource != null}">
+                    <tr><th>Source:</th><td>${target.dataSource}</td></tr>
                         </c:if>
                     </c:catch>
                     <c:catch var="exception">
-                <tr><th>Size:</th><td>${web_dc:formatBytes(master.size)}<%--${datacat:formatBytes(master.size)}--%></td></tr>
+                <tr><th>Size:</th><td class="edit-patchable" id="created">${web_dc:formatBytes(master.size)}<%--${datacat:formatBytes(master.size)}--%></td></tr>
                     </c:catch>
                     <c:catch var="exception">
                 <tr><th>Master Site:</th><td>${master.site}</td></tr>
@@ -59,13 +82,13 @@
                 <tr><th>Master resource:</th><td class="location-resource">${master.resource}</td></tr>
                     </c:catch>
                     <c:catch var="exception">
-                <tr><th>Run Min:</th><td>${master.runMin}</td></tr>
+                <tr><th>Run Min:</th><td class="edit-patchable" id="runMin">${master.runMin}</td></tr>
                     </c:catch>
                     <c:catch var="exception">
-                <tr><th>Run Max:</th><td>${master.runMax}</td></tr>
+                <tr><th>Run Max:</th><td class="edit-patchable" id="runMax">${master.runMax}</td></tr>
                     </c:catch>
                     <c:catch var="exception">
-                <tr><th>Events:</th><td>${web_dc:formatEvents(master.eventCount)}</td></tr>
+                <tr><th>Events:</th><td class="edit-patchable" id="events">${web_dc:formatEvents(master.eventCount)}</td></tr>
                     </c:catch>
                     <%--
                     <c:catch var="exception">
@@ -91,44 +114,17 @@
     </table>
 
     <h3>Version Metadata</h3>
-    <div class="clearfix">
-        <button type="button" class="btn btn-success btn-med">
-            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
-        </button>
-        <button type="button" class="btn btn-danger btn-med">
-            <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> Remove
-        </button>
-    </div>
-
-
-    <table class="table table-condensed table-striped">
-        <thead>
-            <tr>
-                <th>Key</th>
-                <th>Value</th>
-                <th>Type</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            <c:forEach var="md" items="${dataset.versionMetadata}" varStatus="status">
-                <tr><td>${md.key}</td><td>${md.rawValue}</td>
-                    <td>${web_dc:getValueType(md.rawValue)}</td>
-                </tr>
-            </c:forEach>
-        </tbody>
-    </table>
-
-    <%--
-        <c:if test="${gm:isUserInGroup(pageContext,'DataCatalogAdmin')}">
-            <a href="metadata.jsp?datasetVersion=${dataset.datasetVersion}" class="edit">Edit meta-data</a>
-        </c:if>
-    --%>
+    <c:set var="mdlist" value="${target.versionMetadata}" />
+    <%@ include file="../views/edit_metadata.jsp" %>
+    
+    <button type="button" class="btn btn-success btn-med edit-submit">
+        <span class="glyphicon glyphicon-save" aria-hidden="true"></span> Submit
+    </button>
 
     <c:catch var="exception">
         <h3>Locations</h3>
         <c:choose>
-            <c:when test="${dataset.viewInfo.locations != null && !empty dataset.viewInfo.locations}">
+            <c:when test="${target.viewInfo.locations != null && !empty target.viewInfo.locations}">
                 <table class="table table-condensed table-striped location-table">
                     <thead>
                         <tr>
@@ -141,7 +137,7 @@
                     </thead>
 
                     <tbody>
-                        <c:forEach var="location" items="${dataset.viewInfo.locations}" varStatus="status">
+                        <c:forEach var="location" items="${target.viewInfo.locations}" varStatus="status">
                             <tr>
                                 <td >${location.site}</td>
                                 <td>${location.scanStatus}</td>

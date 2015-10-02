@@ -20,6 +20,7 @@
         <script src="${pageContext.request.contextPath}/js/jquery-1.11.3.min.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/bootstrap.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/browser.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/URI.min.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/dynamicTree2.js" type="text/javascript"></script>
         <script src="http://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js" type="text/javascript"></script>
     </head>

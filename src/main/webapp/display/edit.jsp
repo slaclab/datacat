@@ -20,6 +20,7 @@
         <script src="${pageContext.request.contextPath}/js/jquery-1.11.3.min.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/bootstrap.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/browser.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/mdedit.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/mindmup-editabletable.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/jquery.dataTables.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/dataTables.bootstrap.js" type="text/javascript"></script>

@@ -94,39 +94,9 @@
     </tbody>
 </table>
 
-<c:catch var="exception">
-        <h3>Version Metadata</h3>
-
-    <c:choose>
-        <c:when test="${target.versionMetadata != null && !empty target.versionMetadata}">
-            <table class="table table-condensed table-striped">
-                <thead>
-                    <tr>
-                        <th>Key</th>
-                        <th>Value</th>
-                        <th>Type</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    <c:forEach var="md" items="${target.versionMetadata}" varStatus="status">
-                        <tr><td>${md.key}</td><td>${md.rawValue}</td>
-                            <td>${web_dc:getValueType(md.rawValue)}</td>
-                        </tr>
-                    </c:forEach>
-                </tbody>
-            </table>
-        </c:when>
-        <c:otherwise>
-            Nothing to display
-        </c:otherwise>
-    </c:choose>
-</c:catch>
-<%--
-    <c:if test="${gm:isUserInGroup(pageContext,'DataCatalogAdmin')}">
-        <a href="metadata.jsp?datasetVersion=${target.datasetVersion}" class="edit">Edit meta-data</a>
-    </c:if>
---%>
+    <h3>Version Metadata</h3>
+    <c:set var="mdlist" value="${target.versionMetadata}" />
+    <%@ include file="../views/edit_metadata.jsp" %>
 
 <c:catch var="exception">
     <h3>Locations</h3>

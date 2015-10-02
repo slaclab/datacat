@@ -80,35 +80,11 @@
 </c:choose> --%>
 
     <c:catch var="exception">
-
-
         <div class="clearfix">
             <h3>Metadata</h3>
         </div>
-        <c:choose>
-            <c:when test="${target.metadata != null && !empty target.metadata}">
-                <table class="table table-condensed table-striped">
-                    <thead>
-                        <tr>
-                            <th>Key</th>
-                            <th>Value</th>
-                            <th>Type</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <c:forEach var="md" items="${target.metadata}" varStatus="status">
-                            <tr><td>${md.key}</td><td>${md.rawValue}</td>
-                                <td>${web_dc:getValueType(md.rawValue)}</td>
-                            </tr>
-                        </c:forEach>
-                    </tbody>
-                </table>
-            </c:when>
-            <c:otherwise>
-                Nothing to display
-            </c:otherwise>
-        </c:choose>
+        <c:set var="mdlist" value="${target.metadata}" />
+        <%@ include file="../views/metadata.jsp" %>
     </c:catch>
 
 </div>

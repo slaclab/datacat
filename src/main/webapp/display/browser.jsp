@@ -16,14 +16,15 @@
 
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/browser.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.css">
+        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/sidebar.css">
         <script src="${pageContext.request.contextPath}/js/jquery-1.11.3.min.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/bootstrap.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/browser.js" type="text/javascript"></script>
         <script src="http://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js" type="text/javascript"></script>
     </head>
-    <body>
 
-        <div class="col-xs-12">
+    <body>
+        <div class="container-fluid">
 
             <div class="row">
                 <%@ include file="../views/breadcrumb.jsp" %>
@@ -31,22 +32,33 @@
 
             <div class="row">
 
-                <div class="col-sm-5 col-md-4 col-lg-4">
-                    <%@ include file="../views/containers.jsp" %>
-                </div>
-                <div class=" col-sm-6 col-md-7 col-lg-8" id="info-views">
-                    <c:if test="${target != null}">
-                        <c:choose>
-                            <c:when test="${target.type.container}" >
-                                <%@ include file="../views/container.jsp" %>
-                            </c:when>
-                            <c:otherwise>
-                                <%@ include file="../views/dataset.jsp" %> 
-                            </c:otherwise>
-                        </c:choose>
-                    </c:if>
-                </div> <!-- End right side -->
-            </div> <!-- end row -->
+                <div class="page-sidebar-expanded page-with-sidebar">
+                    <c:set var="view" value="browser"/>
+                    <%@ include file="../views/sidebar.jsp" %>
+
+                    <div class="content-wrapper">
+                        <div class="container-fluid" id="info-views">
+                            <div class="col-sm-5 col-md-4 col-lg-4">
+                                <%@ include file="../views/containers.jsp" %>
+                            </div>
+
+                            <div class="col-sm-7 col-md-8 col-lg-8">
+                                <c:if test="${target != null}">
+                                    <c:choose>
+                                        <c:when test="${target.type.container}" >
+                                            <%@ include file="../views/container.jsp" %>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <%@ include file="../views/dataset.jsp" %> 
+                                        </c:otherwise>
+                                    </c:choose>
+                                </c:if>
+                            </div> <!-- End right side -->
+                        </div> <!-- end row -->
+                    </div>
+                </div>  
+            </div>
         </div>
     </body>
+
 </html>

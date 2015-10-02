@@ -22,6 +22,7 @@
         <script src="${pageContext.request.contextPath}/js/bootstrap.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/browser.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/jquery.dataTables.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/mindmup-editabletable.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/dataTables.bootstrap.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/vkbeautify.0.99.00.beta.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/dynamicTree2.js" type="text/javascript"></script>
@@ -96,11 +97,15 @@
                         </div>
 
                     </fieldset>
+                    <h3>Metadata</h3>
+                    <c:set var="mdlist" value="${null}" />
+                    <%@ include file="../views/edit_metadata.jsp" %>
+                    
                 </form>
 
             </c:when>
             <c:otherwise>
-                <form class="form-horizontal">
+                <form class="form-horizontal" action="submit" method="POST">
                     <fieldset>
 
                         <!-- Form Name -->
@@ -136,6 +141,10 @@
                         </div>
 
                     </fieldset>
+                    <h3>Version Metadata</h3>
+                    <c:set var="mdlist" value="${null}" />
+                    <%@ include file="../views/edit_metadata.jsp" %>
+                    
                 </form>
             </c:otherwise>
 
