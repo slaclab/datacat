@@ -4,7 +4,7 @@ mdhandler.addrow = function(){
     var newRow = $('\
             <tr class="md-new success">\
                 <td><span class="md-action glyphicon glyphicon-trash"></span></td>\
-                <td tabindex="1">key</td><td tabindex="1">Value</td><td tabindex="1">[type]</td>\
+                <td tabindex="1">[key]</td><td tabindex="1">[value]</td><td tabindex="1">[type]</td>\
             </tr>');
     $(".md-editable").append(newRow);
     newRow.find(".md-action").on("click", function(evt, newValue){
@@ -19,7 +19,7 @@ mdhandler.resetrow = function(row){
         item = $(item);
         item.text(item.attr("default"));
     });
-    row.removeClass("info");
+    row.removeClass("warning");
     row.removeClass("danger");
 }
 
@@ -30,7 +30,7 @@ mdhandler.rmrow = function(row){
 };
 
 mdhandler.modified = function(){
-    return $(".md-editable .md-existing").filter(".info");
+    return $(".md-editable .md-existing").filter(".warning");
 }
 
 mdhandler.neu = function(){
@@ -86,14 +86,34 @@ $("document").ready(function(){
 
     $('.md-editable').on('validate', function(evt, newValue) {
         var target = $(evt.target);
-
+        var row = target.parent();
+        var value = row.find(".md-value").text();
+        var type = row.find(".md-type").text();
+        if(target.hasClass("md-type")){
+            type = newValue;
+        }
+        if(target.hasClass("md-value")){
+            value = newValue;
+        }
+        if(type === "integer" || type === "decimal"){
+            try {
+                var d = new Decimal(value);
+            } catch (e) {
+                mdhandler.resetrow(row);
+                return false;
+            }
+            if(type === "integer" && !d.isInteger()){
+                mdhandler.resetrow(row);
+                return false;
+            }
+        }
         var _default = target.attr("default");
         var parent = target.parent();
         if(parent.hasClass("md-existing")){
             if(_default === newValue){
-                parent.removeClass("info");
+                parent.removeClass("warning");
             } else {
-                parent.addClass("info");
+                parent.addClass("warning");
             }
         }
         return true;

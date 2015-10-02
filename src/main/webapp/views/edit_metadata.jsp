@@ -29,9 +29,9 @@
             <c:forEach var="md" items="${mdlist}" varStatus="status">
                 <tr class="md-existing">
                     <td><span class="md-action glyphicon glyphicon-refresh"></span><span class="md-action glyphicon glyphicon-trash"></span></td>
-                    <td default="${md.key}">${md.key}</td>
-                    <td default="${md.rawValue}">${md.rawValue}</td>
-                    <td default="${web_dc:getValueType(md.rawValue)}">${web_dc:getValueType(md.rawValue)}</td>
+                    <td default="${md.key}" class="md-key">${md.key}</td>
+                    <td default="${md.rawValue}" class="md-value">${md.rawValue}</td>
+                    <td default="${web_dc:getValueType(md.rawValue)}" class="md-type">${web_dc:getValueType(md.rawValue)}</td>
                 </tr>
             </c:forEach>
         </c:if>

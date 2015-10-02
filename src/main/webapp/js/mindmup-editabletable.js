@@ -127,5 +127,5 @@ $.fn.editableTableWidget.defaultOptions = {
 					  'text-align', 'font', 'font-size', 'font-family', 'font-weight',
 					  'border', 'border-top', 'border-bottom', 'border-left', 'border-right'],
 	editor: $('<input>'),
-        cellSelector: "td"
+        cellSelector: 'td'
 };
