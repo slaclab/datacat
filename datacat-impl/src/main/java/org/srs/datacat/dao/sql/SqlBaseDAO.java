@@ -460,8 +460,8 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
                 stmtMetaTimestamp.close();
             }
         }
-        addDatacatObjectMetadata(objectPK, insertMetaData, tablePrefix, column);
         deleteDatacatObjectMetadata(objectPK, deleteMetadata, tablePrefix, column);
+        addDatacatObjectMetadata(objectPK, insertMetaData, tablePrefix, column);
     }
     
     private void deleteDatacatObjectMetadata(long objectPK, Set<String> metaDataKeys, String tablePrefix,
