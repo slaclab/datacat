@@ -57,20 +57,32 @@ $.fn.editableTableWidget = function (options) {
 				}
 				return [];
 			},
+			removeEditor = function(editor, resizer){
+				editor.remove();
+				editor = null;
+				$(window).off('resize', resizer);
+                        },
 			createEditor = function(active){
 				editor = activeOptions.editor
 					.css('position', 'absolute')
 					.attr("id", "editor")
 					.appendTo(document.body);
+				var resizer = function (e) {
+					if (editor) {
+						editor.val(active.text());
+						removeEditor(editor, this);
+					}
+				};
+                                $(window).on('resize', resizer);
 				editor.blur(function () {
 					setActiveText(active, editor);
 					editor.remove();
 					editor = null;
+					$(window).off('resize', resizer);
 				}).keydown(function (e) {
 					if (e.which === ENTER) {
 						setActiveText(active, editor);
-						editor.remove();
-						editor = null;
+						removeEditor(editor, resizer);
 						active.focus();
 						e.preventDefault();
 						e.stopPropagation();
@@ -78,8 +90,7 @@ $.fn.editableTableWidget = function (options) {
 						editor.val(active.text());
 						e.preventDefault();
 						e.stopPropagation();
-						editor.remove();
-						editor = null;
+						removeEditor(editor, resizer);
 						active.focus();
 					} else if (e.which === TAB) {
 						active.focus();
@@ -101,13 +112,6 @@ $.fn.editableTableWidget = function (options) {
 						editor.removeClass('error');
 					}
 				});
-			/* TODO: Something smart here so it works across resizes
-			$(window).on('resize', function () {
-				if (editor.is(':visible')) {
-					editor.offset(active.offset());
-				}
-			});
-			*/
 			};
 
                 elements.on('click keypress dblclick', showEditor)
