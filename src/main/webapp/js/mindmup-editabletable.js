@@ -10,7 +10,6 @@ $.fn.editableTableWidget = function (options) {
 			activeOptions = $.extend(buildDefaultOptions(), options),
 			ARROW_LEFT = 37, ARROW_UP = 38, ARROW_RIGHT = 39, ARROW_DOWN = 40, ENTER = 13, ESC = 27, TAB = 9,
 			elements = $(this),
-			editor,
 			defaultCloneMethod = function(active, editor){
 					editor.css(active.css(activeOptions.cloneProperties))
 					.width(active.width())
@@ -19,7 +18,7 @@ $.fn.editableTableWidget = function (options) {
 			cloneMethod = activeOptions.cloneMethod || defaultCloneMethod,
 			showEditor = function(evt, select) {
 				var active = $(evt.target);
-				createEditor(active);
+				var editor = createEditor(active);
 				if (active.length) {
 					editor.val(active.text())
 						.removeClass('error')
@@ -63,7 +62,7 @@ $.fn.editableTableWidget = function (options) {
 				$(window).off('resize', resizer);
                         },
 			createEditor = function(active){
-				editor = activeOptions.editor
+				var editor = activeOptions.editor
 					.css('position', 'absolute')
 					.attr("id", "editor")
 					.appendTo(document.body);
@@ -112,6 +111,7 @@ $.fn.editableTableWidget = function (options) {
 						editor.removeClass('error');
 					}
 				});
+                                return editor;
 			};
 
                 elements.on('click keypress dblclick', showEditor)
