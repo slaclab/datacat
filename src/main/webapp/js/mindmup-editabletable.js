@@ -1,38 +1,38 @@
 /*global $, window*/
 $.fn.editableTableWidget = function (options) {
 	'use strict';
-        return $(this).each(function () {
-                var buildDefaultOptions = function () {
-                                var opts = $.extend({}, $.fn.editableTableWidget.defaultOptions);
-                                opts.editor = opts.editor.clone();
-                                return opts;
-                        },
-                        activeOptions = $.extend(buildDefaultOptions(), options),
-                        ARROW_LEFT = 37, ARROW_UP = 38, ARROW_RIGHT = 39, ARROW_DOWN = 40, ENTER = 13, ESC = 27, TAB = 9,
-                        elements = $(this),
-                        editor,       
-                        defaultCloneMethod = function(active, editor){
-                                editor.css(active.css(activeOptions.cloneProperties))
-                                        .width(active.width())
-                                        .height(active.height());
-                        },
-                        cloneMethod = activeOptions.cloneMethod || defaultCloneMethod,
-                        showEditor = function(evt, select) {
-                                var active = $(evt.target);
-                                createEditor(active);
+	return $(this).each(function () {
+		var buildDefaultOptions = function () {
+				var opts = $.extend({}, $.fn.editableTableWidget.defaultOptions);
+				opts.editor = opts.editor.clone();
+				return opts;
+			},
+			activeOptions = $.extend(buildDefaultOptions(), options),
+			ARROW_LEFT = 37, ARROW_UP = 38, ARROW_RIGHT = 39, ARROW_DOWN = 40, ENTER = 13, ESC = 27, TAB = 9,
+			elements = $(this),
+			editor,
+			defaultCloneMethod = function(active, editor){
+					editor.css(active.css(activeOptions.cloneProperties))
+					.width(active.width())
+					.height(active.height());
+			},
+			cloneMethod = activeOptions.cloneMethod || defaultCloneMethod,
+			showEditor = function(evt, select) {
+				var active = $(evt.target);
+				createEditor(active);
 				if (active.length) {
 					editor.val(active.text())
 						.removeClass('error')
 						.show()
 						.offset(active.offset())
-                                        cloneMethod(active, editor);
-                                        editor.focus();
+					cloneMethod(active, editor);
+					editor.focus();
 					if (select) {
 						editor.select();
 					}
 				}
 			},
-                        setActiveText = function(active, editor) {
+			setActiveText = function(active, editor) {
 				var text = editor.val(),
 					evt = $.Event('change'),
 					originalContent;
@@ -56,61 +56,61 @@ $.fn.editableTableWidget = function (options) {
 					return element.parent().next().children().eq(element.index());
 				}
 				return [];
-                        },
-                        createEditor = function(active){
-                                editor = activeOptions.editor
-                                        .css('position', 'absolute')
-                                            .attr("id", "editor")
-                                            .appendTo(document.body);
-                                editor.blur(function () {
-                                        setActiveText(active, editor);
-                                        editor.remove();
-                                        editor = null;
-                                }).keydown(function (e) {
-                                        if (e.which === ENTER) {
-                                                setActiveText(active, editor);
-                                                editor.remove();
-                                                editor = null;
-                                                active.focus();
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                        } else if (e.which === ESC) {
-                                                editor.val(active.text());
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                editor.remove();
-                                                editor = null;
-                                                active.focus();
-                                        } else if (e.which === TAB) {
-                                                active.focus();
-                                        } else if (this.selectionEnd - this.selectionStart === this.value.length) {
-                                                var possibleMove = movement(active, e.which);
-                                                if (possibleMove.length > 0) {
-                                                        possibleMove.focus();
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                }
-                                        }
-                                })
-                                .on('input paste', function () {
-                                        var evt = $.Event('validate');
-                                        active.trigger(evt, editor.val());
-                                        if (evt.result === false) {
-                                                editor.addClass('error');
-                                        } else {
-                                                editor.removeClass('error');
-                                        }
-                                });
-                        /* TODO: Something smart here so it works across resizes
-                        $(window).on('resize', function () {
-                                if (editor.is(':visible')) {
-                                        editor.offset(active.offset());
-                                }
-                        });
-                        */
-                        };
+			},
+			createEditor = function(active){
+				editor = activeOptions.editor
+					.css('position', 'absolute')
+					.attr("id", "editor")
+					.appendTo(document.body);
+				editor.blur(function () {
+					setActiveText(active, editor);
+					editor.remove();
+					editor = null;
+				}).keydown(function (e) {
+					if (e.which === ENTER) {
+						setActiveText(active, editor);
+						editor.remove();
+						editor = null;
+						active.focus();
+						e.preventDefault();
+						e.stopPropagation();
+					} else if (e.which === ESC) {
+						editor.val(active.text());
+						e.preventDefault();
+						e.stopPropagation();
+						editor.remove();
+						editor = null;
+						active.focus();
+					} else if (e.which === TAB) {
+						active.focus();
+					} else if (this.selectionEnd - this.selectionStart === this.value.length) {
+						var possibleMove = movement(active, e.which);
+						if (possibleMove.length > 0) {
+							possibleMove.focus();
+							e.preventDefault();
+							e.stopPropagation();
+						}
+					}
+				})
+				.on('input paste', function () {
+					var evt = $.Event('validate');
+					active.trigger(evt, editor.val());
+					if (evt.result === false) {
+						editor.addClass('error');
+					} else {
+						editor.removeClass('error');
+					}
+				});
+			/* TODO: Something smart here so it works across resizes
+			$(window).on('resize', function () {
+				if (editor.is(':visible')) {
+					editor.offset(active.offset());
+				}
+			});
+			*/
+			};
 
-        elements.on('click keypress dblclick', showEditor)
+                elements.on('click keypress dblclick', showEditor)
 		.css('cursor', 'pointer')
 		.keydown(function (e) {
 			var prevent = true,
@@ -118,9 +118,9 @@ $.fn.editableTableWidget = function (options) {
 			if (possibleMove.length > 0) {
 				possibleMove.focus();
 			} else if (e.which === ENTER) {
-                                showEditor(e, false);
-                        } else if (e.which === 17 || e.which === 91 || e.which === 93) {
-                                showEditor(e, true);
+				showEditor(e, false);
+			} else if (e.which === 17 || e.which === 91 || e.which === 93) {
+				showEditor(e, true);
 				prevent = false;
 			} else {
 				prevent = false;
@@ -131,14 +131,14 @@ $.fn.editableTableWidget = function (options) {
 			}
 		});
 
-                elements.prop('tabindex', 1);
+		elements.prop('tabindex', 1);
 
-    });
+	});
 
 };
 $.fn.editableTableWidget.defaultOptions = {
-    cloneProperties: ['padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
-        'text-align', 'font', 'font-size', 'font-family', 'font-weight',
-        'border', 'border-top', 'border-bottom', 'border-left', 'border-right'],
-    editor: $('<input>')
+	cloneProperties: ['padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
+					  'text-align', 'font', 'font-size', 'font-family', 'font-weight',
+					  'border', 'border-top', 'border-bottom', 'border-left', 'border-right'],
+	editor: $('<input>')
 };
