@@ -18,7 +18,7 @@
 
 <script>
     $("document").ready(function(){
-        $(".location-table").editableTableWidget({cellSelector: "td.edit-patchable"});
+        $(".location-table td.edit-patchable").editableTableWidget();
 
         $(".edit-submit").on("click", function() { 
 

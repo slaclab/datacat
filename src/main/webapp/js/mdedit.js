@@ -1,12 +1,31 @@
 
+var cloneProperties =  
+        ["text-align", "font", "font-size", "font-family", "font-weight", "border", "border-top", "border-bottom", "border-left", "border-right"];
+var cloneMethod = function(active, editor){
+        editor
+            .css(active.css(cloneProperties))
+            .width(active.outerWidth())
+            .height(active.outerHeight());
+    };
+
 var mdhandler = new Object();
 mdhandler.addrow = function(){
     var newRow = $('\
             <tr class="md-new success">\
                 <td><span class="md-action glyphicon glyphicon-trash"></span></td>\
-                <td tabindex="1">[key]</td><td tabindex="1">[value]</td><td tabindex="1">[type]</td>\
+                <td tabindex="1" class="md-key">[key]</td>\n\
+                <td tabindex="1" class="md-value">[value]</td>\n\
+                <td tabindex="1" class="md-type">string</td>\
             </tr>');
     $(".md-editable").append(newRow);
+    newRow.find(".md-type").editableTableWidget({
+        editor: $('<select class="form-control"><option>decimal</option><option>integer</option><option>string</option></select>'), 
+        editorSelector:"select",
+        cloneMethod: cloneMethod
+    });
+    newRow.find(".md-key", newRow)
+            .add(".md-value", newRow)
+            .editableTableWidget({errorClass: "has-error"});
     newRow.find(".md-action").on("click", function(evt, newValue){
         var td = $(evt.target).parent();
         var row = td.parent();
@@ -81,8 +100,13 @@ mdhandler.getData = function(){
 }
 
 $("document").ready(function(){
-
-    $(".md-editable").editableTableWidget();
+    $(".md-editable .md-type").editableTableWidget({
+        editor: $('<select class="form-control"><option>decimal</option><option>integer</option><option>string</option></select>'), 
+        editorSelector:"select",
+        cloneMethod: cloneMethod
+    });
+    
+    $(".md-editable .md-value").editableTableWidget({errorClass: "has-error"});
 
     $('.md-editable').on('validate', function(evt, newValue) {
         var target = $(evt.target);
