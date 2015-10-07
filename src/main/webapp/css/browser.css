@@ -100,7 +100,14 @@ only screen and (max-width: 760px),
     
 }
 
-
 .location-table {
     table-layout: fixed;
+}
+
+th.md-action {
+    width: 4em;
+}
+
+th.md-type {
+    width: 6em;
 }

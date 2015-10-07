@@ -16,10 +16,10 @@
 <table class="table table-condensed table-striped mdedit">
     <thead>
         <tr>
-            <th>Action</th>
+            <th class="md-action">Action</th>
             <th>Key</th>
             <th>Value</th>
-            <th>Type</th>
+            <th class="md-type">Type</th>
         </tr>
     </thead>
 
@@ -28,7 +28,7 @@
 
             <c:forEach var="md" items="${mdlist}" varStatus="status">
                 <tr class="md-existing">
-                    <td><span class="md-action glyphicon glyphicon-refresh"></span><span class="md-action glyphicon glyphicon-trash"></span></td>
+                    <td><span class="md-action glyphicon glyphicon-trash"></span>  <span class="md-action glyphicon glyphicon-refresh"></span></td>
                     <td default="${md.key}" class="md-key">${md.key}</td>
                     <td default="${md.rawValue}" class="md-value">${md.rawValue}</td>
                     <td default="${web_dc:getValueType(md.rawValue)}" class="md-type">${web_dc:getValueType(md.rawValue)}</td>
