@@ -27,11 +27,11 @@
         <c:if test="${mdlist != null && !empty mdlist}">
 
             <c:forEach var="md" items="${mdlist}" varStatus="status">
-                <tr class="md-existing">
+                <tr class="md-existing" data-key="${md.key}" data-value="${md.rawValue}" data-type="${web_dc:getValueType(md.rawValue)}">
                     <td><span class="md-action glyphicon glyphicon-trash"></span>  <span class="md-action glyphicon glyphicon-refresh"></span></td>
-                    <td default="${md.key}" class="md-key">${md.key}</td>
-                    <td default="${md.rawValue}" class="md-value">${md.rawValue}</td>
-                    <td default="${web_dc:getValueType(md.rawValue)}" class="md-type">${web_dc:getValueType(md.rawValue)}</td>
+                    <td class="md-key" data-id="key">${md.key}</td>
+                    <td class="md-value" data-id="value">${md.rawValue}</td>
+                    <td class="md-type" data-id="type">${web_dc:getValueType(md.rawValue)}</td>
                 </tr>
             </c:forEach>
         </c:if>

@@ -36,11 +36,13 @@ mdhandler.addrow = function(){
 mdhandler.resetrow = function(row){
     row.find("td").each(function(i, item){
         item = $(item);
-        item.text(item.attr("default"));
+        if(item.data("id")){
+            item.text(row.data(item.data("id")));
+        }
     });
     row.removeClass("warning");
     row.removeClass("danger");
-}
+};
 
 mdhandler.rmrow = function(row){
     row = $(row);
@@ -50,26 +52,25 @@ mdhandler.rmrow = function(row){
 
 mdhandler.modified = function(){
     return $(".md-editable .md-existing").filter(".warning");
-}
+};
 
 mdhandler.neu = function(){
     return $(".md-new").filter(".success");
-}
+};
 
 mdhandler.removed = function(){
     return $(".md-existing").filter(".danger");
-}
+};
 
 mdhandler.getData = function(){
     var patchItems = new Array();
 
     mdhandler.modified().each(function(i, item){
-        var patch = $(item);
-        var keyData = $(patch.find("td")[1]);
-        var key =  keyData.attr("default");
-        var newkey =  keyData.text();
-        var value = $(patch.find("td")[2]).text();
-        var type = $(patch.find("td")[3]).text();
+        var patchRow = $(item);
+        var key =  patchRow.data("key");
+        var newkey =  $(patchRow.find("td")[1]).text();
+        var value = $(patchRow.find("td")[2]).text();
+        var type = $(patchRow.find("td")[3]).text();
 
         if(key !== newkey){
             patchItems.push({"key": key, "value": null});
@@ -79,9 +80,8 @@ mdhandler.getData = function(){
     });
 
     mdhandler.removed().each(function(i, item){
-        var rm = $(item);
-        var keyData = $(rm.find("td")[1]);
-        patchItems.push({"key": keyData.attr("default"), "value": null});
+        var rmRow = $(item);
+        patchItems.push({"key": rmRow.data("key"), "value": null});
     });
 
     mdhandler.neu().each(function(i, item){
@@ -97,7 +97,7 @@ mdhandler.getData = function(){
     });
 
     return patchItems;
-}
+};
 
 $("document").ready(function(){
     $(".md-editable .md-type").editableTableWidget({
@@ -107,12 +107,10 @@ $("document").ready(function(){
     });
     
     $(".md-editable .md-value").editableTableWidget({errorClass: "has-error"});
-
-    $('.md-editable').on('validate', function(evt, newValue) {
-        var target = $(evt.target);
-        var row = target.parent();
-        var value = row.find(".md-value").text();
-        var type = row.find(".md-type").text();
+    
+    function validateValue(target, row, newValue){
+        var value = row.data("value");
+        var type = row.data("type");
         if(target.hasClass("md-type")){
             type = newValue;
         }
@@ -131,10 +129,30 @@ $("document").ready(function(){
                 return false;
             }
         }
-        var _default = target.attr("default");
+        return true;
+    }
+
+    $('.md-editable').on('validate', function(evt, newValue) {
+        var target = $(evt.target);
+        var row = target.parent();
+        if(!validateValue(target, row, newValue)){
+            return false;
+        }
+        
         var parent = target.parent();
         if(parent.hasClass("md-existing")){
-            if(_default === newValue){
+            var changed = false;
+            $.each(row.data(), function(id){
+                var originalValue = row.data(id);
+                var textVal = row.find("[data-id='" + id + "']").text();
+                if(target.data("id") === id){
+                    textVal = newValue;
+                }
+                if(originalValue.toString() !== textVal){
+                    changed |= true;
+                }
+            });
+            if(!changed){
                 parent.removeClass("warning");
             } else {
                 parent.addClass("warning");
@@ -155,5 +173,5 @@ $("document").ready(function(){
             mdhandler.resetrow(row);
         }
     });
-    $(".md-add").on("click", function() { mdhandler.addrow(); } )
-})
+    $(".md-add").on("click", function() { mdhandler.addrow(); } );
+});
