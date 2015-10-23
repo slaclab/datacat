@@ -98,7 +98,8 @@ class DatasetLocation(DatacatRecord):
     def __repr__(self):
         return "{}.{}(**{})".format(type(self).__module__, type(self).__name__, repr(self.__dict__))
 
-class Metadata(MutableMapping):
+
+class Metadata(MutableMapping, OrderedDict):
     def __init__(self, seq=None):
         self.dct = OrderedDict(seq) if seq else OrderedDict()
 
