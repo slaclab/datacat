@@ -5,7 +5,7 @@ MODES = "prod dev test".split(" ")
 ENDPOINTS = "children path search datasets containers groups folders".split(" ")
 DATATYPES = "json xml txt".split(" ")
 
-__version__ = "0.3"
+__version__ = "0.4"
 
 INSTALLATIONS = "srs fermi".split(" ")
 

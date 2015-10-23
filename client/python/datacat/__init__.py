@@ -1,5 +1,5 @@
 #
-__version__ = "0.4-BETA4"
+__version__ = "0.4-RC1"
 
 from .auth import auth_from_config
 from .client import Client, client_from_config, client_from_config_file
