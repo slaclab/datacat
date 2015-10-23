@@ -1,13 +1,14 @@
 #!/usr/bin/python
 
+import argparse
+import json
 import logging
 import sys
-import argparse
 from .auth import auth_from_config
 from .client import Client
 from .config import config_from_file
 from .error import DcException, DcClientException, DcRequestException
-from .model import Container
+from .model import Container, Dataset, Group
 
 
 def build_argparser():
@@ -149,7 +150,7 @@ def main():
         format_path_result(result)
 
     if command == "children":
-        format_children(result)
+        format_children(result, args.stat)
 
 
 def format_search_results(results, show=None, sort=None):
@@ -183,23 +184,45 @@ def format_search_results(results, show=None, sort=None):
 
 
 def format_path_result(result):
-    print "{}: {}".format(type(object).__name__, result.path)
+    print maybe_hilite(result)
+    print "Type: {}".format(type(result).__name__)
+    print "Path: {}".format(result.path)
     if isinstance(result, Container):
         if hasattr(result, "stat"):
             print "Stat:"
             for name, value in result.stat.items():
-                if "Count" in name:
+                if "_type" not in name:
                     print "    {}: {}".format(name, value)
+
     if hasattr(result, "versionMetadata"):
-        print "Version Metadata: \n{}".format(result.versionMetadata)
+        print "Version Metadata:\n    ",
+        print json.dumps(result.versionMetadata, sort_keys=False, indent=4)
 
     if hasattr(result, "metadata"):
-        print "Metadata: \n{}".format(result.metadata)
+        print "Metadata:"
+        mdstr = json.dumps(result.metadata, sort_keys=False, indent=4)
+        print "    " + mdstr.replace("\n", "\n    ")
 
 
-def format_children(results):
-    for obj in results:
-        print repr(obj)
+def maybe_hilite(result):
+    name = result.name if isinstance(result, Dataset) else result.name + "/"
+    attr = []
+    if isinstance(result, Group):
+        attr.append('35')
+    elif isinstance(result, Container):
+        attr.append('34')
+    else:
+        attr.append('30')
+    return '\x1b[%sm%s\x1b[0m' % (';'.join(attr), name) if sys.stdout.isatty() else name
+
+
+def format_children(results, stat):
+    for result in results:
+        if stat:
+            print "#"*32
+            format_path_result(result)
+        else:
+            print maybe_hilite(result)
 
 if __name__ == '__main__':
     main()
