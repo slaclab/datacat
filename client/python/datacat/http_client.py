@@ -34,7 +34,7 @@ class HttpClient:
         endpoint = "path"
         return self._req("get", self._target(endpoint, path, versionId, site, accept), **kwargs)
     
-    def children(self, path, versionId=None, site=None, offset=None, max_num=None, accept="json", **kwargs):
+    def children(self, path, versionId=None, site=None, stat=None, offset=None, max_num=None, accept="json", **kwargs):
         """
         Retrieve the children of a container.
         :param path: Path of the container to retrieve objects from
@@ -43,7 +43,7 @@ class HttpClient:
         :return: A :class`requests.Response` object. The content is a representation of the newly created container.
         """
         endpoint = "path"
-        param_list = "offset:offset max_num:max".split(" ")
+        param_list = "offset:offset max_num:max stat:stat".split(" ")
         param_map = dict([tuple(i.split(":")) for i in param_list])
         params = {param_map[k]: v for k, v in locals().items() if k in param_map and v is not None}
         target = self._target(endpoint, path, versionId, site, accept) + ";children"

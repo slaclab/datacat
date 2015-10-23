@@ -24,8 +24,8 @@ class Client(object):
         return unpack(resp.content)
 
     @checked_error
-    def children(self, path, versionId=None, site=None, offset=None, max_num=None, **kwargs):
-        resp = self.http_client.children(path, versionId, site, offset, max_num, **kwargs)
+    def children(self, path, versionId=None, site=None, stat=None, offset=None, max_num=None, **kwargs):
+        resp = self.http_client.children(path, versionId, site, stat, offset, max_num, **kwargs)
         return unpack(resp.content)
 
     def exists(self, path, versionId=None, site=None, **kwargs):
