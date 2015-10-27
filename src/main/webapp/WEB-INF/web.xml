@@ -43,7 +43,7 @@
         <filter-name>LoginFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-        
+
     <servlet>
         <servlet-name>BrowserController</servlet-name>
         <servlet-class>org.srs.webapps.datacat.controllers.BrowserController</servlet-class>
@@ -141,6 +141,6 @@
         </session-timeout>
     </session-config>
     <welcome-file-list>
-        <welcome-file>path.jsp</welcome-file>
+        <welcome-file>display/browser</welcome-file>
     </welcome-file-list>
 </web-app>
