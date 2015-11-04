@@ -376,7 +376,7 @@ public class DcFileSystemProvider {
             if(dsReq instanceof DatasetWithViewModel){
                 requestView = Optional.of(((DatasetWithViewModel) dsReq).getViewInfo());
             } else {
-                throw new IllegalArgumentException("Unable to fulfill rquest");
+                throw new IllegalArgumentException("Unable to fulfill request");
             }
         }
         try(DatasetDAO dao = daoFactory.newDatasetDAO(path)) {
@@ -475,7 +475,7 @@ public class DcFileSystemProvider {
         // The retrieval of the DirectoryStream can fail, so we should clean up if that happens
         try {
             search = dao.search(visitor.files, datasetView, query, retrieveFields, sortFields);
-        } catch (IOException ex){
+        } catch (ParseException | IllegalArgumentException | IOException ex){
             dao.close();
             throw ex;
         }
