@@ -47,7 +47,7 @@ class Group(Container):
 
 
 class Dataset(DatacatNode):
-    REQ_JSON_ALLOWED = "name path dataType fileFormat metadata" \
+    REQ_JSON_ALLOWED = "name path dataType fileFormat metadata " \
         "versionId processInstance taskName versionMetadata locations".split(" ")
 
     # noinspection PyPep8Naming
@@ -99,7 +99,7 @@ class DatasetLocation(DatacatRecord):
         return "{}.{}(**{})".format(type(self).__module__, type(self).__name__, repr(self.__dict__))
 
 
-class Metadata(MutableMapping, OrderedDict):
+class Metadata(MutableMapping):
     def __init__(self, seq=None):
         self.dct = OrderedDict(seq) if seq else OrderedDict()
 
