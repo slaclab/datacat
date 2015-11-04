@@ -16,6 +16,8 @@ def build_argparser():
     parser.add_argument('-U', '--base-url', help="Override base URL for client", action="store")
     parser.add_argument('-D', '--domain', "--experiment", help="Set domain (experiment) for requests", default="srs")
     parser.add_argument('-M', '--mode', help="Set server mode", choices=("dev", "prod"), default="prod")
+    parser.add_argument('-F', '--config-file', help="Set config file path", action="store")
+    parser.add_argument('-O', '--config-section', help="Set override section in config file", action="store")
     parser.add_argument('-d', '--debug', help="Debug Level", action="store_true")
     sub = parser.add_subparsers(help="Command help")
     
@@ -114,8 +116,8 @@ def main():
     target = args.__dict__.pop("path")
     params = args.__dict__ or {}
 
-    config_file_path = args.config_file if hasattr("args", "config_file") else None
-    config_section = args.config_section if hasattr("args", "config_section") else None
+    config_file_path = args.config_file
+    config_section = args.config_section
 
     config = config_from_file(config_file_path, config_section, args.domain, args.mode)
     url = args.base_url if hasattr(args, 'base_url') and args.base_url is not None else None
@@ -195,12 +197,13 @@ def format_path_result(result):
                     print "    {}: {}".format(name, value)
 
     if hasattr(result, "versionMetadata"):
-        print "Version Metadata:\n    ",
-        print json.dumps(result.versionMetadata, sort_keys=False, indent=4)
+        print "Version Metadata:"
+        mdstr = json.dumps(result.versionMetadata.dct, sort_keys=False, indent=4)
+        print "    " + mdstr.replace("\n", "\n    ")
 
     if hasattr(result, "metadata"):
         print "Metadata:"
-        mdstr = json.dumps(result.metadata, sort_keys=False, indent=4)
+        mdstr = json.dumps(result.metadata.dct, sort_keys=False, indent=4)
         print "    " + mdstr.replace("\n", "\n    ")
 
 
