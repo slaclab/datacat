@@ -470,9 +470,16 @@ public class DcFileSystemProvider {
         walker.walk(searchPath, context);
         final SearchDAO dao = daoFactory.newSearchDAO();
         
-        final DirectoryStream<DatasetModel> search = 
-                dao.search(visitor.files, datasetView, query, retrieveFields, sortFields);
+        final DirectoryStream<DatasetModel> search;
         
+        // The retrieval of the DirectoryStream can fail, so we should clean up if that happens
+        try {
+            search = dao.search(visitor.files, datasetView, query, retrieveFields, sortFields);
+        } catch (IOException ex){
+            dao.close();
+            throw ex;
+        }
+
         // Wrap the actual DirectoryStream and add method to close DAO
         return new DirectoryStream<DatasetModel>(){
 
@@ -490,7 +497,7 @@ public class DcFileSystemProvider {
                     dao.close();
                 }
             }
-            
+
         };
     }
     
