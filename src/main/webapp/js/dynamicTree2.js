@@ -21,7 +21,7 @@
 	    }
 	    run();
 	})();
-    }
+    };
 
     var running = false;
     function ajaxResource(relpath, cb){
@@ -70,7 +70,7 @@
 	a = caseSort ? a.name : a.name.toLocaleLowerCase();
 	b = caseSort ? b.name : b.name.toLocaleLowerCase();
 	return a.localeCompare( b );
-    }
+    };
     
     function groupsAndFoldersFor(path, cb){
 	syncLoadStack("/path.json", path + ";children=containers", "", cb);
@@ -87,7 +87,7 @@
 	    items.forEach(function(item){
 		addNode(ul, item);
 	    });
-	})
+	});
     }
     
     function pathInfo(path, cb){
@@ -97,7 +97,7 @@
     
     function findNode(path){
 	path = path.split("\/").slice(1);
-	var node = dynamicTree.dataTree["/" + path[0]]
+	var node = dynamicTree.dataTree["/" + path[0]];
 	for(var i = 1; i < path.length; i++){
 	    node = node["/" + path[i]];
 	}
@@ -106,7 +106,7 @@
     
     function findPath(node){
 	var path = "/" + node.name;
-	while(node['parent'] != null){
+	while(node['parent'] !== null){
 	    node = node['parent'];
 	    path = "/" + node.name + path;
 	}
@@ -129,7 +129,7 @@
 	    })();
 	}
 
-    }
+    };
     
     function addNode(childrenContainer,item){
 	var node = $('<li class="tree-node"/>').attr("id","/" + item.name);
@@ -140,7 +140,7 @@
                 .text(item.name)
                 //.bind("click",selected)
                 .bind("keydown", toggleOpen);
-	if(item._type == "folder"){
+	if(item._type === "folder"){
 	    node.append( $('<span class="glyphicon tree-caret"></span>').bind("click", toggleOpen) );
 	} else {
 	    nodeAnchor = nodeAnchor.addClass("tree-file");
@@ -148,7 +148,7 @@
 	}
 	
 	node.append( nodeAnchor );
-	if(item._type == "folder"){
+	if(item._type === "folder"){
 	    node.append( $('<ul class="tree-children" />') );
 	}
 	
@@ -173,7 +173,7 @@
 	    parent.children.forEach(function(item){
 		addNode(ul, item);
             });
-	}
+	};
     }
 
     /* Event Handlers */
@@ -185,63 +185,22 @@
     var k = 75;
     var space = 32;
     var enter = 13;
-    
-    var ctrlActive = false;
-    function multiSet(event){
-	var s = 83;
-	if( event.type == "keydown" && event.keyCode == s){
-	    ctrlActive = true;
-	}
-	if( event.type == "keyup" && event.keyCode == s){
-	    ctrlActive = false;
-	}
-    }
-    
-    function dumpSelected(){
-	$(".tree-selected").each(function(i,item){
-	    var p = $(item).parent();
-	    var tNode = p.data("treeNode");
-	    console.log( "Dumping selection: " + findPath( tNode ) );
-	});
-    }
-
-    function selected(event){
-	if( event.type == "click"){
-	    if(event.which == 2){
-		$(this).attr("href", "#" + findPath($(this).parent().data("treeNode")));
-	    }
-	}
-	if(!ctrlActive && (event.keyCode == enter || event.type == "click")){   
-	    dumpSelected();
-	    $(".tree-selected").each(function(i,item){
-		$(item).toggleClass("tree-selected");
-	    });
-	}
-	var p = $(this);
-	var tNode = p.data("treeNode");
-	p.toggleClass("tree-selected");
-        return false;
-    }
-    
-    function rewriteHREF(event){
-	$(this).attr("href", "#" + findPath($(this).parent().data("treeNode")));
-    }
-    
+       
     var openStack = new Array();
+    
     function toggleOpen(event){
 	
 	var p = $(event.target).parent();
 	var tNode = p.data("treeNode");
         
 	function toggle(){
-	    if(p.data("treeNode").children == null){
+	    if(p.data("treeNode").children === null){
 		var path = findPath(tNode);
 		groupsAndFoldersFor(path, function(items){
 		    childrenCB(path)(items);
 		});
 	    }
 	    if(p.hasClass("open")) {
-
 		openStack.splice(openStack.indexOf( p.data("treeNode").pk), 1 );
 	    } else {
 		openStack.push(	p.data("treeNode").pk );
@@ -249,10 +208,10 @@
 	    p.toggleClass("open");
 	}
 	
-	if( event.type == "keydown" ){
-	    if ( !p.hasClass("open") && ( event.keyCode == right || event.keyCode == enter ) )
+	if( event.type === "keydown" ){
+	    if ( !p.hasClass("open") && ( event.keyCode === right || event.keyCode === enter ) )
 		toggle();
-	    else if( p.hasClass("open") && ( event.keyCode == left || event.keyCode == enter ) ){
+	    else if( p.hasClass("open") && ( event.keyCode === left || event.keyCode === enter ) ){
 		toggle();
             }
 	} else {
@@ -261,16 +220,14 @@
     }
         
     function initObjects(){
-	$(".tree").bind("keydown",multiSet);
-	$(".tree").bind("keyup",multiSet);
 	rootItems();
     }
     
     dynamicTree.init = function(){
-        if($(".tree") != null){
+        if($(".tree") !== null){
             $(".tree").ready(initObjects);
         }
-    }
+    };
     
 }( window.dynamicTree = window.dynamicTree || {}, jQuery, window.loadStack.syncLoadStack ));
 
