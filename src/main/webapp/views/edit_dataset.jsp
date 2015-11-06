@@ -18,7 +18,18 @@
 
 <script>
     $("document").ready(function(){
-        $(".location-table td.edit-patchable").editableTableWidget();
+        $(".location-table td.ds-patchable").editableTableWidget();
+        
+        $('.location-table').on('validate', function(evt, newValue) {
+            var target = $(evt.target);
+            var row = target.parent();
+            var original = row.data("original").toString();
+            if(newValue !== original){
+                row.addClass("warning");
+            } else {
+                row.removeClass("warning");
+            }
+        });
 
         $(".edit-submit").on("click", function() { 
 
@@ -26,12 +37,15 @@
             var form = $("#edit-form");
             form.attr("action", pageContext.endPoint + pageContext.target.path);
             
-            $(".edit-patchable").each(function(i, item){
+            $(".ds-patchable").each(function(i, item){
                 item = $(item);
-                var input = $('<input type="hidden" value=""/>');
-                input.attr("name", item.attr("id"))
-                input.val(item.text())
-                form.append(input);
+                var row = item.parent();
+                if(item.text() !== row.data("original").toString()){
+                    var input = $('<input type="hidden" value=""/>');
+                    input.attr("name", row.data("key"))
+                    input.val(item.text())
+                    form.append(input);
+                }
             });
 
             var mdItems = mdhandler.getData();
@@ -72,30 +86,29 @@
                     <tr><th>Source:</th><td>${target.dataSource}</td></tr>
                         </c:if>
                     </c:catch>
-                    <c:catch var="exception">
-                <tr><th>Size:</th><td class="edit-patchable" id="created">${web_dc:formatBytes(master.size)}<%--${datacat:formatBytes(master.size)}--%></td></tr>
-                    </c:catch>
-                    <c:catch var="exception">
+            <c:if test="${master != null}">
+                <tr data-key="size" data-original="${web_dc:formatBytes(master.size)}">
+                    <th>Size:</th>
+                    <td class="ds-patchable" id="created">${web_dc:formatBytes(master.size)}</td></tr>
                 <tr><th>Master Site:</th><td>${master.site}</td></tr>
-                    </c:catch>
-                    <c:catch var="exception">
-                <tr><th>Master resource:</th><td class="location-resource">${master.resource}</td></tr>
-                    </c:catch>
-                    <c:catch var="exception">
-                <tr><th>Run Min:</th><td class="edit-patchable" id="runMin">${master.runMin}</td></tr>
-                    </c:catch>
-                    <c:catch var="exception">
-                <tr><th>Run Max:</th><td class="edit-patchable" id="runMax">${master.runMax}</td></tr>
-                    </c:catch>
-                    <c:catch var="exception">
-                <tr><th>Events:</th><td class="edit-patchable" id="events">${web_dc:formatEvents(master.eventCount)}</td></tr>
-                    </c:catch>
+                <tr>
+                    <th>Master resource:</th>
+                    <td class="location-resource">${master.resource}</td></tr>
+                <tr data-key="runMin" data-original="${master.runMin}">
+                    <th>Run Min:</th>
+                    <td class="ds-patchable">${master.runMin}</td></tr>
+                <tr data-key="runMax" data-original="${master.runMax}">
+                    <th>Run Max:</th>
+                    <td class="ds-patchable">${master.runMax}</td></tr>
+                <tr data-key="eventCount" data-original="${web_dc:formatEvents(master.eventCount)}">
+                    <th>Events:</th>
+                    <td class="ds-patchable">${web_dc:formatEvents(master.eventCount)}</td>
+                </tr>
+            </c:if>
                     <%--
-                    <c:catch var="exception">
                         <c:if test="${empty dataset.processInstance}">
                             <th>Task:</th><td><a target="_top" href="${appVariables.pipelineUrl}/pi.jsp?pi=${dataset.processInstance}&experiment=${appVariables.experiment}">${dataset.taskName}</a></td>
                         </c:if>
-                    </c:catch>
                         <c:if test="${!empty dataset.rootversion}">
                             <th>Root Version:</th><td>${dataset.rootversion}</td>
                             <th>Tree Name:</th><td>${dataset.ttreename}</td>
