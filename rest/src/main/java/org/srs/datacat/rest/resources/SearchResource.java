@@ -99,7 +99,7 @@ public class SearchResource extends BaseResource {
             int count = 0;
             Iterator<DatasetModel> iter = stream.iterator();
             for(int i = 0; iter.hasNext(); i++, count++){
-                if(i >= offset && i < max){
+                if(i >= offset && i < (offset + max)){
                     datasets.add(iter.next());
                 } else {
                     iter.next();
