@@ -94,26 +94,7 @@ public class DatasetsResourceTest extends JerseyTest {
     public void testCreateDatasetsAndViews() throws IOException{
         generateFoldersAndDatasetsAndVersions(this, 10, 100);
     }
-    
-    /*public static void generateFoldersAndDatasetsNodes(JerseyTest testCase, int folderCount, int datasetCount) throws IOException{
-        ContainerResourceTest.generateFolders(testCase, folderCount);
-        for(int i = 0; i < folderCount; i++){
-            String parent =PathUtils.resolve( "/testpath",String.format("folder%05d", i));
-            for(int j = 0; j < datasetCount; j++){
-                String name = String.format("dataset%05d", j);
-                MultivaluedHashMap<String,String> entity = new MultivaluedHashMap<>();
-                entity.add( "name", name);
-                entity.add( "datasetDataType",HSqlDbHarness.JUNIT_DATASET_DATATYPE);
-                entity.add( "datasetSource", HSqlDbHarness.JUNIT_DATASET_DATASOURCE);
-                entity.add( "datasetFileFormat", HSqlDbHarness.JUNIT_DATASET_FILEFORMAT);
-                Response resp = testCase.target("/datasets" + parent)
-                    .request()
-                    .post( Entity.form(entity));
-                TestCase.assertEquals("201",resp.getStatus());
-            }
-        }
-    }*/
-    
+       
     public Response createOne() throws JsonProcessingException{
         String parent = "/testpath/folder00000";
         String name = "dataset0001";
@@ -336,7 +317,7 @@ public class DatasetsResourceTest extends JerseyTest {
         TestCase.assertEquals(201, resp.getStatus());
         resp = createOne();
         printTrace(resp);
-        TestCase.assertEquals(resp.readEntity(String.class), 303, resp.getStatus());
+        TestCase.assertEquals(resp.readEntity(String.class), 409, resp.getStatus());
         
         resp.getLocation().getPath();
         resp = target(resp.getLocation().getPath())
@@ -356,7 +337,7 @@ public class DatasetsResourceTest extends JerseyTest {
         System.out.println(resp.readEntity(String.class));
         resp = createOneWithLocation("SLAC2","file://path/to/two.txt");
         
-        TestCase.assertEquals(303, resp.getStatus());
+        TestCase.assertEquals(409, resp.getStatus());
         
         resp.getLocation().getPath();
         resp = target(resp.getLocation().getPath())
@@ -400,7 +381,7 @@ public class DatasetsResourceTest extends JerseyTest {
                     .request()
                     .header("authentication", DbHarness.TEST_USER)
                     .post(Entity.form(entity));
-                if(resp.getStatus() == 200){
+                if(resp.getStatus() == 409){
                     System.out.println("duplicate: datasets" + parent + "/" + name);
                     System.out.println(resp.readEntity(String.class));
                 } else {

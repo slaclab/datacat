@@ -215,9 +215,9 @@ public class DatasetsResource extends BaseResource  {
             possibly a version, and possibly locations
            a. If a dataset exists, but the representations in the data store and request 
                conflict, send a 409 - Conflict
-           b. If a dataset exists, but a version doesn't exist, do a 303 - See Other 
-               with the dataset URL
-           c. If a dataset and version exists, but not all locations exist, do a 303 - See Other
+           b. If a dataset exists, but a version doesn't exist, do a 409 - See Other 
+               with the dataset URL in the location header
+           c. If a dataset and version exists, but not all locations exist, do a 409 - See Other
                with the dataset+version URL
            d. If a dataset exists, and the representations in the data store and request 
                do not conflict, and there is no additional info, send a 302 - Found
@@ -225,13 +225,13 @@ public class DatasetsResource extends BaseResource  {
            a. If a version exists, but the representations in the data store and request 
                conflict, send a 409 - Conflict
            b. If a version exists, but location(s) are present and location(s) don't exist, 
-               do a 303 - See Other with the dataset+version URL
+               do a 409 - Conflict with the dataset+version URL
            c. If a version exists, and the representations in the data store and request 
                are equivalent, and there is no additional info, do a 302 - Found
         3. If we POSTed to a version, we are creating locations.
            a. If a location exists, but the representations in the data store and request 
                conflict, send a 409 - Conflict
-           b. If a version exists, but the location(s) don't exist, do a 303 - See Other 
+           b. If a version exists, but the location(s) don't exist, do a 409 - Conflict
                with the dataset+version URL
            c. If a location exists, and the representations in the data store and request 
                are equivalent, and there is no new information, send a 302 - Found
@@ -250,7 +250,7 @@ public class DatasetsResource extends BaseResource  {
     }
     
     /**
-      Return an appropriate response in the case where a file alredy exists
+      Return an appropriate response in the case where a file already exists
      */
     private Response handleFileAlreadyExists(FileAlreadyExistsException ex, java.nio.file.Path datasetPath, 
             Optional<DatasetViewInfoModel> viewOpt, Set<DatasetOption> options){
@@ -275,19 +275,24 @@ public class DatasetsResource extends BaseResource  {
                 ? ((DatasetWithViewModel) existing).getViewInfo() : null;
 
         UriBuilder newUriBuilder = ui.getAbsolutePathBuilder();
+        HashMap<String, Object> locationHeader = new HashMap<>();
         switch(exc){
             case DATASET_EXISTS:
                 newUriBuilder.path(existing.getName()).build();
-                return Response.seeOther(newUriBuilder.build()).build();
+                locationHeader.put("Location", newUriBuilder.build());
+                throw new RestException(ex, 409, "A Dataset already exists with that name", null, locationHeader);
             case VERSION_EXISTS:
                 /* By definition, currentVer is non-null */
                 DatasetVersionModel currentVer = currentViewInfo.getVersion();
                 newUriBuilder.matrixParam("v", currentVer.getVersionId());
-                return Response.seeOther(newUriBuilder.build()).build();
+                locationHeader.put("Location", newUriBuilder.build());
+                throw new RestException(ex, 409, "A Version Already exists", null, locationHeader);
             case LOCATION_EXISTS:
                 newUriBuilder.matrixParam("l", "all");
+                locationHeader.put("Location", newUriBuilder.build());
+                throw new RestException(ex, 409, "A Location Already exists for that site", null, locationHeader);
         }
-        return Response.seeOther(newUriBuilder.build()).build();
+        throw new RestException(ex, 409);
     }
     
     @PATCH
