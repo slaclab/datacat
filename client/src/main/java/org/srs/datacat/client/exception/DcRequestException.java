@@ -55,7 +55,7 @@ public class DcRequestException extends DcException {
 
     @Override
     public String toString(){
-        return "DcRequestException{" + "url=" + url + ", statusCode=" + 
+        return "DcRequestException{" + "message=" + getMessage() + ", url=" + url + ", statusCode=" + 
                 statusCode + ", headers=" + headers + ", entity=" + entity + '}';
     }
 

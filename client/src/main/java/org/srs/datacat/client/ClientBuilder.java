@@ -4,6 +4,7 @@ package org.srs.datacat.client;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.ws.rs.client.ClientRequestFilter;
@@ -19,6 +20,7 @@ public class ClientBuilder {
     private URI url;
     private List<ClientRequestFilter> clientRequestFilters = new ArrayList<>();
     private List<ClientResponseFilter> clientResponseFilters = new ArrayList<>();
+    private Map<String, Object> clientProperties = new HashMap<>();
     private List<Feature> features = new ArrayList<>();
     
     public ClientBuilder(){ }
@@ -42,6 +44,11 @@ public class ClientBuilder {
         clientResponseFilters.add(clientResponseFilter);
         return this;
     }
+    
+    public ClientBuilder addProperty(String name, Object value){
+        clientProperties.put(name, value);
+        return this;
+    }
 
     public ClientBuilder addFeature(Feature feature){
         features.add(feature);
@@ -49,7 +56,8 @@ public class ClientBuilder {
     }
     
     public Client build(){
-        return new Client(this.url, this.clientRequestFilters, this.clientResponseFilters, this.features);
+        return new Client(this.url, this.clientRequestFilters, 
+                this.clientResponseFilters, this.features, this.clientProperties);
     }
     
     

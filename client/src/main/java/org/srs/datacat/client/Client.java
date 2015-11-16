@@ -5,6 +5,8 @@ import com.google.common.base.Optional;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.ClientRequestFilter;
@@ -44,19 +46,22 @@ public class Client {
     private Containers  containersResource;
     
     public Client(URI url, List<ClientRequestFilter> requestFilters, 
-            List<ClientResponseFilter> responseFilters, List<Feature> features) {
-        init(url, requestFilters, responseFilters, features);
+            List<ClientResponseFilter> responseFilters, List<Feature> features, 
+            Map<String, Object> properties) {
+        init(url, requestFilters, responseFilters, features, properties);
     }
     
     public Client(URI url){
         init(url,
                 Collections.<ClientRequestFilter>emptyList(),
                 Collections.<ClientResponseFilter>emptyList(),
-                Collections.<Feature>emptyList());
+                Collections.<Feature>emptyList(),
+                Collections.<String, Object>emptyMap());
     }
         
     private void init(URI baseUrl, List<ClientRequestFilter> requestFilters, 
-            List<ClientResponseFilter> responseFilters, List<Feature> features){
+            List<ClientResponseFilter> responseFilters, List<Feature> features, 
+            Map<String, Object> properties){
         ClientBuilder builder = ClientBuilder.newBuilder()
                 .register(new JacksonFeature())
                 .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
@@ -71,6 +76,10 @@ public class Client {
         
         for(Feature feature: features){
             builder.register(feature);
+        }
+
+        for(Entry<String, Object> e: properties.entrySet()){
+            builder.property(e.getKey(), e.getValue());
         }
         
         this.client = builder.build();
@@ -137,7 +146,7 @@ public class Client {
     }
     
     public DatasetResultSetModel searchForDatasets(String target, String versionId, String site, 
-            String query, String[] sort, String show, int offset, int max){
+            String query, String[] sort, String show, Integer offset, Integer max){
         try {
             Response resp = searchResource.searchForDatasets(target, Optional.fromNullable(versionId), 
                 Optional.fromNullable(site), Optional.fromNullable(query), 
