@@ -9,9 +9,10 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.client.ClientRequestFilter;
 import org.srs.datacat.client.Client;
 import org.srs.datacat.client.ClientBuilder;
-import org.srs.datacat.client.auth.AuthenticationFilter;
+import org.srs.datacat.client.auth.HeaderFilter;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetResultSetModel;
@@ -28,6 +29,16 @@ import org.srs.vfs.PathUtils;
 public class ControllerUtils {
     static final int DEFAULT_MAX = 100;
     
+    public static ClientRequestFilter getCasClientFilter(HttpServletRequest request){
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("x-cas-username", request.getSession().getAttribute("userName"));
+        return new HeaderFilter(headers);
+    }
+    
+    public static ClientRequestFilter getClientFilter(HttpServletRequest request){
+        return getCasClientFilter(request);
+    }
+    
     public static Client getClient(HttpServletRequest request) throws IOException{
         String localUrl = String.format("%s://%s:%s%s/r",
                 request.getScheme(), request.getServerName(), request.getServerPort(),
@@ -35,7 +46,7 @@ public class ControllerUtils {
         try {
             return ClientBuilder.newBuilder()
                     .setUrl(localUrl)
-                    .addClientRequestFilter(new AuthenticationFilter(request))
+                    .addClientRequestFilter(getClientFilter(request))
                     .build();
         } catch(URISyntaxException ex) {
             throw new IOException(ex);
