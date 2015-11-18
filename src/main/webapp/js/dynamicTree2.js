@@ -106,7 +106,7 @@
     
     function findPath(node){
 	var path = "/" + node.name;
-	while(node['parent'] !== null){
+	while(node['parent'] !== undefined){
 	    node = node['parent'];
 	    path = "/" + node.name + path;
 	}
@@ -194,7 +194,7 @@
 	var tNode = p.data("treeNode");
         
 	function toggle(){
-	    if(p.data("treeNode").children === null){
+	    if(p.data("treeNode").children === undefined){
 		var path = findPath(tNode);
 		groupsAndFoldersFor(path, function(items){
 		    childrenCB(path)(items);
@@ -218,14 +218,10 @@
 	    toggle();
 	}
     }
-        
-    function initObjects(){
-	rootItems();
-    }
     
     dynamicTree.init = function(){
         if($(".tree") !== null){
-            $(".tree").ready(initObjects);
+            $(".tree").ready(rootItems);
         }
     };
     
