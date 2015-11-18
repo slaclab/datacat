@@ -38,7 +38,6 @@ import org.srs.datacat.shared.RequestView;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.shared.BasicStat.StatType;
 import org.srs.datacat.vfs.DcFile;
-import org.srs.datacat.vfs.DcUriUtils;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 
