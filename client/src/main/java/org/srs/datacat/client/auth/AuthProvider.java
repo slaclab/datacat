@@ -5,7 +5,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Objects;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.ClientRequestFilter;
 
 /**
@@ -29,11 +28,7 @@ public class AuthProvider {
         }
         return null;        
     }
-    
-    public static ClientRequestFilter fromRequest(HttpServletRequest request){
-        return new AuthenticationFilter(request);
-    }
-    
+        
     private static HmacAuthFilter getAuthFilter(Map<String, String> config) throws URISyntaxException{
         String url = config.get("url");
         String keyId = Objects.requireNonNull(config.get("authKeyId"), "Must have a valid key id");
