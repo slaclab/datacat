@@ -27,6 +27,13 @@ public class Containers {
                 request()
                 .get();
     }
+    
+    public Response createContainer(String path, Entity<DatasetContainer> payload){
+        return getTarget(target.path(path), Optional.<String>absent(), Optional.<String>absent())
+                .request()
+                .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
+                .post(payload);
+    }
 
     public Response patchContainer(String path, Entity<DatasetContainer> payload){
         return getTarget(target.path(path), Optional.<String>absent(), Optional.<String>absent())

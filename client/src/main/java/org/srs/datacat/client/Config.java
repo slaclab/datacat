@@ -63,10 +63,11 @@ public final class Config {
      */
     public static Map<String, String> configFromFile(Path filePath, String overrideSection) throws IOException, 
             ConfigurationException{
-        Reader reader = Files.newBufferedReader(filePath);
-        HierarchicalINIConfiguration ini = new HierarchicalINIConfiguration();
-        ini.load(reader);
-        reader.close();
+        HierarchicalINIConfiguration ini;
+        try (Reader reader = Files.newBufferedReader(filePath)) {
+            ini = new HierarchicalINIConfiguration();
+            ini.load(reader);
+        }
         HashMap<String, String> configMap = new HashMap<>();
 
         SubnodeConfiguration defaults = ini.getSection("defaults");
@@ -81,8 +82,7 @@ public final class Config {
             for(Iterator<String> iter = override.getKeys(); iter.hasNext();){
                 String key = iter.next();
                 String value = override.getString(key);
-                configMap.put(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, key), override.
-                        getString(key));
+                configMap.put(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, key), value);
             }
         }
         return configMap;
