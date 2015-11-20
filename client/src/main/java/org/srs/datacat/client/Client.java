@@ -31,6 +31,7 @@ import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetResultSetModel;
+import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.model.RecordType;
 import org.srs.datacat.rest.ErrorResponse;
 import org.srs.datacat.shared.Provider;
@@ -48,6 +49,7 @@ public class Client {
     private Search searchResource;
     private Datasets datasetsResource;
     private Containers containersResource;
+    private ModelProvider modelProvider;
 
     public Client(URI url, List<ClientRequestFilter> requestFilters,
             List<ClientResponseFilter> responseFilters, List<Feature> features,
@@ -66,8 +68,9 @@ public class Client {
     private void init(URI baseUrl, List<ClientRequestFilter> requestFilters,
             List<ClientResponseFilter> responseFilters, List<Feature> features,
             Map<String, Object> properties){
+        this.modelProvider = new Provider();
         ClientBuilder builder = ClientBuilder.newBuilder()
-                .register(new JacksonFeature())
+                .register(new JacksonFeature(modelProvider))
                 .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
 
         for(ClientRequestFilter filter: requestFilters){
@@ -247,8 +250,10 @@ public class Client {
                 Collections.reverse(parts);
                 for(String part: parts){
                     parentpath = parentpath + "/" + part;
-                    DatasetContainer next = new Provider().getContainerBuilder()
-                            .name(part).type(RecordType.FOLDER).build();
+                    DatasetContainer next = (DatasetContainer) modelProvider.getContainerBuilder()
+                            .name(part)
+                            .type(RecordType.FOLDER)
+                            .build();
                     createContainer(parentpath, next, false);
                 }
             }

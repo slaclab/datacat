@@ -12,7 +12,7 @@ import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import org.glassfish.jersey.CommonProperties;
-import org.srs.datacat.shared.Provider;
+import org.srs.datacat.model.ModelProvider;
 
 /**
  * Jackson JSON/XML support.
@@ -20,19 +20,24 @@ import org.srs.datacat.shared.Provider;
 public class JacksonFeature implements Feature {
     static JacksonJsonProvider jsonProvider;
     static JacksonXMLProvider xmlProvider;
+    private ModelProvider provider;
 
-    public JacksonFeature(){
+    public JacksonFeature(ModelProvider provider){
         if(jsonProvider == null){
             ObjectMapper jsonMapper = new ObjectMapper();
             jsonMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
             XmlMapper xmlMapper = new XmlMapper();
-            for(Map.Entry<Class, Class> e: new Provider().modelProviders().entrySet()){
+            for(Map.Entry<Class, Class> e: provider.modelProviders().entrySet()){
                 jsonMapper.addMixIn(e.getKey(), e.getValue());
                 xmlMapper.addMixIn(e.getKey(), e.getValue());
             }
             jsonProvider = new JacksonJsonProvider(jsonMapper);
             xmlProvider = new JacksonXMLProvider(xmlMapper);
         }
+    }
+    
+    ModelProvider getProvider(){
+        return this.provider;
     }
 
     @Override
