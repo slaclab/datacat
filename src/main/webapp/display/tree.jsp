@@ -37,25 +37,26 @@
                 </div>
 
                 <div class="row">
-
-                    <div class="col-sm-6 col-md-5 col-lg-4">
-                        <div class="datacat-component">
-                            <h3>Containers</h3>
-                            <div class="tree">  
-                                <ul class="tree-root"></ul>
+                    <div class="container-fluid" id="info-views">
+                        <div class="col-sm-6 col-md-5 col-lg-4">
+                            <div class="datacat-component">
+                                <h3>Containers</h3>
+                                <div class="tree">  
+                                    <ul class="tree-root"></ul>
+                                </div>
                             </div>
                         </div>
+                        <div class=" col-sm-6 col-md-7 col-lg-8">
+                            <c:choose>
+                                <c:when test="${target.type.container}" >
+                                    <%@ include file="../views/container.jsp" %>
+                                </c:when>
+                                <c:otherwise>
+                                    <%@ include file="../views/dataset.jsp" %> 
+                                </c:otherwise>
+                            </c:choose>
+                        </div> <!-- End right side -->
                     </div>
-                    <div class=" col-sm-6 col-md-7 col-lg-8" id="info-views">
-                        <c:choose>
-                            <c:when test="${target.type.container}" >
-                                <%@ include file="../views/container.jsp" %>
-                            </c:when>
-                            <c:otherwise>
-                                <%@ include file="../views/dataset.jsp" %> 
-                            </c:otherwise>
-                        </c:choose>
-                    </div> <!-- End right side -->
                 </div> <!-- end row -->
             </div>
         </div>
