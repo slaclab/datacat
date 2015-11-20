@@ -12,23 +12,19 @@ root {
 }
 
 .datacat-path {
-    padding: 8px 15px;
-    list-style: none;
+    padding: 5px;
+}
+
+.datacat-path > ol {
     background-color: white;
-    border-radius: 4px;
 }
 
-.datacat-path > li {
-    display: inline-block;
+.datacat-path > .btn-group {
+    background-color: white;
+    padding-top: 5px;
 }
 
-.datacat-path > li + li:before {
-    padding: 0 5px;
-    color: #cccccc;
-    content: "/\00a0";
-}
-
-.datacat-path > .active {
+.datacat-path .active {
     color: #999999;
 }
 
