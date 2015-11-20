@@ -11,11 +11,12 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Datacat Datasets</title>
+        <title>Search Datasets</title>
         <%@ include file="../views/jscontext.jsp" %>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/browser.css">
+        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.css">
+        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/sidebar.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/dataTables.bootstrap.css">
         <script src="${pageContext.request.contextPath}/js/jquery-1.11.3.min.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/URI.min.js" type="text/javascript"></script>
@@ -28,27 +29,16 @@
     <body>
 
         <div class="container-fluid">
-            <div class="col-xs-12">
-                <c:set var="view" value="datasets"/>
-                <div class="row">
-                    <%@ include file="../views/tabbar.jsp" %>
+
+            <c:set var="view" value="search"/>
+            <div class="row">
+                <%@ include file="../views/tabbar.jsp" %>
+            </div>
+            
+            <div class="row">
+                <div class="container-fluid" id="info-views">
+                    <%@ include file="../views/datasets.jsp" %>
                 </div>
-
-                <div class="row">
-                    <%@ include file="../views/breadcrumb.jsp" %>
-                </div>
-
-                <div class="row">
-                    <div class="container-fluid" id="info-views">
-
-                        <c:choose>
-                            <c:when test="${!target.type.container}" > <%@ include file="../views/dataset.jsp" %> </c:when>
-                            <c:otherwise>
-                                <%@ include file="../views/datasets.jsp" %>
-                            </c:otherwise>
-                        </c:choose>
-                    </div> <!-- End right side -->
-                </div> <!-- end row -->
             </div>
         </div>
     </body>

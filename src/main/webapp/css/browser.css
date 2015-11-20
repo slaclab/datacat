@@ -14,7 +14,7 @@ root {
 .datacat-path {
     padding: 8px 15px;
     list-style: none;
-    background-color: #f5f5f5;
+    background-color: white;
     border-radius: 4px;
 }
 
@@ -110,4 +110,8 @@ th.md-action {
 
 th.md-type {
     width: 6em;
+}
+
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+    border-top: 2px solid orange;
 }

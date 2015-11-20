@@ -14,9 +14,8 @@
         <title>Datacat Browser</title>
         <%@ include file="../views/jscontext.jsp" %>
 
-        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/browser.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.css">
-        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/sidebar.css">
+        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/browser.css">
         <script src="${pageContext.request.contextPath}/js/jquery-1.11.3.min.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/bootstrap.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/browser.js" type="text/javascript"></script>
@@ -25,38 +24,37 @@
 
     <body>
         <div class="container-fluid">
+            <div class="col-xs-12">
+                <c:set var="view" value="browser"/>
+                <div class="row">
+                    <%@ include file="../views/tabbar.jsp" %>
+                </div>
 
-            <div class="row">
-                <%@ include file="../views/breadcrumb.jsp" %>
-            </div>
+                <div class="row">
+                    <%@ include file="../views/breadcrumb.jsp" %>
+                </div>
 
-            <div class="row">
+                <div class="row">
 
-                <div class="page-sidebar-expanded page-with-sidebar">
-                    <c:set var="view" value="browser"/>
-                    <%@ include file="../views/sidebar.jsp" %>
+                    <div class="container-fluid" id="info-views">
+                        <c:choose>
+                            <c:when test="${target.type.container || target == null}" >
+                                <div class="col-sm-5 col-md-4 col-lg-4">
+                                    <%@ include file="../views/containers.jsp" %>
+                                </div>
 
-                    <div class="content-wrapper">
-                        <div class="container-fluid" id="info-views">
-                            <div class="col-sm-5 col-md-4 col-lg-4">
-                                <%@ include file="../views/containers.jsp" %>
-                            </div>
-
-                            <div class="col-sm-7 col-md-8 col-lg-8">
-                                <c:if test="${target != null}">
-                                    <c:choose>
-                                        <c:when test="${target.type.container}" >
-                                            <%@ include file="../views/container.jsp" %>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <%@ include file="../views/dataset.jsp" %> 
-                                        </c:otherwise>
-                                    </c:choose>
-                                </c:if>
-                            </div> <!-- End right side -->
-                        </div> <!-- end row -->
-                    </div>
-                </div>  
+                                <div class="col-sm-7 col-md-8 col-lg-8">
+                                    <c:if test="${target != null}">
+                                        <%@ include file="../views/container.jsp" %>
+                                    </c:if>
+                                </div> <!-- End right side -->
+                            </c:when>
+                            <c:otherwise>
+                                <%@ include file="../views/dataset.jsp" %> 
+                            </c:otherwise>
+                        </c:choose>
+                    </div> <!-- end row -->
+                </div>
             </div>
         </div>
     </body>

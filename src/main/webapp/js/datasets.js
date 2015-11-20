@@ -25,6 +25,15 @@ var ajaxMethod = function (data, callback, settings) {
     window.location = newUri.toString();
 };
 
+function doSearch(){
+    var filter = $('.datacat-component input').val();
+    var uri = URI(document.URL);
+    var newUri = uri.search({
+        "filter": filter,
+    });
+    window.location = newUri.toString();
+}
+
 function paginateDatasets() {
     var qstr = URI(document.URL).query(true);
 
@@ -88,12 +97,14 @@ function paginateDatasets() {
     });
 
     var searchbox = $('.datacat-component input');
+    searchbox.val(search);
     searchbox.unbind();
     searchbox.bind('keyup', function (e) {
-        if (e.keyCode == 13) {
+        if (e.keyCode === 13) {
             t.search(this.value).draw();
         }
     });
+    $(".input-group-btn").on("click", doSearch);
 }
 
 function doCheck(val) {
