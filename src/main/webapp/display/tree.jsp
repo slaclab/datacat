@@ -37,7 +37,7 @@
                 </div>
 
                 <div class="row">
-                    <div class="container-fluid" id="info-views">
+                    <div class="container-fluid">
                         <div class="col-sm-6 col-md-5 col-lg-4">
                             <div class="datacat-component">
                                 <h3>Containers</h3>
@@ -46,7 +46,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class=" col-sm-6 col-md-7 col-lg-8">
+                        <div class="col-sm-6 col-md-7 col-lg-8" id="info-views">
                             <c:choose>
                                 <c:when test="${target.type.container}" >
                                     <%@ include file="../views/container.jsp" %>
