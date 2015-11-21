@@ -68,7 +68,7 @@
     <%--<c:choose>
         <c:when test="${links != null && !empty links}"> --%>
     <ul class="nav nav-pills">
-        <li role="presentation"><a href="${applicationBase}/datasets${target.path}">List Datasets</a></li>
+        <li role="presentation"><a href="${contextPath}/display/datasets${target.path}">List Datasets</a></li>
         <li role="presentation"><a href="#">Download Files</a></li>
         <li role="presentation"><a href="#">Dump File List</a></li>
         <li role="presentation"><a href="#">More...</a></li>
