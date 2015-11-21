@@ -56,24 +56,11 @@ public class ControllerUtils {
     public static HashMap<String, Object> collectAttributes(HttpServletRequest request, boolean withDatasets)
             throws ServletException, IOException{
 
-        HashMap<String, Object> requestAttributes = new HashMap<>();
-
-        String endPoint = request.getContextPath() + request.getServletPath();
-        requestAttributes.put("endPoint", endPoint);
-
-        String base = endPoint.substring(0, endPoint.lastIndexOf("/"));
-        requestAttributes.put("applicationBase", base);
-        requestAttributes.put("contextPath", request.getContextPath());
-        requestAttributes.put("endPoint", endPoint);
-        // This Assumes all REST requests are routed to the same base URL
-        Client client = getClient(request);
-        HashMap<String, List<String>> requestQueryParams = new HashMap<>();
-        Map<String, String[]> params = request.getParameterMap();
-        for(Map.Entry<String, String[]> e: params.entrySet()){
-            requestQueryParams.put(e.getKey(), Arrays.asList((String[]) e.getValue()));
-        }
-
+        HashMap<String, Object> requestAttributes = collectBasicAttributes(request);
+        HashMap<String, List<String>> requestQueryParams = getQueryParams(request);
         RequestView rv = new RequestView(RecordType.FOLDER, null);
+        // This Assumes all REST requests are routed to the same base URL
+        Client client = getClient(request); 
         if(request.getPathInfo() == null || request.getPathInfo().length() == 1){
             requestAttributes.put("parentURL", "/");
             requestAttributes.put("containers", getContainers(client, "/", rv, requestQueryParams));
@@ -133,6 +120,64 @@ public class ControllerUtils {
             requestAttributes.put("parentURL", request.getPathInfo());
         }
         return requestAttributes;
+    }
+    
+    
+    public static HashMap<String, Object> collectSearchAttributes(HttpServletRequest request)
+            throws ServletException, IOException{
+
+        HashMap<String, Object> requestAttributes = collectBasicAttributes(request);
+        HashMap<String, List<String>> requestQueryParams = getQueryParams(request);
+        RequestView rv = new RequestView(RecordType.FOLDER, null);
+        String searchPath = request.getPathInfo();
+        Client client = getClient(request);        
+        
+        
+        int offset = requestQueryParams.containsKey("offset")
+                ? Integer.valueOf(requestQueryParams.get("offset").get(0)) : 0;
+
+        int max = requestQueryParams.containsKey("max")
+                ? Integer.valueOf(requestQueryParams.get("max").get(0)) : DEFAULT_MAX;
+
+        ArrayList<DatacatNode> datasets = new ArrayList<>();
+        DatasetResultSetModel searchResults = getDatasets(client, searchPath, rv, requestQueryParams, offset, max);
+        for(DatacatNode d: searchResults.getResults()){
+            if(!d.getType().isContainer()){
+                datasets.add(d);
+            }
+        }
+        requestAttributes.put("datasets", datasets);
+        requestAttributes.put("datasetCount", searchResults.getCount());
+        // Paging
+        StringBuffer reqUrl = request.getRequestURL();
+        if(request.getQueryString() != null){
+            reqUrl.append('?').append(request.getQueryString());
+        }
+
+        requestAttributes.put("parentURL", request.getPathInfo());
+        return requestAttributes;
+    }
+
+    public static HashMap<String, Object> collectBasicAttributes(HttpServletRequest request){
+        HashMap<String, Object> requestAttributes = new HashMap<>();
+
+        String endPoint = request.getContextPath() + request.getServletPath();
+        requestAttributes.put("endPoint", endPoint);
+
+        String base = endPoint.substring(0, endPoint.lastIndexOf("/"));
+        requestAttributes.put("applicationBase", base);
+        requestAttributes.put("contextPath", request.getContextPath());
+        requestAttributes.put("endPoint", endPoint);
+        return requestAttributes;
+    }
+    
+    public static HashMap<String, List<String>> getQueryParams(HttpServletRequest request){
+        HashMap<String, List<String>> requestQueryParams = new HashMap<>();
+        Map<String, String[]> params = request.getParameterMap();
+        for(Map.Entry<String, String[]> e: params.entrySet()){
+            requestQueryParams.put(e.getKey(), Arrays.asList((String[]) e.getValue()));
+        }
+        return requestQueryParams;
     }
 
     private static DatasetResultSetModel getDatasets(Client c, String path, RequestView requestView,
