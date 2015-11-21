@@ -30,32 +30,12 @@
             url: path
 	}).done(function( data, status, xhr ) {
             running = false;
-	    respDebug(true, xhr, status);
             if( cb !== null ) {
 		cb(eval(xhr.responseText));
             }
 	}).fail(function( xhr, status, code ) {
             running = false;
-	    respDebug(false, xhr, status);
 	});
-    }
-    
-    function respDebug(success, xhr, status){/*
-	var content = "";
-	if(true){
-	    var ct = xhr.getResponseHeader("content-type") || "";
-	    var newHtml = ct == "application/xml" ? 
-		$('<div/>').text(vkbeautify.xml(xhr.responseText)).html() : ct == "application/json" ? 
-		vkbeautify.json(xhr.responseText) : $('<div/>').text(xhr.responseText).html();
-	    $("#content").html(newHtml);
-	} else {
-            if(status == "error"){
-		var ct = xhr.getResponseHeader("content-type") || "";
-		$("#content").text(xhr.responseText);
-            } else if(status == "timeout"){
-		$("#content").text("A timeout occurred.");
-            }
-	}*/
     }
     
 }( window.loadStack = window.loadStack || {}, jQuery, pageContext.contextPath + "/r"));
@@ -76,7 +56,17 @@
 	syncLoadStack("/path.json", path + ";children=containers", "", cb);
     }
     
-    function rootItems(cb){
+
+    var loadPaths = new Array();
+    
+    function rootItems(){
+
+        var path = "";
+        pageContext.target.path.split("\/").splice(1).forEach(function(item){
+            path = path + "/" + item;
+            loadPaths.push(path);
+        });
+        
 	syncLoadStack("/path.json", "/;children", "", function (items){
 	    items.sort(dynamicTree.sortFun);
             for(var i = 0; i < items.length; i++){
@@ -88,11 +78,6 @@
 		addNode(ul, item);
 	    });
 	});
-    }
-    
-    function pathInfo(path, cb){
-	path = "/path.json" + path;
-	syncLoadStack("/path.json", path, "", cb);
     }
     
     function findNode(path){
@@ -130,15 +115,30 @@
 	}
 
     };
+        
+    function loadContainer(evt){
+        $("#info-views .datacat-component").remove();
+        $("#info-views").append($("<h3>Loading...</h3>"));
+        var target = $(evt.target);
+        var ajaxHref = target.data("ajax-href");
+        window.history.pushState(null, null, pageContext.contextPath + "/display/tree" + target.data("path"));
+        $.ajax({
+            url: ajaxHref
+	}).done(function( data, status, xhr ) {
+            $("#info-views h3").remove();
+            $(data).appendTo($("#info-views"));
+	});
+    }
     
     function addNode(childrenContainer,item){
 	var node = $('<li class="tree-node"/>').attr("id","/" + item.name);
-        var href = pageContext.endPoint + item.path;
+        var href = pageContext.applicationBase + "/ajax/container" + item.path;
 	var nodeAnchor = $('<a data-toggle="expand" />')
-                .attr("href", href)
-                .attr("path", item.path)
+                .attr("href", "#")
+                .data("ajax-href", href)
+                .data("path", item.path)
                 .text(item.name)
-                //.bind("click",selected)
+                .bind("click", loadContainer)
                 .bind("keydown", toggleOpen);
 	if(item._type === "folder"){
 	    node.append( $('<span class="glyphicon tree-caret"></span>').bind("click", toggleOpen) );
@@ -155,6 +155,9 @@
 	node.appendTo( childrenContainer );
 	item.elem = node;
 	node.data("treeNode",item);
+        if(loadPaths.indexOf(item.path) >= 0){
+            $(node).find("span").click();
+        }
     }
 
     function childrenCB(parentPath){

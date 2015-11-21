@@ -56,6 +56,17 @@
     </servlet-mapping>
     
     <servlet>
+        <servlet-name>AjaxContainerController</servlet-name>
+        <servlet-class>org.srs.webapps.datacat.controllers.AjaxContainerController</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AjaxContainerController</servlet-name>
+        <!-- using base of host/rest/datacat -->
+        <url-pattern>/display/ajax/container/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
         <servlet-name>TreeController</servlet-name>
         <servlet-class>org.srs.webapps.datacat.controllers.TreeController</servlet-class>
         <load-on-startup>1</load-on-startup>
@@ -64,6 +75,16 @@
         <servlet-name>TreeController</servlet-name>
         <!-- using base of host/rest/datacat -->
         <url-pattern>/display/tree/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>SearchController</servlet-name>
+        <servlet-class>org.srs.webapps.datacat.controllers.SearchController</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>SearchController</servlet-name>
+        <url-pattern>/display/search/*</url-pattern>
     </servlet-mapping>
 
     <servlet>
