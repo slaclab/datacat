@@ -122,6 +122,7 @@
         var target = $(evt.target);
         var ajaxHref = target.data("ajax-href");
         window.history.pushState(null, null, pageContext.contextPath + "/display/tree" + target.data("path"));
+        changeTarget(target.data("path"));
         $.ajax({
             url: ajaxHref
 	}).done(function( data, status, xhr ) {
@@ -134,7 +135,7 @@
 	var node = $('<li class="tree-node"/>').attr("id","/" + item.name);
         var href = pageContext.applicationBase + "/ajax/container" + item.path;
 	var nodeAnchor = $('<a data-toggle="expand" />')
-                .attr("href", "#")
+                //.attr("href", "#")
                 .data("ajax-href", href)
                 .data("path", item.path)
                 .text(item.name)

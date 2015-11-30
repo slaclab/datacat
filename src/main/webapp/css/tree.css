@@ -94,3 +94,7 @@
 .open > .tree-caret {
   background-image: url("../icons/foldericon-open-red.png");
 }
+
+.tree-children a:hover {
+ cursor:pointer;
+}
