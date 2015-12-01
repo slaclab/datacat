@@ -12,6 +12,7 @@ client.on( "ready", function( readyEvent ) {
 
 
 function changeTarget(path){
+    $("#copy-button").attr("text", path).attr("data-clipboard-text", path);
     var pathList = path.split(/\//).splice(1);
     var target = $(".breadcrumb");
     var root = target.find("li").first();
