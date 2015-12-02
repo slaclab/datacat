@@ -26,7 +26,7 @@
     var running = false;
     function ajaxResource(relpath, cb){
 	var path = ldStack.basePath + relpath;
-	var jqXHR = $.ajax({
+	$.ajax({
             url: path
 	}).done(function( data, status, xhr ) {
             running = false;
@@ -164,7 +164,6 @@
     function childrenCB(parentPath){
 
 	return function(items){
-	    console.log("sinner: " + parentPath);
 	    var parent = findNode(parentPath).data("treeNode");
 	    items.sort(dynamicTree.sortFun);
 	    parent["children"] = items;
