@@ -16,7 +16,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/browser.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.css">
-        <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/sidebar.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/dataTables.bootstrap.css">
         <script src="${pageContext.request.contextPath}/js/jquery-1.11.3.min.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/URI.min.js" type="text/javascript"></script>

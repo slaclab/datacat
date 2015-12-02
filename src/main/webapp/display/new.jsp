@@ -24,7 +24,6 @@
         <script src="${pageContext.request.contextPath}/js/jquery.dataTables.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/mindmup-editabletable.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/dataTables.bootstrap.js" type="text/javascript"></script>
-        <script src="${pageContext.request.contextPath}/js/vkbeautify.0.99.00.beta.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/dynamicTree2.js" type="text/javascript"></script>
         <script src="http://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js" type="text/javascript"></script>
     </head>

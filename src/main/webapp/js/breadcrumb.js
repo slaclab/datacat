@@ -1,16 +1,6 @@
 // main.js
 var client = new ZeroClipboard( document.getElementById("copy-button") );
 
-client.on( "ready", function( readyEvent ) {
-  // alert( "ZeroClipboard SWF is ready!" );
-
-  client.on( "aftercopy", function( event ) {
-    // event.target.style.display = "none";
-    //alert("Copied text to clipboard: " + event.data["text/plain"] );
-  } );
-} );
-
-
 function changeTarget(path){
     $("#copy-button").attr("text", path).attr("data-clipboard-text", path);
     var pathList = path.split(/\//).splice(1);
