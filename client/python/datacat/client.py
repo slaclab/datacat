@@ -48,7 +48,6 @@ class Client(object):
         :return: A :class`requests.Response` object. A user can use Response.content to get the content.
         The object will be a Folder
         """
-        parentpath = os.path.dirname(path)
         container = None
         if type.lower() == "folder":
             container = Folder(path=path, name=path.split("/")[-1], metadata=metadata)
@@ -56,6 +55,7 @@ class Client(object):
             container = Group(path=path, name=path.split("/")[-1], metadata=metadata)
         if parents:
             parts = []
+            parentpath = os.path.dirname(path)
             while not self.exists(parentpath):
                 parts.append(os.path.split(parentpath)[1])
                 parentpath = os.path.dirname(parentpath)
