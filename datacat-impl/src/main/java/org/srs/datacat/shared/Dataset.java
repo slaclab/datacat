@@ -179,22 +179,21 @@ public class Dataset extends DatacatObject implements DatasetModel {
             this.scanStatus = builder.scanStatus;
         }
         
-        public Builder(Dataset ds){
+        public Builder(DatasetModel ds){
             super(ds);
-            this.fileFormat = ds.fileFormat;
-            this.dataType = ds.dataType;
-            this.created = ds.dateCreated;
+            this.fileFormat = ds.getFileFormat();
+            this.dataType = ds.getDataType();
+            this.created = ds.getDateCreated();
         }
         
         public Builder(DatacatNode ds){
             super(ds);
         }
 
-
         @Override
         public Builder create(DatacatNode val){
-            if(val instanceof Dataset){
-                return new Builder((Dataset) val);
+            if(val instanceof DatasetModel){
+                return new Builder((DatasetModel) val);
             }
             return new Builder(val);
         }
