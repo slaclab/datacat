@@ -20,10 +20,6 @@ public class DatasetGroup extends DatasetContainer implements Group {
         super();
     }
     
-    public DatasetGroup(DatacatObject object){
-        super(object);
-    }
-    
     /**
      * Copy constructor.
      * 

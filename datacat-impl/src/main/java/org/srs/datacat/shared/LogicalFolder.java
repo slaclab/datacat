@@ -41,7 +41,6 @@ public class LogicalFolder extends DatasetContainer implements Folder {
      */
     public static class Builder extends DatasetContainerBuilder {
         public Builder(){ super(); }
-        public Builder(DatacatObject o){ super(o); }
         public Builder(DatacatNode o){ super(o); }
         public Builder(DatasetContainerBuilder o){ super(o); }
         

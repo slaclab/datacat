@@ -23,17 +23,9 @@ public class DatasetContainerBuilder extends DatacatObject.Builder<DatasetContai
 
     public DatasetContainerBuilder(DatacatNode object){
         super(object);
-        if(object instanceof DatasetContainer){
-            this.description = ((DatasetContainer) object).getDescription();
-            this.stat = ((DatasetContainer) object).getStat();
-        }
-    }
-
-    public DatasetContainerBuilder(DatacatObject object){
-        super(object);
-        if(object instanceof DatasetContainer){
-            this.description = ((DatasetContainer) object).getDescription();
-            this.stat = ((DatasetContainer) object).getStat();
+        if(object instanceof org.srs.datacat.model.DatasetContainer){
+            this.description = ((org.srs.datacat.model.DatasetContainer) object).getDescription();
+            this.stat = ((org.srs.datacat.model.DatasetContainer) object).getStat();
         }
     }
 
@@ -43,6 +35,7 @@ public class DatasetContainerBuilder extends DatacatObject.Builder<DatasetContai
         this.description = builder.description;
     }
 
+    @Override
     public DatasetContainerBuilder create(DatacatNode container){
         if(container.getType() == null){
             return new LogicalFolder.Builder(container);
