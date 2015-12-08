@@ -1,3 +1,4 @@
+from functools import wraps
 from requests import RequestException
 
 __author__ = 'bvan'
@@ -57,12 +58,13 @@ class DcClientException(DcException):
 
 
 def checked_error(method):
-    def wrap(*args, **kwargs):
+    @wraps(method)
+    def wrapped(*args, **kwargs):
         try:
             return method(*args, accept="json", **kwargs)
         except RequestException as e:
             raise _check(e)
-    return wrap
+    return wrapped
 
 
 def _check(request_exception):
