@@ -67,7 +67,7 @@ public class ControllerUtils {
             requestAttributes.put("path", null);
         } else {
             String path = request.getPathInfo();
-            DatacatNode target = client.getObject(path);
+            DatacatNode target = client.getObject(path, "current", "all");
 
             if(target.getType().isContainer()){
                 target = client.getContainer(path, "dataset");
