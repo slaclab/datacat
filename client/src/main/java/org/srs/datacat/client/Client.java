@@ -303,7 +303,7 @@ public class Client {
     }
 
     public DatasetResultSetModel searchForDatasets(String target, String versionId, String site,
-            String query, String[] sort, String show, Integer offset, Integer max){
+            String query, String[] sort, String[] show, Integer offset, Integer max){
         try {
             Response resp = searchResource.searchForDatasets(target, Optional.fromNullable(versionId),
                     Optional.fromNullable(site), Optional.fromNullable(query),
