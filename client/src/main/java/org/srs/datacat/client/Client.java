@@ -320,12 +320,12 @@ public class Client {
     }
     
     /**
-     * Search a target. A target is a Container of some sort. It may also be specified as a glob, as in:
-     *   1. /path/to - target /path/to _only_
-     *   2. /path/to/* - target is all containers directly in /path/to/
-     *   3. /path/to/** - target is all containers, recursively, under /path/to/
-     *   4. /path/to/*$ - target is only folders directly under /path/to/
-     *   5. /path/to/**^ - target is only groups, recursively, under /path/to/
+     * Search a target. A target is a Container of some sort. It may also be specified as a glob, as in: <p>
+     *   1. {@code /path/to} - target {@code /path/to} _only_ <p>
+     *   2. {@code /path/to/*} - target is all containers directly in {@code /path/to/}<p>
+     *   3. {@code /path/to/**} - target is all containers, recursively, under {@code /path/to/} <p>
+     *   4. {@code /path/to/*$} - target is only folders directly under {@code /path/to/} <p>
+     *   5. {@code /path/to/**^} - target is only groups, recursively, under {@code /path/to/}<p>
      * @param target The path (or glob-like path) of which to search
      * @param versionId Version Id to return
      * @param site Site to query
