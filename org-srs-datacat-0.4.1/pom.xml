@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>srs</groupId>
+        <artifactId>org-srs-maven-project-jar</artifactId>
+        <version>4.2</version>
+    </parent>
+
+    <groupId>srs</groupId>
+    <artifactId>org-srs-datacat</artifactId>
+    <version>0.4.1</version>
+    <packaging>pom</packaging>
+
+    <name>SRS DataCatalog Main Project</name>
+
+    <scm>
+        <connection>scm:svn:file:///nfs/slac/g/srs/subversion/org-srs-datacat/tags/org-srs-datacat-0.4.1</connection>
+        <url>http://java.freehep.org/svn/repos/srs/list/org-srs-datacat/tags/org-srs-datacat-0.4.1</url>
+    </scm>
+    
+    <distributionManagement>
+        <site>
+            <id>srs-site</id>
+            <name>SRS Maven2 centreal site repository</name>
+            <url>dav:http://srs.slac.stanford.edu/nexus/content/sites/srs-site/${project.artifactId}</url>
+        </site>
+    </distributionManagement>
+    
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    
+    <repositories>
+        <repository>
+            <id>srs-maven2-public</id>
+            <name>SRS Maven 2 central repository</name>
+            <url>http://srs.slac.stanford.edu/nexus/content/groups/srs-maven2-public/</url>
+        </repository>
+        <repository>
+            <id>freehep-maven</id>
+            <name>Maven FreeHEP</name>
+            <url>http://java.freehep.org/maven2</url>
+        </repository>
+    </repositories>
+
+    <modules>
+      <module>core</module>
+      <module>client</module>
+      <module>vfs</module>
+      <module>test</module>
+      <module>model</module>
+      <module>datacat-impl</module>
+      <module>rest</module>
+    </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.10.19</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>        
+        <profile>
+            <id>HSQLDBHarness</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemProperties>
+                                <property>
+                                    <name>db.test.harness</name>
+                                    <value>hsqldb</value>
+                                </property>
+                                <property>
+                                    <name>db.datacat.prod.url</name>
+                                    <value>${datacatProd}</value>
+                                </property>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>MySQLHarness</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemProperties>
+                                <property>
+                                    <name>db.test.harness</name>
+                                    <value>mysql</value>
+                                </property>
+                                <property>
+                                    <name>db.test.uname</name>
+                                    <value>${userName}</value>
+                                </property>
+                                <property>
+                                    <name>db.test.passwd</name>
+                                    <value>${password}</value>
+                                </property>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>
