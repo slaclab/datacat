@@ -302,8 +302,42 @@ public class Client {
         return resp.readEntity(new GenericType<DatasetModel>() {});
     }
 
+    /**
+     * Search a target. A target is a Container of some sort. It may also be specified as a glob, as in:
+     * @see #searchForDatasets(java.lang.String, java.lang.String, java.lang.String, java.lang.String, 
+     * java.lang.String[], java.lang.String[], java.lang.Integer, java.lang.Integer) 
+     * @param target The path (or glob-like path) of which to search
+     * @param versionId Version Id to return
+     * @param site Site to query
+     * @param query Query String
+     * @param sort Fields and Metadata fields to sort on.
+     * @param show Metadata fields to optionally return
+     * @return Response object of the search
+     */
     public DatasetResultSetModel searchForDatasets(String target, String versionId, String site,
-            String query, String[] sort, String show, Integer offset, Integer max){
+            String query, String[] sort, String[] show){
+        return searchForDatasets(target, versionId, site, query, sort, show, null, null);
+    }
+    
+    /**
+     * Search a target. A target is a Container of some sort. It may also be specified as a glob, as in: <p>
+     *   1. {@code /path/to} - target {@code /path/to} _only_ <p>
+     *   2. {@code /path/to/*} - target is all containers directly in {@code /path/to/}<p>
+     *   3. {@code /path/to/**} - target is all containers, recursively, under {@code /path/to/} <p>
+     *   4. {@code /path/to/*$} - target is only folders directly under {@code /path/to/} <p>
+     *   5. {@code /path/to/**^} - target is only groups, recursively, under {@code /path/to/}<p>
+     * @param target The path (or glob-like path) of which to search
+     * @param versionId Version Id to return
+     * @param site Site to query
+     * @param query Query String
+     * @param sort Fields and Metadata fields to sort on.
+     * @param show Metadata fields to optionally return
+     * @param offset Offset at which to start returning objects.
+     * @param max Maximum number of datasets to return
+     * @return Response object of the search
+     */
+    public DatasetResultSetModel searchForDatasets(String target, String versionId, String site,
+            String query, String[] sort, String[] show, Integer offset, Integer max){
         try {
             Response resp = searchResource.searchForDatasets(target, Optional.fromNullable(versionId),
                     Optional.fromNullable(site), Optional.fromNullable(query),
