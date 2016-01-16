@@ -3,6 +3,7 @@ package org.srs.datacat.client;
 import com.google.common.base.CaseFormat;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -64,7 +65,7 @@ public final class Config {
     public static Map<String, String> configFromFile(Path filePath, String overrideSection) throws IOException, 
             ConfigurationException{
         HierarchicalINIConfiguration ini;
-        try (Reader reader = Files.newBufferedReader(filePath)) {
+        try (Reader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8)) {
             ini = new HierarchicalINIConfiguration();
             ini.load(reader);
         }
