@@ -26,6 +26,10 @@ public class BrowserController extends HttpServlet {
                 request.setAttribute(entry.getKey(), entry.getValue());
             }
         } catch (DcException ex){   
+            HashMap<String, Object> model = ControllerUtils.collectBasicAttributes(request);
+            for(Map.Entry<String, Object> entry: model.entrySet()){
+                request.setAttribute(entry.getKey(), entry.getValue());
+            }
             request.setAttribute("error", ex);
             request.getRequestDispatcher( "/display/error.jsp" ).forward( request, response );
             return;
