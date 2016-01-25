@@ -16,8 +16,8 @@
     <name>SRS DataCatalog Main Project</name>
 
     <scm>
-        <connection>scm:svn:file:///nfs/slac/g/srs/subversion/org-srs-datacat/tags/org-srs-datacat-0.4.1</connection>
-        <url>http://java.freehep.org/svn/repos/srs/list/org-srs-datacat/tags/org-srs-datacat-0.4.1</url>
+        <connection>scm:svn:file:///nfs/slac/g/srs/subversion/org-srs-datacat/branches/0.4</connection>
+        <url>http://java.freehep.org/svn/repos/srs/list/org-srs-datacat/branches/0.4</url>
     </scm>
     
     <distributionManagement>
