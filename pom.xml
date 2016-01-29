@@ -16,10 +16,12 @@
     <name>SRS DataCatalog Main Project</name>
 
     <scm>
-        <connection>scm:svn:file:///nfs/slac/g/srs/subversion/org-srs-datacat/trunk</connection>
-        <url>http://java.freehep.org/svn/repos/srs/list/org-srs-datacat/trunk</url>
+        <url>https://github.com/slaclab/datacat</url>
+        <connection>scm:git:git://github.com/slaclab/datacat.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/slaclab/datacat.git</developerConnection>
+        <tag>HEAD</tag>
     </scm>
-    
+
     <distributionManagement>
         <site>
             <id>srs-site</id>
