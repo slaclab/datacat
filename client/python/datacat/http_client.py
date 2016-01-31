@@ -3,7 +3,7 @@ import logging
 import os
 import requests
 import urllib
-from config import ENDPOINTS, DATATYPES
+from .config import ENDPOINTS, DATATYPES
 
 _logger = logging.getLogger(__name__)
 
