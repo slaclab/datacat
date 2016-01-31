@@ -1,19 +1,18 @@
 from setuptools import setup
 
 requires = [
-    'requests>=2.3.0, <2.6'
+    'requests'
 ]
 
 setup(
     name='datacat',
-    version='0.4-RC1',
+    version='0.5',
     packages=['datacat'],
     url='http://srs.slac.stanford.edu',
-    license='',
+    license='SLAC BSD',
     author='Brian Van Klaveren',
     author_email='bvan@slac.stanford.edu',
-    description='Data Catalog RESTful client library',
-    zip_safe=False,
+    description='Datacat client library',
     install_requires=requires,
     entry_points={
         'console_scripts': ['datacat = datacat.cli:main'],
