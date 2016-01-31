@@ -1,7 +1,15 @@
 
 from collections import OrderedDict, MutableMapping
-import json
 from datetime import datetime
+import json
+import logging
+
+_logger = logging.getLogger(__name__)
+''' TODO:
+_integer = six.integer_types[-1] # six
+_string = six.integer_types[-1] # six
+'''
+_integer = long
 
 
 class DatacatRecord(object):
@@ -272,7 +280,8 @@ def _default_serializer(obj):
                     ret[k] = v
             return ret
         if isinstance(obj, Metadata):
-            type_mapping = {int: "integer", long: "integer", float: "decimal",
+            # TODO: six.text_type: "string" for unicode
+            type_mapping = {int: "integer", _integer: "integer", float: "decimal",
                             unicode: "string", str: "string", datetime: "timestamp"}
             ret = []
             for k, v in obj.dct.items():
@@ -286,7 +295,7 @@ def _default_serializer(obj):
             return ret
         iterable = iter(obj)
     except TypeError as e:
-        print e
+        _logger.warning("Attempting go decode unknown type: " + e.message)
     else:
         return list(iterable)
     return json.JSONEncoder().default(obj)
@@ -334,7 +343,8 @@ def _default_hook(raw):
         return raw
     # Check for metadata k:v pair
     if 'type' in raw and raw["type"].lower() in ("integer", "decimal", "string", "timestamp"):
-        value_mapping = {"integer": long, "decimal": float, "string": unicode, "timestamp": _timestamp}
+        # TODO: "string": six.text_type
+        value_mapping = {"integer": _integer, "decimal": float, "string": unicode, "timestamp": _timestamp}
         if raw["type"].lower() in value_mapping:
             fn = value_mapping[raw["type"].lower()]
             return raw["key"], fn(raw["value"])
