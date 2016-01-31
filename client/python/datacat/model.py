@@ -99,6 +99,99 @@ class DatasetLocation(DatacatRecord):
         return "{}.{}(**{})".format(type(self).__module__, type(self).__name__, repr(self.__dict__))
 
 
+def _getattr_or_value(obj, attr):
+    return getattr(obj, attr, getattr(obj, "get", lambda x, y: None)(attr, None))
+
+
+def _ns(key, prefix, reserved):
+    return prefix + key.title() if key in reserved else key
+
+
+def namespace_version(version):
+    reserved = ('created', 'modified', 'registered', 'scanned')
+    return {_ns(k, "version", reserved): v for k, v in version.items()}
+
+
+def namespace_location(location):
+    reserved = ('created', 'modified', 'registered', 'scanned')
+    return {_ns(k, "location", reserved): v for k, v in location.items()}
+
+
+# noinspection PyPep8Naming
+def build_dataset(name=None, dataType=None, fileFormat=None,
+                  site=None, resource=None, versionMetadata=None,
+                  size=None, scanStatus=None,
+                  checksum=None, eventCount=None, runMin=None, runMax=None,
+                  master=None,
+                  versionId=None,
+                  created=None,
+                  versionCreated=None, versionModified=None,
+                  locationCreated=None, locationModified=None, locationScanned=None,
+                  version=None, location=None, locations=None, view=None, **kwargs):
+    """
+    Swiss army knife builder of datasets
+    :param name: Dataset name
+    :param dataType: Dataset data type
+    :param fileFormat: Dataset File Format
+    :param site: Dataset's location site
+    :param resource: Dataset's location resource path/URI
+    :param versionMetadata: Dataset's version metadata
+    :param size: Dataset's Location's size
+    :param scanStatus: Dataset's location's scan status
+    :param checksum: Dataset's location's checksum
+    :param eventCount: Dataset's location's event count
+    :param runMin: Dataset's location's run min
+    :param runMax: Dataset's location's run max
+    :param master: Dataset's location's master status (should only be true)
+    :param versionId: Dataset's Version's ID (id > 0 or id in ['current', 'new'])
+    :param created: Dataset's creation date
+    :param versionCreated: Dataset's location's run max
+    :param versionModified:
+    :param locationCreated: Dataset's location's creation date
+    :param locationModified: Dataset's location's modification date
+    :param locationScanned: Dataset's location's scan date
+    :param version: Dataset's version object (overwrites colliding version attributes)
+    :param location: Dataset's location object (overwrites colliding location attributes)
+    :param locations: Dataset's location object. If a singuler location is specified, this is the same as location.
+                      If other location attributes are specified, this will result in an undefined dataset
+                    TODO: Test case for this.
+    :param view: Dataset's view object. Immediately decomposed to version and location objects, if applicable.
+    :param kwargs: Additional attributes for the dataset.
+    :return: A shiny new dataset object
+    """
+    params = {k: v for k, v in locals().items() if k != 'kwargs' and v}
+    # inline kwargs
+    params.update(**kwargs)
+
+    # Decompose view to version and locations
+    if view:
+        version = _getattr_or_value(view, "version")
+        locations = _getattr_or_value(view, "locations")
+        del params['view']
+
+    # Check to see if only one location is actually listed
+    if locations:
+        if len(locations) == 1:
+            location = locations[0]
+            del params['locations']
+        else:
+            # locations don't need to be inlined
+            pass
+
+    # Always inline version
+    if version:
+        params.update(namespace_version(version))
+        del params['version']
+
+    # Always inline singular locations
+    if location:
+        params.update(namespace_location(location))
+        if 'location' in params:
+            del params['location']
+
+    return Dataset(**params)
+
+
 class Metadata(MutableMapping):
     def __init__(self, seq=None):
         self.dct = OrderedDict(seq) if seq else OrderedDict()
@@ -129,7 +222,7 @@ class Metadata(MutableMapping):
 
 
 class SearchResults(list):
-    def __init__(self, results, count, **kwargs):
+    def __init__(self, results, count):
         super(SearchResults, self).__init__(results)
         self.count = count
 

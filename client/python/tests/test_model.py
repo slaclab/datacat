@@ -1,7 +1,7 @@
 import unittest
 import json
 
-from datacat.model import Dataset, Container, pack, unpack
+from datacat.model import Dataset, Container, pack, unpack, build_dataset
 
 
 class ModelTest(unittest.TestCase):
@@ -78,6 +78,34 @@ class ModelTest(unittest.TestCase):
         ds = Dataset(name="ds001.dat", fileFormat="dat", dataType="DAT", versionMetadata=vmd)
         txt = pack(ds)
         print(txt)
+
+    def test_build_dataset(self):
+
+        vmd = {
+                "nRun": 1234,
+                "sQuality": "good"
+                }
+        ds1 = build_dataset(name="ds001.dat", fileFormat="dat", dataType="DAT", versionMetadata=vmd)
+        ds2 = Dataset(name="ds001.dat", fileFormat="dat", dataType="DAT", versionMetadata=vmd)
+        txt1 = pack(ds1)
+        txt2 = pack(ds2)
+        self.assertEqual(txt1, txt2)
+        #self.assertEqual(ds1, ds2)
+
+        # TODO: Make unit tests out of these
+        build_dataset("ds1.txt", "DS", "txt")
+        build_dataset("ds1.txt", "DS", "txt", versionMetadata={"hi": "hello"},
+                      site="SLAC", resource="/path/to/somewhere")
+        build_dataset("ds1.txt", "DS", "txt", versionId="current", versionMetadata={"hi": "hello"},
+                      site="SLAC", resource="/path/to/somewhere")
+        build_dataset("ds1.txt", "DS", "txt", versionMetadata={"hi": "hello"},
+                      location={"site": "SLAC", "resource": "/path/to/somewhere", "created": "today"})
+        build_dataset("ds1.txt", "DS", "txt", versionMetadata={"hi": "hello"},
+                      locations=[{"site": "SLAC", "resource": "/path/to/somewhere", "created": "today"}])
+
+        build_dataset("ds1.txt", "DS", "txt", versionMetadata={"hi": "hello"},
+                      locations=[{"site": "SLAC", "resource": "/path/to/somewhere", "created": "today"},
+                                 {"site": "BNL", "resource": "/bnl/path/to/somewhere", "created": "yesterday"}])
 
 
 if __name__ == '__main__':
