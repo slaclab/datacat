@@ -2,12 +2,12 @@
 import gevent
 import gevent.monkey
 gevent.monkey.patch_socket()
+gevent.monkey.patch_ssl()
+from gevent.queue import Queue
 
-from datacat.client import Client
-from datacat.config import default_url
+from datacat import Client
 from datacat.model import pack
 
-from gevent.queue import Queue
 import requests
 import json
 from jinja2 import Template
@@ -16,7 +16,7 @@ default_template = Template("{{ name }}.{{ fileFormat }}")
 
 q = Queue()
 
-c = Client(default_url("srs","prod"))
+c = Client(url="http://srs.slac.stanford.edu/datacat-v0.4-SNAPSHOT/r")
 
 for i in c.search("/LSST/mirror/BNL3/workarea/ccdtest/e2v/113-03/flat/20140709-112014", max_num=10):
     q.put(i)
@@ -36,6 +36,7 @@ def worker(thread_id):
             pass
         #print('Path %s: created %s on Worker %d' % (work_item, result["created"], thread_id))
     return True
+
 
 def start_workers():
     threads = []
