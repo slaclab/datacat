@@ -68,10 +68,10 @@ public class SearchBuilder {
     
     /**
      * Add field to sort by.
-     * @param sort 
+     * @param sortItem
      */
-    public void addSort(String sort){
-        this.sort.add(sort);
+    public void addSort(String sortItem){
+        this.sort.add(sortItem);
     }
 
     /**
@@ -85,10 +85,10 @@ public class SearchBuilder {
     
     /**
      * Add a field to return.
-     * @param show 
+     * @param showItem
      */
-    public void addShow(String show){
-        this.show.add(show);
+    public void addShow(String showItem){
+        this.show.add(showItem);
     }
 
     /**
