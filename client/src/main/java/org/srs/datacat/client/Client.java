@@ -173,7 +173,6 @@ public class Client {
     /**
      * Get children containers.
      * @param path Path to search into for child containers.
-     * @return 
      */
     public List<DatasetContainer> getContainers(String path){
         Response resp = pathResource.getContainers(path);
@@ -185,7 +184,6 @@ public class Client {
      * Just get an object. If the object is a dataset, you will NOT receive the version, locations, or
      * versionMetadata for that object, only the basic information about it, such as name.
      * @param path Path of object
-     * @return 
      */
     public DatacatNode getObject(String path){
         return getObject(path, null, null);
@@ -198,7 +196,6 @@ public class Client {
      * @param path Path of object
      * @param versionId version ID specifier for datasets you want back (null, "current", "0", "1", etc...)
      * @param site site specifier for datasets you want back ("any", "master", "SLAC", etc...) 
-     * @return 
      */
     public DatacatNode getObject(String path, String versionId, String site){
         Response resp = pathResource.getObject(path, Optional.fromNullable(versionId), Optional.fromNullable(site));
