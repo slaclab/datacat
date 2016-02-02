@@ -52,7 +52,6 @@ public class SearchBuilder {
     /**
      * Site to search. The String can be an actual site, i.e. SLAC, or the word "master" or 
      * "canonical".
-     * @param site 
      */
     public void setSite(String site){
         this.site = site;
@@ -60,7 +59,6 @@ public class SearchBuilder {
 
     /**
      * Query String.
-     * @param query 
      */
     public void setQuery(String query){
         this.query = query;
@@ -68,7 +66,6 @@ public class SearchBuilder {
     
     /**
      * Add field to sort by.
-     * @param sortItem
      */
     public void addSort(String sortItem){
         this.sort.add(sortItem);
@@ -76,7 +73,6 @@ public class SearchBuilder {
 
     /**
      * Set the sort list. This makes  a copy of the list.
-     * @param sort 
      */
     public void setSort(List<String> sort){
         Objects.requireNonNull(sort, "Sort list must not be null");
@@ -85,7 +81,6 @@ public class SearchBuilder {
     
     /**
      * Add a field to return.
-     * @param showItem
      */
     public void addShow(String showItem){
         this.show.add(showItem);
@@ -93,7 +88,6 @@ public class SearchBuilder {
 
     /**
      * Set the list of fields to return. This method makes a copy of the list.
-     * @param show 
      */
     public void setShow(List<String> show){
         Objects.requireNonNull(show, "Sort list must not be null");
