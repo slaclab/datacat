@@ -10,7 +10,7 @@ import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
 
 /**
- *
+ * Interface to Datasets resource.
  * @author bvan
  */
 public class Datasets {
@@ -24,8 +24,7 @@ public class Datasets {
     /**
      * Create a new dataset.
      * @param path Path of the container to create this dataset in.
-     * @param payload
-     * @return 
+     * @param payload Object to create
      */
     public Response mkds(String path, Entity<DatasetModel> payload){
         return Path.getTarget(target.path(path), Optional.<String>absent(), Optional.<String>absent())
@@ -35,8 +34,7 @@ public class Datasets {
     /**
      * Add a location to an existing dataset.
      * @param path Path of the existing dataset
-     * @param payload
-     * @return 
+     * @param payload Location to create
      */
     public Response mkloc(String path, Entity<DatasetLocationModel> payload){
         return Path.getTarget(target.path(path), Optional.<String>absent(), Optional.<String>absent())
