@@ -12,6 +12,7 @@ import org.srs.datacat.client.exception.DcClientException;
 import org.srs.datacat.client.exception.DcException;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.shared.Provider;
 
 /**
@@ -75,4 +76,31 @@ public class ClientTest {
         }
     }
     
+    String fileFormat;
+    String dataType;
+    String logicalFolderPath;
+    String site;
+    String location;
+    Map<String, Object> versionMetadata = new HashMap<>();
+
+    public void testCreateDataset() throws IOException, URISyntaxException, ConfigurationException{
+
+        
+        ModelProvider mp = new Provider();
+
+        Map<String, String> config = Config.defaultConfig();
+        Client c = ClientBuilder.newBuilder(config)
+                .addClientRequestFilter(new LoggingFilter()).build();
+
+        DatasetModel newDataset = mp.getDatasetBuilder()
+                .name("dataset0001")
+                .fileFormat(fileFormat)
+                .dataType(dataType)
+                .site(site)
+                .resource(location)
+                .versionMetadata(versionMetadata)
+                .build();
+        c.createDataset(logicalFolderPath, newDataset);    
+    }
+
 }
