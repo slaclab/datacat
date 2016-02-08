@@ -23,9 +23,10 @@
  * questions.
 */
 
-/*
+/*    
  * This file is derived from sun.nio.fs.UnixPath.java.
  * It is licensed as GPLv2 with "Classpath" exception"
+ * (Adapted in 2014 by Brian Van Klaveren for datacat)
  */
 
 package org.srs.vfs;

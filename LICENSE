@@ -40,3 +40,14 @@ following license: a non-exclusive, royalty-free perpetual license to
 install, use, modify, prepare derivative works, incorporate into other
 computer software, distribute, and sublicense such Enhancements or
 derivative works thereof, in binary and source code form.
+
+
+Parts of the VFS library are derived from projects and their copyright
+and licenses have been preserved. See those files for more information.
+
+These files include:
+VfsSoftCache (Apache 2.0)
+PathMatchers (Apache 2.0)
+GlobToRegex (Apache 2.0)
+PathUtils (GPL with Classpath exception)
+AbstractPath (GPL with Classpath exception)

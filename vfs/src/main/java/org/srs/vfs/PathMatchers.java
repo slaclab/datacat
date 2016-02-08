@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * This is taken from Google's JimFS implementation.
+ * It was adapted in 2014 by Brian Van Klaveren for datacat.
+ */
 package org.srs.vfs;
 
 import java.nio.file.FileSystem;
