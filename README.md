@@ -1,19 +1,19 @@
 # Datacat
 
-Datacat is a system for the tracking and organization of files and their 
-replicas and user-defined metadata across heterogeneous storage systems.
+Datacat is a system for the tracking and organization of files, their 
+replicas, and user-defined metadata across heterogeneous storage systems.
 
 Main Components
 -------
 
 Conceptually, Datacat can be viewed as these main components:
 
-* A Datastore Interface with implementations for Oracle, MySQL, and HSQLDB
+* A Internal Datastore Interface with implementations for Oracle, MySQL, and HSQLDB
 * REST APIs to interact with the Datastore
 * A Web Application which uses the REST APIs
 * Client libraries (in Python and Java) which use the REST APIs
 * A CLI implemented with the Python libraries
-* One or more Crawlers which query
+* Crawlers which query the API for changes and act upon them
 
 ## Primitives
 
