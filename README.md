@@ -3,7 +3,8 @@
 Datacat is a system for the tracking and organization of files and their 
 replicas and user-defined metadata across heterogeneous storage systems.
 
-h1. Main Components
+Main Components
+-------
 
 Conceptually, Datacat can be viewed as these main components:
 
