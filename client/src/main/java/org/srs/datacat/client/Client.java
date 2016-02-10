@@ -249,12 +249,12 @@ public class Client {
             if(parts.size() > 0){
                 Collections.reverse(parts);
                 for(String part: parts){
-                    parentpath = parentpath + "/" + part;
                     DatasetContainer next = (DatasetContainer) modelProvider.getContainerBuilder()
                             .name(part)
                             .type(RecordType.FOLDER)
                             .build();
                     createContainer(parentpath, next, false);
+                    parentpath = parentpath + "/" + part;
                 }
             }
         }
