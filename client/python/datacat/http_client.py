@@ -22,40 +22,48 @@ class HttpClient:
         self.base_url = url
         self.auth_strategy = auth_strategy
         self.debug = debug
+        self.accept = kwargs.get("accept", "json")
+        self.content_type = kwargs.get("content_type", "application/json")
 
-    def path(self, path, versionId=None, site=None, accept="json", **kwargs):
+    def path(self, path, versionId=None, site=None, stat=None, **kwargs):
         """
         Retrieve a datacat object.
         :param path: Path of the object to retrieve.
         :param versionId: Version ID input for Dataset View.
         :param site: Site input for Dataset View.
+        :param stat: Type of stat to return with this object.
         :return: A :class`requests.Response` object. The content is a representation of the newly created container.
         """
         endpoint = "path"
-        return self._req("get", self._target(endpoint, path, versionId, site, accept), **kwargs)
+        params = {}
+        if stat:
+            params["stat"] = stat
+        return self._req("get", self._target(endpoint, path, versionId, site), params, **kwargs)
     
-    def children(self, path, versionId=None, site=None, stat=None, offset=None, max_num=None, accept="json", **kwargs):
+    def children(self, path, versionId=None, site=None, stat=None, offset=None, max_num=None, **kwargs):
         """
         Retrieve the children of a container.
         :param path: Path of the container to retrieve objects from
         :param versionId: Version ID input for the Dataset View on the individual datasets.
         :param site: Site input for the Dataset View on the individual datasets.
+        :param stat: Optional stat parameter for child containers
+        :param offset: Offset to start results for paging
+        :param max_num: Maximum number of objects to return.
         :return: A :class`requests.Response` object. The content is a representation of the newly created container.
         """
         endpoint = "path"
         param_list = "offset:offset max_num:max stat:stat".split(" ")
         param_map = dict([tuple(i.split(":")) for i in param_list])
         params = {param_map[k]: v for k, v in locals().items() if k in param_map and v is not None}
-        target = self._target(endpoint, path, versionId, site, accept) + ";children"
+        target = self._target(endpoint, path, versionId, site) + ";children"
         return self._req("get", target, params, **kwargs)
 
-    def mkdir(self, path, payload=None, type="folder", content_type="application/json", **kwargs):
+    def mkdir(self, path, payload=None, type="folder", **kwargs):
         """
         Make a new Container
         :param path: Container Target path
+        :param payload: The serialized representation of the container to be created.
         :param type: Container type. Defaults to folder.
-        :param parents: If true, will create intermediate Folders as required.
-        :param metadata: Metadata to add to when creating folder
         :return: A :class`requests.Response` object. The content is a representation of the newly created container.
         """
         parentpath = os.path.dirname(path)
@@ -63,25 +71,20 @@ class HttpClient:
         if type.lower() == "group":
             endpoint = "groups"
         headers = kwargs.setdefault("headers", {})
-        headers["Content-Type"] = content_type
+        headers["Content-Type"] = self.content_type
         return self._req("post", self._target(endpoint, parentpath), data=payload, **kwargs)
 
-    def mkds(self, path, payload, versionId=None, content_type="application/json", **kwargs):
+    def mkds(self, path, payload, versionId=None, **kwargs):
         """
         Make a dataset.
         :param path: Container Target path
-        :param name: Name of Dataset you wish to create
-        :param dataType: User-Defined Data Type of Dataset. This is often a subtype of a file format.
-        :param fileFormat: The File Format of the Dataset (i.e. root, fits, tar.gz, txt, etc...)
+        :param payload: The serialized representation of the dataset to be created.
         :param versionId: Desired versionId. By default, it is set to "new", which will result in a versionId of 0.
-        :param site: Site where the dataset physically resides (i.e. SLAC, IN2P3)
-        :param versionMetadata: Metadata to add to registered version if registering a version.
-        :param resource: The actual file resource path at the given site (i.e. /nfs/farm/g/glast/dataset.dat)
         :return: A :class`requests.Response` object. The content is a representation of the newly created Dataset.
         """
         endpoint = "datasets"
         headers = kwargs.setdefault("headers", {})
-        headers["Content-Type"] = content_type
+        headers["Content-Type"] = self.content_type
         return self._req("post", self._target(endpoint, path, versionId, None), data=payload, **kwargs)
 
     def rmdir(self, path, type="folder", **kwargs):
@@ -106,13 +109,12 @@ class HttpClient:
         endpoint = "datasets"
         return self._req("delete", self._target(endpoint, path), **kwargs)
 
-    def patchdir(self, path, payload, type="folder", content_type="application/json", **kwargs):
+    def patchdir(self, path, payload, type="folder", **kwargs):
         """
         Patch a container.
         :param path: Path of the dataset to patch.
         :param type: Container type. Defaults to folder.
-        :param container: A dict object or a dataset.model.Group/Folder object representing the changes to be
-        applied to the container.
+        :param payload: The serialized representation of the container to be patched.
         :param kwargs:
         :return: A :class`requests.Response` object. The content is a representation of the patched container
         """
@@ -120,15 +122,14 @@ class HttpClient:
         if type.lower() == "group":
             endpoint = "groups"
         headers = kwargs.setdefault("headers", {})
-        headers["Content-Type"] = content_type
+        headers["Content-Type"] = self.content_type
         return self._req("patch", self._target(endpoint, path), data=payload, **kwargs)
 
-    def patchds(self, path, payload, versionId="current", site=None, content_type="application/json", **kwargs):
+    def patchds(self, path, payload, versionId="current", site=None, **kwargs):
         """
         Patch a dataset.
         :param path: Path of the dataset to patch.
-        :param dataset: A dict object or a dataset.model.Dataset object representing the changes to be applied to the
-        dataset
+        :param payload: The serialized representation of the dataset to be patched.
         :param versionId: If specified, identifies the version to patch. Otherwise, it's assumed to patch the current
         version, should it exist.
         :param site: If specified, identifies the specific location to be patched (i.e. SLAC, IN2P3)
@@ -137,11 +138,11 @@ class HttpClient:
         """
         endpoint = "datasets"
         headers = kwargs.setdefault("headers", {})
-        headers["Content-Type"] = content_type
+        headers["Content-Type"] = self.content_type
         return self._req("patch", self._target(endpoint, path, versionId, site), data=payload, **kwargs)
 
     def search(self, target, versionId=None, site=None, query=None, sort=None, show=None, offset=None, max_num=None,
-               accept="json", **kwargs):
+               **kwargs):
         """Search a target. A target is a Container of some sort. It may also be specified as a glob, as in:
          1. /path/to - target /path/to _only_
          2. /path/to/* - target is all containers directly in /path/to/
@@ -150,12 +151,13 @@ class HttpClient:
          5. /path/to/**^ - target is only groups, recursively, under /path/to/
 
         :param target: The path (or glob-like path) of which to search
+        :param versionId: Optional versionId filter
+        :param site: Optional site filter
         :param query: The query
         :param sort: Fields and Metadata fields to sort on.
         :param show: Metadata fields to optionally return
         :param offset: Offset at which to start returning objects.
         :param max_num: Maximum number of objects to return.
-        :param accept: Format of the response object which is returned.
         :return: A :class`requests.Response` object. A user can use Response.content to get the content.
         The object will be a collection.
         """
@@ -163,7 +165,7 @@ class HttpClient:
         param_list = "query:filter sort:sort show:show offset:offset max_num:max".split(" ")
         param_map = dict([tuple(i.split(":")) for i in param_list])
         params = {param_map[k]: v for k, v in locals().items() if k in param_map and v is not None}
-        return self._req("get", self._target(endpoint, target, versionId, site, accept), params, **kwargs)
+        return self._req("get", self._target(endpoint, target, versionId, site), params, **kwargs)
 
     def _log_request(self, request):
         if not self.debug:
@@ -206,7 +208,7 @@ class HttpClient:
         response.raise_for_status()
         return response
 
-    def _target(self, endpoint, path, version=None, site=None, accept="json"):
+    def _target(self, endpoint, path, version=None, site=None):
         if version is not None:
             try:
                 version = int(version)
@@ -225,7 +227,7 @@ class HttpClient:
             part = part if part[0] != '/' else (part[1:] if len(part) > 0 else "")
             return "%s/%s" % (_path, urllib.quote(part, safe="/*$"))
 
-        url = resolve(self.base_url, resource(endpoint, accept))
+        url = resolve(self.base_url, resource(endpoint, self.accept))
         view = ";v=" + str(version) if version is not None else ""
         view += ";s=" + site if site is not None else ""
         return resolve(url, path) + view

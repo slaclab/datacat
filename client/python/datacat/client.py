@@ -19,7 +19,7 @@ class Client(object):
         self.url = url
 
     @checked_error
-    def path(self, path, versionId=None, site=None):
+    def path(self, path, versionId=None, site=None, stat=None):
         resp = self.http_client.path(path, versionId, site)
         return unpack(resp.content)
 
@@ -90,7 +90,8 @@ class Client(object):
         return self.mkdir(path, "group", parents, metadata, **kwargs)
 
     @checked_error
-    def mkds(self, path, name, dataType, fileFormat, versionId="new", site=None, resource=None, versionMetadata=None, **kwargs):
+    def mkds(self, path, name, dataType, fileFormat, versionId="new", site=None, resource=None, versionMetadata=None,
+             **kwargs):
         """
         Make a dataset.
         :param path: Container Target path
@@ -109,6 +110,7 @@ class Client(object):
         resp = self.http_client.mkds(path, pack(ds), **kwargs)
         return unpack(resp.content)
 
+    # noinspection PyIncorrectDocstring
     def create_dataset(self, path, name, dataType, fileFormat,
                        versionId="new", site=None, versionMetadata=None, resource=None, **kwargs):
         """
@@ -145,7 +147,7 @@ class Client(object):
         :return: A representation of the dataset that was just created.
         """
         # We piggy back off of build_dataset
-        location={site: site, resource: resource}
+        location = {site: site, resource: resource}
         location.update(**kwargs)
         ds = build_dataset(location=location)
         resp = self.http_client.mkds(path, pack(ds), versionId=versionId)
@@ -172,6 +174,7 @@ class Client(object):
         self.http_client.rmds(path)
         return True
 
+    # noinspection PyIncorrectDocstring
     def delete_dataset(self, path, **kwargs):
         """
         See rmds
@@ -209,19 +212,20 @@ class Client(object):
         :param versionId: If specified, identifies the version to patch. Otherwise, it's assumed to patch the current
         version, should it exist.
         :param site: If specified, identifies the specific location to be patched (i.e. SLAC, IN2P3)
-        :param kwargs:
         :return: A representation of the patched dataset
         """
         ds = dataset if type(dataset) == Dataset else Dataset(**dataset)
         resp = self.http_client.patchds(path, pack(ds), versionId, site)
         return unpack(resp.content)
 
+    # noinspection PyIncorrectDocstring
     def patch_container(self, path, container, type="folder", **kwargs):
         """
         See patchdir.
         """
         return self.patchdir(path, container, type, **kwargs)
 
+    # noinspection PyIncorrectDocstring
     def patch_dataset(self, path, dataset, versionId="current", site=None, **kwargs):
         """
         See patchds
@@ -239,6 +243,8 @@ class Client(object):
          5. /path/to/**^ - target is only groups, recursively, under /path/to/
 
         :param target: The path (or glob-like path) of which to search
+        :param versionId: Optional VersionId to filter by
+        :param site: Optional site to filter by
         :param query: The query
         :param sort: Fields and Metadata fields to sort on.
         :param show: Metadata fields to optionally return

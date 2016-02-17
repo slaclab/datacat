@@ -61,7 +61,7 @@ def checked_error(method):
     @wraps(method)
     def wrapped(*args, **kwargs):
         try:
-            return method(*args, accept="json", **kwargs)
+            return method(*args, **kwargs)
         except RequestException as e:
             raise _check(e)
     return wrapped
