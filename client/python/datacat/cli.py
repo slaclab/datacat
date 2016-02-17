@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import argparse
+import inspect
 import json
 import logging
 import sys
@@ -114,7 +115,6 @@ def main():
 
     command = args.command
     target = args.__dict__.pop("path")
-    params = args.__dict__ or {}
 
     config_file_path = args.config_file
     config_section = args.config_section
@@ -131,7 +131,11 @@ def main():
 
     auth_strategy = auth_from_config(config)
     client = Client(auth_strategy=auth_strategy, **config)
+
     client_method = getattr(client, command)
+    arg_spec = inspect.getargspec(getattr(client_method, "__wrapped__", client_method))
+    valid_args = arg_spec.args[2:]
+    params = {k: v for k, v in args.__dict__.items() if k in valid_args}
 
     try:
         result = client_method(target, **params)

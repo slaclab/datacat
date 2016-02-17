@@ -64,6 +64,7 @@ def checked_error(method):
             return method(*args, **kwargs)
         except RequestException as e:
             raise _check(e)
+    wrapped.__wrapped__ = method
     return wrapped
 
 
