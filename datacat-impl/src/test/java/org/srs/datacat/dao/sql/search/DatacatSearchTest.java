@@ -26,7 +26,6 @@ import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.dao.sql.search.plugins.DatacatPlugin;
 import org.srs.datacat.shared.Provider;
 import org.srs.datacat.test.DbHarness;
-import org.srs.vfs.PathProvider;
 
 /**
  *
@@ -287,6 +286,33 @@ public class DatacatSearchTest {
             TestCase.assertEquals("Should have found "+ expected + " datasets out of 20000",expected, ii);
             return datasets;
         }
+    }
+
+    @Test
+    public void testErrorString() throws Exception {
+        DAOTestUtils.generateDatasets(factory, 20, 10);
+        List<DatacatNode> folders = DAOTestUtils.getFolders(factory, 20);
+        Connection conn = ds.getConnection();
+        conn.commit();
+        conn.close();
+        conn = ds.getConnection();
+        
+        datacatSearch = new DatasetSearch(conn, new Provider(), plugins);        
+        
+        LinkedList<DatacatNode> folder00001 = new LinkedList(Arrays.asList(folders.get(1)));
+        
+        
+        String queryString = "x == 'de'";
+        try {
+            doSearch(Lists.newLinkedList(folder00001), queryString, null, 250 );
+            TestCase.fail("should have produced an error");
+        } catch (IllegalArgumentException ex){
+            TestCase.assertTrue("Error string is incorrect", 
+                    ex.getMessage().contains("Unable to resolve 'x'"));
+        } finally {
+            conn.commit(); // Remove from parents on commit
+        }
+        
     }
     
 }

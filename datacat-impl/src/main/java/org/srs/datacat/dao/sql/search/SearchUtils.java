@@ -47,6 +47,7 @@ public final class SearchUtils {
         
         final StringBuilder startOfError = new StringBuilder();
         AST.Visitor errorVisitor = new AST.Visitor() {
+            @Override
             public boolean visit(AST.Node n){
                 if(n.getLeft() != null && n.getRight() != null) {
                     startOfError.append( "( " );
@@ -56,8 +57,10 @@ public final class SearchUtils {
                     continueVisit = n.getLeft().accept( this );
                 }
                 if(continueVisit && n.getValue() != null){
-                    continueVisit = !ident.equals( n.getValue() );
-                    startOfError.append( " " + n.getValue().toString() + " " );
+                    boolean isTarget = ident.equals(n.getValue());
+                    startOfError.append(isTarget ? "<" : " ")
+                            .append(n.getValue().toString())
+                            .append(isTarget ? ">" : " ");
                 }
                 if(continueVisit && n.getRight() != null){
                     continueVisit = n.getRight().accept( this );
@@ -66,13 +69,6 @@ public final class SearchUtils {
                     }
                 }
 
-                if(!continueVisit){
-                    int partial = ident.length() + 25;
-                    if((startOfError.length() + 3) > partial){
-                        startOfError.delete( 0, startOfError.length() - partial );
-                        startOfError.insert( 0, "..." );
-                    }
-                }
                 return continueVisit;
             }
         };
@@ -208,7 +204,7 @@ public final class SearchUtils {
                 String maybePrefix = rs.getString( "prefix");
                 String metaname = rs.getString( "metaname");
                 String valueType = rs.getString( "ValueType");
-                Class type = null;
+                Class type = String.class;
                 switch (valueType){
                     case "S":
                         type = String.class;
@@ -220,7 +216,7 @@ public final class SearchUtils {
                         type = Timestamp.class;
                         break;
                     default:
-                        type = String.class;
+                        break;
                 }
                 
                 if(maybePrefix != null && !maybePrefix.isEmpty()){
