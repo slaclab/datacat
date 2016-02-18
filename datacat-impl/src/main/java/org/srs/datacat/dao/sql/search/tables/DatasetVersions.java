@@ -34,12 +34,12 @@ public class DatasetVersions extends MetajoinedStatement {
             Param<Integer> p = v.versionId.checkedParam("vid", dsView.getVersionId());
             where(v.versionId.eq(p));
         }
-
+        
         if(dsView.isCanonical()){
             leftOuterJoin(l, v.masterLocation.eq(l.datasetLocation));
         } else {
             leftOuterJoin(l, v.datasetVersion.eq(l.datasetVersion));
-            if(!dsView.allSites()){
+            if(!dsView.allSites() && !dsView.zeroOrMoreSites()){
                 Param<String> pl = l.datasetSite.checkedParam();
                 pl.setValue(dsView.getSite());
                 where(l.datasetSite.eq(pl));
