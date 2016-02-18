@@ -34,27 +34,28 @@ import org.srs.datacat.test.DbHarness;
 public class DatacatSearchTest {
     
     static DbHarness harness;
+    static DataSource ds = null;
+    static DAOFactory factory;
     DatasetSearch datacatSearch;
     Class<? extends DatacatPlugin>[] plugins;
-    public DataSource ds = null;
-    DAOFactory factory;
+    
     
     public DatacatSearchTest() throws SQLException, IOException {
-        ds = harness.getDataSource();
-        factory = new DAOFactoryMySQL(ds);
         plugins = new Class[]{};
     }
         
     @BeforeClass
-    public static void setUpDb() throws SQLException, IOException{
+    public static void setUpDb() throws SQLException, IOException{        
         harness = DbHarness.getDbHarness();
         harness.getDataSource();
+        ds = harness.getDataSource();
+        factory = new DAOFactoryMySQL(ds);
+        DAOTestUtils.generateDatasets(factory, 20, 1000);
     }
     
     @Test
     public void testSearchForDatasetsInParent() throws Exception{
 
-        DAOTestUtils.generateDatasets(factory, 20, 1000);
         List<DatacatNode> folders = DAOTestUtils.getFolders(factory, 20);
         Connection conn = ds.getConnection();
         conn.commit();
@@ -213,11 +214,10 @@ public class DatacatSearchTest {
         conn.commit(); // Remove from parents on commit
         conn.close();
     }
-        
+
+    @Test
     public void testWithSortFields() throws IOException, SQLException, ParseException{
             
-        DAOTestUtils.generateDatasets(factory, 20, 1000);
-        DAOTestUtils.getFolders(factory, 20);
         Connection conn = ds.getConnection();
         conn.commit();
         conn.close();
@@ -290,7 +290,6 @@ public class DatacatSearchTest {
 
     @Test
     public void testErrorString() throws Exception {
-        DAOTestUtils.generateDatasets(factory, 20, 10);
         List<DatacatNode> folders = DAOTestUtils.getFolders(factory, 20);
         Connection conn = ds.getConnection();
         conn.commit();
