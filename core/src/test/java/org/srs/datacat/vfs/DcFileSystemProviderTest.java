@@ -3,7 +3,6 @@ package org.srs.datacat.vfs;
 
 import com.google.common.base.Optional;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.NoSuchFileException;
@@ -121,7 +120,7 @@ public class DcFileSystemProviderTest {
             }
         }
 
-        DatacatRecord o = provider.getFile(rootPath.resolve("testpath"), TestUtils.DEFAULT_TEST_CONTEXT).getAttributeView(DcFile.class).getObject();
+        DatacatRecord o = provider.getFile(rootPath.resolve("testpath"), TestUtils.DEFAULT_TEST_CONTEXT).getObject();
         long t0 = System.currentTimeMillis();
         try(DirectoryStream<Path> cstream = provider.unCachedDirectoryStream(rootPath.resolve("testpath"), DcFileSystemProvider.ACCEPT_ALL_FILTER, Optional.of(DatasetView.EMPTY), true )){
             for(Iterator<Path> iter = cstream.iterator(); iter.hasNext();){

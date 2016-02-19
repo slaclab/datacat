@@ -50,6 +50,7 @@ import org.srs.datacat.vfs.DirectoryWalker.ContainerVisitor;
 import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 
 import org.srs.vfs.AbstractFsProvider.AfsException;
+import org.srs.vfs.FileAttributes;
 import org.srs.vfs.FileType;
 import org.srs.vfs.GlobToRegex;
 import org.srs.vfs.PathProvider;
@@ -383,7 +384,7 @@ public class DcFileSystemProvider {
             DatasetModel ret = dao.
                     createDataset(dsParent.getObject(), dsName, requestDataset, requestView, dsOptions);
             dao.commit();
-            dsParent.childAdded(path, FileType.FILE);
+            childAdded(dsParent, path, FileType.FILE);
             return ret;
         }
     }
@@ -563,7 +564,7 @@ public class DcFileSystemProvider {
             String fileName = path.getFileName().toString();
             DatacatNode ret = dao.createNode(parent.getObject(), fileName, request);
             dao.commit();
-            parent.childAdded(path, FileType.DIRECTORY);
+            childAdded(parent, path, FileType.DIRECTORY);
             DcFile f = buildChild(parent, path, ret);
             getCache().putFile(f);
         }
@@ -578,7 +579,7 @@ public class DcFileSystemProvider {
         }
         DcFile parentFile = resolveFile(path.getParent());
         getCache().removeFile(path);
-        parentFile.childRemoved(path);
+        childRemoved(parentFile, path);
     }
 
     private void checkPermission(CallContext context, DcFile file, DcPermissions permission) throws IOException{
@@ -589,6 +590,47 @@ public class DcFileSystemProvider {
             String err = String.format("No permission entries for %s found", permission);
             AfsException.ACCESS_DENIED.throwError(file.getPath(), err);
         }
+    }
+    
+    private void childRemoved(DcFile parent, Path child){
+        FileAttributes attributes = parent.getAttributes();
+        if(!parent.isDirectory()){
+            return;
+        }
+        String fname = child.getFileName().toString();
+        attributes.getAttributeView(ChildrenView.class).unlink(fname);
+        attributes.getAttributeView(SubdirectoryView.class).unlink(fname);
+        attributes.getAttributeView(ContainerViewProvider.class).clearStats();
+    }
+
+    private void datasetAdded(DcFile parent, Path child){
+        FileAttributes attributes = parent.getAttributes();
+        attributes.getAttributeView(ChildrenView.class).link(child);
+        attributes.getAttributeView(ContainerViewProvider.class).clearStats();
+    }
+
+    private void childAdded(DcFile parent, Path child, FileType fileType){
+        FileAttributes attributes = parent.getAttributes();
+        attributes.getAttributeView(ChildrenView.class).link(child);
+        if(fileType instanceof FileType.Directory){
+            attributes.getAttributeView(SubdirectoryView.class).link(child);
+        }
+        attributes.getAttributeView(ContainerViewProvider.class).clearStats();
+    }
+
+    private void childModified(DcFile parent, Path child){
+        FileAttributes attributes = parent.getAttributes();
+        if(!parent.isDirectory()){
+            return;
+        }
+        String fname = child.getFileName().toString();
+        if(attributes.getAttributeView(ChildrenView.class).unlink(fname)){
+            attributes.getAttributeView(ChildrenView.class).link(child);
+        }
+        if(attributes.getAttributeView(SubdirectoryView.class).unlink(fname)){
+            attributes.getAttributeView(SubdirectoryView.class).link(child);
+        }
+        attributes.getAttributeView(ContainerViewProvider.class).clearStats();
     }
 
 }
