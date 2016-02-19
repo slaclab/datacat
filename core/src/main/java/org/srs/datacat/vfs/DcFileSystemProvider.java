@@ -535,10 +535,10 @@ public class DcFileSystemProvider {
         return getFile(path, context);
     }
 
-    public DatasetViewInfoModel getDatasetViewInfo(DcFile file, 
+    public DatasetViewInfoModel getDatasetViewInfo(DatacatRecord record, 
             DatasetView view) throws IOException, NoSuchFileException{
         try(DatasetDAO dsdao = daoFactory.newDatasetDAO()) {
-            DatasetViewInfoModel ret = dsdao.getDatasetViewInfo(file.getObject(), view);
+            DatasetViewInfoModel ret = dsdao.getDatasetViewInfo(record, view);
             if(ret == null){
                 String msg = String.format("Invalid View. Version %d not found", view.getVersionId());
                 throw new NoSuchFileException(msg);

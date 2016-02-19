@@ -27,7 +27,6 @@ import org.srs.datacat.rest.PATCH;
 import org.srs.datacat.rest.RestException;
 import org.srs.datacat.rest.security.AclEntryProxy;
 import org.srs.datacat.vfs.DcFile;
-import org.srs.datacat.vfs.DcUriUtils;
 
 /**
  *

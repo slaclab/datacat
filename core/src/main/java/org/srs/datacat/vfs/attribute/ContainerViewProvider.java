@@ -11,7 +11,6 @@ import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.container.ContainerStat;
 import org.srs.datacat.model.container.DatasetContainerBuilder;
-import org.srs.datacat.vfs.DcFile;
 import org.srs.datacat.vfs.DcFileSystemProvider;
 
 /**
@@ -21,14 +20,14 @@ import org.srs.datacat.vfs.DcFileSystemProvider;
  */
 public class ContainerViewProvider implements DcViewProvider<Class<? extends ContainerStat>> {
 
-    private final DcFile file;
+    private final DatasetContainer container;
     private final DcFileSystemProvider provider;
     private final HashMap<Class<? extends ContainerStat>, ContainerStat> stats = new HashMap<>(3);
     private final HashMap<DatasetView, AtomicInteger> viewCaches = new HashMap<>(3);
     private final Lock lock = new ReentrantLock();
 
-    public ContainerViewProvider(DcFile file, DcFileSystemProvider provider){
-        this.file = file;
+    public ContainerViewProvider(DatasetContainer container, DcFileSystemProvider provider){
+        this.container = container;
         this.provider = provider;
     }
 
@@ -83,7 +82,7 @@ public class ContainerViewProvider implements DcViewProvider<Class<? extends Con
     @Override
     public DatasetContainer withView(Class<? extends ContainerStat> statType) throws NoSuchFileException, IOException{
         if(statType == null){
-            return (DatasetContainer) file.getObject();
+            return container;
         }
         
         ContainerStat retStat = null;
@@ -91,7 +90,7 @@ public class ContainerViewProvider implements DcViewProvider<Class<? extends Con
         try {
             if(!stats.containsKey(statType)){
                 try(ContainerDAO dao = provider.getDaoFactory().newContainerDAO()) {
-                    stats.put(statType, dao.getStat(file.getObject(), statType));
+                    stats.put(statType, dao.getStat(container, statType));
                 }
             }
             retStat = stats.get(statType);
@@ -99,7 +98,7 @@ public class ContainerViewProvider implements DcViewProvider<Class<? extends Con
             lock.unlock();
         }
         DatasetContainerBuilder b = provider.getModelProvider()
-                .getContainerBuilder().create(file.getObject());
+                .getContainerBuilder().create(container);
         b.stat(retStat);
         return b.build();
     }

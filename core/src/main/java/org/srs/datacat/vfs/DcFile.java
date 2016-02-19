@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.srs.datacat.model.DatacatNode;
+import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.RecordType;
 import org.srs.datacat.model.security.DcAclEntry;
@@ -54,12 +55,12 @@ public class DcFile extends AbstractVirtualFile<Path, Long> implements BasicFile
     private void initViews(DatacatNode orig){
         addAttributeViews(this);
         if(isRegularFile() && orig instanceof DatasetModel){
-            addAttributeViews(new DatasetViewProvider(this, provider, (DatasetModel) orig));
+            addAttributeViews(new DatasetViewProvider(provider, (DatasetModel) orig));
         }
         if(isDirectory()){
             addAttributeViews(new ChildrenView(getPath(), provider));
             addAttributeViews(new SubdirectoryView(getPath(), provider));
-            addAttributeViews(new ContainerViewProvider(this, provider));
+            addAttributeViews(new ContainerViewProvider((DatasetContainer) orig, provider));
         }
     }
 
