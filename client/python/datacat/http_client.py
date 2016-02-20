@@ -167,6 +167,40 @@ class HttpClient:
         params = {param_map[k]: v for k, v in locals().items() if k in param_map and v is not None}
         return self._req("get", self._target(endpoint, target, versionId, site), params, **kwargs)
 
+    def permissions(self, path, group=None):
+        """
+        Retrieve the effective permissions.
+        :param path: Path of the object to retrieve.
+        :param group: If specified, this should be a group specification of the format "{name}@{project}"
+        :return: A :class`requests.Response` object. The content is a representation of the newly created container.
+        """
+        endpoint = "permissions"
+        params = dict(subject="user")
+        if group:
+            params["subject"] = "group"
+            params["group"] = group
+        return self._req("get", self._target(endpoint, path), params)
+
+    def list_acl(self, path):
+        """
+        Retrieve a datacat object.
+        :param path: Path of the object to retrieve.
+        :param effective: Type of stat to return with this object.
+        :return: A :class`requests.Response` object. The content is a representation of the newly created container.
+        """
+        endpoint = "permissions"
+        return self._req("get", self._target(endpoint, path))
+
+    def patch_acl(self, path, acl):
+        """
+        Patch an ACL.
+        :param path: Path of the object to patch (must be container(
+        :param acl: List of entries defining the group and
+        :return: A complete representation of all ACLs
+        """
+        endpoint = "permissions"
+        return self._req("patch", self._target(endpoint, path), data=acl)
+
     def _log_request(self, request):
         if not self.debug:
             return
@@ -221,6 +255,7 @@ class HttpClient:
         def resource(_endpoint, _accept):
             if _endpoint in ENDPOINTS and _accept in DATATYPES:
                 return "%s.%s" % (_endpoint, _accept)
+            raise ValueError("Unknown endpoint. Check client code")
 
         def resolve(_path, part):
             _path = _path if _path[-1] != '/' else _path[:-1]

@@ -18,7 +18,18 @@ public class DcGroup extends DcSubject implements GroupPrincipal {
         super(name);
         this.project = project;
     }
-
+    
+    public static DcGroup fromSpec(String spec) throws IllegalArgumentException {
+        if(spec == null || spec.isEmpty()){
+            throw new IllegalArgumentException("Invalid Group Spec");
+        }
+        int splitIndex = spec.indexOf("@");
+        if(splitIndex > 0){
+            return new DcGroup(spec.substring(0, splitIndex), spec.substring(splitIndex+1));
+        }
+        return new DcGroup(spec, null);
+    }
+    
     @Override
     public String toString(){
         return (getName() != null ? getName() : "") + "@" + (project != null ? project : "");

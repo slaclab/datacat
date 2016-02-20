@@ -300,6 +300,42 @@ public class DcFileSystemProvider {
         return f;
     }
     
+    /**
+     * Gets the ACL of a file..
+     *
+     * @param path Datacat path
+     * @param context Call context.
+     * @return The ACL for a given path
+     */
+    public List<DcAclEntry> getAcl(Path path, CallContext context) throws IOException, NoSuchFileException{
+        DcFile f = getFile(path, context);
+        return f.getAcl();
+    }
+
+    /**
+     * Gets the ACL of a file.
+     *
+     * @param path Datacat path
+     * @param context Call context.
+     * @param groupSpec If specified, will return the effective permissions for a given group spec.
+     * The Group spec includes the domain
+     * @return Effective permissions, or an empty string if there is no permissions found.
+     */
+    public String getPermissions(Path path, CallContext context, 
+            DcGroup group) throws IOException, NoSuchFileException{
+        List<DcAclEntry> acl = getAcl(path, context);
+        if(group != null){
+            // TODO: Should this be priviledged?
+            for(DcAclEntry e: acl){
+                if(group.equals(e.getSubject())){
+                    return DcPermissions.effective(new HashSet<>(Arrays.asList(e.getSubject())), acl);
+                }
+            }
+            return "";
+        }
+        return DcPermissions.effective(context.getGroups(), acl);
+    }
+    
     public Path getPath(String path){
         return PATH_PROVIDER.getPath(path);
     }

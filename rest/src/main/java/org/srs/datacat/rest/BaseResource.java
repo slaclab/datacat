@@ -122,7 +122,7 @@ public class BaseResource {
     }
     
     public CallContext buildCallContext() throws IOException{
-        Principal prin = this.getUser();
+        Principal prin = getUser();
         String name = prin != null ?  prin.getName() : null;
         DcUser user = lookupService.lookupPrincipalByName(name);
         Set<DcGroup> groups = lookupService.lookupGroupsForUser(user);

@@ -13,5 +13,10 @@ public class DcUser extends DcSubject {
     public DcUser(String name){
         super(name);
     }
-    
+
+    @Override
+    public String toString(){
+        return getName();
+    }
+
 }

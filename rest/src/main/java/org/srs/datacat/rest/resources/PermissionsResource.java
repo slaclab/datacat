@@ -8,11 +8,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
@@ -21,12 +23,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import org.srs.datacat.model.security.CallContext;
 import org.srs.datacat.model.security.DcAclEntry;
+import org.srs.datacat.model.security.DcGroup;
+import org.srs.datacat.model.security.DcSubject;
 import org.srs.datacat.rest.BaseResource;
 import static org.srs.datacat.rest.BaseResource.OPTIONAL_EXTENSIONS;
 import org.srs.datacat.rest.PATCH;
 import org.srs.datacat.rest.RestException;
 import org.srs.datacat.rest.security.AclEntryProxy;
-import org.srs.datacat.vfs.DcFile;
 
 /**
  *
@@ -36,15 +39,12 @@ import org.srs.datacat.vfs.DcFile;
 public class PermissionsResource extends BaseResource {
     private final String idRegex = "{id: [%\\w\\d\\-_\\./]+}";
     
-    private UriInfo ui;
-    private List<PathSegment> pathSegments;
-    private String requestPath;
-    private HashMap<String, List<String>> requestMatrixParams = new HashMap<>();
-    private HashMap<String, List<String>> requestQueryParams = new HashMap<>();
+    private final UriInfo ui;
+    private final  String requestPath;
+    private final  HashMap<String, List<String>> requestMatrixParams = new HashMap<>();
+    private final  HashMap<String, List<String>> requestQueryParams = new HashMap<>();
     
     public PermissionsResource(@PathParam("id") List<PathSegment> pathSegments, @Context UriInfo ui){
-        System.out.println("hello world");
-        this.pathSegments = pathSegments;
         this.ui = ui;
         String path = "";
         if(pathSegments != null){
@@ -60,16 +60,21 @@ public class PermissionsResource extends BaseResource {
     @GET
     @Path(idRegex)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public Response getPermissions() {
+    public Response getAclOrPermissions(@DefaultValue("") @QueryParam("subject") String subject,
+            @DefaultValue("") @QueryParam("group") String groupSpec) {
         
         java.nio.file.Path dcp = getProvider().getPath(requestPath);
         try {
-            DcFile dcf = getProvider().getFile(dcp, buildCallContext());
-            List<AclEntryProxy> acl = new ArrayList<>(dcf.getAcl().size());
-            for(DcAclEntry e: dcf.getAcl()){
+            if(!subject.isEmpty()){
+                return getPermissions(dcp, subject, groupSpec);
+            }
+            List<AclEntryProxy> acl = new ArrayList<>();
+            for(DcAclEntry e: getProvider().getAcl(dcp, buildCallContext())){
                 acl.add(new AclEntryProxy(e));
             }
             return Response.ok(new GenericEntity<List<AclEntryProxy>>(acl){}).build();
+        } catch (IllegalArgumentException ex){
+            throw new RestException(ex, 400 , "Unable to process subject permissions", ex.getMessage());
         } catch (NoSuchFileException ex){
              throw new RestException(ex,404 , "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
@@ -83,11 +88,11 @@ public class PermissionsResource extends BaseResource {
     @Path(idRegex)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public Response setPermissions(List<AclEntryProxy> proxyAcl){
+    public Response setAcl(List<AclEntryProxy> proxyAcl){
         java.nio.file.Path dcp = getProvider().getPath(requestPath);
 
         try {
-            ArrayList<DcAclEntry> acl = new ArrayList<>(proxyAcl.size());
+            ArrayList<DcAclEntry> acl = new ArrayList<>();
             for(AclEntryProxy p: proxyAcl){
                 acl.add(p.entry());
             }
@@ -102,24 +107,24 @@ public class PermissionsResource extends BaseResource {
         }
     }
     
+
     @PATCH
     @Path(idRegex)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
-    public Response mergePermissions(List<AclEntryProxy> proxyAcl){
+    public Response mergeAcl(List<AclEntryProxy> proxyAcl){
         java.nio.file.Path dcp = getProvider().getPath(requestPath);
         
         try {
-            ArrayList<DcAclEntry> acl = new ArrayList<>(proxyAcl.size());
+            ArrayList<DcAclEntry> acl = new ArrayList<>();
             for(AclEntryProxy p: proxyAcl){
                 acl.add(p.entry());
             }
             CallContext context = buildCallContext();
             getProvider().mergeContainerAclEntries(dcp, context, acl, false);
-            DcFile dcf = getProvider().getFile(dcp, context);
             
-            proxyAcl = new ArrayList<>(dcf.getAcl().size());
-            for(DcAclEntry e: dcf.getAcl()){
+            proxyAcl = new ArrayList<>();
+            for(DcAclEntry e: getProvider().getAcl(dcp, context)){
                 proxyAcl.add(new AclEntryProxy(e));
             }
             return Response.ok(new GenericEntity<List<AclEntryProxy>>(proxyAcl){}).build();
@@ -132,4 +137,27 @@ public class PermissionsResource extends BaseResource {
         }
     }
     
+    private Response getPermissions(java.nio.file.Path dcp, String subject, String groupSpec) throws IOException{
+        DcSubject target;
+        String permissions = "";
+        CallContext callContext = buildCallContext();
+        if("group".equalsIgnoreCase(subject)){
+            if(groupSpec.isEmpty()){
+                throw new IllegalArgumentException("No Group is specified");
+            }
+            target = DcGroup.fromSpec(groupSpec);
+            permissions = getProvider().getPermissions(dcp, callContext, (DcGroup) target);
+        } else if ("user".equalsIgnoreCase(subject)){
+            target = callContext.getSubject();
+            permissions = getProvider().getPermissions(dcp, callContext, null);
+        } else {
+            throw new IllegalArgumentException("'user' or 'group' must be specified");
+        }
+
+        DcAclEntry e = DcAclEntry.newBuilder()
+            .subject(target)
+            .permissions(permissions)
+            .build();
+        return Response.ok(new GenericEntity<AclEntryProxy>(new AclEntryProxy(e)){}).build();
+    }
 }

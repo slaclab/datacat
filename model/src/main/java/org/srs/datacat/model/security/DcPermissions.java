@@ -111,6 +111,20 @@ public enum DcPermissions {
             }
         }
         return false;
-    }    
+    }
+    
+    public static String effective(Set<? extends DcSubject> usersGroups, List<DcAclEntry> acl){
+        HashSet<DcPermissions> effective = new HashSet<>();
+        for(DcPermissions permission: DcPermissions.values()){
+            for(DcAclEntry entry: acl){
+                if(usersGroups.contains((DcGroup) entry.getSubject())){
+                    if(entry.getPermissions().contains(permission)){
+                        effective.add(permission);
+                    }
+                }
+            }            
+        }
+        return pack(effective);
+    }
     
 }

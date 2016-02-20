@@ -67,7 +67,7 @@ public class DcFile extends AbstractVirtualFile<Path, Long> {
         }
     }
 
-    public List<DcAclEntry> getAcl(){
+    protected List<DcAclEntry> getAcl(){
         return acl;
     }
 

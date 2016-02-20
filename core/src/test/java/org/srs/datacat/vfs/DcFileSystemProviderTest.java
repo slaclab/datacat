@@ -238,7 +238,7 @@ public class DcFileSystemProviderTest {
             provider.mergeContainerAclEntries(target, TestUtils.DEFAULT_TEST_CONTEXT, newAcl, false);
             
             boolean okay = false;
-            for(DcAclEntry e: provider.getFile(target, TestUtils.DEFAULT_TEST_CONTEXT).getAcl()){
+            for(DcAclEntry e: provider.getAcl(target, TestUtils.DEFAULT_TEST_CONTEXT)){
                 if(e.getSubject().equals(DcGroup.PUBLIC_GROUP)){
                     if(e.getPermissions().contains(DcPermissions.WRITE)){
                         okay = true;
@@ -258,7 +258,7 @@ public class DcFileSystemProviderTest {
             provider.mergeContainerAclEntries(target, TestUtils.DEFAULT_TEST_CONTEXT, newAcl, false);
             
             okay = true;
-            for(DcAclEntry e: provider.getFile(target, TestUtils.DEFAULT_TEST_CONTEXT).getAcl()){
+            for(DcAclEntry e: provider.getAcl(target, TestUtils.DEFAULT_TEST_CONTEXT)){
                 if(e.getSubject().equals(DcGroup.PUBLIC_GROUP)){
                     if(e.getPermissions().contains(DcPermissions.WRITE)){
                         okay = false;
@@ -278,7 +278,15 @@ public class DcFileSystemProviderTest {
 
             newAcl.add(entry);
             provider.mergeContainerAclEntries(target, TestUtils.DEFAULT_TEST_CONTEXT, newAcl, true);
-            TestCase.assertEquals("Only one entry should exist", 1, provider.getFile(target, TestUtils.DEFAULT_TEST_CONTEXT).getAcl().size());
+            TestCase.assertEquals("Only one entry should exist", 1, provider.getAcl(target, TestUtils.DEFAULT_TEST_CONTEXT).size());
+            
+            provider.getAcl(path, TestUtils.DEFAULT_TEST_CONTEXT);
+            TestCase.assertEquals("ridwa", provider.getPermissions(path, TestUtils.DEFAULT_TEST_CONTEXT, null));
+            TestCase.assertEquals("ridwa", provider.getPermissions(path, TestUtils.DEFAULT_TEST_CONTEXT, new DcGroup("test_group","SRS")));
+            TestCase.assertEquals("r", provider.getPermissions(path, TestUtils.DEFAULT_TEST_CONTEXT, DcGroup.PUBLIC_GROUP));
+            
+            TestCase.assertEquals("", provider.getPermissions(path, TestUtils.DEFAULT_TEST_CONTEXT, DcGroup.fromSpec("bogus")));
+            
             
             /* TODO: Define this behavior - clear = true, permissions = empty
             newAcl = new ArrayList<>();

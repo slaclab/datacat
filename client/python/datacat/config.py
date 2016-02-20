@@ -2,7 +2,7 @@ import ConfigParser
 import os
 
 MODES = "prod dev test".split(" ")
-ENDPOINTS = "children path search datasets containers groups folders".split(" ")
+ENDPOINTS = "children path search datasets containers groups folders permissions".split(" ")
 DATATYPES = "json xml txt".split(" ")
 
 __version__ = "0.4"
