@@ -26,6 +26,7 @@ import org.srs.datacat.client.impl.JacksonFeature;
 import org.srs.datacat.client.resources.Containers;
 import org.srs.datacat.client.resources.Datasets;
 import org.srs.datacat.client.resources.Path;
+import org.srs.datacat.client.resources.Permissions;
 import org.srs.datacat.client.resources.Search;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetContainer;
@@ -33,7 +34,10 @@ import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.model.RecordType;
+import org.srs.datacat.model.security.DcAclEntry;
+import org.srs.datacat.model.security.DcGroup;
 import org.srs.datacat.rest.ErrorResponse;
+import org.srs.datacat.rest.security.AclEntryProxy;
 import org.srs.datacat.shared.Provider;
 import org.srs.vfs.PathUtils;
 
@@ -49,6 +53,7 @@ public class Client {
     private Search searchResource;
     private Datasets datasetsResource;
     private Containers containersResource;
+    private Permissions permissionsResource;
     private ModelProvider modelProvider;
 
     public Client(URI url, List<ClientRequestFilter> requestFilters,
@@ -95,6 +100,7 @@ public class Client {
         this.searchResource = new Search(baseTarget);
         this.datasetsResource = new Datasets(baseTarget);
         this.containersResource = new Containers(baseTarget);
+        this.permissionsResource = new Permissions(baseTarget);
     }
 
     /**
@@ -346,7 +352,34 @@ public class Client {
             throw new DcRequestException(ex);
         }
     }
-
+    
+    public DcAclEntry getPermissions(String path, DcGroup group){
+        Optional<String> groupSpec = Optional.fromNullable(group != null ? group.toString(): null);
+        Response resp = permissionsResource.getPermissions(path, groupSpec);
+        checkResponse(resp);
+        return resp.readEntity(new GenericType<AclEntryProxy>() {}).entry();
+    }
+    
+    public List<DcAclEntry> getAcl(String path){
+        Response resp = permissionsResource.getAcl(path);
+        checkResponse(resp);
+        List<DcAclEntry> ret = new ArrayList<>();
+        for(AclEntryProxy p: resp.readEntity(new GenericType<List<AclEntryProxy>>() {})){
+            ret.add(p.entry());
+        }
+        return ret;
+    }
+    
+    public List<AclEntryProxy> patchAcl(String path, List<DcAclEntry> acl){
+        List<AclEntryProxy> req = new ArrayList<>();
+        for(DcAclEntry e: acl){
+            req.add(new AclEntryProxy(e));
+        }
+        Response resp = permissionsResource.patchAcl(path, Entity.entity(req, MediaType.APPLICATION_JSON));
+        checkResponse(resp);
+        return resp.readEntity(new GenericType<List<AclEntryProxy>>() {});
+    }
+    
     public static void checkResponse(Response resp) throws DcException{
         if(resp.getStatusInfo().getFamily() == Status.Family.SUCCESSFUL){
             return;
