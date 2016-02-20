@@ -254,6 +254,38 @@ class Client(object):
         resp = self.http_client.search(target, versionId, site, query, sort, show, offset, max_num)
         return unpack(resp.content)
 
+    @checked_error
+    def permissions(self, path, group=None):
+        """
+        Retrieve the effective permissions.
+        :param path: Path of the object to retrieve.
+        :param group: If specified, this should be a group specification of the format "{name}@{project}"
+        :return: A :class`datacat.model.AclEntry` object representing permissions
+        """
+        resp = self.http_client.permissions(path, group)
+        return unpack(resp.content)
+
+    @checked_error
+    def list_acl(self, path):
+        """
+        Retrieve the Access Control List of a given path
+        :param path: Path of the object to retrieve.
+        :return: A list of :class`datacat.model.AclEntry` objects.
+        """
+        resp = self.http_client.list_acl(path)
+        return unpack(resp.content)
+
+    @checked_error
+    def patch_acl(self, path, acl):
+        """
+        Patch an ACL.
+        :param path: Path of the object to patch (must be container)
+        :param acl: A list of :class`datacat.model.AclEntry` objects or a similar dict
+        :return: An updated list of :class`datacat.model.AclEntry` objects.
+        """
+        resp = self.http_client.patch_acl(path, pack(acl))
+        return unpack(resp.content)
+
 
 def client_from_config_file(path=None, override_section=None):
     """

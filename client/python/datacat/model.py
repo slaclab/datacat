@@ -230,9 +230,40 @@ class Metadata(MutableMapping):
 
 
 class SearchResults(list):
-    def __init__(self, results, count):
+    def __init__(self, results, count, **kwargs):
         super(SearchResults, self).__init__(results)
         self.count = count
+
+
+# noinspection PyClassHasNoInit
+class Permissions:
+    READ = "r"
+    INSERT = "i"
+    DELETE = "d"
+    WRITE = "w"
+    ADMIN = "a"
+
+    _ORDERED = "ridwa"
+
+    @staticmethod
+    def pack(permissions):
+        permissions = set(permissions)
+        return "".join([p for p in Permissions._ORDERED if p in permissions])
+
+    @staticmethod
+    def unpack(permissions):
+        return set([p for p in permissions if p in Permissions._ORDERED])
+
+
+class AclEntry(object):
+    def __init__(self, subject, permissions, **kwargs):
+        self.subject = subject
+        self.permissions = Permissions.unpack(permissions)
+
+    def __repr__(self):
+        _init = "{}.{}".format(type(self).__module__, type(self).__name__)
+        return "{}(**{})".format(_init, repr(dict(subject=self.subject,
+                                                  permissions=Permissions.pack(self.permissions))))
 
 
 def unpack(content, default_type=None):
@@ -293,6 +324,8 @@ def _default_serializer(obj):
                 else:
                     ret.append(OrderedDict([("key", k), ("value", v)]))
             return ret
+        if isinstance(obj, AclEntry):
+            return dict(subject=obj.subject, permissions=Permissions.pack(obj.permissions))
         iterable = iter(obj)
     except TypeError as e:
         _logger.warning("Attempting go decode unknown type: " + e.message)
@@ -340,6 +373,8 @@ def _default_hook(raw):
             return Group(**raw)
         elif _type.startswith("location"):
             return DatasetLocation(**raw)
+        elif _type.startswith("aclEntry"):
+            return AclEntry(**raw)
         return raw
     # Check for metadata k:v pair
     if 'type' in raw and raw["type"].lower() in ("integer", "decimal", "string", "timestamp"):
