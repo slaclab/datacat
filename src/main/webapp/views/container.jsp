@@ -14,10 +14,13 @@
                     <small>${target.description}</small></c:if>
                 </h3>
             </div>
+            <c:if test="${canWrite}">
             <div class="btn-group pull-right">
                 <a href="${applicationBase}/edit${target.path}" type="button" class="btn btn-default btn-med">
                 <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Edit
             </a>
+            </c:if>
+            <c:if test="${canInsert}" >
             <c:choose>
                 <c:when   test="${target.type == 'FOLDER'}">
                     <div class="btn-group" role="group">
@@ -37,6 +40,7 @@
                     </a>
                 </c:otherwise>
             </c:choose>
+            </c:if>
         </div>
     </div>
 

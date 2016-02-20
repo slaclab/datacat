@@ -20,9 +20,12 @@
     <div class="datacat-header">
 
         <h3>${target.name}
+            <c:if test="${canWrite}">
             <a href="${applicationBase}/edit${target.path}" type="button" class="btn btn-default btn-med pull-right">
+                
                 <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Edit
             </a>
+            </c:if>
             <br>
             <small>Version ${target.versionId}</small><br>
             <small>Dataset</small><br>

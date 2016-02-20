@@ -18,6 +18,8 @@ import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RecordType;
+import org.srs.datacat.model.security.DcAclEntry;
+import org.srs.datacat.model.security.DcPermissions;
 import org.srs.datacat.shared.DatasetStat;
 import org.srs.datacat.shared.RequestView;
 import org.srs.vfs.PathUtils;
@@ -78,6 +80,10 @@ public class ControllerUtils {
             }
 
             requestAttributes.put("target", target);
+            DcAclEntry e = client.getPermissions(path, null);
+            requestAttributes.put("canWrite", e.getPermissions().contains(DcPermissions.WRITE));
+            requestAttributes.put("canDelete", e.getPermissions().contains(DcPermissions.DELETE));
+            requestAttributes.put("canInsert", e.getPermissions().contains(DcPermissions.INSERT));
             if(target.getType().isContainer()){
                 DatasetStat t = (DatasetStat) ((DatasetContainer) target).getStat();
                 long ccCount = t.getGroupCount() + t.getFolderCount();
