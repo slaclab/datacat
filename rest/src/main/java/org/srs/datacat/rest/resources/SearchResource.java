@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -112,6 +114,7 @@ public class SearchResource extends BaseResource {
         } catch (NoSuchFileException ex){
              throw new RestException(ex,404, "File doesn't exist", ex.getMessage());
         } catch(IOException ex) {
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex, 500);
         } catch(ParseException ex) {
             throw new RestException(ex, 422, "Unable to parse filter", ex.getMessage());

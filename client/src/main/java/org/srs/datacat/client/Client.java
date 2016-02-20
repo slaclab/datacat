@@ -367,7 +367,7 @@ public class Client {
     }
     
     /**
-     * Get the ACL of a given object
+     * Get the ACL of a given object.
      * @param path Datacat object path
      * @return ACL
      */

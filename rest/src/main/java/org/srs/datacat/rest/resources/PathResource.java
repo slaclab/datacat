@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -112,6 +114,7 @@ public class PathResource extends BaseResource {
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
         } catch (IOException ex){
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex, 500);
         }
     }
@@ -176,6 +179,7 @@ public class PathResource extends BaseResource {
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
         } catch (IOException ex){
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex, 500);
         }
     }

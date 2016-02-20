@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -112,6 +114,7 @@ public class ContainerResource extends BaseResource {
         } catch (NotDirectoryException ex){
             throw new RestException(ex,404,"File exists, but Path is not a container");
         } catch (IOException ex){
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex, 500);
         }
         
@@ -153,6 +156,7 @@ public class ContainerResource extends BaseResource {
         } catch (NotDirectoryException ex){
             throw new RestException(ex, 404, "File exists, but Path is not a container");
         } catch (IOException ex){
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             ex.printStackTrace();
             throw new RestException(ex, 500);
         }
@@ -186,6 +190,7 @@ public class ContainerResource extends BaseResource {
         } catch (NotDirectoryException ex){
             throw new RestException(ex, 404, "File exists, but Path is not a container");
         } catch (IOException ex){
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             ex.printStackTrace();
             throw new RestException(ex, 500);
         }
@@ -206,6 +211,7 @@ public class ContainerResource extends BaseResource {
         } catch (IllegalArgumentException ex){
             throw new RestException(ex, 400, "Unable to validate request view", ex.getMessage());
         } catch (IOException ex){
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex, 500);
         }
     }
@@ -228,6 +234,7 @@ public class ContainerResource extends BaseResource {
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
         } catch (IOException ex){
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex, 500);
         }
     }

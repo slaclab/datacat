@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -109,6 +111,7 @@ public class DatasetsResource extends BaseResource  {
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
         } catch (IOException ex){
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex, 500);
         }
     }
@@ -203,6 +206,7 @@ public class DatasetsResource extends BaseResource  {
         } catch (NotDirectoryException ex){
             throw new RestException(ex, 404, "File exists, but Path is not a container");
         } catch (IOException ex){
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             ex.printStackTrace();
             throw new RestException(ex, 500);
         }
@@ -269,6 +273,7 @@ public class DatasetsResource extends BaseResource  {
             existing = getProvider().getFile(datasetPath, buildCallContext())
                     .getAttributeView(DatasetViewProvider.class).withView(existingView, true);
         } catch(IOException ex2) {
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex2, 500, "Unable to check current dataset", ex2.getMessage());
         }
         DatasetViewInfoModel currentViewInfo = existing instanceof DatasetWithViewModel
@@ -321,6 +326,7 @@ public class DatasetsResource extends BaseResource  {
         } catch (IllegalArgumentException ex){
             throw new RestException(ex, 400, "Unable to validate request view", ex.getMessage());
         } catch (IOException ex){
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex, 500);
         }
     }
@@ -340,6 +346,7 @@ public class DatasetsResource extends BaseResource  {
         } catch (IllegalArgumentException ex){
             throw new RestException(ex, 400, "Unable to delete a dataset by view", ex.getMessage());
         } catch (IOException ex){
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex, 500);
         }
     }

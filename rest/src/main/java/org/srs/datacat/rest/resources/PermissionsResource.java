@@ -7,6 +7,8 @@ import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -80,6 +82,7 @@ public class PermissionsResource extends BaseResource {
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
         } catch (IOException ex){
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex, 500);
         }
     }
@@ -103,6 +106,7 @@ public class PermissionsResource extends BaseResource {
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
         } catch (IOException ex){
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex, 500);
         }
     }
@@ -133,6 +137,7 @@ public class PermissionsResource extends BaseResource {
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403);
         } catch (IOException ex){
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex, 500);
         }
     }
@@ -153,7 +158,9 @@ public class PermissionsResource extends BaseResource {
         } else {
             throw new IllegalArgumentException("'user' or 'group' must be specified");
         }
-
+        if(target == null){
+            target = DcGroup.PUBLIC_GROUP;
+        }
         DcAclEntry e = DcAclEntry.newBuilder()
             .subject(target)
             .permissions(permissions)
