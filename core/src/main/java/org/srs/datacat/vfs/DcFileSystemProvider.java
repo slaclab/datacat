@@ -326,12 +326,12 @@ public class DcFileSystemProvider {
         List<DcAclEntry> acl = getAcl(path, context);
         if(group != null){
             // TODO: Should this be priviledged?
-            for(DcAclEntry e: acl){
-                if(group.equals(e.getSubject())){
-                    return DcPermissions.effective(new HashSet<>(Arrays.asList(e.getSubject())), acl);
-                }
-            }
-            return "";
+            HashSet<DcGroup> groups = new HashSet<>();
+            groups.add(DcGroup.PUBLIC_GROUP);
+            // TODO: Should this be included?
+            groups.add(DcGroup.PROTECTED_GROUP);
+            groups.add(group);
+            return DcPermissions.effective(groups, acl);
         }
         return DcPermissions.effective(context.getGroups(), acl);
     }

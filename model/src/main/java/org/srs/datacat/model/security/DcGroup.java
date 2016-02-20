@@ -20,14 +20,11 @@ public class DcGroup extends DcSubject implements GroupPrincipal {
     }
     
     public static DcGroup fromSpec(String spec) throws IllegalArgumentException {
-        if(spec == null || spec.isEmpty()){
+        int splitIndex = spec.indexOf("@");
+        if(spec.isEmpty() || splitIndex < 0){
             throw new IllegalArgumentException("Invalid Group Spec");
         }
-        int splitIndex = spec.indexOf("@");
-        if(splitIndex > 0){
-            return new DcGroup(spec.substring(0, splitIndex), spec.substring(splitIndex+1));
-        }
-        return new DcGroup(spec, null);
+        return new DcGroup(spec.substring(0, splitIndex), spec.substring(splitIndex+1));
     }
     
     @Override

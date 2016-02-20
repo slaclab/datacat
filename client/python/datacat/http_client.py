@@ -181,7 +181,7 @@ class HttpClient:
             params["group"] = group
         return self._req("get", self._target(endpoint, path), params)
 
-    def list_acl(self, path):
+    def listacl(self, path):
         """
         Retrieve a datacat object.
         :param path: Path of the object to retrieve.
@@ -191,7 +191,7 @@ class HttpClient:
         endpoint = "permissions"
         return self._req("get", self._target(endpoint, path))
 
-    def patch_acl(self, path, acl):
+    def patchacl(self, path, acl):
         """
         Patch an ACL.
         :param path: Path of the object to patch (must be container(

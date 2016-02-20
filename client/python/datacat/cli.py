@@ -9,7 +9,7 @@ from .auth import auth_from_config
 from .client import Client
 from .config import config_from_file
 from .error import DcException, DcClientException, DcRequestException
-from .model import Container, Dataset, Group
+from .model import Container, Dataset, Group, Permissions
 
 
 def build_argparser():
@@ -98,6 +98,20 @@ def build_argparser():
         parser_children.add_argument('type', help="Container Type (defaults to folder)", choices=("folder", "group"))
         parser_children.set_defaults(command=cmd)
 
+    def add_permissions(subparsers):
+        cmd = "permissions"
+        parser_permissions = subparsers.add_parser(cmd, help="Check permissions for yourself or a specific group")
+        parser_permissions.add_argument('path', help="Path to query permissions for")
+        parser_permissions.add_argument("-g", '--group', help='If specified, this is the group in the form of '
+                                        'a group spec, as follows: "[name]@[project]"')
+        parser_permissions.set_defaults(command=cmd)
+
+    def add_listacl(subparsers):
+        cmd = "listacl"
+        parser_listacl = subparsers.add_parser(cmd, help="Show the Access Control List for a given path")
+        parser_listacl.add_argument('path', help="Path to retrieve ACL")
+        parser_listacl.set_defaults(command=cmd)
+
     add_path(sub)
     add_children(sub)
     add_search(sub)
@@ -105,6 +119,8 @@ def build_argparser():
     add_rmds(sub)
     add_mkdir(sub)
     add_rmdir(sub)
+    add_permissions(sub)
+    add_listacl(sub)
     
     return parser
 
@@ -141,6 +157,7 @@ def main():
         result = client_method(target, **params)
     except DcClientException as error:
         print error
+        print "Cause: " + error.cause
         sys.exit(1)
     except DcRequestException as error:
         print error
@@ -157,6 +174,12 @@ def main():
 
     if command == "children":
         format_children(result, args.stat)
+
+    if command == "permissions":
+        format_permissions(result, target)
+
+    if command == "listacl":
+        format_listacl(result, target)
 
 
 def format_search_results(results, show=None, sort=None):
@@ -209,6 +232,17 @@ def format_path_result(result):
         print "Metadata:"
         mdstr = json.dumps(result.metadata.dct, sort_keys=False, indent=4)
         print "    " + mdstr.replace("\n", "\n    ")
+
+
+def format_permissions(result, path):
+    print "Permissions for {}:".format(path)
+    print "    {}: {}".format(result.subject, Permissions.pack(result.permissions))
+
+
+def format_listacl(result, path):
+    print "Permissions for {}:".format(path)
+    for entry in result:
+        print "    {}: {}".format(entry.subject, Permissions.pack(entry.permissions))
 
 
 def maybe_hilite(result):

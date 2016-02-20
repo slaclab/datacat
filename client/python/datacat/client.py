@@ -266,24 +266,24 @@ class Client(object):
         return unpack(resp.content)
 
     @checked_error
-    def list_acl(self, path):
+    def listacl(self, path):
         """
         Retrieve the Access Control List of a given path
         :param path: Path of the object to retrieve.
         :return: A list of :class`datacat.model.AclEntry` objects.
         """
-        resp = self.http_client.list_acl(path)
+        resp = self.http_client.listacl(path)
         return unpack(resp.content)
 
     @checked_error
-    def patch_acl(self, path, acl):
+    def patchacl(self, path, acl):
         """
         Patch an ACL.
         :param path: Path of the object to patch (must be container)
         :param acl: A list of :class`datacat.model.AclEntry` objects or a similar dict
         :return: An updated list of :class`datacat.model.AclEntry` objects.
         """
-        resp = self.http_client.patch_acl(path, pack(acl))
+        resp = self.http_client.patchacl(path, pack(acl))
         return unpack(resp.content)
 
 
