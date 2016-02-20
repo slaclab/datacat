@@ -353,6 +353,12 @@ public class Client {
         }
     }
     
+    /**
+     * Get the effective permissions for you or a specific group.
+     * @param path Path of DatacatNode you want to check permissions for.
+     * @param group If group is not null, then return permissions as seen by this group.
+     * @return A DcAclEntry of the permissions.
+     */
     public DcAclEntry getPermissions(String path, DcGroup group){
         Optional<String> groupSpec = Optional.fromNullable(group != null ? group.toString(): null);
         Response resp = permissionsResource.getPermissions(path, groupSpec);
@@ -360,6 +366,11 @@ public class Client {
         return resp.readEntity(new GenericType<AclEntryProxy>() {}).entry();
     }
     
+    /**
+     * Get the ACL of a given object
+     * @param path Datacat object path
+     * @return ACL
+     */
     public List<DcAclEntry> getAcl(String path){
         Response resp = permissionsResource.getAcl(path);
         checkResponse(resp);
@@ -370,6 +381,13 @@ public class Client {
         return ret;
     }
     
+    /**
+     * Modify the ACL of an object.
+     * Note: A user must have the Admin permission in order to modify the ACL.
+     * @param path Path of a container (not dataset) to modify
+     * @param acl A List of entries to be patched.
+     * @return The updated ACL
+     */
     public List<AclEntryProxy> patchAcl(String path, List<DcAclEntry> acl){
         List<AclEntryProxy> req = new ArrayList<>();
         for(DcAclEntry e: acl){
