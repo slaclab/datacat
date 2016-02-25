@@ -23,7 +23,7 @@ $.fn.editableTableWidget = function (options) {
 					editor.val(active.text())
 						.removeClass('error')
 						.show()
-						.offset(active.offset())
+						.offset(active.offset());
 					cloneMethod(active, editor);
 					editor.focus();
 					if (select) {

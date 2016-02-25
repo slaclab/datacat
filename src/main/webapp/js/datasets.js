@@ -1,5 +1,7 @@
 
-var ajaxMethod = function (data, callback, settings) {
+/* global URI, resultInfo, pageContext */
+
+var ajaxMethod = function (data) {
     var state = new Object();
     var columns = data.columns;
 
@@ -15,7 +17,7 @@ var ajaxMethod = function (data, callback, settings) {
         state.orderArray.push(sort);
     }
 
-    var uri = URI(document.URL);
+    var uri = new URI(document.URL);
     var newUri = uri.search({
         offset: state.offset,
         max: state.length,
@@ -27,15 +29,15 @@ var ajaxMethod = function (data, callback, settings) {
 
 function doSearch(){
     var filter = $('.datacat-component input').val();
-    var uri = URI(document.URL);
+    var uri = new URI(document.URL);
     var newUri = uri.search({
-        "filter": filter,
+        "filter": filter
     });
     window.location = newUri.toString();
 }
 
 function paginateDatasets() {
-    var qstr = URI(document.URL).query(true);
+    var qstr = new URI(document.URL).query(true);
 
     var offset = (qstr.offset ? parseInt(qstr.offset) : null) || 0;
     var length = (qstr.max ? parseInt(qstr.max) : null) || 100;
@@ -49,7 +51,7 @@ function paginateDatasets() {
         "dataType": 2,
         "size": 3,
         "created": 4
-    }
+    };
 
     var columns = [
         {"name": "dl"},
@@ -96,7 +98,7 @@ function paginateDatasets() {
         "lengthMenu": [ 25, 50, 100, 1000, 10000 ]
     });
 
-    var searchbox = $('.datacat-component input');
+    var searchbox = $('#datacat-searchbox');
     searchbox.val(search);
     searchbox.unbind();
     searchbox.bind('keyup', function (e) {

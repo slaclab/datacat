@@ -1,3 +1,5 @@
+/* global pageContext */
+
 (function( ldStack, $, rootPath) {
     ldStack.basePath = rootPath || pageContext.contextPath + "/r";
     

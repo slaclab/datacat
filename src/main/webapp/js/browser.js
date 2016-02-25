@@ -1,5 +1,7 @@
 
-var ajaxMethod = function(data, callback, settings){
+/* global URI, resultInfo */
+
+var ajaxMethod = function(data){
     var state = new Object();
     var columns = data.columns;
     
@@ -26,7 +28,7 @@ var ajaxMethod = function(data, callback, settings){
 };
 
 function paginateDatasets(){
-    var qstr = URI(document.URL).query(true);
+    var qstr = new URI(document.URL).query(true);
 
     var offset = (qstr.offset ? parseInt(qstr.offset) : null) || 0;
     var length = (qstr.max ? parseInt(qstr.max) : null) || 100;
@@ -40,7 +42,7 @@ function paginateDatasets(){
         "dataType" : 2,
         "size" : 3,
         "created" : 4
-    }
+    };
 
     var columns = [
           { "name": "dl" },
@@ -79,7 +81,7 @@ function paginateDatasets(){
     var searchbox = $('.datacat-component input');
     searchbox.unbind();
     searchbox.bind('keyup', function (e) {
-        if (e.keyCode == 13) {
+        if (e.keyCode === 13) {
             t.search(this.value).draw();
         }
     });
