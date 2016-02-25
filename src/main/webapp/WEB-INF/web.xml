@@ -20,6 +20,11 @@
           <param-name>ExpiresByType application/javascript</param-name>
           <param-value>access plus 30 minutes</param-value>
        </init-param>
+
+       <init-param>
+          <param-name>ExpiresByType text/javascript</param-name>
+          <param-value>access plus 30 minutes</param-value>
+       </init-param>
     </filter>
     <filter-mapping>
        <filter-name>ExpiresFilter</filter-name>
