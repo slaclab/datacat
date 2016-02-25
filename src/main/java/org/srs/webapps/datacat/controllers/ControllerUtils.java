@@ -23,6 +23,7 @@ import org.srs.datacat.model.security.DcPermissions;
 import org.srs.datacat.shared.DatasetStat;
 import org.srs.datacat.shared.RequestView;
 import org.srs.vfs.PathUtils;
+import org.srs.webapps.datacat.model.NodeTargetModel;
 
 /**
  *
@@ -55,18 +56,18 @@ public class ControllerUtils {
         }
     }
 
-    public static HashMap<String, Object> collectAttributes(HttpServletRequest request, boolean withDatasets)
+    public static NodeTargetModel collectAttributes(HttpServletRequest request, boolean withDatasets)
             throws ServletException, IOException{
 
-        HashMap<String, Object> requestAttributes = collectBasicAttributes(request);
+        NodeTargetModel requestModel = collectBasicAttributes(request);
         HashMap<String, List<String>> requestQueryParams = getQueryParams(request);
         RequestView rv = new RequestView(RecordType.FOLDER, null);
         // This Assumes all REST requests are routed to the same base URL
         Client client = getClient(request); 
         if(request.getPathInfo() == null || request.getPathInfo().length() == 1){
-            requestAttributes.put("parentURL", "/");
-            requestAttributes.put("containers", getContainers(client, "/", rv, requestQueryParams));
-            requestAttributes.put("path", null);
+            requestModel.setParentURL("/");
+            requestModel.setContainers(getContainers(client, "/", rv, requestQueryParams));
+            requestModel.setPath(null);
         } else {
             String path = request.getPathInfo();
             DatacatNode target = client.getObject(path, "current", "all");
@@ -76,14 +77,14 @@ public class ControllerUtils {
             }
             String parentPath = PathUtils.getParentPath(target.getPath());
             if(parentPath.length() > 1){
-                requestAttributes.put("parent", client.getContainer(parentPath, "dataset"));
+                requestModel.setParent(client.getContainer(parentPath, "dataset"));
             }
 
-            requestAttributes.put("target", target);
+            requestModel.setTarget(target);
             DcAclEntry e = client.getPermissions(path, null);
-            requestAttributes.put("canWrite", e.getPermissions().contains(DcPermissions.WRITE));
-            requestAttributes.put("canDelete", e.getPermissions().contains(DcPermissions.DELETE));
-            requestAttributes.put("canInsert", e.getPermissions().contains(DcPermissions.INSERT));
+            requestModel.setWritable(e.getPermissions().contains(DcPermissions.WRITE));
+            requestModel.setDeletable(e.getPermissions().contains(DcPermissions.DELETE));
+            requestModel.setInsertable(e.getPermissions().contains(DcPermissions.INSERT));
             if(target.getType().isContainer()){
                 DatasetStat t = (DatasetStat) ((DatasetContainer) target).getStat();
                 long ccCount = t.getGroupCount() + t.getFolderCount();
@@ -103,36 +104,35 @@ public class ControllerUtils {
                             datasets.add(d);
                         }
                     }
-                    requestAttributes.put("datasets", datasets);
-                    requestAttributes.put("datasetCount", searchResults.getCount());
+                    requestModel.setDatasets(datasets);
+                    requestModel.setDatasetCount(searchResults.getCount());
                     // Paging
                     StringBuffer reqUrl = request.getRequestURL();
                     if(request.getQueryString() != null){
                         reqUrl.append('?').append(request.getQueryString());
                     }
-                    requestAttributes.put("containers", getContainers(client, PathUtils.getParentPath(path), rv, requestQueryParams));
+                    requestModel.setContainers(getContainers(client, PathUtils.getParentPath(path), rv, requestQueryParams));
                 } else if (ccCount > 0){
-                    requestAttributes.
-                            put("containers", getContainers(client, path, rv, requestQueryParams));
+                    requestModel.setContainers(getContainers(client, path, rv, requestQueryParams));
                 }
                 if (ccCount == 0){
-                    if(!requestAttributes.containsKey("containers")){
-                        requestAttributes.put("containers", getContainers(client, PathUtils.getParentPath(path), rv, requestQueryParams));
+                    if(requestModel.getContainers() == null){
+                        requestModel.setContainers(getContainers(client, PathUtils.getParentPath(path), rv, requestQueryParams));
                     }
-                    requestAttributes.put("selected", target);
+                    requestModel.setSelected(target);
                 }
             }
 
-            requestAttributes.put("parentURL", request.getPathInfo());
+            requestModel.setParentURL(request.getPathInfo());
         }
-        return requestAttributes;
+        return requestModel;
     }
     
-    
+    /*
     public static HashMap<String, Object> collectSearchAttributes(HttpServletRequest request)
             throws ServletException, IOException{
 
-        HashMap<String, Object> requestAttributes = collectBasicAttributes(request);
+        NodeTargetModel targetModel = collectBasicAttributes(request);
         HashMap<String, List<String>> requestQueryParams = getQueryParams(request);
         RequestView rv = new RequestView(RecordType.FOLDER, null);
         String searchPath = request.getPathInfo();
@@ -163,17 +163,17 @@ public class ControllerUtils {
         requestAttributes.put("parentURL", request.getPathInfo());
         return requestAttributes;
     }
+    */
 
-    public static HashMap<String, Object> collectBasicAttributes(HttpServletRequest request){
-        HashMap<String, Object> requestAttributes = new HashMap<>();
+    public static NodeTargetModel collectBasicAttributes(HttpServletRequest request){
+        NodeTargetModel requestAttributes = new NodeTargetModel();
 
         String endPoint = request.getContextPath() + request.getServletPath();
-        requestAttributes.put("endPoint", endPoint);
+        requestAttributes.setEndPoint(endPoint);
 
         String base = endPoint.substring(0, endPoint.lastIndexOf("/"));
-        requestAttributes.put("applicationBase", base);
-        requestAttributes.put("contextPath", request.getContextPath());
-        requestAttributes.put("endPoint", endPoint);
+        requestAttributes.setApplicationBase(base);
+        requestAttributes.setContextPath(request.getContextPath());
         return requestAttributes;
     }
     

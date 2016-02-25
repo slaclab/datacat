@@ -17,7 +17,7 @@ Author     : bvan
         </thead>
 
         <tbody class="file-browser">
-            <c:forEach var="child" items="${containers}">
+            <c:forEach var="child" items="${model.containers}">
 
                 <c:set var="iconName" value="${child.type eq 'FOLDER' ? 'folder-open' : 'book'}" />
                 <tr <c:if test="${child.pk == selected.pk}">class="success"</c:if> >
@@ -28,7 +28,7 @@ Author     : bvan
                                 <a href="#selected" />${child.name}</a>
                             </c:when>
                             <c:otherwise>
-                                <a href="${endPoint}${child.path}">${child.name}</a>
+                                <a href="${model.endPoint}${child.path}">${child.name}</a>
                             </c:otherwise>
                         </c:choose>
                     </td>

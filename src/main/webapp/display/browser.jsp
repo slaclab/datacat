@@ -36,13 +36,13 @@
 
                     <div class="container-fluid" id="info-views">
                         <c:choose>
-                            <c:when test="${target.type.container || target == null}" >
+                            <c:when test="${model.target.type.container || model.target == null}" >
                                 <div class="col-sm-5 col-md-4 col-lg-4">
                                     <%@ include file="../views/containers.jsp" %>
                                 </div>
 
                                 <div class="col-sm-7 col-md-8 col-lg-8">
-                                    <c:if test="${target != null}">
+                                    <c:if test="${model.target != null}">
                                         <%@ include file="../views/container.jsp" %>
                                     </c:if>
                                 </div> <!-- End right side -->

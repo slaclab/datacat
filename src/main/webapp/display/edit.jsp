@@ -36,7 +36,7 @@
             <div class="row">
                 <div class=" col-xs-12" id="info-views">
                     <c:choose>
-                        <c:when test="${target.type.container}" > 
+                        <c:when test="${model.target.type.container}" > 
                             <%@ include file="../views/edit_container.jsp" %> 
                         </c:when>
                         <c:otherwise>

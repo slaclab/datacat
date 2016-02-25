@@ -9,7 +9,7 @@
 <%@taglib uri="http://srs.slac.stanford.edu/web_datacat" prefix="web_dc" %>
 
         
-<c:forEach var="location" items="${target.viewInfo.locations}" varStatus="status">
+<c:forEach var="location" items="${model.target.viewInfo.locations}" varStatus="status">
     <c:if test="${location.isMaster().booleanValue()}">
         <c:set var="master" value="${location}" />
     </c:if>
@@ -23,12 +23,12 @@
 <div class="datacat-component">
     <div class="datacat-header">
 
-        <h3>${target.name}
+        <h3>${model.target.name}
             <a href="#edit" type="button" class="btn btn-default btn-med pull-right">
                 <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Edit
             </a>
             <br>
-            <small>Version ${target.versionId}</small><br>
+            <small>Version ${model.target.versionId}</small><br>
             <small>Dataset</small><br>
         </h3>
     </div>
@@ -42,15 +42,15 @@
     </thead>
     <tbody>
         <c:catch var="exception">
-            <tr><th>Created (UTC):</th><td>${web_dc:formatTimestamp(target.dateCreated)}</td></tr>
+            <tr><th>Created (UTC):</th><td>${web_dc:formatTimestamp(model.target.dateCreated)}</td></tr>
         </c:catch>
             
-        <tr><th>File Format:</th><td>${target.fileFormat}</td></tr>
-        <tr><th>Data Type:</th><td>${target.dataType}</td></tr>
+        <tr><th>File Format:</th><td>${model.target.fileFormat}</td></tr>
+        <tr><th>Data Type:</th><td>${model.target.dataType}</td></tr>
 
         <c:catch var="exception">
-            <c:if test="${target.dataSource != null}">
-                <tr><th>Source:</th><td>${target.dataSource}</td></tr>
+            <c:if test="${model.target.dataSource != null}">
+                <tr><th>Source:</th><td>${model.target.dataSource}</td></tr>
             </c:if>
         </c:catch>
         <c:catch var="exception">
@@ -95,13 +95,13 @@
 </table>
 
     <h3>Version Metadata</h3>
-    <c:set var="mdlist" value="${target.versionMetadata}" />
+    <c:set var="mdlist" value="${model.target.versionMetadata}" />
     <%@ include file="../views/edit_metadata.jsp" %>
 
 <c:catch var="exception">
     <h3>Locations</h3>
     <c:choose>
-            <c:when test="${target.viewInfo.locations != null && !empty target.viewInfo.locations}">
+            <c:when test="${model.target.viewInfo.locations != null && !empty model.target.viewInfo.locations}">
                 <table class="table table-condensed table-striped location-table">
                     <thead>
                         <tr>
@@ -114,7 +114,7 @@
                     </thead>
 
                     <tbody>
-                        <c:forEach var="location" items="${target.viewInfo.locations}" varStatus="status">
+                        <c:forEach var="location" items="${model.target.viewInfo.locations}" varStatus="status">
                             <tr>
                                 <td >${location.site}</td>
                                 <td>${location.scanStatus}</td>

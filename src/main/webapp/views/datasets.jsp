@@ -10,7 +10,7 @@
 
 <script>
     var resultInfo = {
-        "total": ${datasetCount}
+        "total": ${model.datasetCount}
     }
 </script>
 
@@ -71,15 +71,15 @@
                 </tr>
             </thead>
             <tbody class="datasets">
-                <c:if test="${datasets != null}">
-                    <c:forEach var="child" items="${datasets}">
-                        <c:forEach var="location" items="${child.viewInfo.locations}" varStatus="status">
+                <c:if test="${model.datasets != null}">
+                    <c:forEach var="child" items="${model.datasets}">
+                         <c:forEach var="location" items="${child.viewInfo.locations}" varStatus="status">
                             <c:if test="${location.isMaster().booleanValue()}">
                                 <c:set var="master" value="${location}" />
                             </c:if>
                         </c:forEach>
                         <tr>
-                            <td>
+                            <td>    
                                 <input type="checkbox" value="${child.path}">
                             </td>
                             <td>

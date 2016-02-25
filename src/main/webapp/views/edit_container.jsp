@@ -9,11 +9,11 @@
 
 <div class="datacat-component">
     <div class="datacat-header clearfix">
-        <a href="${applicationBase}/browser${target.path}" type="button" class="btn btn-default btn-med pull-right">
+        <a href="${model.applicationBase}/browser${model.target.path}" type="button" class="btn btn-default btn-med pull-right">
             <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span> Browser
         </a>
         <div class="pull-left">
-            <h3>Editing ${target.type} ${target.name} </h3>
+            <h3>Editing ${model.target.type} ${model.target.name} </h3>
         </div>
     </div>
 
@@ -26,7 +26,7 @@
                 <div class="control-group">
                     <label class="control-label" for="description">Description</label>
                     <div class="controls">
-                        <input id="description" name="description" type="text" placeholder="${target.description}" class="input-xlarge">
+                        <input id="description" name="description" type="text" placeholder="${model.target.description}" class="input-xlarge">
                     </div>
                 </div>
 
@@ -35,7 +35,7 @@
     </div>
 
     <table class="table table-condensed table-striped location-table">
-        <!-- <small>${target.description}</small> -->
+        <!-- <small>${model.target.description}</small> -->
         <thead>
             <tr>
                 <th>Name</th>
@@ -46,9 +46,9 @@
             <%-- TODO: Handle Create dates
             <th>Created (UTC):</th><td>${web_dc:formatTimestamp(target.created)}</td></tr>
             --%>
-            <tr><th>Datasets</th><td>${web_dc:formatEvents(target.stat.datasetCount)}</td></tr>
-            <tr><th>Total Size</th><td>${web_dc:formatBytes(target.stat.diskUsageBytes)}</td></tr>
-            <tr><th>Events</th><td>${web_dc:formatEvents(target.stat.eventCount)}</td></tr>
+            <tr><th>Datasets</th><td>${web_dc:formatEvents(model.target.stat.datasetCount)}</td></tr>
+            <tr><th>Total Size</th><td>${web_dc:formatBytes(model.target.stat.diskUsageBytes)}</td></tr>
+            <tr><th>Events</th><td>${web_dc:formatEvents(model.target.stat.eventCount)}</td></tr>
         </tbody>
     </table>
 
@@ -75,7 +75,7 @@
         </thead>
 
         <tbody id="metadata">
-            <c:forEach var="md" items="${target.metadata}" varStatus="status">
+            <c:forEach var="md" items="${model.target.metadata}" varStatus="status">
                 <tr><td>${md.key}</td><td>${md.rawValue}</td>
                     <td>${web_dc:getValueType(md.rawValue)}</td>
                 </tr>

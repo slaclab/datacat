@@ -11,10 +11,10 @@
 
 <div class="datacat-component">
     <div class="datacat-header">
-        <h3>${target.name}<br>
-            <small>${target.type} </small>
-            <c:if test="${!empty target.description}">
-                <small>${target.description}</small></h3>
+        <h3>${model.target.name}<br>
+            <small>${model.target.type} </small>
+            <c:if test="${!empty model.target.description}">
+                <small>${model.target.description}</small></h3>
             </c:if>
     </div>
 
@@ -28,9 +28,9 @@
         </thead>
         <tbody class="datasets">
             <tr>
-                <td>${web_dc:formatEvents(target.stat.datasetCount)}</td>
-                <td>${web_dc:formatBytes(target.stat.diskUsageBytes)}</td>
-                <td>${web_dc:formatEvents(target.stat.eventCount)}</td>
+                <td>${web_dc:formatEvents(model.target.stat.datasetCount)}</td>
+                <td>${web_dc:formatBytes(model.target.stat.diskUsageBytes)}</td>
+                <td>${web_dc:formatEvents(model.target.stat.eventCount)}</td>
             </tr>
         </tbody>
     </table>
@@ -39,7 +39,7 @@
         <h3>Metadata</h3>
 
         <c:choose>
-            <c:when test="${target.metadata != null && !empty target.metadata}">
+            <c:when test="${model.target.metadata != null && !empty target.metadata}">
                 <table class="table table-condensed table-striped">
                     <thead>
                         <tr>
@@ -50,7 +50,7 @@
                     </thead>
 
                     <tbody>
-                        <c:forEach var="md" items="${target.metadata}" varStatus="status">
+                        <c:forEach var="md" items="${model.target.metadata}" varStatus="status">
                             <tr><td>${md.key}</td><td>${md.rawValue}</td>
                                 <td>${web_dc:getValueType(md.rawValue)}</td>
                             </tr>

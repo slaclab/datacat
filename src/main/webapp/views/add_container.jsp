@@ -10,11 +10,11 @@
 <div class="datacat-component">
     <div class="datacat-header">
         <div class="pull-left">
-            <h3>${target.name}            
+            <h3>${model.target.name}            
                 <br>
-                <small>${target.type} </small>
-                <c:if test="${!empty target.description}">
-                    <small>${target.description}</small></c:if>
+                <small>${model.target.type} </small>
+                <c:if test="${!empty model.target.description}">
+                    <small>${model.target.description}</small></c:if>
             </h3>
         </div>
         <div class="btn-group pull-right">
@@ -43,10 +43,10 @@
         </thead>
         <tbody>
             <c:catch var="exception">
-                <tr><th>Created (UTC):</th><td>${web_dc:formatTimestamp(target.dateCreated)}</td></tr>
-                <tr><th>Datasets</th><td>${web_dc:formatEvents(target.stat.datasetCount)}</td></tr>
-                <tr><th>Total Size</th><td>${web_dc:formatBytes(target.stat.diskUsageBytes)}</td></tr>
-                <tr><th>Events</th><td>${web_dc:formatEvents(target.stat.eventCount)}</td></tr>
+                <tr><th>Created (UTC):</th><td>${web_dc:formatTimestamp(model.target.dateCreated)}</td></tr>
+                <tr><th>Datasets</th><td>${web_dc:formatEvents(model.target.stat.datasetCount)}</td></tr>
+                <tr><th>Total Size</th><td>${web_dc:formatBytes(model.target.stat.diskUsageBytes)}</td></tr>
+                <tr><th>Events</th><td>${web_dc:formatEvents(model.target.stat.eventCount)}</td></tr>
                     </c:catch>
         </tbody>
     </table>
@@ -73,7 +73,7 @@
                 <h3>Metadata</h3>
             </div>
         <c:choose>
-            <c:when test="${target.metadata != null && !empty target.metadata}">
+            <c:when test="${model.target.metadata != null && !empty model.target.metadata}">
                 <table class="table table-condensed table-striped">
                     <thead>
                         <tr>
@@ -84,7 +84,7 @@
                     </thead>
 
                     <tbody>
-                        <c:forEach var="md" items="${target.metadata}" varStatus="status">
+                        <c:forEach var="md" items="${model.target.metadata}" varStatus="status">
                             <tr><td>${md.key}</td><td>${md.rawValue}</td>
                                 <td>${web_dc:getValueType(md.rawValue)}</td>
                             </tr>

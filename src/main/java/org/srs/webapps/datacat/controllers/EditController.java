@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.srs.datacat.client.exception.DcException;
+import org.srs.webapps.datacat.model.NodeTargetModel;
 
 /**
  *
@@ -20,10 +21,8 @@ public class EditController extends HttpServlet {
             throws ServletException, IOException{
         
         try {
-            HashMap<String, Object> model = ControllerUtils.collectAttributes(request, false);
-            for(Map.Entry<String, Object> entry: model.entrySet()){
-                request.setAttribute(entry.getKey(), entry.getValue());
-            }
+            NodeTargetModel model = ControllerUtils.collectAttributes(request, false);
+            request.setAttribute("model", model);
         } catch (DcException ex){   
             request.setAttribute("error", ex);
             request.getRequestDispatcher( "/display/error.jsp" ).forward( request, response );
@@ -31,5 +30,11 @@ public class EditController extends HttpServlet {
         }
         request.getRequestDispatcher( "/display/edit.jsp" ).forward( request, response );
     }
-    
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) 
+            throws ServletException, IOException{
+        super.doPost(req, resp);
+    }
+
 }

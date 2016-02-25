@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.srs.datacat.client.exception.DcException;
+import org.srs.webapps.datacat.model.NodeTargetModel;
 
 
 /**
@@ -21,15 +22,11 @@ public class BrowserController extends HttpServlet {
             throws ServletException, IOException{
         
         try {
-            HashMap<String, Object> model = ControllerUtils.collectAttributes(request, false);
-            for(Map.Entry<String, Object> entry: model.entrySet()){
-                request.setAttribute(entry.getKey(), entry.getValue());
-            }
+            NodeTargetModel model = ControllerUtils.collectAttributes(request, false);
+            request.setAttribute("model", model);
         } catch (DcException ex){   
-            HashMap<String, Object> model = ControllerUtils.collectBasicAttributes(request);
-            for(Map.Entry<String, Object> entry: model.entrySet()){
-                request.setAttribute(entry.getKey(), entry.getValue());
-            }
+            NodeTargetModel model = ControllerUtils.collectBasicAttributes(request);
+            request.setAttribute("model", model);
             request.setAttribute("error", ex);
             request.getRequestDispatcher( "/display/error.jsp" ).forward( request, response );
             return;

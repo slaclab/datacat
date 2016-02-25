@@ -40,7 +40,7 @@
                     <div class="container-fluid" id="info-views">
 
                         <c:choose>
-                            <c:when test="${!target.type.container}" > <%@ include file="../views/dataset.jsp" %> </c:when>
+                            <c:when test="${!model.target.type.container}" > <%@ include file="../views/dataset.jsp" %> </c:when>
                             <c:otherwise>
                                 <%@ include file="../views/datasets.jsp" %>
                             </c:otherwise>

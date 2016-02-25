@@ -8,11 +8,11 @@
 
 <script>
     var pageContext = new Object();
-    pageContext.endPoint = "${endPoint}";
-    pageContext.applicationBase = "${applicationBase}";
-    pageContext.contextPath = "${contextPath}";
+    pageContext.endPoint = "${model.endPoint}";
+    pageContext.applicationBase = "${model.applicationBase}";
+    pageContext.contextPath = "${model.contextPath}";
     pageContext.target = new Object();
-    pageContext.target.name = "${target.name}";
-    pageContext.target.path = "${target.path}";
-    pageContext.target.type = "${target.type}";
+    pageContext.target.name = "${model.target.name}";
+    pageContext.target.path = "${model.target.path}";
+    pageContext.target.type = "${model.target.type}";
 </script>

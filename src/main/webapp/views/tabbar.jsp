@@ -9,19 +9,19 @@
 
 <ul class="nav nav-tabs">
     <li role="presentation" class="home ${view == 'browser' ? 'active' : ''}">
-        <a data-placement="right" href="${pageContext.request.contextPath}/display/browser${target.path}" title="Browser">
+        <a data-placement="right" href="${pageContext.request.contextPath}/display/browser${model.target.path}" title="Browser">
             <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
             <span class="nav-word">Browser</span>
         </a>
     </li>
     <li role="presentation" class="${view == 'tree' ? 'active' : ''}">
-        <a data-placement="right" href="${pageContext.request.contextPath}/display/tree${target.path}" title="Tree">
+        <a data-placement="right" href="${pageContext.request.contextPath}/display/tree${model.target.path}" title="Tree">
             <span class="glyphicon glyphicon-tree-deciduous" aria-hidden="true"></span>
             <span class="nav-word">Tree</span>
         </a>
     </li>
     <li role="presentation" class="${view == 'datasets' ? 'active' : ''}">
-        <a data-placement="right" href="${pageContext.request.contextPath}/display/datasets${target.path}" title="Datasets">
+        <a data-placement="right" href="${pageContext.request.contextPath}/display/datasets${model.target.path}" title="Datasets">
             <span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span>
             <span class="nav-word">Datasets</span>
         </a>
