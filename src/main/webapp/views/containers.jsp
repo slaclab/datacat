@@ -20,11 +20,11 @@ Author     : bvan
             <c:forEach var="child" items="${model.containers}">
 
                 <c:set var="iconName" value="${child.type eq 'FOLDER' ? 'folder-open' : 'book'}" />
-                <tr <c:if test="${child.pk == selected.pk}">class="success"</c:if> >
+                <tr <c:if test="${child.pk == model.selected.pk}">class="success"</c:if> >
                         <td>
                             <span class="glyphicon glyphicon-${iconName} type-icon"></span>
                         <c:choose>
-                            <c:when test="${child.pk == selected.pk}" >
+                            <c:when test="${child.pk == model.selected.pk}" >
                                 <a href="#selected" />${child.name}</a>
                             </c:when>
                             <c:otherwise>

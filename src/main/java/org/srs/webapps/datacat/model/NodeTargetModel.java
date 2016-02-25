@@ -110,7 +110,7 @@ public class NodeTargetModel {
         this.datasets = datasets;
     }
 
-    public DatacatNode isSelected(){
+    public DatacatNode getSelected(){
         return selected;
     }
 
