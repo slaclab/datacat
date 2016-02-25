@@ -50,7 +50,7 @@
 
         <div class="col-xs-5 pull-right" id="DataTables_Table_0_filter">
             <div class="input-group">
-                <input type="search" class="form-control input-sm" aria-controls="DataTables_Table_0" placeholder="Enter Filter...">
+                <input type="search" class="form-control input-sm" id="datacat-searchbox" aria-controls="DataTables_Table_0" placeholder="Enter Filter...">
                 <span class="input-group-btn">
                     <button class="btn btn-default btn-sm" type="button">Search</button>
                 </span>
