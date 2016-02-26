@@ -103,10 +103,12 @@
         </c:if>
     --%>
 
+    
     <c:catch var="exception">
+        <c:set var="viewInfo" value="${model.target.viewInfo}" />
         <h3>Locations</h3>
         <c:choose>
-            <c:when test="${model.target.viewInfo.locations != null && !empty target.viewInfo.locations}">
+            <c:when test="${viewInfo.locations != null && !empty viewInfo.locations}">
                 <table class="table table-condensed table-striped location-table">
                     <thead>
                         <tr>
@@ -119,7 +121,7 @@
                     </thead>
 
                     <tbody>
-                        <c:forEach var="location" items="${model.target.viewInfo.locations}" varStatus="status">
+                        <c:forEach var="location" items="${viewInfo.locations}" varStatus="status">
                             <tr>
                                 <td >${location.site}</td>
                                 <td>${location.scanStatus}</td>
