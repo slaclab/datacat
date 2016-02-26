@@ -11,7 +11,7 @@
                 <br>
                 <small>${model.target.type} </small>
                 <c:if test="${!empty model.target.description}">
-                    <small>${model.target.description}</small></c:if>
+                    <br><small>${model.target.description}</small></c:if>
                 </h3>
             </div>
             <c:if test="${model.writable}">
