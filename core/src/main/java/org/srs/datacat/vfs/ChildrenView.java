@@ -53,8 +53,6 @@ public class ChildrenView implements FileAttributeView {
     
     /**
      * Return true if we were able to link the file to the current list of children.
-     * @param child
-     * @return 
      */
     public boolean link(Path child){
         lock.lock();
@@ -71,8 +69,6 @@ public class ChildrenView implements FileAttributeView {
     
     /**
      * Return true if we were able to unlink the file to the current list of children.
-     * @param filename
-     * @return 
      */
     public boolean unlink(String filename){
         lock.lock();

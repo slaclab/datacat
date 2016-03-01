@@ -317,7 +317,7 @@ public class DcFileSystemProvider {
      *
      * @param path Datacat path
      * @param context Call context.
-     * @param groupSpec If specified, will return the effective permissions for a given group spec.
+     * @param group If specified, will return the effective permissions for a given group
      * The Group spec includes the domain
      * @return Effective permissions, or an empty string if there is no permissions found.
      */
