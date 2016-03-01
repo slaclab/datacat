@@ -103,11 +103,7 @@ public class SearchBuilder {
     }
     
     /**
-     * @param sort Fields and Metadata fields to sort on.
-     * @param show Metadata fields to optionally return
-     * @param offset Offset at which to start returning objects.
-     * @param max Maximum number of datasets to return
-     * @return Response object of the search
+     * Execute the search.
      */
     public DatasetResultSetModel search(){
         return client.searchForDatasets(target, versionId, site, 
