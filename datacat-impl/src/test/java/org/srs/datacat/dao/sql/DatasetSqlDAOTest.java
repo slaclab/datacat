@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.srs.datacat.dao.BaseDAO;
 import org.srs.datacat.dao.ContainerDAO;
 import org.srs.datacat.dao.DAOFactory;
+import org.srs.datacat.dao.sql.SqlDAOFactory.Locker;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.dataset.DatasetVersionModel;
@@ -87,12 +88,13 @@ public class DatasetSqlDAOTest {
     }
             
     public static void removeRecords(Connection conn) throws Exception {
-        SqlContainerDAO dao = new SqlContainerDAO(conn);
+        Locker locker = new Locker();
+        SqlContainerDAO dao = new SqlContainerDAO(conn, locker);
         DatacatNode folder = getDatacatObject(dao, DbHarness.TEST_BASE_PATH);
         dao.deleteFolder(folder.getPk());
         DatacatNode group = getDatacatObject(dao, "/testpath/testgroup");
         dao.deleteGroup(group.getPk());
-        SqlDatasetDAO dsDao = new SqlDatasetDAO(conn);
+        SqlDatasetDAO dsDao = new SqlDatasetDAO(conn, locker);
         dsDao.deleteDatasetDataType(DbHarness.TEST_DATATYPE_01);
         dsDao.deleteDatasetFileFormat(DbHarness.TEST_FILEFORMAT_01);
         conn.commit();
@@ -121,7 +123,8 @@ public class DatasetSqlDAOTest {
     @Test
     public void testDeleteDatasetVersion() throws SQLException, IOException {
         String dsName = "testCaseDataset002";
-        SqlDatasetDAO dao = new SqlDatasetDAO(conn);
+        Locker locker = new Locker();
+        SqlDatasetDAO dao = new SqlDatasetDAO(conn, locker);
         
         FlatDataset req =(FlatDataset) getRequest(dsName)
                 .versionId(DatasetView.NEW_VER)
@@ -138,7 +141,8 @@ public class DatasetSqlDAOTest {
     @Test
     public void testMetadata() throws SQLException, IOException {
         String dsName = "testCaseDataset002";
-        SqlDatasetDAO dao = new SqlDatasetDAO(conn);
+        Locker locker = new Locker();
+        SqlDatasetDAO dao = new SqlDatasetDAO(conn, locker);
         
         FlatDataset req =(FlatDataset) getRequest(dsName)
                 .versionId(DatasetView.NEW_VER)
@@ -231,7 +235,8 @@ public class DatasetSqlDAOTest {
     }
     
     private Dataset create(String path, Dataset ds) throws SQLException, IOException {
-        SqlDatasetDAO dao = new SqlDatasetDAO(conn);
+        Locker locker = new Locker();
+        SqlDatasetDAO dao = new SqlDatasetDAO(conn, locker);
         System.out.println(path);
         DatacatNode folder = getDatacatObject(dao, path);
         return dao.insertDataset(folder, PathUtils.resolve(path, ds.getName()), ds);

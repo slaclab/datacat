@@ -93,27 +93,16 @@ public class SqlDAOFactory implements org.srs.datacat.dao.DAOFactory {
     @Override
     public SqlBaseDAO newBaseDAO() throws IOException{
         try {
-            return new SqlBaseDAO(dataSource.getConnection());
+            return new SqlBaseDAO(dataSource.getConnection(), locker);
         } catch(SQLException ex) {
             throw new IOException("Error connecting to data source", ex);
         }
     }
-    
-    @Override
-    public SqlContainerDAO newContainerDAO(Path lockPath) throws IOException{
-        try {
-            ReentrantLock lock = locker.prepareLease(lockPath);
-            lock.lock();
-            return new SqlContainerDAO(dataSource.getConnection(), lock);
-        } catch(SQLException ex) {
-            throw new IOException("Error connecting to data source", ex);
-        }
-    }
-    
+        
     @Override
     public SqlContainerDAO newContainerDAO() throws IOException{
         try {
-            return new SqlContainerDAO(dataSource.getConnection());
+            return new SqlContainerDAO(dataSource.getConnection(), locker);
         } catch(SQLException ex) {
             throw new IOException("Error connecting to data source", ex);
         }
@@ -122,34 +111,17 @@ public class SqlDAOFactory implements org.srs.datacat.dao.DAOFactory {
     @Override
     public SqlDatasetDAO newDatasetDAO() throws IOException{
         try {
-            return new SqlDatasetDAO(dataSource.getConnection());
+            return new SqlDatasetDAO(dataSource.getConnection(), locker);
         } catch(SQLException ex) {
             throw new IOException("Error connecting to data source", ex);
         }
     }
     
-    /**
-     * Get a new DatasetDAO, acquire lock for the given lockPath.
-     * 
-     * @param lockPath
-     * @return
-     * @throws IOException 
-     */
-    @Override
-    public SqlDatasetDAO newDatasetDAO(Path lockPath) throws IOException{
-        try {
-            ReentrantLock lock = locker.prepareLease(lockPath);
-            lock.lock();
-            return new SqlDatasetDAO(dataSource.getConnection(), lock);
-        } catch(SQLException ex) {
-            throw new IOException("Error connecting to data source", ex);
-        }
-    }
 
     @Override
     public SearchDAO newSearchDAO(Object... plugins) throws IOException{
         try {
-            return new SqlSearchDAO(dataSource.getConnection());
+            return new SqlSearchDAO(dataSource.getConnection(), locker, plugins);
         } catch(SQLException ex) {
             throw new IOException("Error connecting to data source", ex);
         }

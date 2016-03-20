@@ -15,7 +15,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.concurrent.locks.ReentrantLock;
 import org.srs.datacat.model.container.ContainerStat;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
@@ -44,12 +43,8 @@ public class SqlContainerDAO extends SqlBaseDAO implements org.srs.datacat.dao.C
     public static final int FETCH_SIZE_CHILDREN = 5000;
     public static final int FETCH_SIZE_METADATA = 100000;
 
-    public SqlContainerDAO(Connection conn){
-        super(conn);
-    }
-
-    public SqlContainerDAO(Connection conn, ReentrantLock lock){
-        super(conn, lock);
+    public SqlContainerDAO(Connection conn, SqlDAOFactory.Locker locker){
+        super(conn, locker);
     }
 
     public DatasetContainer createContainer(DatacatRecord parent, String name, 

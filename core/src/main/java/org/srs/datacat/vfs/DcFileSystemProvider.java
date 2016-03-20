@@ -416,7 +416,8 @@ public class DcFileSystemProvider {
                 throw new IllegalArgumentException("Unable to fulfill request");
             }
         }
-        try(DatasetDAO dao = daoFactory.newDatasetDAO(path)) {
+        try(DatasetDAO dao = daoFactory.newDatasetDAO()) {
+            dao.lock(path);
             DatasetModel ret = dao.
                     createDataset(dsParent.getObject(), dsName, requestDataset, requestView, dsOptions);
             dao.commit();
@@ -476,7 +477,8 @@ public class DcFileSystemProvider {
         
         DatacatNode container = f.getObject();
                 
-        try(ContainerDAO dao = daoFactory.newContainerDAO(path)) {
+        try(ContainerDAO dao = daoFactory.newContainerDAO()) {
+            dao.lock(path);
             dao.patchContainer(container, request);
             dao.commit();
         }
@@ -564,7 +566,8 @@ public class DcFileSystemProvider {
             requestView = Optional.of(((DatasetWithViewModel) request).getViewInfo());
         }
         
-        try(DatasetDAO dao = daoFactory.newDatasetDAO(path)) {
+        try(DatasetDAO dao = daoFactory.newDatasetDAO()) {
+            dao.lock(path);
             dao.patchDataset(ds, view, requestDataset, requestView);
             dao.commit();
         }
@@ -596,7 +599,8 @@ public class DcFileSystemProvider {
         }
         checkPermission(context, parent, DcPermissions.INSERT);
 
-        try(ContainerDAO dao = daoFactory.newContainerDAO(path)){
+        try(ContainerDAO dao = daoFactory.newContainerDAO()){
+            dao.lock(path);
             String fileName = path.getFileName().toString();
             DatacatNode ret = dao.createNode(parent.getObject(), fileName, request);
             dao.commit();

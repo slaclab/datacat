@@ -4,6 +4,7 @@ package org.srs.datacat.dao;
 import java.io.IOException;
 import java.nio.file.FileSystemException;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.util.Map;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
@@ -18,6 +19,8 @@ public interface BaseDAO extends AutoCloseable {
     
     @Override
     void close() throws IOException;
+    
+    void lock(Path lockPath) throws IOException;
     
     /**
      * Create a Folder, Group, or Dataset node.

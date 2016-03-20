@@ -24,8 +24,8 @@ public class SqlSearchDAO extends SqlBaseDAO implements org.srs.datacat.dao.Sear
 
     private DatasetSearch search;
     
-    public SqlSearchDAO(Connection conn, Object... plugins) throws IOException{
-        super(conn);
+    public SqlSearchDAO(Connection conn, SqlDAOFactory.Locker locker, Object... plugins) throws IOException{
+        super(conn, locker);
         search = new DatasetSearch(conn,
                 new Provider(),
                 EXODatacatSearchPlugin.class,

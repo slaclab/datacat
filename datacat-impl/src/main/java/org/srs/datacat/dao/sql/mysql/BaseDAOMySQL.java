@@ -6,7 +6,7 @@ import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystemException;
 import java.sql.Connection;
-import java.util.concurrent.locks.ReentrantLock;
+import org.srs.datacat.dao.sql.SqlDAOFactory;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.DatasetContainer;
@@ -20,24 +20,20 @@ import org.srs.vfs.AbstractFsProvider.AfsException;
  */
 public class BaseDAOMySQL extends org.srs.datacat.dao.sql.SqlBaseDAO {
 
-    public BaseDAOMySQL(Connection conn){
-        super(conn);
-    }
-
-    public BaseDAOMySQL(Connection conn, ReentrantLock lock){
-        super(conn, lock);
+    public BaseDAOMySQL(Connection conn, SqlDAOFactory.Locker locker){
+        super(conn, locker);
     }
     
     @Override
     public <T extends DatacatNode> T createNode(DatacatRecord parent, String path,
             T request) throws IOException, FileSystemException{
         if(request instanceof DatasetModel){
-            DatasetDAOMySQL dao = new DatasetDAOMySQL(getConnection());
+            DatasetDAOMySQL dao = new DatasetDAOMySQL(getConnection(), getLocker());
             return (T) dao.createDatasetNode(parent, path, (DatasetModel) request);
         }
         if(request instanceof DatasetContainer){
             // It should be a container
-            ContainerDAOMySQL dao = new ContainerDAOMySQL(getConnection());
+            ContainerDAOMySQL dao = new ContainerDAOMySQL(getConnection(), getLocker());
             return (T) dao.createContainer(parent, path, (DatasetContainer) request);
         }
         throw new IOException(new IllegalArgumentException("Unable to process request object"));
@@ -168,7 +164,7 @@ public class BaseDAOMySQL extends org.srs.datacat.dao.sql.SqlBaseDAO {
             String msg = "Unable to delete object: Not a Group or Folder" + record.getType();
             throw new IOException(msg);
         }
-        ContainerDAOMySQL dao = new ContainerDAOMySQL(getConnection());
+        ContainerDAOMySQL dao = new ContainerDAOMySQL(getConnection(), getLocker());
         // Verify directory is empty
         try(DirectoryStream ds = dao.getChildrenStream(record, Optional.of(DatasetView.EMPTY))) {
             if(ds.iterator().hasNext()){

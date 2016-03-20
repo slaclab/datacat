@@ -7,6 +7,7 @@ import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystemException;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -42,16 +43,27 @@ import org.srs.vfs.PathUtils;
 public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
 
     private final Connection conn;
-    private final ReentrantLock lock;
+    private ReentrantLock lock;
+    private final SqlDAOFactory.Locker locker;
 
-    public SqlBaseDAO(Connection conn){
+    public SqlBaseDAO(Connection conn, SqlDAOFactory.Locker locker){
         this.conn = conn;
-        this.lock = null;
+        this.locker = locker;
     }
 
-    public SqlBaseDAO(Connection conn, ReentrantLock lock){
-        this.conn = conn;
-        this.lock = lock;
+    public SqlDAOFactory.Locker getLocker(){
+        return locker;
+    }
+    
+    @Override
+    public void lock(Path lockPath) throws IOException{
+        this.lock = locker.prepareLease(lockPath);
+    }
+
+    protected void unlock() throws IOException{
+        if(lock != null && lock.isHeldByCurrentThread()){
+            lock.unlock();
+        }
     }
 
     @Override
@@ -60,9 +72,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             if(conn != null){
                 conn.close();
             }
-            if(lock != null && lock.isHeldByCurrentThread()){
-                lock.unlock();
-            }
+            unlock();
         } catch(SQLException ex) {
             throw new IOException("Error closing data source", ex);
         }
@@ -73,9 +83,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
     public void commit() throws IOException{
         try {
             conn.commit();
-            if(lock != null && lock.isHeldByCurrentThread()){
-                lock.unlock();
-            }
+            unlock();
         } catch(SQLException ex) {
             throw new IOException("Error committing changes", ex);
         }
@@ -265,7 +273,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
             String msg = "Unable to delete object: Not a Group or Folder" + record.getType();
             throw new IOException(msg);
         }
-        SqlContainerDAO dao = new SqlContainerDAO(getConnection());
+        SqlContainerDAO dao = new SqlContainerDAO(getConnection(), locker);
         // Verify directory is empty
         try(DirectoryStream ds = dao.getChildrenStream(record, Optional.of(DatasetView.EMPTY))) {
             if(ds.iterator().hasNext()){
@@ -279,7 +287,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
         if(!(record.getType() == RecordType.DATASET)){
             throw new IOException("Can only delete Datacat objects");
         }
-        SqlDatasetDAO dao = new SqlDatasetDAO(getConnection());
+        SqlDatasetDAO dao = new SqlDatasetDAO(getConnection(), locker);
         dao.deleteDataset(record);
     }
     
@@ -605,12 +613,12 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
     public <T extends DatacatNode> T createNode(DatacatRecord parent, String path,
             T request) throws IOException, FileSystemException{
         if(request instanceof Dataset){
-            SqlDatasetDAO dao = new SqlDatasetDAO(getConnection());
+            SqlDatasetDAO dao = new SqlDatasetDAO(getConnection(), locker);
             return (T) dao.createDatasetNode(parent, path, (Dataset) request);
         }
         if(request instanceof DatasetContainer){
             // It should be a container
-            SqlContainerDAO dao = new SqlContainerDAO(getConnection());
+            SqlContainerDAO dao = new SqlContainerDAO(getConnection(), locker);
             return (T) dao.createContainer(parent, path, (DatasetContainer) request);            
         }
         throw new IOException(new IllegalArgumentException("Unable to process request object"));

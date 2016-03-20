@@ -20,7 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
+import org.srs.datacat.dao.sql.SqlDAOFactory;
 import org.srs.datacat.model.DatacatRecord;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.DatasetModel;
@@ -45,12 +45,8 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
     
     private static final String DEFAULT_DATA_SOURCE = "RESTFUL_API_v0.2";
 
-    public DatasetDAOMySQL(Connection conn){
-        super( conn );
-    }
-
-    public DatasetDAOMySQL(Connection conn, ReentrantLock lock){
-        super(conn, lock);
+    public DatasetDAOMySQL(Connection conn, SqlDAOFactory.Locker locker){
+        super(conn, locker);
     }
     
     public Dataset createDatasetNode(DatacatRecord parent, String name, 
