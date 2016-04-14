@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.srs.datacat.client.exception.DcException;
+import org.srs.webapps.datacat.model.NodeTargetModel;
 
 
 /**
@@ -21,10 +22,8 @@ public class SearchController extends HttpServlet {
             throws ServletException, IOException{
         
         try {
-            HashMap<String, Object> requestAttributes = ControllerUtils.collectSearchAttributes(request);
-            for(Map.Entry<String, Object> entry: requestAttributes.entrySet()){
-                request.setAttribute(entry.getKey(), entry.getValue());
-            }
+            NodeTargetModel model = ControllerUtils.collectSearchAttributes(request);
+            request.setAttribute("model", model);
         } catch (DcException ex){   
             request.setAttribute("error", ex);
             request.getRequestDispatcher( "/display/error.jsp" ).forward( request, response );

@@ -128,8 +128,8 @@ public class ControllerUtils {
         return requestModel;
     }
     
-    /*
-    public static HashMap<String, Object> collectSearchAttributes(HttpServletRequest request)
+    
+    public static NodeTargetModel collectSearchAttributes(HttpServletRequest request)
             throws ServletException, IOException{
 
         NodeTargetModel targetModel = collectBasicAttributes(request);
@@ -152,18 +152,19 @@ public class ControllerUtils {
                 datasets.add(d);
             }
         }
-        requestAttributes.put("datasets", datasets);
-        requestAttributes.put("datasetCount", searchResults.getCount());
+        targetModel.setDatasets(datasets);
+        
+        targetModel.setDatasetCount(searchResults.getCount());
         // Paging
         StringBuffer reqUrl = request.getRequestURL();
         if(request.getQueryString() != null){
             reqUrl.append('?').append(request.getQueryString());
         }
 
-        requestAttributes.put("parentURL", request.getPathInfo());
-        return requestAttributes;
+        targetModel.setParentURL(request.getPathInfo());
+        return targetModel;
     }
-    */
+    
 
     public static NodeTargetModel collectBasicAttributes(HttpServletRequest request){
         NodeTargetModel requestAttributes = new NodeTargetModel();
