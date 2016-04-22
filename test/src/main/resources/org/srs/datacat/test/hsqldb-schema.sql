@@ -228,16 +228,22 @@ create table VerDatasetMetaTimestamp (
 create index IDX_FK_VDSMT_DSVersion on VerDatasetMetaTimestamp(DatasetVersion);
 create index IDX_VDSMT_NameValue on VerDatasetMetaTimestamp(MetaName, MetaValue);
 
-create table DatasetMetaName (
-     MetaName      varchar(64),
+--create table DatasetMetaName (
+--     MetaName      varchar(64),
 --      MetaType      varchar(1),
-     constraint    UNQ_DatasetMetaName unique (MetaName)
-);
+--     constraint    UNQ_DatasetMetaName unique (MetaName)
+--);
 
 create table DatasetMetaInfo (
      MetaName      varchar(64),
      ValueType      varchar(1),
      constraint    UNQ_DatasetMetaInfo unique (MetaName, ValueType)
+);
+
+create table ContainerMetaInfo (
+     MetaName      varchar(64),
+     ValueType      varchar(1),
+     constraint    UNQ_ContainerMetaInfo unique (MetaName, ValueType)
 );
 
 create table VerDatasetMetaRoot (
@@ -451,5 +457,39 @@ CREATE TRIGGER TRIG_VDSMTS_METAINFO AFTER INSERT ON VerDatasetMetaTimeStamp
      INSERT INTO DatasetMetaInfo (MetaName, ValueType) VALUES (newrow.MetaName, 'T');
    END IF;
 END BLOCK;
+
+BLOCK
+CREATE TRIGGER TRIG_DSCMS_METAINFO AFTER INSERT ON LogicalFolderMetaString
+   REFERENCING NEW ROW AS newrow
+   FOR EACH ROW 
+   IF NOT EXISTS 
+     (SELECT 1 FROM ContainerMetaInfo d WHERE d.MetaName = newrow.MetaName and d.ValueType = 'S')
+     THEN 
+     INSERT INTO ContainerMetaInfo (MetaName, ValueType) VALUES (NEW.MetaName, 'S');
+   END IF;
+END BLOCK;
+
+BLOCK
+CREATE TRIGGER TRIG_DSCMN_METAINFO AFTER INSERT ON LogicalFolderMetaNumber
+   REFERENCING NEW ROW AS newrow
+   FOR EACH ROW 
+   IF NOT EXISTS 
+     (SELECT 1 FROM ContainerMetaInfo d WHERE d.MetaName = newrow.MetaName and d.ValueType = 'N')
+     THEN 
+     INSERT INTO ContainerMetaInfo (MetaName, ValueType) VALUES (NEW.MetaName, 'N');
+   END IF;
+END BLOCK;
+
+BLOCK
+CREATE TRIGGER TRIG_DSCMTS_METAINFO AFTER INSERT ON LogicalFolderMetaTimestamp
+   REFERENCING NEW ROW AS newrow
+   FOR EACH ROW 
+   IF NOT EXISTS 
+     (SELECT 1 FROM ContainerMetaInfo d WHERE d.MetaName = newrow.MetaName and d.ValueType = 'T')
+     THEN 
+     INSERT INTO ContainerMetaInfo (MetaName, ValueType) VALUES (NEW.MetaName, 'T');
+   END IF;
+END BLOCK;
+
 
 -- Need newline at end

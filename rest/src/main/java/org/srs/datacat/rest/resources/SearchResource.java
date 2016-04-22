@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -70,6 +69,7 @@ public class SearchResource extends BaseResource {
             @QueryParam("recurse") boolean recurse,
             @QueryParam("sites") List<String> sites,
             @QueryParam("filter") String filter,
+            @QueryParam("containerFilter") String containerFilter,
             @QueryParam("sort") List<String> sortParams, 
             @QueryParam("show") List<String> metadata, 
             @QueryParam("checkFolders") Boolean checkFolders,
@@ -95,7 +95,7 @@ public class SearchResource extends BaseResource {
         DatasetResultSetModel searchResults = null;
         try (DirectoryStream<DatasetModel> stream = 
                     getProvider().search(pathPattern, buildCallContext(), checkFolders, checkGroups, 
-                            dv, filter, metafields, sortFields)){
+                            dv, filter, containerFilter, metafields, sortFields)){
             List<DatasetModel> datasets = new ArrayList<>();
             int count = 0;
             Iterator<DatasetModel> iter = stream.iterator();

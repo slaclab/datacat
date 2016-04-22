@@ -6,6 +6,7 @@ import org.zerorm.core.Table;
 import org.zerorm.core.interfaces.Schema;
 import org.zerorm.core.interfaces.SimpleTable;
 import org.srs.datacat.dao.sql.search.tables.DatasetVersions;
+import org.srs.datacat.dao.sql.search.tables.MetajoinedStatement;
 
 /**
  *
@@ -55,7 +56,7 @@ public class LsstKVSearchPlugin implements DatacatPlugin {
     }
 
     @Override
-    public SimpleTable joinToStatement(String key, DatasetVersions statement){
+    public SimpleTable joinToStatement(String key, MetajoinedStatement statement){
         if(joined){
             return lsstkv;
         }

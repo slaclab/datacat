@@ -5,7 +5,7 @@ import org.zerorm.core.Column;
 import org.zerorm.core.Table;
 import org.zerorm.core.interfaces.Schema;
 import org.zerorm.core.interfaces.SimpleTable;
-import org.srs.datacat.dao.sql.search.tables.DatasetVersions;
+import org.srs.datacat.dao.sql.search.tables.MetajoinedStatement;
 
 /**
  *
@@ -47,19 +47,17 @@ public class LsstFilesSearchPlugin implements DatacatPlugin {
 
     @Override
     public boolean containsKey(String key){
-        return mappings.containsKey( key );
+        return mappings.containsKey(key);
     }
 
     @Override
-    public SimpleTable joinToStatement(String key, DatasetVersions statement){
+    public SimpleTable joinToStatement(String key, MetajoinedStatement statement){
         if(joined){
             return lsstff;
         }
         String metadataPivot = "fileId";
-        DatasetVersions dsv = (DatasetVersions) statement;
-        Column vecColumn = dsv.setupMetadataOuterJoin( metadataPivot,  Number.class );
-
-        dsv.selection( lsstff.getColumns() ).leftOuterJoin( lsstff, vecColumn.eq( lsstff.fileId )  );
+        Column vecColumn = statement.setupMetadataOuterJoin(metadataPivot, Number.class);
+        statement.selection(lsstff.getColumns()).leftOuterJoin(lsstff, vecColumn.eq(lsstff.fileId));
         joined = true;
         return lsstff;
     }

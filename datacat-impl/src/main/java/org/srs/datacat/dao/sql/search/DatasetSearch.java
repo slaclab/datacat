@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -76,7 +75,7 @@ public class DatasetSearch {
         this.modelProvider = modelProvider;
     }
     
-    public DirectoryStream<DatasetModel> search(LinkedList<DatacatNode> containers, DatasetView datasetView, 
+    public DirectoryStream<DatasetModel> search(DirectoryStream<DatacatNode> containers, DatasetView datasetView, 
             String query, String[] metaFieldsToRetrieve, String[] sortFields) throws ParseException, IOException {
         try {
             compileStatement(containers, datasetView, 
@@ -97,7 +96,7 @@ public class DatasetSearch {
         }
     }
     
-    protected Select compileStatement(LinkedList<DatacatNode> containers, DatasetView datasetView, 
+    protected Select compileStatement(DirectoryStream<DatacatNode> containers, DatasetView datasetView, 
             Optional<String> query, 
             Optional<String[]> retrieveFields, 
             Optional<String[]> sortFields) throws ParseException, SQLException, IOException {

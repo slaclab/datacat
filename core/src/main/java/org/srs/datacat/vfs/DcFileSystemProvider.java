@@ -3,7 +3,7 @@ package org.srs.datacat.vfs;
 import com.google.common.base.Optional;
 
 import java.io.IOException;
-import java.net.URI;    
+import java.net.URI;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.NoSuchFileException;
@@ -73,20 +73,20 @@ public class DcFileSystemProvider {
     private final DAOFactory daoFactory;
     private final ModelProvider modelProvider;
     private final VfsCache<DcFile> cache = new VfsSoftCache<>();
-    
+
     public DcFileSystemProvider(DAOFactory daoFactory, ModelProvider modelProvider) throws IOException{
         this.daoFactory = daoFactory;
         this.modelProvider = modelProvider;
     }
-    
+
     public DAOFactory getDaoFactory(){
         return daoFactory;
     }
-    
+
     public ModelProvider getModelProvider(){
         return modelProvider;
     }
-    
+
     public static final DirectoryStream.Filter<Path> ACCEPT_ALL_FILTER
         = new DirectoryStream.Filter<Path>() {
             @Override
@@ -94,8 +94,8 @@ public class DcFileSystemProvider {
                 return true;
             }
         };
-    
-    private static final PathProvider<DcPath> PATH_PROVIDER = new PathProvider<DcPath>(){
+
+    private static final PathProvider<DcPath> PATH_PROVIDER = new PathProvider<DcPath>() {
 
         @Override
         public DcPath getRoot(){
@@ -112,18 +112,18 @@ public class DcFileSystemProvider {
             return new DcPath(this, path);
         }
     };
-    
+
     private VfsCache<DcFile> getCache(){
         return cache;
     }
-    
-    private DcFile resolveFile(Path path) throws NoSuchFileException, IOException {
+
+    private DcFile resolveFile(Path path) throws NoSuchFileException, IOException{
         // Find this file in the cache. If it's not in the cache, resolve it's parents
         // (thereby putting them in the cache), and eventually this file.
         DcFile file = getCache().getFile(path);
         if(file == null){
             DcFile parent = null;
-            if(!path.equals( path.getRoot())){
+            if(!path.equals(path.getRoot())){
                 parent = resolveFile(path.getParent());
             }
             file = retrieveFileAttributes(path, parent);
@@ -134,7 +134,7 @@ public class DcFileSystemProvider {
     }
 
     public DirectoryStream<Path> newOptimizedDirectoryStream(Path dir, CallContext context,
-            final DirectoryStream.Filter<? super Path> filter, int max, 
+            final DirectoryStream.Filter<? super Path> filter, int max,
             Optional<DatasetView> viewPrefetch) throws IOException{
         DcFile dirFile = resolveFile(dir);
         checkPermission(context, dirFile, DcPermissions.READ);
@@ -156,7 +156,7 @@ public class DcFileSystemProvider {
         }
         return stream;
     }
-    
+
     protected DirectoryStream<Path> unCachedDirectoryStream(final Path dir,
             final DirectoryStream.Filter<? super Path> filter, final Optional<DatasetView> view,
             final boolean cacheDatasets) throws IOException{
@@ -299,7 +299,7 @@ public class DcFileSystemProvider {
         checkPermission(context, f, DcPermissions.READ);
         return f;
     }
-    
+
     /**
      * Gets the ACL of a file..
      *
@@ -317,11 +317,11 @@ public class DcFileSystemProvider {
      *
      * @param path Datacat path
      * @param context Call context.
-     * @param group If specified, will return the effective permissions for a given group
-     * The Group spec includes the domain
+     * @param group If specified, will return the effective permissions for a given group The Group
+     * spec includes the domain
      * @return Effective permissions, or an empty string if there is no permissions found.
      */
-    public String getPermissions(Path path, CallContext context, 
+    public String getPermissions(Path path, CallContext context,
             DcGroup group) throws IOException, NoSuchFileException{
         List<DcAclEntry> acl = getAcl(path, context);
         if(group != null){
@@ -335,11 +335,11 @@ public class DcFileSystemProvider {
         }
         return DcPermissions.effective(context.getGroups(), acl);
     }
-    
+
     public Path getPath(String path){
         return PATH_PROVIDER.getPath(path);
     }
-    
+
     private boolean exists(Path path){
         try {
             resolveFile(path);
@@ -374,7 +374,7 @@ public class DcFileSystemProvider {
         }
         return new DcFile(childPath, this, child, acl);
     }
-    
+
     /**
      * This will fail if there already exists a Dataset record.
      *
@@ -384,12 +384,12 @@ public class DcFileSystemProvider {
      * @param options Optimization flags.
      * @return Dataset, FlatDataset, or FullDataset
      */
-    public DatasetModel createDataset(Path path, CallContext context, 
+    public DatasetModel createDataset(Path path, CallContext context,
             DatasetModel dsReq, Set<DatasetOption> options) throws IOException{
         if(dsReq == null){
             throw new IOException("Not enough information to create create a Dataset node or view");
         }
-        
+
         DcFile dsParent = resolveFile(path.getParent());
         String dsName = path.getFileName().toString();
         Set<DatasetOption> dsOptions = new HashSet<>(options); // make a copy
@@ -417,7 +417,7 @@ public class DcFileSystemProvider {
             }
         }
         try(DatasetDAO dao = daoFactory.newDatasetDAO()) {
-            dao.lock(path);
+            dao.lock(path.getParent());
             DatasetModel ret = dao.
                     createDataset(dsParent.getObject(), dsName, requestDataset, requestView, dsOptions);
             dao.commit();
@@ -425,7 +425,7 @@ public class DcFileSystemProvider {
             return ret;
         }
     }
-    
+
     /**
      * Patch ACLs.
      *
@@ -435,12 +435,12 @@ public class DcFileSystemProvider {
      * @param clear Flag to overwrite access-scoped entries and ignore default-scoped entries
      * @return Updated representation of the DcFile.
      */
-    public DcFile mergeContainerAclEntries(Path path, CallContext context, 
+    public DcFile mergeContainerAclEntries(Path path, CallContext context,
             List<DcAclEntry> request, boolean clear) throws IOException{
         DcFile f = getFile(path, context);
         try {
             checkPermission(context, f, DcPermissions.ADMIN);
-        } catch (AccessDeniedException ex){
+        } catch(AccessDeniedException ex) {
             // If there is admin entries on the root folder, allow those through as well.
             checkPermission(context, getFile(path.getName(0), context), DcPermissions.ADMIN);
         }
@@ -450,15 +450,15 @@ public class DcFileSystemProvider {
         }
         List<DcAclEntry> existing = clear ? Collections.<DcAclEntry>emptyList() : f.getAcl();
         List<DcAclEntry> newAcl = AclTransformation.mergeAclEntries(existing, request);
-        
-        try(BaseDAO dao = daoFactory.newBaseDAO()) {    
+
+        try(BaseDAO dao = daoFactory.newBaseDAO()) {
             dao.setAcl(f.getObject(), AclTransformation.aclToString(newAcl));
             dao.commit();
         }
         getCache().removeFile(path);
         return getFile(path, context);
     }
-    
+
     /**
      * Patch a container.
      *
@@ -470,13 +470,13 @@ public class DcFileSystemProvider {
     public DcFile patchContainer(Path path, CallContext context, DatasetContainer request) throws IOException{
         DcFile f = getFile(path, context);
         checkPermission(context, f, DcPermissions.WRITE);
-        
+
         if(f.getType() != FileType.DIRECTORY){ // Use the constant instead of instanceof
             AfsException.NO_SUCH_FILE.throwError(f, "The file to be patched is a container");
         }
-        
+
         DatacatNode container = f.getObject();
-                
+
         try(ContainerDAO dao = daoFactory.newContainerDAO()) {
             dao.lock(path);
             dao.patchContainer(container, request);
@@ -485,9 +485,10 @@ public class DcFileSystemProvider {
         getCache().removeFile(path);
         return getFile(path, context);
     }
-    
+
     /**
      * Search using a path pattern and a query.
+     *
      * @param pathPattern A glob or regex pattern
      * @param context Call Context
      * @param checkFolders Check inside folders
@@ -498,32 +499,107 @@ public class DcFileSystemProvider {
      * @param sortFields Fields to sort on.
      * @return Stream of datasets. Make sure to close the stream when done.
      */
-    public DirectoryStream<DatasetModel> search(String pathPattern, CallContext context, 
-            Boolean checkFolders, Boolean checkGroups, DatasetView datasetView, String query, 
+    public DirectoryStream<DatasetModel> search(String pathPattern, CallContext context,
+            Boolean checkFolders, Boolean checkGroups, DatasetView datasetView, String query,
+            String containerQuery,
             String[] retrieveFields, String[] sortFields) throws IOException, ParseException{
-        String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern, "/"));
-        Path root = PATH_PROVIDER.getRoot();
-        Path searchPath = root.resolve(searchBase);
-        ContainerVisitor visitor= new ContainerVisitor(pathPattern, checkGroups, checkFolders);
-        DirectoryWalker walker = new DirectoryWalker(this, visitor, 100 /* max depth */);
-        walker.walk(searchPath, context);
+        
+                
         final SearchDAO dao = daoFactory.newSearchDAO();
-        
         final DirectoryStream<DatasetModel> search;
-        
+        final DirectoryStream<DatacatNode> targetContainers;
+        if(containerQuery != null){
+            targetContainers = (DirectoryStream) 
+                    searchContainers(pathPattern, context, containerQuery, null, null);
+        } else {
+            String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern, "/"));
+            Path searchPath = getPath(searchBase);
+            ContainerVisitor visitor = new ContainerVisitor(pathPattern, false, true);
+            if(searchBase.equals(pathPattern)){
+                visitor.files.add(getFile(searchPath, context).getObject());
+            } else {
+                DirectoryWalker walker = new DirectoryWalker(this, visitor, 100 /* max depth */);
+                walker.walk(searchPath, context);
+            }
+            targetContainers = Utils.getStream(visitor.files);
+        }
+
         // The retrieval of the DirectoryStream can fail, so we should clean up if that happens
         try {
-            search = dao.search(visitor.files, datasetView, query, retrieveFields, sortFields);
-        } catch (ParseException | IllegalArgumentException | IOException ex){
+            search = dao.search(targetContainers, datasetView, query, retrieveFields, sortFields);
+        } catch(ParseException | IllegalArgumentException | IOException ex) {
             dao.close();
             throw ex;
         }
 
         // Wrap the actual DirectoryStream and add method to close DAO
-        return new DirectoryStream<DatasetModel>(){
+        return new DirectoryStream<DatasetModel>() {
 
             @Override
             public Iterator<DatasetModel> iterator(){
+                return search.iterator();
+            }
+
+            @Override
+            public void close() throws IOException{
+                if(targetContainers != null){
+                    targetContainers.close();
+                }
+                if(search != null){
+                    search.close();
+                }
+                if(dao != null){
+                    dao.close();
+                }
+            }
+
+        };
+    }
+
+    /**
+     * Search using a path pattern and a query.
+     *
+     * @param pathPattern A glob or regex pattern
+     * @param context Call Context
+     * @param checkFolders Check inside folders
+     * @param checkGroups Check inside Groups
+     * @param datasetView Apply this view to all datasets
+     * @param query A Query String
+     * @param retrieveFields Metadata fields to retrieve
+     * @param sortFields Fields to sort on.
+     * @return Stream of datasets. Make sure to close the stream when done.
+     */
+    public DirectoryStream<DatasetContainer> searchContainers(String pathPattern,
+            CallContext context,
+            String query, String[] retrieveFields, String[] sortFields) throws IOException, ParseException{
+        String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern, "/"));
+        Path searchPath = getPath(searchBase);
+        ContainerVisitor visitor = new ContainerVisitor(pathPattern, false, true);
+        if(searchBase.equals(pathPattern)){
+            visitor.files.add(getFile(searchPath, context).getObject());
+        } else {
+            DirectoryWalker walker = new DirectoryWalker(this, visitor, 100 /* max depth */);
+            walker.walk(searchPath, context);
+        }
+        
+        final SearchDAO dao = daoFactory.newSearchDAO();
+
+        final DirectoryStream<DatasetContainer> search;
+
+        // The retrieval of the DirectoryStream can fail, so we should clean up if that happens
+        try {
+            search = dao.
+                    searchContainers(Utils.getStream(visitor.files), query, retrieveFields, sortFields);
+        } catch(ParseException | IllegalArgumentException | IOException ex) {
+            dao.close();
+            throw ex;
+        }
+
+        // Wrap the actual DirectoryStream and add method to close DAO
+        return new DirectoryStream<DatasetContainer>() {
+
+            @Override
+            public Iterator<DatasetContainer> iterator(){
                 return search.iterator();
             }
 
@@ -539,7 +615,7 @@ public class DcFileSystemProvider {
 
         };
     }
-    
+
     /**
      * Patch a dataset.
      *
@@ -549,15 +625,15 @@ public class DcFileSystemProvider {
      * @param request A diff representation of the dataset to be patched
      * @return DcFile representing the updated DcFile and dataset
      */
-    public DcFile patchDataset(Path path, CallContext context, 
+    public DcFile patchDataset(Path path, CallContext context,
             DatasetView view, DatasetModel request) throws IOException{
         DcFile f = getFile(path, context);
         checkPermission(context, f, DcPermissions.WRITE);
         DatacatNode ds = f.getObject();
-        
+
         Optional<DatasetModel> requestDataset = Optional.of(request);
         Optional<DatasetViewInfoModel> requestView = Optional.absent();
-        
+
         if(f.getType() != FileType.FILE){ // Use the constant instead of instanceof
             AfsException.NO_SUCH_FILE.throwError(f, "The file to be patched is a container");
         }
@@ -565,7 +641,7 @@ public class DcFileSystemProvider {
         if(request instanceof DatasetWithViewModel){
             requestView = Optional.of(((DatasetWithViewModel) request).getViewInfo());
         }
-        
+
         try(DatasetDAO dao = daoFactory.newDatasetDAO()) {
             dao.lock(path);
             dao.patchDataset(ds, view, requestDataset, requestView);
@@ -575,7 +651,7 @@ public class DcFileSystemProvider {
         return getFile(path, context);
     }
 
-    public DatasetViewInfoModel getDatasetViewInfo(DatacatRecord record, 
+    public DatasetViewInfoModel getDatasetViewInfo(DatacatRecord record,
             DatasetView view) throws IOException, NoSuchFileException{
         try(DatasetDAO dsdao = daoFactory.newDatasetDAO()) {
             DatasetViewInfoModel ret = dsdao.getDatasetViewInfo(record, view);
@@ -599,8 +675,8 @@ public class DcFileSystemProvider {
         }
         checkPermission(context, parent, DcPermissions.INSERT);
 
-        try(ContainerDAO dao = daoFactory.newContainerDAO()){
-            dao.lock(path);
+        try(ContainerDAO dao = daoFactory.newContainerDAO()) {
+            dao.lock(parent.getPath());
             String fileName = path.getFileName().toString();
             DatacatNode ret = dao.createNode(parent.getObject(), fileName, request);
             dao.commit();
@@ -631,7 +707,7 @@ public class DcFileSystemProvider {
             AfsException.ACCESS_DENIED.throwError(file.getPath(), err);
         }
     }
-    
+
     private void childRemoved(DcFile parent, Path child){
         FileAttributes attributes = parent.getAttributes();
         if(!parent.isDirectory()){

@@ -242,7 +242,7 @@ public class DatacatSearchTest {
         queryString = "nRun == 239557414";
         
         
-        datacatSearch.compileStatement(Lists.newLinkedList(DAOTestUtils.getContainers(factory)), 
+        datacatSearch.compileStatement(getStream(Lists.newLinkedList(DAOTestUtils.getContainers(factory))), 
                 dsView,
                 Optional.fromNullable(queryString),
                 Optional.fromNullable(metaFieldsToRetrieve),
@@ -252,7 +252,7 @@ public class DatacatSearchTest {
         
         queryString = "sIntent == 'run'";
         
-        datacatSearch.compileStatement(Lists.newLinkedList(DAOTestUtils.getContainers(factory)), 
+        datacatSearch.compileStatement(getStream(Lists.newLinkedList(DAOTestUtils.getContainers(factory))), 
                 dsView,
                 Optional.fromNullable(queryString),
                 Optional.fromNullable(metaFieldsToRetrieve),
@@ -269,7 +269,7 @@ public class DatacatSearchTest {
         String[] sites = null;
         DatasetView dsView = DatasetView.CURRENT_ALL;
         
-        datacatSearch.compileStatement(searchContainers, dsView, 
+        datacatSearch.compileStatement(getStream(searchContainers), dsView, 
                 Optional.fromNullable(queryString), 
                 Optional.fromNullable(metaFieldsToRetrieve), 
                 Optional.fromNullable(sortFields));
@@ -312,6 +312,20 @@ public class DatacatSearchTest {
             conn.commit(); // Remove from parents on commit
         }
         
+    }
+    
+    private static DirectoryStream<DatacatNode> getStream(final List<DatacatNode> list){
+        return new DirectoryStream<DatacatNode>(){
+            @Override
+            public Iterator<DatacatNode> iterator(){
+                return list.iterator();
+            }
+
+            @Override
+            public void close() throws IOException{
+                return;
+            }  
+        };
     }
     
 }
