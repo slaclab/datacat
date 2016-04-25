@@ -8,7 +8,7 @@ import org.srs.datacat.client.Client;
 import org.srs.datacat.model.DatasetResultSetModel;
 
 /**
- *
+ * Helper class for programmatically building searches.
  * @author bvan
  */
 public class SearchBuilder {
@@ -66,14 +66,15 @@ public class SearchBuilder {
     }
     
     /**
-     * Query String.
+     * Folder Query String.
+     * Same semantics as the regular query string, but for folders.
      */
     public void setFolderQuery(String folderQuery){
         this.folderQuery = folderQuery;
     }
     
     /**
-     * Add field to sort by.
+     * Add metadata field to sort by.
      */
     public void addSort(String sortItem){
         this.sort.add(sortItem);
@@ -88,7 +89,7 @@ public class SearchBuilder {
     }
     
     /**
-     * Add a field to return.
+     * Add a metadata field to return.
      */
     public void addShow(String showItem){
         this.show.add(showItem);
@@ -102,16 +103,23 @@ public class SearchBuilder {
         this.show = new ArrayList(show);
     }
 
+    /**
+     * Offset of first returned record.
+     */
     public void setOffset(Integer offset){
         this.offset = offset;
     }
 
+    /**
+     * Max number of records to return.
+     * @param max 
+     */
     public void setMax(Integer max){
         this.max = max;
     }
     
     /**
-     * Execute the search.
+     * Execute the search and retrieve the results.
      */
     public DatasetResultSetModel search(){
         return client.searchForDatasets(target, versionId, site, 
