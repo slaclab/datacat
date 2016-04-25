@@ -13,11 +13,12 @@ import org.srs.datacat.model.DatasetResultSetModel;
  */
 public class SearchBuilder {
     
-    private Client client;
+    private final Client client;
     private String target;
     private String versionId;
     private String site;
     private String query;
+    private String folderQuery;
     private List<String> sort = new ArrayList<>();
     private List<String> show = new ArrayList<>();
     private Integer offset;
@@ -65,6 +66,13 @@ public class SearchBuilder {
     }
     
     /**
+     * Query String.
+     */
+    public void setFolderQuery(String folderQuery){
+        this.folderQuery = folderQuery;
+    }
+    
+    /**
      * Add field to sort by.
      */
     public void addSort(String sortItem){
@@ -107,7 +115,8 @@ public class SearchBuilder {
      */
     public DatasetResultSetModel search(){
         return client.searchForDatasets(target, versionId, site, 
-                query, sort.toArray(new String[0]), show.toArray(new String[0]), offset, max);
+                query, folderQuery, sort.toArray(new String[0]), show.toArray(new String[0]), 
+                offset, max);
     }
 
 }

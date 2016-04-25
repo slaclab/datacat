@@ -304,6 +304,24 @@ public class Client {
         checkResponse(resp);
         return resp.readEntity(new GenericType<DatasetModel>() {});
     }
+    
+    /**
+     * Search a target. A target is a Container of some sort. It may also be specified as a glob, as in:
+     * @see #searchForDatasets(java.lang.String, java.lang.String, java.lang.String, java.lang.String, 
+     * java.lang.String[], java.lang.String[], java.lang.Integer, java.lang.Integer) 
+     * @param target The path (or glob-like path) of which to search
+     * @param versionId Version Id to return
+     * @param site Site to query
+     * @param query Query String
+     * @param folderQuery Query string for matching folders
+     * @param sort Fields and Metadata fields to sort on.
+     * @param show Metadata fields to optionally return
+     * @return Response object of the search
+     */
+    public DatasetResultSetModel searchForDatasets(String target, String versionId, String site,
+            String query, String[] sort, String[] show){
+        return searchForDatasets(target, versionId, site, query, null, sort, show, null, null);
+    }
 
     /**
      * Search a target. A target is a Container of some sort. It may also be specified as a glob, as in:
@@ -313,13 +331,19 @@ public class Client {
      * @param versionId Version Id to return
      * @param site Site to query
      * @param query Query String
+     * @param folderQuery Query string for matching folders
      * @param sort Fields and Metadata fields to sort on.
      * @param show Metadata fields to optionally return
      * @return Response object of the search
      */
     public DatasetResultSetModel searchForDatasets(String target, String versionId, String site,
-            String query, String[] sort, String[] show){
-        return searchForDatasets(target, versionId, site, query, sort, show, null, null);
+            String query, String folderQuery, String[] sort, String[] show){
+        return searchForDatasets(target, versionId, site, query, folderQuery, sort, show, null, null);
+    }
+    
+    public DatasetResultSetModel searchForDatasets(String target, String versionId, String site,
+            String query, String[] sort, String[] show, Integer offset, Integer max){
+        return searchForDatasets(target, versionId, site, query, null, sort, show, null, null);
     }
     
     /**
@@ -333,6 +357,7 @@ public class Client {
      * @param versionId Version Id to return
      * @param site Site to query
      * @param query Query String
+     * @param folderQuery Query string for matching folders
      * @param sort Fields and Metadata fields to sort on.
      * @param show Metadata fields to optionally return
      * @param offset Offset at which to start returning objects.
@@ -340,10 +365,11 @@ public class Client {
      * @return Response object of the search
      */
     public DatasetResultSetModel searchForDatasets(String target, String versionId, String site,
-            String query, String[] sort, String[] show, Integer offset, Integer max){
+            String query, String folderQuery, String[] sort, String[] show, Integer offset, Integer max){
         try {
             Response resp = searchResource.searchForDatasets(target, Optional.fromNullable(versionId),
                     Optional.fromNullable(site), Optional.fromNullable(query),
+                    Optional.fromNullable(folderQuery),
                     Optional.fromNullable(sort), Optional.fromNullable(show),
                     Optional.<Integer>fromNullable(offset), Optional.<Integer>fromNullable(max));
             checkResponse(resp);
