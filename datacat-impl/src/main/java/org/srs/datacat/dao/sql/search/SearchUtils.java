@@ -144,44 +144,7 @@ public final class SearchUtils {
         return builder.build();
     }
     
-    public static MetanameContext buildMetanameGlobalContext(Connection conn) throws SQLException {
-        
-        String sql = "select metaname, prefix " +
-                        "    from DatasetMetaName vx " +
-                        "    left outer join ( " +
-                        "            select substr(v1.metaname,0,4) prefix,  " +
-                        "                    count(v1.metaname) prefixcount " +
-                        "            from  " +
-                        "            DatasetMetaName v1 " +
-                        "            group by substr(v1.metaname,0,4) " +
-                        "            having count(v1.metaname) > 5 " +
-                        "    ) v0 on substr(vx.metaname,0,4) = prefix " +
-                        "    order by prefix asc ";
-        try (PreparedStatement stmt = conn.prepareStatement( sql )) {
-            ResultSet rs = stmt.executeQuery();
-
-            MetanameContext dmc = new MetanameContext();
-            ArrayList<String> postfixes = new ArrayList<>();
-            String lastPrefix = null;
-            while(rs.next()){
-                String maybePrefix = rs.getString( "prefix");
-                String metaname = rs.getString( "metaname");
-                if(maybePrefix != null){
-                    if (lastPrefix != null && !lastPrefix.equals( maybePrefix) ){
-                        dmc.add( new MetanameContext.Entry(lastPrefix, postfixes, lastPrefix.length() ));
-                        postfixes.clear();
-                    }
-                    lastPrefix = maybePrefix;
-                    postfixes.add( metaname );
-                } else {
-                    dmc.add( new MetanameContext.Entry( metaname ));
-                }
-            }
-            return dmc;
-        }
-    }
-    
-    public static MetanameContext buildMetaInfoGlobalContext(Connection conn) throws IOException {
+    public static MetanameContext buildDatasetMetaInfoGlobalContext(Connection conn) throws IOException {
         
         String sql = "select metaname, ValueType, prefix " +
                         "    from DatasetMetaInfo vx " +
