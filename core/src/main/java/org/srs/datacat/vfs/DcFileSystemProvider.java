@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -499,31 +500,21 @@ public class DcFileSystemProvider {
      * @param sortFields Fields to sort on.
      * @return Stream of datasets. Make sure to close the stream when done.
      */
-    public DirectoryStream<DatasetModel> search(String pathPattern, CallContext context,
-            Boolean checkFolders, Boolean checkGroups, DatasetView datasetView, String query,
+    public DirectoryStream<DatasetModel> search(List<String> pathPatterns, CallContext context,
+            DatasetView datasetView, String query,
             String containerQuery,
             String[] retrieveFields, String[] sortFields) throws IOException, ParseException{
         
-                
-        final SearchDAO dao = daoFactory.newSearchDAO();
-        final DirectoryStream<DatasetModel> search;
         final DirectoryStream<DatacatNode> targetContainers;
         if(containerQuery != null){
             targetContainers = (DirectoryStream) 
-                    searchContainers(pathPattern, context, containerQuery, null, null);
+                    searchContainers(pathPatterns, context, containerQuery, null, null);
         } else {
-            String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern, "/"));
-            Path searchPath = getPath(searchBase);
-            ContainerVisitor visitor = new ContainerVisitor(pathPattern, false, true);
-            if(searchBase.equals(pathPattern)){
-                visitor.files.add(getFile(searchPath, context).getObject());
-            } else {
-                DirectoryWalker walker = new DirectoryWalker(this, visitor, 100 /* max depth */);
-                walker.walk(searchPath, context);
-            }
-            targetContainers = Utils.getStream(visitor.files);
+            targetContainers = Utils.getStream(walk(pathPatterns, context));
         }
 
+        final SearchDAO dao = daoFactory.newSearchDAO();
+        final DirectoryStream<DatasetModel> search;
         // The retrieval of the DirectoryStream can fail, so we should clean up if that happens
         try {
             search = dao.search(targetContainers, datasetView, query, retrieveFields, sortFields);
@@ -569,18 +560,11 @@ public class DcFileSystemProvider {
      * @param sortFields Fields to sort on.
      * @return Stream of datasets. Make sure to close the stream when done.
      */
-    public DirectoryStream<DatasetContainer> searchContainers(String pathPattern,
+    public DirectoryStream<DatasetContainer> searchContainers(List<String> pathPatterns,
             CallContext context,
             String query, String[] retrieveFields, String[] sortFields) throws IOException, ParseException{
-        String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern, "/"));
-        Path searchPath = getPath(searchBase);
-        ContainerVisitor visitor = new ContainerVisitor(pathPattern, false, true);
-        if(searchBase.equals(pathPattern)){
-            visitor.files.add(getFile(searchPath, context).getObject());
-        } else {
-            DirectoryWalker walker = new DirectoryWalker(this, visitor, 100 /* max depth */);
-            walker.walk(searchPath, context);
-        }
+        
+        LinkedList<DatacatNode> results = walk(pathPatterns, context);
         
         final SearchDAO dao = daoFactory.newSearchDAO();
 
@@ -588,8 +572,7 @@ public class DcFileSystemProvider {
 
         // The retrieval of the DirectoryStream can fail, so we should clean up if that happens
         try {
-            search = dao.
-                    searchContainers(Utils.getStream(visitor.files), query, retrieveFields, sortFields);
+            search = dao.searchContainers(Utils.getStream(results), query, retrieveFields, sortFields);
         } catch(ParseException | IllegalArgumentException | IOException ex) {
             dao.close();
             throw ex;
@@ -614,6 +597,21 @@ public class DcFileSystemProvider {
             }
 
         };
+    }
+    
+    private LinkedList<DatacatNode> walk(List<String> pathPatterns, CallContext context) throws IOException{
+        LinkedList<DatacatNode> results = new LinkedList<>();
+        for(String pathPattern : pathPatterns){
+            String searchBase = PathUtils.normalizeRegex(GlobToRegex.toRegex(pathPattern, "/"));
+            if(searchBase.equals(pathPattern)){
+                results.add(getFile(getPath(searchBase), context).getObject());
+            } else {
+                ContainerVisitor visitor = new ContainerVisitor(pathPattern, false, true, results);
+                DirectoryWalker walker = new DirectoryWalker(this, visitor, 100 /* max depth */);
+                walker.walk(getPath(searchBase), context);
+            }
+        }
+        return results;
     }
 
     /**

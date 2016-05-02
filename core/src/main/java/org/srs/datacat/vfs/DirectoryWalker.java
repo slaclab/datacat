@@ -140,6 +140,12 @@ public class DirectoryWalker {
             String globPath = "glob:" + path;
             filter = new ContainerFilter(PathMatchers.getPathMatcher(globPath, "/"), searchGroups, searchFolders);
         }
+        
+        public ContainerVisitor(String path, Boolean searchGroups, Boolean searchFolders, 
+                LinkedList<DatacatNode> resultList){
+            this(path, searchGroups, searchFolders);
+            this.files = resultList;
+        }
 
         public void accept(DcFile file){
             files.add(file.getObject());
