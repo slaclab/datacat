@@ -304,7 +304,7 @@ public class Client {
         checkResponse(resp);
         return resp.readEntity(new GenericType<DatasetModel>() {});
     }
-    
+
     /**
      * Search a target. A target is a Container of some sort. It may also be specified as a glob, as in:
      * @see #searchForDatasets(java.lang.String, java.lang.String, java.lang.String, java.lang.String, 
