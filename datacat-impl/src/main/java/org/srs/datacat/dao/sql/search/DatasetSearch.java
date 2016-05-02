@@ -2,6 +2,8 @@
 package org.srs.datacat.dao.sql.search;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigInteger;
@@ -17,6 +19,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.freehep.commons.lang.AST;
@@ -49,11 +52,26 @@ public class DatasetSearch {
     private Connection conn;
     private Select selectStatement;
     private ModelProvider modelProvider;
+    private static final MetainfoSupplier METANAME_DELEGATE = new MetainfoSupplier() {
+        @Override
+        public MetanameContext get(){
+            try {
+                return SearchUtils.buildDatasetMetaInfoGlobalContext(getConnection());
+            } catch(IOException ex) {
+                throw new RuntimeException("Unable to build dataset metaname context", ex);
+            }
+        }
+    };
+    private static final Supplier<MetanameContext> METANAME_SUPPLIER = 
+            Suppliers.memoizeWithExpiration(METANAME_DELEGATE, 30, TimeUnit.SECONDS);
     
     public DatasetSearch(Connection conn, ModelProvider modelProvider, 
             Class<? extends DatacatPlugin>... plugins) throws IOException {
         this.plugins = plugins;
-        this.dmc = SearchUtils.buildMetaInfoGlobalContext( conn );
+        synchronized(METANAME_DELEGATE){
+            METANAME_DELEGATE.setCurrentConnection(conn);
+            this.dmc = METANAME_SUPPLIER.get();
+        }
         this.conn = conn;
         this.modelProvider = modelProvider;
     }
