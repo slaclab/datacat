@@ -185,7 +185,6 @@ class HttpClient:
         """
         Retrieve a datacat object.
         :param path: Path of the object to retrieve.
-        :param effective: Type of stat to return with this object.
         :return: A :class`requests.Response` object. The content is a representation of the newly created container.
         """
         endpoint = "permissions"
