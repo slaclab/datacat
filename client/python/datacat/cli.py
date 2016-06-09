@@ -7,7 +7,7 @@ import logging
 import sys
 from .auth import auth_from_config
 from .client import Client
-from .config import config_from_file
+from .srs import config_from_file  # FIXME: Site (aka SRS) specific
 from .error import DcException, DcClientException, DcRequestException
 from .model import Container, Dataset, Group, Permissions
 
@@ -15,8 +15,10 @@ from .model import Container, Dataset, Group, Permissions
 def build_argparser():
     parser = argparse.ArgumentParser(description="Python CLI for Data Catalog RESTful interfaces")
     parser.add_argument('-U', '--base-url', help="Override base URL for client", action="store")
+    # FIXME: These are site/SRS specific
     parser.add_argument('-D', '--domain', "--experiment", help="Set domain (experiment) for requests", default="srs")
     parser.add_argument('-M', '--mode', help="Set server mode", choices=("dev", "prod"), default="prod")
+    # ENDFIXME
     parser.add_argument('-F', '--config-file', help="Set config file path", action="store")
     parser.add_argument('-O', '--config-section', help="Set override section in config file", action="store")
     parser.add_argument('-d', '--debug', help="Debug Level", action="store_true")
