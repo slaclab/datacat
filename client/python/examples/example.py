@@ -7,7 +7,7 @@ Make sure you have your environment setup!
 """
 
 from datacat import client_from_config
-from datacat.config import default_config
+from datacat.srs import default_config
 
 import pprint
 

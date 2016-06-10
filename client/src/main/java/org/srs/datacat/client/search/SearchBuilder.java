@@ -8,16 +8,17 @@ import org.srs.datacat.client.Client;
 import org.srs.datacat.model.DatasetResultSetModel;
 
 /**
- *
+ * Helper class for programmatically building searches.
  * @author bvan
  */
 public class SearchBuilder {
     
-    private Client client;
+    private final Client client;
     private String target;
     private String versionId;
     private String site;
     private String query;
+    private String folderQuery;
     private List<String> sort = new ArrayList<>();
     private List<String> show = new ArrayList<>();
     private Integer offset;
@@ -65,7 +66,15 @@ public class SearchBuilder {
     }
     
     /**
-     * Add field to sort by.
+     * Folder Query String.
+     * Same semantics as the regular query string, but for folders.
+     */
+    public void setFolderQuery(String folderQuery){
+        this.folderQuery = folderQuery;
+    }
+    
+    /**
+     * Add metadata field to sort by.
      */
     public void addSort(String sortItem){
         this.sort.add(sortItem);
@@ -80,7 +89,7 @@ public class SearchBuilder {
     }
     
     /**
-     * Add a field to return.
+     * Add a metadata field to return.
      */
     public void addShow(String showItem){
         this.show.add(showItem);
@@ -94,20 +103,28 @@ public class SearchBuilder {
         this.show = new ArrayList(show);
     }
 
+    /**
+     * Offset of first returned record.
+     */
     public void setOffset(Integer offset){
         this.offset = offset;
     }
 
+    /**
+     * Max number of records to return.
+     * @param max 
+     */
     public void setMax(Integer max){
         this.max = max;
     }
     
     /**
-     * Execute the search.
+     * Execute the search and retrieve the results.
      */
     public DatasetResultSetModel search(){
         return client.searchForDatasets(target, versionId, site, 
-                query, sort.toArray(new String[0]), show.toArray(new String[0]), offset, max);
+                query, folderQuery, sort.toArray(new String[0]), show.toArray(new String[0]), 
+                offset, max);
     }
 
 }

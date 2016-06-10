@@ -12,7 +12,7 @@ drop table	DatasetGroupMetaTimestamp ;
 drop table	LogicalFolderMetaString ;
 drop table	LogicalFolderMetaNumber ;
 drop table	LogicalFolderMetaTimestamp ;
-drop table      DatasetMetaName ;
+--drop table      DatasetMetaName ;
 drop table      DatasetMetaInfo ;
 drop table      DatasetGroupMetaName ;
 drop table      LogicalFolderMetaName ;
@@ -210,16 +210,22 @@ create table VerDatasetMetaTimestamp (
 create index IDX_FK_VDSMT_DSVersion on VerDatasetMetaTimestamp(DatasetVersion);
 create index IDX_VDSMT_NameValue on VerDatasetMetaTimestamp(MetaName, MetaValue);
 
-create table DatasetMetaName (
-     MetaName      varchar(64),
+--create table DatasetMetaName (
+--     MetaName      varchar(64),
 --      MetaType      varchar(1),
-     constraint    UNQ_DatasetMetaName unique (MetaName)
-);
+--     constraint    UNQ_DatasetMetaName unique (MetaName)
+--);
 
 create table DatasetMetaInfo (
      MetaName      varchar(64),
      ValueType      varchar(1),
      constraint    UNQ_DatasetMetaInfo unique (MetaName, ValueType)
+);
+
+create table ContainerMetaInfo (
+     MetaName      varchar(64),
+     ValueType      varchar(1),
+     constraint    UNQ_ContainerMetaInfo unique (MetaName, ValueType)
 );
 
 create table VerDatasetMetaRoot (
@@ -423,5 +429,35 @@ CREATE TRIGGER TRIG_VDSMTS_METAINFO AFTER INSERT ON VerDatasetMetaTimestamp
      (SELECT 1 FROM DatasetMetaInfo d WHERE d.MetaName = NEW.MetaName and d.ValueType = 'T')
      THEN 
      INSERT INTO DatasetMetaInfo (MetaName, ValueType) VALUES (NEW.MetaName, 'T');
+   END IF;
+END BLOCK;
+
+BLOCK
+CREATE TRIGGER TRIG_DSCMS_METAINFO AFTER INSERT ON LogicalFolderMetaString
+   FOR EACH ROW 
+   IF NOT EXISTS 
+     (SELECT 1 FROM ContainerMetaInfo d WHERE d.MetaName = NEW.MetaName and d.ValueType = 'S')
+     THEN 
+     INSERT INTO ContainerMetaInfo (MetaName, ValueType) VALUES (NEW.MetaName, 'S');
+   END IF;
+END BLOCK;
+
+BLOCK
+CREATE TRIGGER TRIG_DSCMN_METAINFO AFTER INSERT ON LogicalFolderMetaNumber
+   FOR EACH ROW 
+   IF NOT EXISTS 
+     (SELECT 1 FROM ContainerMetaInfo d WHERE d.MetaName = NEW.MetaName and d.ValueType = 'N')
+     THEN 
+     INSERT INTO ContainerMetaInfo (MetaName, ValueType) VALUES (NEW.MetaName, 'N');
+   END IF;
+END BLOCK;
+
+BLOCK
+CREATE TRIGGER TRIG_DSCMTS_METAINFO AFTER INSERT ON LogicalFolderMetaTimestamp
+   FOR EACH ROW 
+   IF NOT EXISTS 
+     (SELECT 1 FROM ContainerMetaInfo d WHERE d.MetaName = NEW.MetaName and d.ValueType = 'T')
+     THEN 
+     INSERT INTO ContainerMetaInfo (MetaName, ValueType) VALUES (NEW.MetaName, 'T');
    END IF;
 END BLOCK;

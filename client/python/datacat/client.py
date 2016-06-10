@@ -14,8 +14,10 @@ class Client(object):
     Pythonic Client for interacting with the data catalog. This client interacts solely through JSON.
     """
 
-    def __init__(self, url, auth_strategy=None, *args, **kwargs):
-        self.http_client = HttpClient(url, auth_strategy, *args, **kwargs)
+    def __init__(self, url=None, auth_strategy=None, **kwargs):
+        if not url:
+            raise ValueError("Client has no API URL configured")
+        self.http_client = HttpClient(url, auth_strategy, **kwargs)
         self.url = url
 
     @checked_error

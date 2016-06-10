@@ -18,7 +18,7 @@ class HttpClient:
     ALLOWABLE_VERSIONS = "curr current latest new next".split(" ")
     ALLOWABLE_SITES = "master canonical all".split(" ")
 
-    def __init__(self, url, auth_strategy=None, debug=False, *args, **kwargs):
+    def __init__(self, url, auth_strategy=None, debug=False, **kwargs):
         self.base_url = url
         self.auth_strategy = auth_strategy
         self.debug = debug
@@ -185,7 +185,6 @@ class HttpClient:
         """
         Retrieve a datacat object.
         :param path: Path of the object to retrieve.
-        :param effective: Type of stat to return with this object.
         :return: A :class`requests.Response` object. The content is a representation of the newly created container.
         """
         endpoint = "permissions"

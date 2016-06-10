@@ -35,10 +35,12 @@ public class Search {
      * @return Response object of the search
      */
     public Response searchForDatasets(String target, Optional<String> versionId, Optional<String> site,
-            Optional<String> query, Optional<String[]> sort, Optional<String[]> show, Optional<Integer> offset,
-            Optional<Integer> max){
+            Optional<String> query, Optional<String> folderQuery, 
+            Optional<String[]> sort, Optional<String[]> show, 
+            Optional<Integer> offset, Optional<Integer> max){
         return Path.getTarget(webTarget.path(target), versionId, site)
                 .queryParam("filter", query.orNull())
+                .queryParam("containerFilter", folderQuery.orNull())
                 .queryParam("sort", sort.orNull())
                 .queryParam("show", show.orNull())
                 .queryParam("offset", offset.orNull())
