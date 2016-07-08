@@ -41,12 +41,6 @@ public class TestUtils {
             }
 
             @Override
-            public DcGroup lookupPrincipalByGroupName(String group) throws IOException{
-                return super.lookupPrincipalByGroupName( group );
-            }
-
-
-            @Override
             public Set<DcGroup> lookupGroupsForUser(DcUser member) throws IOException {
                 Set<DcGroup> ug = new HashSet<>(super.lookupGroupsForUser( member ));
                 if(member != null && member.getName().equals( "test_user")){
