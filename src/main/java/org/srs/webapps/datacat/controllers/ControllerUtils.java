@@ -5,8 +5,10 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.ClientRequestFilter;
@@ -32,14 +34,33 @@ import org.srs.webapps.datacat.model.NodeTargetModel;
 public class ControllerUtils {
     static final int DEFAULT_MAX = 100;
     
+    
     public static ClientRequestFilter getCasClientFilter(HttpServletRequest request){
         Map<String, Object> headers = new HashMap<>();
         headers.put("x-cas-username", request.getSession().getAttribute("userName"));
         return new HeaderFilter(headers);
     }
     
+    public static ClientRequestFilter getPassThroughFilter(HttpServletRequest request){
+        final Set<String> passThroughAuths = new HashSet<>(Arrays.asList(
+                HttpServletRequest.BASIC_AUTH,
+                HttpServletRequest.DIGEST_AUTH
+        ));
+        Map<String, Object> headers = new HashMap<>();
+        if(passThroughAuths.contains(request.getAuthType())){
+            headers.put("Authorization", request.getHeader("Authorization"));
+        }
+        if(request.getHeader("Cookie") != null){
+            headers.put("Cookie", request.getHeader("Cookie"));
+        }
+        return new HeaderFilter(headers);
+    }
+    
     public static ClientRequestFilter getClientFilter(HttpServletRequest request){
-        return getCasClientFilter(request);
+        if(request.getSession().getAttribute("userName") != null){
+            return getCasClientFilter(request);
+        }
+        return getPassThroughFilter(request);
     }
     
     public static Client getClient(HttpServletRequest request) throws IOException{
