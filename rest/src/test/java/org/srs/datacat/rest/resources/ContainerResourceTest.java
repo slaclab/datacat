@@ -24,6 +24,8 @@ import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.RecordType;
 import org.srs.datacat.rest.App;
 import org.srs.datacat.rest.FormParamConverter;
+import org.srs.datacat.rest.JacksonFeature;
+import org.srs.datacat.shared.Provider;
 import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.vfs.TestUtils;
 import org.srs.vfs.PathUtils;
@@ -33,6 +35,7 @@ import org.srs.vfs.PathUtils;
  * @author bvan
  */
 public class ContainerResourceTest extends JerseyTest {
+    private final Provider modelProvider = new Provider();
     
     public ContainerResourceTest(){ }
     
@@ -62,7 +65,7 @@ public class ContainerResourceTest extends JerseyTest {
 
         }
 
-        ResourceConfig app = new App(harness.getDataSource(), TestUtils.getLookupService())
+        ResourceConfig app = new App(harness.getDataSource(), modelProvider, TestUtils.getLookupService())
                 .register(TestSecurityFilter.class)
                 .register(ContainerResource.class)
                 .register(DatasetsResource.class)
@@ -213,7 +216,7 @@ public class ContainerResourceTest extends JerseyTest {
         
         resp = target("/folders.json/testpath")
                 .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
-                .register(App.JacksonFeature.class)
+                .register(new JacksonFeature(modelProvider))
                 .property(ClientProperties.FOLLOW_REDIRECTS, "false")
                 .request()
                 .header("authentication", DbHarness.TEST_USER)

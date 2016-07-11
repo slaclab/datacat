@@ -22,6 +22,7 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.srs.datacat.rest.App;
+import org.srs.datacat.shared.Provider;
 import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.vfs.TestUtils;
 
@@ -30,6 +31,7 @@ import org.srs.datacat.vfs.TestUtils;
  * @author bvan
  */
 public class PermissionsResourceTest extends JerseyTest {
+    private final Provider modelProvider = new Provider();
     
     public PermissionsResourceTest(){ }
     static final ObjectMapper mdMapper = new ObjectMapper();
@@ -50,8 +52,8 @@ public class PermissionsResourceTest extends JerseyTest {
             System.out.println(ex);
 
         }
-
-        ResourceConfig app = new App(harness.getDataSource(), TestUtils.getLookupService())
+        
+        ResourceConfig app = new App(harness.getDataSource(), modelProvider, TestUtils.getLookupService())
                 .register(TestSecurityFilter.class)
                 .register(ContainerResource.class)
                 .register(PathResource.class)

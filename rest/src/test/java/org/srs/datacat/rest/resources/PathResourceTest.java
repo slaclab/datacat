@@ -18,6 +18,7 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
 import org.srs.datacat.rest.App;
 import static org.srs.datacat.rest.resources.DatasetsResourceTest.generateFoldersAndDatasetsAndVersions;
+import org.srs.datacat.shared.Provider;
 import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.vfs.TestUtils;
 
@@ -26,7 +27,7 @@ import org.srs.datacat.vfs.TestUtils;
  * @author bvan
  */
 public class PathResourceTest extends JerseyTest {
-    
+    private final Provider modelProvider = new Provider();
     static final ObjectMapper mdMapper = new ObjectMapper();
 
     static {
@@ -36,8 +37,7 @@ public class PathResourceTest extends JerseyTest {
         mdMapper.setAnnotationIntrospector( pair );
     }
     
-    public PathResourceTest(){
-    }
+    public PathResourceTest(){ }
     
     @Override
     protected Application configure(){
@@ -49,7 +49,7 @@ public class PathResourceTest extends JerseyTest {
 
         }
 
-        ResourceConfig app = new App(harness.getDataSource(), TestUtils.getLookupService())
+        ResourceConfig app = new App(harness.getDataSource(), modelProvider, TestUtils.getLookupService())
                 .register(TestSecurityFilter.class)
                 .register(ContainerResource.class)
                 .register(PathResource.class)

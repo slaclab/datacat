@@ -21,10 +21,8 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.srs.datacat.client.auth.HeaderFilter;
-import org.srs.datacat.client.exception.DcClientException;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetView;
-import org.srs.datacat.model.ModelProvider;
 import org.srs.datacat.model.security.DcGroup;
 import org.srs.datacat.model.security.DcPermissions;
 import org.srs.datacat.model.security.DcUser;
@@ -43,13 +41,15 @@ import org.srs.datacat.vfs.TestUtils;
  * @author bvan
 */
 public class DatasetClientsTest extends JerseyTest {
+    
+    private final Provider provider = new Provider();
 
     @Override
     protected Application configure(){
         try {
             DbHarness harness = DbHarness.getDbHarness();
         
-            ResourceConfig app = new App(harness.getDataSource(), TestUtils.getLookupService())
+            ResourceConfig app = new App(harness.getDataSource(), provider, TestUtils.getLookupService())
                     .register(TestSecurityFilter.class)
                     .register(ContainerResource.class)
                     .register(PermissionsResource.class)
@@ -106,7 +106,6 @@ public class DatasetClientsTest extends JerseyTest {
         metadata.put(DbHarness.numberName, DbHarness.numberMdValues[0]);
         metadata.put(DbHarness.alphaName, DbHarness.alphaMdValues[0]);
         
-        ModelProvider provider = new Provider();
         
         DatasetModel newDataset = provider.getDatasetBuilder()
                 .name(name)

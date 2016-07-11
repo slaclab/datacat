@@ -33,6 +33,7 @@ import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.rest.App;
 import org.srs.datacat.shared.FlatDataset;
+import org.srs.datacat.shared.Provider;
 import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.test.HSqlDbHarness;
 import org.srs.datacat.vfs.TestUtils;
@@ -45,6 +46,7 @@ public class SearchResourceTest extends JerseyTest{
     
     App app;
     HSqlDbHarness harness = null;
+    private final Provider modelProvider = new Provider();
     
     public SearchResourceTest() throws SQLException{
 
@@ -60,7 +62,7 @@ public class SearchResourceTest extends JerseyTest{
             System.out.println(ex);
 
         }
-        app = new App(harness.getDataSource(), TestUtils.getLookupService());
+        app = new App(harness.getDataSource(), modelProvider, TestUtils.getLookupService());
         ResourceConfig newApp = app.register(SearchResource.class)
                 .register(PathResource.class)
                 .register(TestSecurityFilter.class);
@@ -69,7 +71,7 @@ public class SearchResourceTest extends JerseyTest{
 
     @Test
     public void testBasicSearch() throws IOException {
-        DAOFactory factory = app.getFsProvider().getDaoFactory();
+        DAOFactory factory = app.fsProvider.getDaoFactory();
         DAOTestUtils.generateDatasets(factory, 10, 100);
         
         AnnotationIntrospector primary = new JacksonAnnotationIntrospector();

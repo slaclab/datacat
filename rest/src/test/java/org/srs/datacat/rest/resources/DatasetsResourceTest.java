@@ -16,13 +16,10 @@ import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
@@ -33,19 +30,16 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.server.model.Resource;
 import org.glassfish.jersey.test.JerseyTest;
-import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.rest.App;
-import org.srs.datacat.rest.App.JacksonFeature;
 import org.srs.datacat.rest.FormParamConverter;
+import org.srs.datacat.rest.JacksonFeature;
 import org.srs.datacat.shared.Dataset;
+import org.srs.datacat.shared.Provider;
 import org.srs.datacat.test.DbHarness;
 import org.srs.datacat.test.HSqlDbHarness;
-import org.srs.datacat.vfs.DcPath;
 import org.srs.datacat.vfs.TestUtils;
-import org.srs.datacat.model.dataset.DatasetOption;
 import org.srs.datacat.shared.metadata.MetadataEntry;
 import org.srs.vfs.PathUtils;
 
@@ -54,6 +48,7 @@ import org.srs.vfs.PathUtils;
  * @author bvan
  */
 public class DatasetsResourceTest extends JerseyTest {
+    private final Provider modelProvider = new Provider();
     
     static final ObjectMapper mdMapper = new ObjectMapper();
 
@@ -77,7 +72,7 @@ public class DatasetsResourceTest extends JerseyTest {
 
         }
 
-        ResourceConfig app = new App(harness.getDataSource(), TestUtils.getLookupService())
+        ResourceConfig app = new App(harness.getDataSource(), modelProvider, TestUtils.getLookupService())
                 .register(TestSecurityFilter.class)
                 .register(ContainerResource.class)
                 .register(PathResource.class)
@@ -175,7 +170,7 @@ public class DatasetsResourceTest extends JerseyTest {
         System.out.println(req.toString());
         
         Response resp = target("/datasets.json" + parent)
-                .register(JacksonFeature.class)
+                .register(new JacksonFeature(modelProvider))
                 .property(ClientProperties.FOLLOW_REDIRECTS, "false")
                 .request(MediaType.APPLICATION_JSON)
                 .header("authentication", DbHarness.TEST_USER)
@@ -206,7 +201,7 @@ public class DatasetsResourceTest extends JerseyTest {
         
         Response resp = target("/datasets.json" + parent)
                 .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
-                .register(JacksonFeature.class)
+                .register(new JacksonFeature(modelProvider))
                 .property(ClientProperties.FOLLOW_REDIRECTS, "false")
                 .request(MediaType.APPLICATION_JSON)
                 .header("authentication", DbHarness.TEST_USER)
@@ -218,7 +213,7 @@ public class DatasetsResourceTest extends JerseyTest {
         
         resp = target("/datasets.json" + ds)
                 .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
-                .register(JacksonFeature.class)
+                .register(new JacksonFeature(modelProvider))
                 .property(ClientProperties.FOLLOW_REDIRECTS, "false")
                 .request(MediaType.APPLICATION_JSON)
                 .header("authentication", DbHarness.TEST_USER)
@@ -235,7 +230,7 @@ public class DatasetsResourceTest extends JerseyTest {
                 .versionMetadata(metadata)
                 .build();
         resp = target("/datasets.json" + ds)
-            .register(JacksonFeature.class)
+            .register(new JacksonFeature(modelProvider))
             .property(ClientProperties.FOLLOW_REDIRECTS, "false")
             .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
             .request(MediaType.APPLICATION_JSON)
@@ -269,7 +264,7 @@ public class DatasetsResourceTest extends JerseyTest {
         
         Response resp = target("/datasets.json" + parent)
                 .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
-                .register(JacksonFeature.class)
+                .register(new JacksonFeature(modelProvider))
                 .property(ClientProperties.FOLLOW_REDIRECTS, "false")
                 .request(MediaType.APPLICATION_JSON)
                 .header("authentication", TestUtils.TEST_USER)
@@ -281,7 +276,7 @@ public class DatasetsResourceTest extends JerseyTest {
         
         resp = target("/datasets.json" + ds)
                 .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
-                .register(JacksonFeature.class)
+                .register(new JacksonFeature(modelProvider))
                 .property(ClientProperties.FOLLOW_REDIRECTS, "false")
                 .request(MediaType.APPLICATION_JSON)
                 .header("authentication", TestUtils.TEST_USER)
@@ -298,7 +293,7 @@ public class DatasetsResourceTest extends JerseyTest {
                 .versionMetadata(metadata)
                 .build();
         resp = target("/datasets.json" + ds)
-            .register(JacksonFeature.class)
+            .register(new JacksonFeature(modelProvider))
             .property(ClientProperties.FOLLOW_REDIRECTS, "false")
             .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
             .request(MediaType.APPLICATION_JSON)

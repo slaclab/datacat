@@ -31,24 +31,29 @@ public class TestUtils {
                     new HashSet<>(Arrays.asList(DcGroup.PUBLIC_GROUP, new DcGroup("test_group","SRS")))
             );
         
-    
+    public static final class TestUserLookupService extends DcUserLookupService {
+
+        @Override
+        public DcUser lookupPrincipalByName(String name) throws IOException{
+            return super.lookupPrincipalByName(name);
+        }
+
+        @Override
+        public Set<DcGroup> lookupGroupsForUser(DcUser member) throws IOException{
+            Set<DcGroup> ug = new HashSet<>(super.lookupGroupsForUser(member));
+            if(member != null && member.getName().equals("test_user")){
+                ug.add(new DcGroup("test_group", "SRS"));
+            }
+            return ug;
+        }
+    }
+
     public static DcUserLookupService getLookupService(){
-        return new DcUserLookupService(){
-
-            @Override
-            public DcUser lookupPrincipalByName(String name) throws IOException{
-                return super.lookupPrincipalByName( name );
-            }
-
-            @Override
-            public Set<DcGroup> lookupGroupsForUser(DcUser member) throws IOException {
-                Set<DcGroup> ug = new HashSet<>(super.lookupGroupsForUser( member ));
-                if(member != null && member.getName().equals( "test_user")){
-                    ug.add( new DcGroup("test_group","SRS"));
-                }
-                return ug;
-            }
-        };
+        try {
+            return TestUserLookupService.class.newInstance();
+        } catch(InstantiationException | IllegalAccessException ex) {
+            throw new RuntimeException("Unable to instantiate lookupservice", ex);
+        }
     }
     
     public static LinkedList<DatacatNode> walkPath(DAOFactory factory, ModelProvider modelProvider,
