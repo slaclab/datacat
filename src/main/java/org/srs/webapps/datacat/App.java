@@ -1,6 +1,7 @@
-
 package org.srs.webapps.datacat;
 
+import org.srs.datacat.rest.Utils;
+import org.srs.datacat.shared.Provider;
 import org.srs.webapps.datacat.auth.GroupManagerAuthProvider;
 import org.srs.webapps.datacat.auth.GroupManagerServerFeature;
 
@@ -10,7 +11,10 @@ import org.srs.webapps.datacat.auth.GroupManagerServerFeature;
  */
 public class App extends org.srs.datacat.rest.App {
     public App(){
-        super(new GroupManagerAuthProvider());
+        super(Utils.initDatasource("jdbc/datacat-prod"),
+                Utils.initModelProvider(Provider.class),
+                Utils.initUserLookupService(GroupManagerAuthProvider.class)
+        );
         register(GroupManagerServerFeature.class);
     }
 }
