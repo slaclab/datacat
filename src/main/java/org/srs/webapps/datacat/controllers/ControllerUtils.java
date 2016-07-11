@@ -37,6 +37,7 @@ public class ControllerUtils {
     
     public static ClientRequestFilter getCasClientFilter(HttpServletRequest request){
         Map<String, Object> headers = new HashMap<>();
+        // Client configuration can go here if testing
         headers.put("x-cas-username", request.getSession().getAttribute("userName"));
         return new HeaderFilter(headers);
     }
