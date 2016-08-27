@@ -16,7 +16,6 @@ def build_argparser():
     parser = argparse.ArgumentParser(description="Python CLI for Data Catalog RESTful interfaces")
     parser.add_argument('-U', '--base-url', help="Override base URL for client", action="store")
     # FIXME: These are site/SRS specific
-    parser.add_argument('-D', '--domain', "--experiment", help="Set domain (experiment) for requests", default="srs")
     parser.add_argument('-M', '--mode', help="Set server mode", choices=("dev", "prod"), default="prod")
     # ENDFIXME
     parser.add_argument('-F', '--config-file', help="Set config file path", action="store")
@@ -137,7 +136,7 @@ def main():
     config_file_path = args.config_file
     config_section = args.config_section
 
-    config = config_from_file(config_file_path, config_section, args.domain, args.mode)
+    config = config_from_file(config_file_path, config_section, args.mode)
     url = args.base_url if hasattr(args, 'base_url') and args.base_url is not None else None
     if url:
         config["url"] = url
