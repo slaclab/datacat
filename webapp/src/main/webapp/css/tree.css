@@ -1,0 +1,100 @@
+.tree {
+    outline: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+.tree ul {
+    list-style: none;
+    padding: 0;
+}
+
+.tree li {
+    list-style: none;
+}
+
+.tree-root {  
+}
+
+.tree-file {
+    position: relative;
+    margin-left: 15px;
+}
+
+.tree-children {
+    position: relative;
+    display: none;
+    margin-left: 6px;
+    line-height: 20px;
+}
+
+.tree-caret {
+  display: inline-block;
+  height: 16px;
+  width: 16px;
+  background-image: url("../icons/foldericon-blue.png");
+  vertical-align: top;
+  content: "";
+}
+
+.tree-file-caret {
+  display: inline-block;
+  height: 16px;
+  width: 16px;
+  background-image: url("../icons/file-icon.png");
+  vertical-align: top;
+  content: "";
+}
+
+/* Dotted lines */
+.tree-children > :after {
+    position: absolute;
+    left: 0px;
+    top: -8px;
+    bottom: 12px;
+    width: 2px;
+    content: "";
+    border-left: 1px dotted gray;
+    border-bottom: 1px dotted gray;
+}
+
+.tree-node {
+    display: block;    
+    margin: 4px;
+}
+
+/* No margin for top level nodes */
+.tree-children > .tree-node {
+    margin-left: 10px;
+}
+
+.tree-node > a {
+    padding: 2px;
+    border-radius: 4px;
+    color: #337ab7;
+    margin-left: 4px;
+}
+
+.tree-selected {
+    color: #ffffff;
+    background-color: #337ab7;
+    border-color: #428bca;
+}
+
+.tree-node > a.tree-selected {
+    color: white;
+}
+
+/* Toggles view */
+.open > .tree-children {
+    display: block;
+}
+
+.open > .tree-caret {
+  background-image: url("../icons/foldericon-open-red.png");
+}
+
+.tree-children a:hover {
+ cursor:pointer;
+}

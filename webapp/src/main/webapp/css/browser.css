@@ -1,0 +1,113 @@
+
+
+root { 
+    display: block;
+}
+
+.browser {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: none;
+}
+
+.datacat-path {
+    padding: 5px;
+}
+
+.datacat-path > ol {
+    background-color: white;
+}
+
+.datacat-path > .btn-group {
+    background-color: white;
+    padding-top: 5px;
+}
+
+.datacat-path .active {
+    color: #999999;
+}
+
+.table-file-info {
+    max-width: 4em;
+}
+
+.table-header-title {
+    padding-right: 12px;
+    margin-right: 2px;
+}
+
+.table-file-name {
+    text-align: left;
+}
+
+.type-icon {
+    margin-right: 6px;
+}
+
+.datacat-header {
+    margin: 10px 0 5px;
+}
+
+.datacat-header > div > h3 {
+    margin-top: 0px;
+}
+
+.datacat-component {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #fff;
+    box-shadow: none;
+}
+
+.location-site {
+    width: 8em;
+}
+
+.location-status {
+    width: 8em;
+}
+
+.location-ts {
+    width: 12em;
+}
+
+.location-resource {
+    white-space: normal;
+    overflow-x: hidden;
+}
+
+/* If the screen is narrow, use this instead for the CSS */
+@media 
+only screen and (max-width: 760px),
+(min-device-width: 768px) and (max-device-width: 1024px)  {
+
+    .location-site {
+        width: 8em;
+    }
+
+    .location-status {
+        width: 8em;
+    }
+
+    .location-ts {
+        width: 5em;
+    }
+    
+}
+
+.location-table {
+    table-layout: fixed;
+}
+
+th.md-action {
+    width: 4em;
+}
+
+th.md-type {
+    width: 6em;
+}
+
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+    border-top: 2px solid orange;
+}

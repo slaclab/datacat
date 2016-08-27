@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+    <!--
+    -->
+
+    
+    <filter>
+       <filter-name>ExpiresFilter</filter-name>
+       <filter-class>org.apache.catalina.filters.ExpiresFilter</filter-class>
+       <init-param>
+          <param-name>ExpiresByType image</param-name>
+          <param-value>access plus 30 minutes</param-value>
+       </init-param>
+       <init-param>
+          <param-name>ExpiresByType text/css</param-name>
+          <param-value>access plus 30 minutes</param-value>
+       </init-param>
+       
+       <init-param>
+          <param-name>ExpiresByType application/javascript</param-name>
+          <param-value>access plus 30 minutes</param-value>
+       </init-param>
+
+       <init-param>
+          <param-name>ExpiresByType text/javascript</param-name>
+          <param-value>access plus 30 minutes</param-value>
+       </init-param>
+    </filter>
+    <filter-mapping>
+       <filter-name>ExpiresFilter</filter-name>
+       <url-pattern>/*</url-pattern>
+       <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+    
+    <filter>
+        <filter-name>LoginFilter</filter-name>
+        <filter-class>org.srs.web.base.filters.login.LoginFilter</filter-class>
+        <init-param>
+            <param-name>enableHmac</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>configDb</param-name>
+            <param-value>${experiment.configuration.database}</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>LoginFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <servlet>
+        <servlet-name>BrowserController</servlet-name>
+        <servlet-class>org.srs.webapps.datacat.controllers.BrowserController</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>BrowserController</servlet-name>
+        <!-- using base of host/rest/datacat -->
+        <url-pattern>/display/browser/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>AjaxContainerController</servlet-name>
+        <servlet-class>org.srs.webapps.datacat.controllers.AjaxContainerController</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AjaxContainerController</servlet-name>
+        <!-- using base of host/rest/datacat -->
+        <url-pattern>/display/ajax/container/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>TreeController</servlet-name>
+        <servlet-class>org.srs.webapps.datacat.controllers.TreeController</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TreeController</servlet-name>
+        <!-- using base of host/rest/datacat -->
+        <url-pattern>/display/tree/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>SearchController</servlet-name>
+        <servlet-class>org.srs.webapps.datacat.controllers.SearchController</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>SearchController</servlet-name>
+        <url-pattern>/display/search/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>DatasetsController</servlet-name>
+        <servlet-class>org.srs.webapps.datacat.controllers.DatasetsController</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DatasetsController</servlet-name>
+        <!-- using base of host/rest/datacat -->
+        <url-pattern>/display/datasets/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>EditController</servlet-name>
+        <servlet-class>org.srs.webapps.datacat.controllers.EditController</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>EditController</servlet-name>
+        <!-- using base of host/rest/datacat -->
+        <url-pattern>/display/edit/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>NewController</servlet-name>
+        <servlet-class>org.srs.webapps.datacat.controllers.NewController</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>NewController</servlet-name>
+        <!-- using base of host/rest/datacat -->
+        <url-pattern>/display/new/*</url-pattern>
+    </servlet-mapping>
+
+
+    <servlet>
+        <servlet-name>Jersey REST Service</servlet-name>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+        <init-param>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>org.srs.webapps.datacat.App</param-value>
+        </init-param>
+        <init-param>
+            <param-name>jersey.config.server.provider.packages</param-name>
+            <param-value>org.srs.datacat.rest;org.srs.datacat.rest.resources</param-value>
+        </init-param>
+        
+        <init-param>
+            <param-name>jersey.config.server.response.setStatusOverSendError</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        
+        <!--
+        <init-param>
+            <param-name>jersey.config.server.tracing.type</param-name>
+            <param-value>ALL</param-value>
+        </init-param>
+        <init-param>
+            <param-name>jersey.config.server.tracing.threshold</param-name>
+            <param-value>VERBOSE</param-value>
+        </init-param>
+        -->
+        
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Jersey REST Service</servlet-name>
+        <!-- using base of host/rest/datacat -->
+        <url-pattern>/r/*</url-pattern>
+    </servlet-mapping>
+    <session-config>
+        <session-timeout>
+            30
+        </session-timeout>
+    </session-config>
+    <welcome-file-list>
+        <welcome-file>display/browser</welcome-file>
+    </welcome-file-list>
+</web-app>
