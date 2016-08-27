@@ -36,4 +36,4 @@ def client_from_config_file(path=None, override_section=None):
 
 
 def _default_url(mode=None):
-    mode = _PROD_SRS_URL if mode in ('prod', None) else _DEV_SRS_URL
+    return _PROD_SRS_URL if mode in ('prod', None) else _DEV_SRS_URL
