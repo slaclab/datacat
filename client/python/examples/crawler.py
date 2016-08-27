@@ -1,3 +1,4 @@
+from __future__ import print_function
 from datacat import client_from_config_file
 from datacat.error import DcException
 from datetime import datetime
@@ -61,7 +62,7 @@ class Crawler:
             results = self.client.search(WATCH_FOLDER, version="current", site=WATCH_SITE,
                                          query="scanStatus = 'UNSCANNED'", max_num=1000)
         except DcException as error:
-            print error
+            print(error)
             sys.exit(1)
 
         for dataset in results:
@@ -92,11 +93,11 @@ class Crawler:
             try:
                 patched_ds = self.client.patch_dataset(dataset_path, scan_result,
                                                        versionId=dataset.versionId, site=WATCH_SITE)
-                print "Updated Dataset:"
-                print patched_ds
+                print("Updated Dataset:")
+                print(patched_ds)
             except DcException as error:
                 print("Encountered error while updating dataset")
-                print error
+                print(error)
 
         return True
 

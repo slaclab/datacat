@@ -4,7 +4,10 @@ from email.utils import formatdate
 import hashlib
 import hmac
 from requests.auth import AuthBase
-from urlparse import urlparse
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 
 __author__ = 'bvan'
 

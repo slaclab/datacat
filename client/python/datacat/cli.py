@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 import argparse
 import inspect
 import json
@@ -157,14 +158,14 @@ def main():
     try:
         result = client_method(target, **params)
     except DcClientException as error:
-        print error
-        print "Cause: " + error.cause
+        print(error)
+        print("Cause: " + error.cause)
         sys.exit(1)
     except DcRequestException as error:
-        print error
+        print(error)
         sys.exit(2)
     except DcException as error:
-        print error
+        print(error)
         sys.exit(3)
 
     if command == "search":
@@ -214,36 +215,36 @@ def format_search_results(results, show=None, sort=None):
 
 
 def format_path_result(result):
-    print maybe_hilite(result)
-    print "Type: {}".format(type(result).__name__)
-    print "Path: {}".format(result.path)
+    print(maybe_hilite(result))
+    print("Type: {}".format(type(result).__name__))
+    print("Path: {}".format(result.path))
     if isinstance(result, Container):
         if hasattr(result, "stat"):
-            print "Stat:"
+            print("Stat:")
             for name, value in result.stat.items():
                 if "_type" not in name:
-                    print "    {}: {}".format(name, value)
+                    print("    {}: {}".format(name, value))
 
     if hasattr(result, "versionMetadata"):
-        print "Version Metadata:"
+        print("Version Metadata:")
         mdstr = json.dumps(result.versionMetadata.dct, sort_keys=False, indent=4)
-        print "    " + mdstr.replace("\n", "\n    ")
+        print("    " + mdstr.replace("\n", "\n    "))
 
     if hasattr(result, "metadata"):
-        print "Metadata:"
+        print("Metadata:")
         mdstr = json.dumps(result.metadata.dct, sort_keys=False, indent=4)
-        print "    " + mdstr.replace("\n", "\n    ")
+        print("    " + mdstr.replace("\n", "\n    "))
 
 
 def format_permissions(result, path):
-    print "Permissions for {}:".format(path)
-    print "    {}: {}".format(result.subject, Permissions.pack(result.permissions))
+    print("Permissions for {}:".format(path))
+    print("    {}: {}".format(result.subject, Permissions.pack(result.permissions)))
 
 
 def format_listacl(result, path):
-    print "Permissions for {}:".format(path)
+    print("Permissions for {}:".format(path))
     for entry in result:
-        print "    {}: {}".format(entry.subject, Permissions.pack(entry.permissions))
+        print("    {}: {}".format(entry.subject, Permissions.pack(entry.permissions)))
 
 
 def maybe_hilite(result):
@@ -261,10 +262,10 @@ def maybe_hilite(result):
 def format_children(results, stat):
     for result in results:
         if stat:
-            print "#"*32
+            print("#" * 32)
             format_path_result(result)
         else:
-            print maybe_hilite(result)
+            print(maybe_hilite(result))
 
 if __name__ == '__main__':
     main()
