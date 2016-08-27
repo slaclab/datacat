@@ -10,7 +10,7 @@ import org.srs.datacat.vfs.DcFileSystemProvider;
  * 
  * @author bvan
  */
-public class JerseyBinders {
+public class Binders {
     public static class FsBinder extends AbstractBinder {
         private final DcFileSystemProvider provider;
 

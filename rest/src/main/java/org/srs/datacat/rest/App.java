@@ -15,7 +15,7 @@ import org.srs.datacat.dao.sql.search.plugins.EXODatacatSearchPlugin;
 import org.srs.datacat.dao.sql.search.plugins.LsstFilesSearchPlugin;
 import org.srs.datacat.dao.sql.search.plugins.LsstKVSearchPlugin;
 import org.srs.datacat.dao.sql.search.plugins.LsstPositionsSearchPlugin;
-import org.srs.datacat.rest.JerseyBinders.*;
+import org.srs.datacat.rest.Binders.*;
 
 /**
  *
