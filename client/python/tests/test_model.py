@@ -26,7 +26,7 @@ class ModelTest(unittest.TestCase):
             ]
         }
         json_str = json.dumps(ds)
-        print json_str
+        print(json_str)
         ds_new = unpack(json_str)
         print(pack(ds_new))
         ds_new2 = unpack(pack(ds_new), Dataset)
@@ -38,7 +38,7 @@ class ModelTest(unittest.TestCase):
             {"_type": "group", "name": "root", "path": "/EXO/Data/Raw/root", "pk": 2321462, "parentPk": 2274852}
         ]
         json_str = json.dumps(group)
-        print json_str
+        print(json_str)
         group_new = unpack(json_str)
         print(pack(group_new))
         group_new2 = unpack(pack(group_new), Container)
@@ -63,7 +63,7 @@ class ModelTest(unittest.TestCase):
         ]
 
         json_str = json.dumps(full_ds)
-        print json_str
+        print(json_str)
         ds_new = unpack(json_str)
         print(ds_new[0].__dict__)
         print(pack(ds_new))
