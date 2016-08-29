@@ -128,8 +128,15 @@ def build_argparser():
 
 
 def main():
+    logging.basicConfig()
     parser = build_argparser()
     args, extra = parser.parse_known_args()
+    if args.debug:
+        logging.root.setLevel(logging.DEBUG)
+        requests_log = logging.getLogger("requests")
+        requests_log.setLevel(logging.DEBUG)
+        datacat_log = logging.getLogger("datacat")
+        datacat_log.setLevel(logging.DEBUG)
 
     command = args.command
     target = args.__dict__.pop("path")
@@ -143,9 +150,6 @@ def main():
         config["url"] = url
     if args.debug:
         config["debug"] = True
-        logging.basicConfig(level=logging.DEBUG)
-        requests_log = logging.getLogger("requests")
-        requests_log.setLevel(logging.DEBUG)
 
     auth_strategy = auth_from_config(config)
     client = Client(auth_strategy=auth_strategy, **config)

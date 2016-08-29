@@ -1,3 +1,4 @@
+import logging
 try:
     import configparser as cp
 except ImportError:
@@ -6,6 +7,8 @@ import os
 
 ENDPOINTS = "children path search datasets containers groups folders permissions".split(" ")
 DATATYPES = "json xml txt".split(" ")
+
+_logger = logging.getLogger(__name__)
 
 __version__ = "0.5"
 
@@ -36,4 +39,8 @@ def config_from_file(path=None, override_section=None, override_url=None):
         defaults.update(overrides)
     if override_url:
         defaults["url"] = override_url
+    _logger.debug("Finished configuration")
+    if _logger.isEnabledFor(logging.DEBUG):
+        import pprint
+        _logger.debug("\n" + pprint.pformat(defaults, 2))
     return defaults
