@@ -5,11 +5,15 @@ import json
 import logging
 
 _logger = logging.getLogger(__name__)
-''' TODO:
-_integer = six.integer_types[-1] # six
-_string = six.integer_types[-1] # six
-'''
-_integer = long
+
+try:
+    # Py2
+    _integer = long
+    unicode = unicode
+except NameError:
+    # Py3
+    _integer = int
+    unicode = str
 
 
 class DatacatRecord(object):
