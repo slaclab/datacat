@@ -3,6 +3,7 @@ import base64
 from email.utils import formatdate
 import hashlib
 import hmac
+import logging
 from requests.auth import AuthBase
 try:
     from urlparse import urlparse
@@ -10,6 +11,8 @@ except ImportError:
     from urllib.parse import urlparse
 
 __author__ = 'bvan'
+
+_logger = logging.getLogger(__name__)
 
 
 class HMACAuth(AuthBase):
@@ -76,22 +79,20 @@ class HMACAuthSRS(HMACAuth):
 
 
 def auth_from_config(config):
-    config = config.copy()
+    _config = config.copy()
     auth_type = config.get("auth_type", None)
     if auth_type:
-        del config["auth_type"]
-        auth_params = {"url": config.get("url")}
-
-        for key in config.keys():
+        del _config["auth_type"]
+        auth_params = {"url": _config.get("url")}
+        for key in list(_config):
             if key.startswith("auth_"):
-                val = config.pop(key)
+                val = _config.pop(key)
                 key = key[len("auth_"):]
                 auth_params[key] = val
-        if auth_type == HMACAuth.__name__:
-            auth_strategy = HMACAuth(**auth_params)
-        elif auth_type == HMACAuthSRS.__name__:
-            auth_strategy = HMACAuthSRS(**auth_params)
+        if auth_type in globals():
+            auth_strategy = globals()[auth_type](**auth_params)
         else:
+            _logger.warn("No Auth Strategy found for auth_type: " + auth_type)
             auth_strategy = None
         return auth_strategy
     return None
