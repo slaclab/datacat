@@ -20,10 +20,11 @@ public class TreeController extends HttpServlet {
             throws ServletException, IOException{
         
         try {
-            NodeTargetModel model = ControllerUtils.collectAttributes(request, false);
-            request.setAttribute("model", model);
+            String path = request.getPathInfo();
+            // NodeTargetModel model = ControllerUtils.buildModel(request, path, false);
+            // request.setAttribute("model", model);
         } catch (DcException ex){
-            NodeTargetModel model = ControllerUtils.collectBasicAttributes(request);
+            NodeTargetModel model = ControllerUtils.buildBasicModelOld(request);
             request.setAttribute("model", model);
             request.setAttribute("error", ex);
             request.getRequestDispatcher( "/display/error.jsp" ).forward( request, response );

@@ -26,6 +26,7 @@ import org.srs.datacat.shared.DatasetStat;
 import org.srs.datacat.shared.RequestView;
 import org.srs.vfs.PathUtils;
 import org.srs.webapps.datacat.model.NodeTargetModel;
+import org.srs.webapps.datacat.model.ApplicationUriInfo;
 
 /**
  *
@@ -35,14 +36,19 @@ public class ControllerUtils {
     static final int DEFAULT_MAX = 100;
     
     
-    public static ClientRequestFilter getCasClientFilter(HttpServletRequest request){
+    private static ClientRequestFilter getCasClientFilter(HttpServletRequest request){
         Map<String, Object> headers = new HashMap<>();
         // Client configuration can go here if testing
+        String srsClientId = request.getServletContext().getInitParameter("org.srs.datacat.srs_client_id");
+        if(srsClientId != null){
+            headers.put("x-client-id", srsClientId); // This web applications has a clientId which should be trusted
+        }
+
         headers.put("x-cas-username", request.getSession().getAttribute("userName"));
         return new HeaderFilter(headers);
     }
     
-    public static ClientRequestFilter getPassThroughFilter(HttpServletRequest request){
+    private static ClientRequestFilter getPassThroughFilter(HttpServletRequest request){
         final Set<String> passThroughAuths = new HashSet<>(Arrays.asList(
                 HttpServletRequest.BASIC_AUTH,
                 HttpServletRequest.DIGEST_AUTH
@@ -57,7 +63,7 @@ public class ControllerUtils {
         return new HeaderFilter(headers);
     }
     
-    public static ClientRequestFilter getClientFilter(HttpServletRequest request){
+    private static ClientRequestFilter getClientFilter(HttpServletRequest request){
         if(request.getSession().getAttribute("userName") != null){
             return getCasClientFilter(request);
         }
@@ -78,20 +84,20 @@ public class ControllerUtils {
         }
     }
 
-    public static NodeTargetModel collectAttributes(HttpServletRequest request, boolean withDatasets)
+    public static NodeTargetModel buildModel(HttpServletRequest request, ApplicationUriInfo info, boolean includeDatasets)
             throws ServletException, IOException{
 
-        NodeTargetModel requestModel = collectBasicAttributes(request);
+        NodeTargetModel requestModel = buildBasicModel(request, info);
         HashMap<String, List<String>> requestQueryParams = getQueryParams(request);
         RequestView rv = new RequestView(RecordType.FOLDER, null);
+        String path = info.getDatacatPath();
         // This Assumes all REST requests are routed to the same base URL
         Client client = getClient(request); 
-        if(request.getPathInfo() == null || request.getPathInfo().length() == 1){
+        if(path == null || path.length() <= 1){
             requestModel.setParentURL("/");
             requestModel.setContainers(getContainers(client, "/", rv, requestQueryParams));
             requestModel.setPath(null);
         } else {
-            String path = request.getPathInfo();
             DatacatNode target = client.getObject(path, "current", "all");
 
             if(target.getType().isContainer()){
@@ -118,7 +124,7 @@ public class ControllerUtils {
                 int max = requestQueryParams.containsKey("max")
                         ? Integer.valueOf(requestQueryParams.get("max").get(0)) : DEFAULT_MAX;
 
-                if(withDatasets && dsCount > 0){
+                if(includeDatasets && dsCount > 0){
                     ArrayList<DatacatNode> datasets = new ArrayList<>();
                     DatasetResultSetModel searchResults = getDatasets(client, path, rv, requestQueryParams, offset, max);
                     for(DatacatNode d: searchResults.getResults()){
@@ -151,15 +157,14 @@ public class ControllerUtils {
     }
     
     
-    public static NodeTargetModel collectSearchAttributes(HttpServletRequest request)
+    public static NodeTargetModel buildSearchModel(HttpServletRequest request, ApplicationUriInfo info)
             throws ServletException, IOException{
 
-        NodeTargetModel targetModel = collectBasicAttributes(request);
+        NodeTargetModel targetModel = buildBasicModel(request, info);
         HashMap<String, List<String>> requestQueryParams = getQueryParams(request);
         RequestView rv = new RequestView(RecordType.FOLDER, null);
         String searchPath = request.getPathInfo();
         Client client = getClient(request);        
-        
         
         int offset = requestQueryParams.containsKey("offset")
                 ? Integer.valueOf(requestQueryParams.get("offset").get(0)) : 0;
@@ -188,19 +193,28 @@ public class ControllerUtils {
     }
     
 
-    public static NodeTargetModel collectBasicAttributes(HttpServletRequest request){
+    public static NodeTargetModel buildBasicModelOld(HttpServletRequest request){
         NodeTargetModel requestAttributes = new NodeTargetModel();
 
         String endPoint = request.getContextPath() + request.getServletPath();
-        requestAttributes.setEndPoint(endPoint);
 
         String base = endPoint.substring(0, endPoint.lastIndexOf("/"));
-        requestAttributes.setApplicationBase(base);
         requestAttributes.setContextPath(request.getContextPath());
+        requestAttributes.setApplicationBase(base);
+        requestAttributes.setEndPoint(endPoint);
         return requestAttributes;
     }
     
-    public static HashMap<String, List<String>> getQueryParams(HttpServletRequest request){
+    public static NodeTargetModel buildBasicModel(HttpServletRequest request, ApplicationUriInfo model){
+        NodeTargetModel requestAttributes = new NodeTargetModel();
+        requestAttributes.setContextPath(model.getApplicationRoot());
+        requestAttributes.setApplicationBase(model.getDisplayRoot());
+        requestAttributes.setEndPoint(model.getResourceRoot());
+        return requestAttributes;
+    }
+
+    
+    private static HashMap<String, List<String>> getQueryParams(HttpServletRequest request){
         HashMap<String, List<String>> requestQueryParams = new HashMap<>();
         Map<String, String[]> params = request.getParameterMap();
         for(Map.Entry<String, String[]> e: params.entrySet()){

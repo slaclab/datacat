@@ -22,9 +22,10 @@ public class NewController extends HttpServlet {
         
         
         try {
-            NodeTargetModel model = ControllerUtils.collectAttributes(request, false);
+            String path = request.getPathInfo();
+            // NodeTargetModel model = ControllerUtils.buildModel(request, path, false);
             //model.put("type", request.getParameter("type"));
-            request.setAttribute("model", model);
+            // request.setAttribute("model", model);
             request.setAttribute("type", request.getParameter("type"));
         } catch (DcException ex){   
             request.setAttribute("error", ex);

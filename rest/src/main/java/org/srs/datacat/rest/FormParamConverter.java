@@ -20,7 +20,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.ws.rs.core.MultivaluedMap;
-import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
 import org.srs.datacat.model.RecordType;
 import org.srs.datacat.shared.DatacatObject;

@@ -1,7 +1,7 @@
 /* global pageContext */
 
 (function( ldStack, $, rootPath) {
-    ldStack.basePath = rootPath || pageContext.contextPath + "/r";
+    ldStack.basePath = rootPath || pageContext.contextPath;
     
     ldStack.lock = false;
     var loadStack = new Array();
@@ -40,7 +40,7 @@
 	});
     }
     
-}( window.loadStack = window.loadStack || {}, jQuery, pageContext.contextPath + "/r"));
+}( window.loadStack = window.loadStack || {}, jQuery, pageContext.contextPath));
 
 
 (function( dynamicTree, $, ajaxHandler) {
@@ -55,7 +55,7 @@
     };
     
     function groupsAndFoldersFor(path, cb){
-	syncLoadStack("/path.json", path + ";children=containers", "", cb);
+	syncLoadStack("/ajax/children", path, "", cb);
     }
     
 
@@ -69,7 +69,7 @@
             loadPaths.push(path);
         });
         
-	syncLoadStack("/path.json", "/;children", "", function (items){
+	syncLoadStack("/ajax/children", "", "", function (items){
 	    items.sort(dynamicTree.sortFun);
             for(var i = 0; i < items.length; i++){
 		var item = items[i];
@@ -104,7 +104,7 @@
 	path = path.split("\/").slice(1);
 	for(var ixx = 0; ixx < path.length; ixx++){
 	    (function(){
-		var npath ="/" + path.slice(0,ixx+1).join("/") + ";children=containers";
+		var npath ="/" + path.slice(0,ixx+1).join("/") + "";
 		var query = "";
 		var cb = function(items){
 		    childrenCB(npath)(items);
@@ -112,7 +112,7 @@
 		    syncLoadStack.lock = false;
 		};
 		syncLoadStack.wait = true;
-		syncLoadStack("/path.json", npath, query, cb);
+		syncLoadStack("/ajax/children", npath, query, cb);
 	    })();
 	}
 
@@ -135,7 +135,7 @@
     
     function addNode(childrenContainer,item){
 	var node = $('<li class="tree-node"/>').attr("id","/" + item.name);
-        var href = pageContext.applicationBase + "/ajax/container" + item.path;
+        var href = pageContext.contextPath + "/ajax/container" + item.path;
 	var nodeAnchor = $('<a data-toggle="expand" />')
                 //.attr("href", "#")
                 .data("ajax-href", href)

@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -64,9 +63,7 @@ import org.srs.datacat.vfs.attribute.DatasetViewProvider;
 @Path("/datasets" +  OPTIONAL_EXTENSIONS)
 public class DatasetsResource extends BaseResource  { 
     private final String idRegex = "{id: [%\\w\\d\\-_\\./]+}";
-    
-    @Context private HttpServletResponse response;
-    
+        
     private UriInfo ui;
     private String requestPath;
     private HashMap<String, List<String>> requestMatrixParams = new HashMap<>();

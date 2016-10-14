@@ -444,4 +444,24 @@ public class Client {
         throw new DcRequestException("Unknown HTTP Error", resp);
     }
 
+    public Path getPathResource(){
+        return pathResource;
+    }
+
+    public Search getSearchResource(){
+        return searchResource;
+    }
+
+    public Datasets getDatasetsResource(){
+        return datasetsResource;
+    }
+
+    public Containers getContainersResource(){
+        return containersResource;
+    }
+
+    public Permissions getPermissionsResource(){
+        return permissionsResource;
+    }
+    
 }
