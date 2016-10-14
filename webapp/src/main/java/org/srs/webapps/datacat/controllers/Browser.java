@@ -10,6 +10,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.UriInfo;
+import org.glassfish.jersey.server.mvc.ErrorTemplate;
 import org.srs.webapps.datacat.model.NodeTargetModel;
 import org.glassfish.jersey.server.mvc.Template;
 import org.srs.webapps.datacat.model.ApplicationUriInfo;
@@ -25,6 +26,7 @@ public class Browser {
     
     @GET
     @Template(name = "/display/browser.jsp")
+    @ErrorTemplate(name = "/display/error.jsp")
     public NodeTargetModel getBrowserRoot(@PathParam("id") List<PathSegment> pathSegments) throws ServletException, IOException{
         String path = ApplicationUriInfo.pathHelper(pathSegments, null);
         ApplicationUriInfo uriModel = ApplicationUriInfo.getUriModel(uriInfo, getClass(), path);
@@ -34,6 +36,7 @@ public class Browser {
     @GET
     @Path("{id: [%\\w\\d\\-_\\./]*}")
     @Template(name = "/display/browser.jsp")
+    @ErrorTemplate(name = "/display/error.jsp")
     public NodeTargetModel getBrowser(@PathParam("id") List<PathSegment> pathSegments) throws ServletException, IOException{
         String path = ApplicationUriInfo.pathHelper(pathSegments, null);
         ApplicationUriInfo uriModel = ApplicationUriInfo.getUriModel(uriInfo, getClass(), path);

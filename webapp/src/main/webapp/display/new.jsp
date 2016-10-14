@@ -22,6 +22,7 @@
         <script src="${pageContext.request.contextPath}/js/bootstrap.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/browser.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/jquery.dataTables.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js/mdedit.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/mindmup-editabletable.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/dataTables.bootstrap.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/dynamicTree2.js" type="text/javascript"></script>
@@ -29,13 +30,27 @@
     </head>
     <body>
 
+        <script>
+            $("document").ready(function () {
+                $(".new-submit").on("click", function () {
+                    var form = $("#new-form");
+                    form.attr("action", pageContext.endPoint + pageContext.target.path);
+                    var mdItems = mdhandler.getData();
+                    var mdInput = $('<input type="hidden" id="md-form-data" name="versionMetadata" value=""/>');
+                    form.append(mdInput);
+                    $("#md-form-data").val(JSON.stringify(mdItems));
+                    $("#new-form").submit();
+                });
+            });
+        </script>
+
         <div class="row">
             <%@ include file="../views/breadcrumb.jsp" %>
         </div>
 
         <c:choose>
-            <c:when test='${type eq "dataset"}'>
-                <form class="form-horizontal">
+            <c:when test='${param.type eq "dataset"}'>
+                <form class="form-horizontal" id="new-form" method="POST">
                     <fieldset>
 
                         <!-- Form Name -->
@@ -86,20 +101,11 @@
                             </div>
                         </div>
 
-                        <!-- Text input-->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="name">Version Number</label>  
-                            <div class="col-md-5">
-                                <input id="version" name="version" type="text" placeholder="1" class="form-control input-large">
-                                <p class="help-block">Automatically Assigned if omitted</p>
-                            </div>
-                        </div>
-
                     </fieldset>
                     <h3>Metadata</h3>
                     <c:set var="mdlist" value="${null}" />
                     <%@ include file="../views/edit_metadata.jsp" %>
-                    
+
                 </form>
 
             </c:when>
@@ -143,10 +149,16 @@
                     <h3>Version Metadata</h3>
                     <c:set var="mdlist" value="${null}" />
                     <%@ include file="../views/edit_metadata.jsp" %>
-                    
+
+                    <input type="hidden" name="_referer" value="${header.referer}"/>
                 </form>
             </c:otherwise>
 
         </c:choose>
+        
+        <button type="button" class="btn btn-success btn-med new-submit">
+            <span class="glyphicon glyphicon-save" aria-hidden="true"></span> Submit
+        </button>
+
     </body>
 </html>

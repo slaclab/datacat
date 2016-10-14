@@ -85,7 +85,7 @@ public class ControllerUtils {
     }
 
     public static NodeTargetModel buildModel(HttpServletRequest request, ApplicationUriInfo info, boolean includeDatasets)
-            throws ServletException, IOException{
+            throws IOException{
 
         NodeTargetModel requestModel = buildBasicModel(request, info);
         HashMap<String, List<String>> requestQueryParams = getQueryParams(request);

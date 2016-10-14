@@ -17,6 +17,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import org.glassfish.jersey.server.mvc.Template;
 import org.srs.datacat.rest.FormParamConverter;
@@ -31,11 +33,6 @@ import org.srs.webapps.datacat.model.ApplicationUriInfo;
 public class Edit {
     @Context HttpServletRequest request;
     @Context UriInfo uriInfo;
-    List<PathSegment> pathSegments;
-    
-    public Edit(@PathParam("id") List<PathSegment> pathSegments){
-        this.pathSegments = pathSegments;
-    }
 
     @GET
     @Path("{id: ([%\\w\\d\\-_\\./]+)?}")
@@ -48,16 +45,16 @@ public class Edit {
     
     @POST
     @Path("{id: ([%\\w\\d\\-_\\./]+)?}")
-    @Template(name = "/display/edit.jsp")
     @Consumes("application/x-www-form-urlencoded")
-    public void updateNode() throws ServletException, IOException{
+    public Response updateNode(@PathParam("id") List<PathSegment> pathSegments) throws ServletException, IOException{
         MultivaluedMap<String, String> formParams = new MultivaluedHashMap<>();
         for(Entry<String, String[]> entry: request.getParameterMap().entrySet()){
             formParams.put(entry.getKey(), Arrays.asList(entry.getValue()));
         }
         String path = ApplicationUriInfo.pathHelper(pathSegments, null);
         ApplicationUriInfo uriModel = ApplicationUriInfo.getUriModel(uriInfo, getClass(), path);
-        return ;//ControllerUtils.buildModel(request, uriModel, false);
+        String referer = request.getParameter("_referer");
+        return Response.seeOther(UriBuilder.fromUri(referer).build()).build();
     }
 
 }

@@ -5,11 +5,11 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
     <head>
         <title>Error</title>
-        <%@ include file="../views/jscontext.jsp" %>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/browser.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.css">
@@ -25,18 +25,20 @@
     <body>
 
         <div class="container-fluid">
+            <div class="col-xs-12">
+                <c:set var="view" value="error"/>
+                <div class="row">
+                    <%@ include file="../views/tabbar.jsp" %>
+                </div>
 
-            <div class="row">
-                <%@ include file="../views/tabbar.jsp" %>
-            </div>
+                <div class="row">
 
-            <div class="row">
+                    <div class="container-fluid" id="info-views">
+                        <div class="error">
+                            Error: ${model.message} <br/>
+                            Error detail: ${model.cause.message} <br/>
 
-                <div class="container-fluid" id="info-views">
-                    <div class="error">
-                        Error: ${error.message} <br/>
-                        Error detail: ${error.cause} <br/>
-
+                        </div>
                     </div>
                 </div>
             </div>
