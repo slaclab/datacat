@@ -12,7 +12,6 @@ public class NodeTargetModel {
     private String applicationBase;
     private String contextPath;
     private String endPoint;
-    private String parentURL;
     private String path;
     
     private List<String> queryParams;
@@ -52,14 +51,6 @@ public class NodeTargetModel {
 
     public void setEndPoint(String endPoint){
         this.endPoint = endPoint;
-    }
-
-    public String getParentURL(){
-        return parentURL;
-    }
-
-    public void setParentURL(String parentURL){
-        this.parentURL = parentURL;
     }
 
     public String getPath(){

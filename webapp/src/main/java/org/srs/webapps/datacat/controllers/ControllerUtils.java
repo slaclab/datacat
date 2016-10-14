@@ -94,7 +94,6 @@ public class ControllerUtils {
         // This Assumes all REST requests are routed to the same base URL
         Client client = getClient(request); 
         if(path == null || path.length() <= 1){
-            requestModel.setParentURL("/");
             requestModel.setContainers(getContainers(client, "/", rv, requestQueryParams));
             requestModel.setPath(null);
         } else {
@@ -151,7 +150,6 @@ public class ControllerUtils {
                 }
             }
 
-            requestModel.setParentURL(request.getPathInfo());
         }
         return requestModel;
     }
@@ -188,7 +186,6 @@ public class ControllerUtils {
             reqUrl.append('?').append(request.getQueryString());
         }
 
-        targetModel.setParentURL(request.getPathInfo());
         return targetModel;
     }
     

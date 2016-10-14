@@ -32,12 +32,10 @@
                 </div>
 
                 <div class="row">
-
                     <div class="container-fluid" id="info-views">
                         <div class="error">
                             Error: ${model.message} <br/>
                             Error detail: ${model.cause.message} <br/>
-
                         </div>
                     </div>
                 </div>
