@@ -367,7 +367,8 @@ public class PathUtils {
                 return pathPattern.substring( 0, offsets[i]);
             }
         }
-        return pathPattern.substring( 0, offsets[0]);
+        pathPattern = pathPattern.substring(0, cursor);
+        return pathPattern.substring(0, pathPattern.lastIndexOf("/")+1);
     }
     
     private static void checkValidChar(String input, char c) {

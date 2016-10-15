@@ -93,6 +93,7 @@ public class PathUtilsTest extends TestCase {
     public void testPathPattern(){
         
         TestCase.assertEquals("/testpath/", PathUtils.normalizeRegex(GlobToRegex.toRegex("/testpath/folder0000*","/")));
+        TestCase.assertEquals("/testpath/folder00001/", PathUtils.normalizeRegex(GlobToRegex.toRegex("/testpath/folder00001/4.5/","/")));
         TestCase.assertEquals("/abc/def001", PathUtils.normalize(PathUtils.normalizeRegex("/abc/def001")));
         TestCase.assertEquals("/abc/def001", PathUtils.normalize(PathUtils.normalizeRegex("/abc/def001/")));
         TestCase.assertEquals("/", PathUtils.normalize(PathUtils.normalizeRegex("/a*")));
