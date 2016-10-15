@@ -28,7 +28,7 @@ Author     : bvan
                                 <a href="#selected" />${child.name}</a>
                             </c:when>
                             <c:otherwise>
-                                <a href="${model.endPoint}${child.path}">${child.name}</a>
+                                <a href="${model.endPoint}${child.path}">${child.path.substring(model.target.path.length()+1)}</a>
                             </c:otherwise>
                         </c:choose>
                     </td>

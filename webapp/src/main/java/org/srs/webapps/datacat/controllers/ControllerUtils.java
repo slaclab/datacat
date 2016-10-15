@@ -22,6 +22,7 @@ import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RecordType;
 import org.srs.datacat.model.security.DcAclEntry;
 import org.srs.datacat.model.security.DcPermissions;
+import org.srs.datacat.shared.BasicStat;
 import org.srs.datacat.shared.DatasetStat;
 import org.srs.datacat.shared.RequestView;
 import org.srs.vfs.PathUtils;
@@ -139,13 +140,24 @@ public class ControllerUtils {
                 if(request.getQueryString() != null){
                     reqUrl.append('?').append(request.getQueryString());
                 }
-                requestModel.setContainers(client.getContainers(PathUtils.getParentPath(path), coffset, cmax));
+                requestModel.setContainers(client.getContainers(PathUtils.getParentPath(path), coffset, cmax, null));
             } else if (ccCount > 0){
-                requestModel.setContainers(client.getContainers(path, coffset, cmax));
+                List<DatasetContainer> childContainers = new ArrayList<>();
+                List<DatasetContainer> containers = client.getContainers(path, coffset, cmax, "basic");
+                for(DatasetContainer container: containers){
+                    BasicStat stat = (BasicStat) container.getStat();
+                    // Dive in recursively until we find a non-empty container
+                    while(stat.getChildCount() == 1 && stat.getFolderCount() + stat.getGroupCount() == 1){
+                        container = client.getContainers(container.getPath(), coffset, cmax, "basic").get(0);
+                        stat = (BasicStat) container.getStat();
+                    }
+                    childContainers.add(container);
+                }
+                requestModel.setContainers(childContainers);
             }
             if (ccCount == 0){
                 if(requestModel.getContainers() == null){
-                    requestModel.setContainers(client.getContainers(PathUtils.getParentPath(path), coffset, cmax));
+                    requestModel.setContainers(client.getContainers(PathUtils.getParentPath(path), coffset, cmax, null));
                 }
                 requestModel.setSelected(target);
             }
