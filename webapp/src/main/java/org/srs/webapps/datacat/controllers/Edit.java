@@ -20,8 +20,10 @@ import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import org.glassfish.jersey.server.mvc.ErrorTemplate;
 import org.glassfish.jersey.server.mvc.Template;
 import org.srs.datacat.rest.FormParamConverter;
+import org.srs.datacat.shared.Dataset;
 import org.srs.webapps.datacat.model.NodeTargetModel;
 import org.srs.webapps.datacat.model.ApplicationUriInfo;
 
@@ -37,6 +39,7 @@ public class Edit {
     @GET
     @Path("{id: ([%\\w\\d\\-_\\./]+)?}")
     @Template(name = "/display/edit.jsp")
+    @ErrorTemplate(name = "/display/error.jsp")
     public NodeTargetModel getModel(@PathParam("id") List<PathSegment> pathSegments) throws ServletException, IOException{
         String path = ApplicationUriInfo.pathHelper(pathSegments, null);
         ApplicationUriInfo uriModel = ApplicationUriInfo.getUriModel(uriInfo, getClass(), path);
@@ -46,14 +49,16 @@ public class Edit {
     @POST
     @Path("{id: ([%\\w\\d\\-_\\./]+)?}")
     @Consumes("application/x-www-form-urlencoded")
+    @ErrorTemplate(name = "/display/error.jsp")
     public Response updateNode(@PathParam("id") List<PathSegment> pathSegments) throws ServletException, IOException{
         MultivaluedMap<String, String> formParams = new MultivaluedHashMap<>();
         for(Entry<String, String[]> entry: request.getParameterMap().entrySet()){
             formParams.put(entry.getKey(), Arrays.asList(entry.getValue()));
         }
         String path = ApplicationUriInfo.pathHelper(pathSegments, null);
-        ApplicationUriInfo uriModel = ApplicationUriInfo.getUriModel(uriInfo, getClass(), path);
         String referer = request.getParameter("_referer");
+        Dataset ds = FormParamConverter.getDatasetBuilder(formParams).build();
+        ControllerUtils.getClient(request).patchDataset(path, ds);
         return Response.seeOther(UriBuilder.fromUri(referer).build()).build();
     }
 
