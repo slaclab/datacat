@@ -2,6 +2,7 @@ package org.srs.webapps.datacat.model;
 
 import java.util.List;
 import org.srs.datacat.model.DatacatNode;
+import org.srs.datacat.model.DatasetContainer;
 
 /**
  *
@@ -18,8 +19,8 @@ public class NodeTargetModel {
     
     private DatacatNode target;
     private DatacatNode parent;
-    private List<DatacatNode> containers;
     private List<DatacatNode> datasets;
+    private List<DatasetContainer> containers;
     private DatacatNode selected;
     private int datasetCount;
     
@@ -27,30 +28,22 @@ public class NodeTargetModel {
     private boolean isWritable;
     private boolean isInsertable;
 
-    public NodeTargetModel(){ }
+    public NodeTargetModel(ApplicationUriInfo uriInfo){ 
+        this.contextPath = uriInfo.getApplicationRoot();
+        this.applicationBase = uriInfo.getDisplayRoot();
+        this.endPoint = uriInfo.getResourceRoot();
+    }
 
     public String getApplicationBase(){
         return applicationBase;
-    }
-
-    public void setApplicationBase(String applicationBase){
-        this.applicationBase = applicationBase;
     }
 
     public String getContextPath(){
         return contextPath;
     }
 
-    public void setContextPath(String contextPath){
-        this.contextPath = contextPath;
-    }
-
     public String getEndPoint(){
         return endPoint;
-    }
-
-    public void setEndPoint(String endPoint){
-        this.endPoint = endPoint;
     }
 
     public String getPath(){
@@ -85,11 +78,11 @@ public class NodeTargetModel {
         this.parent = parent;
     }
 
-    public List<DatacatNode> getContainers(){
+    public List<DatasetContainer> getContainers(){
         return containers;
     }
 
-    public void setContainers(List<DatacatNode> containers){
+    public void setContainers(List<DatasetContainer> containers){
         this.containers = containers;
     }
 

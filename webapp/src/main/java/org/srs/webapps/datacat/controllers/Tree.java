@@ -12,6 +12,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.UriInfo;
 import org.glassfish.jersey.server.mvc.Template;
+import org.srs.datacat.client.Client;
 import org.srs.webapps.datacat.model.NodeTargetModel;
 import org.srs.webapps.datacat.model.ApplicationUriInfo;
 
@@ -27,7 +28,12 @@ public class Tree {
     @GET
     @Template(name = "/display/tree.jsp")
     public NodeTargetModel getRootTree(@PathParam("id") List<PathSegment> pathSegments) throws ServletException, IOException{
-        return getTree(pathSegments);
+        String path = ApplicationUriInfo.pathHelper(pathSegments, null);
+        ApplicationUriInfo uriModel = ApplicationUriInfo.getUriModel(uriInfo, getClass(), path);
+        Client client = ControllerUtils.getClient(request);
+        NodeTargetModel requestModel = new NodeTargetModel(uriModel);
+        requestModel.setContainers(client.getContainers("/"));
+        return requestModel;
     }
     
     @GET
