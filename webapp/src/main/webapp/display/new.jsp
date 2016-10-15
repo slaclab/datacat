@@ -43,122 +43,130 @@
                 });
             });
         </script>
+        <div class="container-fluid">
 
-        <div class="row">
-            <%@ include file="../views/breadcrumb.jsp" %>
+            <div class="col-xs-12">
+
+                <div class="row">
+                    <%@ include file="../views/tabbar.jsp" %>
+                </div>
+
+                <div class="row">
+                    <%@ include file="../views/breadcrumb.jsp" %>
+                </div>
+                <c:choose>
+                    <c:when test='${param.type eq "dataset"}'>
+                        <form class="form-horizontal" id="new-form" method="POST">
+                            <fieldset>
+
+                                <!-- Form Name -->
+                                <legend>Create new Dataset</legend>
+
+                                <!-- Text input-->
+                                <div class="form-group">
+                                    <label class="col-md-4 control-label" for="name">Dataset Name</label>  
+                                    <div class="col-md-5">
+                                        <input id="name" name="name" type="text" placeholder="dataset0001.dat" class="form-control input-xlarge" required="">
+
+                                    </div>
+                                </div>
+
+                                <!-- Text input-->
+                                <div class="form-group">
+                                    <label class="col-md-4 control-label" for="name">Data Type</label>  
+                                    <div class="col-md-5">
+                                        <input id="dataType" name="dataType" type="text" placeholder="FT1, MERIT, MC" class="form-control input-xlarge">
+
+                                    </div>
+                                </div>
+
+                                <!-- Text input-->
+                                <div class="form-group">
+                                    <label class="col-md-4 control-label" for="name">File Format</label>  
+                                    <div class="col-md-5">
+                                        <input id="fileFormat" name="fileFormat" type="text" placeholder=".fits, .tar.gz, .dat" class="form-control input-xlarge">
+
+                                    </div>
+                                </div>
+
+                                <!-- Text input-->
+                                <div class="form-group">
+                                    <label class="col-md-4 control-label" for="name">Site</label>  
+                                    <div class="col-md-5">
+                                        <input id="site" name="site" type="text" placeholder="SLAC, SLAC_XROOT, BNL" class="form-control input-xlarge" required="">
+
+                                    </div>
+                                </div>
+
+                                <!-- Text input-->
+                                <div class="form-group">
+                                    <label class="col-md-4 control-label" for="name">Resource path</label>  
+                                    <div class="col-md-6">
+                                        <input id="resource" name="resource" type="text" placeholder="/nfs/slac/g/dataset0001.dat, root://slac.stanford.edu//glast2/dataset0001.dat" class="form-control input-xxlarge" required="">
+
+                                    </div>
+                                </div>
+
+                            </fieldset>
+                            <h3>Metadata</h3>
+                            <c:set var="mdlist" value="${null}" />
+                            <%@ include file="../views/edit_metadata.jsp" %>
+
+                        </form>
+
+                    </c:when>
+                    <c:otherwise>
+                        <form class="form-horizontal" action="submit" method="POST">
+                            <fieldset>
+
+                                <!-- Form Name -->
+                                <legend>Create new Container</legend>
+
+                                <!-- Text input-->
+                                <div class="form-group">
+                                    <label class="col-md-4 control-label" for="name">Container Name</label>  
+                                    <div class="col-md-5">
+                                        <input id="name" name="name" type="text" placeholder="Runs" class="form-control input-md" required="">
+
+                                    </div>
+                                </div>
+
+                                <!-- Select Basic -->
+                                <div class="form-group">
+                                    <label class="col-md-4 control-label" for="type">Container Type</label>
+                                    <div class="col-md-4">
+                                        <select id="type" name="type" class="form-control">
+                                            <option value="Folder">Folder</option>
+                                            <option value="Group">Group</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Text input-->
+                                <div class="form-group">
+                                    <label class="col-md-4 control-label" for="description">Description</label>  
+                                    <div class="col-md-5">
+                                        <input id="description" name="description" type="text" placeholder="Runs for the XYZ experiment" class="form-control input-md">
+
+                                    </div>
+                                </div>
+
+                            </fieldset>
+                            <h3>Version Metadata</h3>
+                            <c:set var="mdlist" value="${null}" />
+                            <%@ include file="../views/edit_metadata.jsp" %>
+
+                            <input type="hidden" name="_referer" value="${header.referer}"/>
+                        </form>
+                    </c:otherwise>
+
+                </c:choose>
+
+                <button type="button" class="btn btn-success btn-med new-submit">
+                    <span class="glyphicon glyphicon-save" aria-hidden="true"></span> Submit
+                </button>
+
+            </div>
         </div>
-
-        <c:choose>
-            <c:when test='${param.type eq "dataset"}'>
-                <form class="form-horizontal" id="new-form" method="POST">
-                    <fieldset>
-
-                        <!-- Form Name -->
-                        <legend>Create new Dataset</legend>
-
-                        <!-- Text input-->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="name">Dataset Name</label>  
-                            <div class="col-md-5">
-                                <input id="name" name="name" type="text" placeholder="dataset0001.dat" class="form-control input-xlarge" required="">
-
-                            </div>
-                        </div>
-
-                        <!-- Text input-->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="name">Data Type</label>  
-                            <div class="col-md-5">
-                                <input id="dataType" name="dataType" type="text" placeholder="FT1, MERIT, MC" class="form-control input-xlarge">
-
-                            </div>
-                        </div>
-
-                        <!-- Text input-->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="name">File Format</label>  
-                            <div class="col-md-5">
-                                <input id="fileFormat" name="fileFormat" type="text" placeholder=".fits, .tar.gz, .dat" class="form-control input-xlarge">
-
-                            </div>
-                        </div>
-
-                        <!-- Text input-->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="name">Site</label>  
-                            <div class="col-md-5">
-                                <input id="site" name="site" type="text" placeholder="SLAC, SLAC_XROOT, BNL" class="form-control input-xlarge" required="">
-
-                            </div>
-                        </div>
-
-                        <!-- Text input-->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="name">Resource path</label>  
-                            <div class="col-md-6">
-                                <input id="resource" name="resource" type="text" placeholder="/nfs/slac/g/dataset0001.dat, root://slac.stanford.edu//glast2/dataset0001.dat" class="form-control input-xxlarge" required="">
-
-                            </div>
-                        </div>
-
-                    </fieldset>
-                    <h3>Metadata</h3>
-                    <c:set var="mdlist" value="${null}" />
-                    <%@ include file="../views/edit_metadata.jsp" %>
-
-                </form>
-
-            </c:when>
-            <c:otherwise>
-                <form class="form-horizontal" action="submit" method="POST">
-                    <fieldset>
-
-                        <!-- Form Name -->
-                        <legend>Create new Container</legend>
-
-                        <!-- Text input-->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="name">Container Name</label>  
-                            <div class="col-md-5">
-                                <input id="name" name="name" type="text" placeholder="Runs" class="form-control input-md" required="">
-
-                            </div>
-                        </div>
-
-                        <!-- Select Basic -->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="type">Container Type</label>
-                            <div class="col-md-4">
-                                <select id="type" name="type" class="form-control">
-                                    <option value="Folder">Folder</option>
-                                    <option value="Group">Group</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Text input-->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="description">Description</label>  
-                            <div class="col-md-5">
-                                <input id="description" name="description" type="text" placeholder="Runs for the XYZ experiment" class="form-control input-md">
-
-                            </div>
-                        </div>
-
-                    </fieldset>
-                    <h3>Version Metadata</h3>
-                    <c:set var="mdlist" value="${null}" />
-                    <%@ include file="../views/edit_metadata.jsp" %>
-
-                    <input type="hidden" name="_referer" value="${header.referer}"/>
-                </form>
-            </c:otherwise>
-
-        </c:choose>
-        
-        <button type="button" class="btn btn-success btn-med new-submit">
-            <span class="glyphicon glyphicon-save" aria-hidden="true"></span> Submit
-        </button>
-
     </body>
 </html>
