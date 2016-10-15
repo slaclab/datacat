@@ -181,7 +181,19 @@ public class Client {
      * @param path Path to search into for child containers.
      */
     public List<DatasetContainer> getContainers(String path){
-        Response resp = pathResource.getContainers(path);
+        Response resp = pathResource.getContainers(path, Optional.<Integer>absent(), Optional.<Integer>absent());
+        checkResponse(resp);
+        return resp.readEntity(new GenericType<List<DatasetContainer>>() {});
+    }
+    
+    /**
+     * Get children containers.
+     * @param path Path to search into for child containers.
+     * @param offset Offset of records
+     * @param max Max number of records to return.
+     */
+    public List<DatasetContainer> getContainers(String path, int offset, int max){
+        Response resp = pathResource.getContainers(path, Optional.of(offset), Optional.of(max));
         checkResponse(resp);
         return resp.readEntity(new GenericType<List<DatasetContainer>>() {});
     }

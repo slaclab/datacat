@@ -26,8 +26,11 @@ public class Path {
                 .get();
     }
     
-    public Response getContainers(String path){
-        return target.path(path).matrixParam("children", "containers").request().get();
+    public Response getContainers(String path, Optional<Integer> offset, Optional<Integer> max){
+        return target.path(path).matrixParam("children", "containers")
+                .queryParam("offset", offset.orNull())
+                .queryParam("max", max.orNull())
+                .request().get();
     }
 
     public Response getObject(String path, Optional<String> versionId, Optional<String> site){
