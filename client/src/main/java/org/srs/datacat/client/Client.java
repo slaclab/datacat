@@ -181,7 +181,8 @@ public class Client {
      * @param path Path to search into for child containers.
      */
     public List<DatasetContainer> getContainers(String path){
-        Response resp = pathResource.getContainers(path, Optional.<Integer>absent(), Optional.<Integer>absent());
+        Response resp = pathResource.getContainers(path, Optional.<Integer>absent(), Optional.<Integer>absent(),
+                 Optional.<String>absent());
         checkResponse(resp);
         return resp.readEntity(new GenericType<List<DatasetContainer>>() {});
     }
@@ -191,9 +192,11 @@ public class Client {
      * @param path Path to search into for child containers.
      * @param offset Offset of records
      * @param max Max number of records to return.
+     * @param stat Dataset stat type
      */
-    public List<DatasetContainer> getContainers(String path, int offset, int max){
-        Response resp = pathResource.getContainers(path, Optional.of(offset), Optional.of(max));
+    public List<DatasetContainer> getContainers(String path, int offset, int max, String stat){
+        Response resp = pathResource.getContainers(path, Optional.of(offset), Optional.of(max), 
+                Optional.fromNullable(stat));
         checkResponse(resp);
         return resp.readEntity(new GenericType<List<DatasetContainer>>() {});
     }
@@ -299,6 +302,19 @@ public class Client {
      */
     public DatasetModel createDataset(String path, DatasetModel payload){
         Response resp = datasetsResource.mkds(path, Entity.entity(payload, MediaType.APPLICATION_JSON));
+        checkResponse(resp);
+        return resp.readEntity(new GenericType<DatasetModel>() {});
+    }
+    
+    /**
+     * Patch the dataset at given dataset path.
+     * @param path Path of dataset to be patched.
+     * @param payload A diff representation of the changes you want made to the dataset.
+     * @return An updated representation of the container.
+     */
+    public DatasetModel patchDataset(String path, DatasetModel payload){
+        Response resp = datasetsResource.patchDataset(path, Optional.<String>absent(),
+                Optional.<String>absent(), Entity.entity(payload, MediaType.APPLICATION_JSON));
         checkResponse(resp);
         return resp.readEntity(new GenericType<DatasetModel>() {});
     }

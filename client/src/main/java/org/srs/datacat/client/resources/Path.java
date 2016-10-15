@@ -26,10 +26,11 @@ public class Path {
                 .get();
     }
     
-    public Response getContainers(String path, Optional<Integer> offset, Optional<Integer> max){
+    public Response getContainers(String path, Optional<Integer> offset, Optional<Integer> max, Optional<String> stat){
         return target.path(path).matrixParam("children", "containers")
                 .queryParam("offset", offset.orNull())
                 .queryParam("max", max.orNull())
+                .queryParam("stat", stat.orNull())
                 .request().get();
     }
 
