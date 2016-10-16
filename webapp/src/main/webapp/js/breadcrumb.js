@@ -21,7 +21,6 @@ function changeTarget(path){
             var href = pageContext.endPoint + pathPart + "/" + pathElem;
             $('<a/>').attr("href", href).text(pathElem).appendTo(li);
         }
-        console.log(li);
         li.appendTo(target);
         pathPart = pathPart + "/" + pathElem;
     }
