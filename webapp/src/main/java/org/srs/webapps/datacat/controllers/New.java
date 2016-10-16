@@ -4,8 +4,10 @@ package org.srs.webapps.datacat.controllers;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -51,15 +53,20 @@ public class New {
     @Consumes("application/x-www-form-urlencoded")
     @ErrorTemplate(name = "/display/error.jsp")
     public Response updateNode(@PathParam("id") List<PathSegment> pathSegments) throws  IOException{
+        
         MultivaluedMap<String, String> formParams = new MultivaluedHashMap<>();
+        String originalReferer = request.getParameter("_referer");
+        Set<String> omitFromConverter = new HashSet<>(Arrays.asList("_referer"));
         for(Map.Entry<String, String[]> entry: request.getParameterMap().entrySet()){
-            formParams.put(entry.getKey(), Arrays.asList(entry.getValue()));
+            if(!omitFromConverter.contains(entry.getKey())){
+                formParams.put(entry.getKey(), Arrays.asList(entry.getValue()));
+            }
         }
+        
         String path = ApplicationUriInfo.pathHelper(pathSegments, null);
         Dataset newDataset = FormParamConverter.getDatasetBuilder(formParams).build();
         
         // Try to return to the original view
-        String originalReferer = request.getParameter("_referer");
         URI returnUri = null;
         if(originalReferer != null && !originalReferer.isEmpty()){
             URI displayUrl = uriInfo.getBaseUriBuilder().path("display").build();
