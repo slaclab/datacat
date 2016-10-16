@@ -33,7 +33,7 @@ mdhandler.addrow = function(){
     });
 };
 
-mdhandler.resetrow = function(row){
+mdhandler.resetrow = function(row, type, value){
     row.find("td").each(function(i, item){
         item = $(item);
         if(item.data("id")){
@@ -76,7 +76,6 @@ mdhandler.getData = function(){
             patchItems.push({"key": key, "value": null});
         }
         patchItems.push({"key": newkey, "value": value, "type":type});
-
     });
 
     mdhandler.removed().each(function(i, item){
@@ -108,24 +107,28 @@ $("document").ready(function(){
     
     $(".md-editable .md-value").editableTableWidget({errorClass: "has-error"});
     
-    function validateValue(target, row, newValue){
-        var value = row.data("value");
-        var type = row.data("type");
+    function validateValue(target, row, changedField){
+        var currentValue = $(row.find("td")[2]).text();
+        var currentType = $(row.find("td")[3]).text();
         if(target.hasClass("md-type")){
-            type = newValue;
+            var type = changedField;
+            var value = currentValue;
         }
         if(target.hasClass("md-value")){
-            value = newValue;
+            var type = currentType;
+            var value = changedField;
         }
         if(type === "integer" || type === "decimal"){
             try {
                 var d = new Decimal(value);
             } catch (e) {
-                mdhandler.resetrow(row);
+                var currentValue = $(row.find("td")[2]).text(currentValue);
+                var currentType = $(row.find("td")[3]).text(currentType);
                 return false;
             }
             if(type === "integer" && !d.isInteger()){
-                mdhandler.resetrow(row);
+                var currentValue = $(row.find("td")[2]).text(currentValue);
+                var currentType = $(row.find("td")[3]).text(currentType);
                 return false;
             }
         }
