@@ -36,6 +36,10 @@
                         <div class="error">
                             Error: ${model.message} <br/>
                             Error detail: ${model.cause.message} <br/>
+                            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                                More details....
+                            </button>
+                            <div class="collapse" id="collapseExample"> <div class="well">${model.cause}</div> </div>
                         </div>
                     </div>
                 </div>
