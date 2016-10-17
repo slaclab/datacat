@@ -33,17 +33,30 @@
 
                 <div class="row">
                     <div class="container-fluid" id="info-views">
-                        <div class="error">
-                            Error: ${model.message} <br/>
-                            Error detail: ${model.cause.message} <br/>
-                            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-                                More details....
-                            </button>
-                            <div class="collapse" id="collapseExample"> <div class="well">${model.cause}</div> </div>
+                        <div class="panel panel-danger"> 
+                            <div class="panel-heading"> <h3 class="panel-title">Error</h3> </div> 
+                            <div class="panel-body">
+                                ${model.message}
+                            </div> 
+                        </div>
+                        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                            More details....
+                        </button>
+                        <div class="collapse" id="collapseExample"> <div class="well">
+                                <h2>Cause Message: </h2>
+                                <pre>
+                                    ${model.cause.message}
+                                </pre>
+                                <h2>Cause</h2> <br>
+                                <pre>
+                                    ${model.cause}
+                                </pre>
+                            </div> 
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </body>
+    </div>
+</body>
 </html>
