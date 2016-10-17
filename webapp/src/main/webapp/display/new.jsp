@@ -11,7 +11,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
     <head>  
-        <%@ include file="../views/jscontext.jsp" %>
+        <%@ include file="/views/jscontext.jsp" %>
 
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/browser.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.css">
@@ -48,11 +48,11 @@
             <div class="col-xs-12">
 
                 <div class="row">
-                    <%@ include file="../views/tabbar.jsp" %>
+                    <%@ include file="/views/tabbar.jsp" %>
                 </div>
 
                 <div class="row">
-                    <%@ include file="../views/breadcrumb.jsp" %>
+                    <%@ include file="/views/breadcrumb.jsp" %>
                 </div>
                 <c:choose>
                     <c:when test='${param.type eq "dataset"}'>
@@ -110,7 +110,7 @@
                             </fieldset>
                             <h3>Metadata</h3>
                             <c:set var="mdlist" value="${null}" />
-                            <%@ include file="../views/edit_metadata.jsp" %>
+                            <%@ include file="/views/edit_metadata.jsp" %>
 
                         </form>
 
@@ -154,7 +154,7 @@
                             </fieldset>
                             <h3>Version Metadata</h3>
                             <c:set var="mdlist" value="${null}" />
-                            <%@ include file="../views/edit_metadata.jsp" %>
+                            <%@ include file="/views/edit_metadata.jsp" %>
 
                             <input type="hidden" name="_referer" value="${header.referer}"/>
                         </form>

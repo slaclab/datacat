@@ -84,7 +84,7 @@
             <h3>Metadata</h3>
         </div>
         <c:set var="mdlist" value="${model.target.metadata}" />
-        <%@ include file="../views/metadata.jsp" %>
+        <%@ include file="/views/metadata.jsp" %>
     </c:catch>
 
 </div>

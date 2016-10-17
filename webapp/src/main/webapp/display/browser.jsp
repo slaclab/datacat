@@ -10,7 +10,7 @@
 <html lang="en">
     <head>  
         <title>Datacat Browser</title>
-        <%@ include file="../views/jscontext.jsp" %>
+        <%@ include file="/views/jscontext.jsp" %>
 
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/browser.css">
@@ -25,11 +25,11 @@
             <div class="col-xs-12">
                 <c:set var="view" value="browser"/>
                 <div class="row">
-                    <%@ include file="../views/tabbar.jsp" %>
+                    <%@ include file="/views/tabbar.jsp" %>
                 </div>
 
                 <div class="row">
-                    <%@ include file="../views/breadcrumb.jsp" %>
+                    <%@ include file="/views/breadcrumb.jsp" %>
                 </div>
 
                 <div class="row">
@@ -38,17 +38,17 @@
                         <c:choose>
                             <c:when test="${model.target.type.container || model.target == null}" >
                                 <div class="col-sm-5 col-md-4 col-lg-4">
-                                    <%@ include file="../views/containers.jsp" %>
+                                    <%@ include file="/views/containers.jsp" %>
                                 </div>
 
                                 <div class="col-sm-7 col-md-8 col-lg-8">
                                     <c:if test="${model.target != null}">
-                                        <%@ include file="../views/container.jsp" %>
+                                        <%@ include file="/views/container.jsp" %>
                                     </c:if>
                                 </div> <!-- End right side -->
                             </c:when>
                             <c:otherwise>
-                                <%@ include file="../views/dataset.jsp" %> 
+                                <%@ include file="/views/dataset.jsp" %> 
                             </c:otherwise>
                         </c:choose>
                     </div> <!-- end row -->

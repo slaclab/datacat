@@ -108,7 +108,7 @@
 
     <h3>Version Metadata</h3>
     <c:set var="mdlist" value="${model.target.versionMetadata}" />
-    <%@ include file="../views/edit_metadata.jsp" %>
+    <%@ include file="/views/edit_metadata.jsp" %>
 
     <button type="button" class="btn btn-success btn-med edit-submit">
         <span class="glyphicon glyphicon-save" aria-hidden="true"></span> Submit

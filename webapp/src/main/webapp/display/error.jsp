@@ -28,7 +28,7 @@
             <div class="col-xs-12">
                 <c:set var="view" value="error"/>
                 <div class="row">
-                    <%@ include file="../views/tabbar.jsp" %>
+                    <%@ include file="/views/tabbar.jsp" %>
                 </div>
 
                 <div class="row">
