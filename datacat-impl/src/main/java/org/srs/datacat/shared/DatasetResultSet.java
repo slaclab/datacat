@@ -17,7 +17,7 @@ import org.srs.datacat.shared.DatasetResultSet.Builder;
  */
 @JsonTypeName(value="searchResults")
 @JsonDeserialize(builder=Builder.class)
-@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="_type", defaultImpl=DatasetContainer.class)
+@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="_type", defaultImpl=DatasetResultSet.class)
 public class DatasetResultSet implements DatasetResultSetModel {
 
     private List<DatasetModel> results;
