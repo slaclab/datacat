@@ -1,6 +1,7 @@
 package org.srs.webapps.datacat.controllers;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -64,7 +65,16 @@ public class Edit {
         String path = ApplicationUriInfo.pathHelper(pathSegments, null);
         Dataset ds = FormParamConverter.getDatasetBuilder(formParams).build();
         ControllerUtils.getClient(request).patchDataset(path, ds);
-        return Response.seeOther(UriBuilder.fromUri(referer).build()).build();
+        URI returnUri = null;
+        if(referer != null && !referer.isEmpty()){
+            returnUri = UriBuilder.fromUri(referer).build();
+        } else {
+            returnUri = uriInfo.getBaseUriBuilder()
+                .path("display") // Should always come from a display
+                .path("browser")
+                .path(path).build();
+        }
+        return Response.seeOther(returnUri).build();
     }
 
 }
