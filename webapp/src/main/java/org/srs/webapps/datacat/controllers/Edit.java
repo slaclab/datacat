@@ -25,6 +25,9 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import org.glassfish.jersey.server.mvc.ErrorTemplate;
 import org.glassfish.jersey.server.mvc.Template;
+import org.srs.datacat.client.Client;
+import org.srs.datacat.model.DatacatNode;
+import org.srs.datacat.model.DatasetContainer;
 import org.srs.datacat.rest.FormParamConverter;
 import org.srs.datacat.shared.Dataset;
 import org.srs.webapps.datacat.model.NodeTargetModel;
@@ -54,6 +57,7 @@ public class Edit {
     @Consumes("application/x-www-form-urlencoded")
     @ErrorTemplate(name = "/display/error.jsp")
     public Response updateNode(@PathParam("id") List<PathSegment> pathSegments) throws ServletException, IOException{
+        Client client = ControllerUtils.getClient(request);
         MultivaluedMap<String, String> formParams = new MultivaluedHashMap<>();
         String referer = request.getParameter("_referer");
         Set<String> omitFromConverter = new HashSet<>(Arrays.asList("_referer"));
@@ -63,8 +67,15 @@ public class Edit {
             }
         }
         String path = ApplicationUriInfo.pathHelper(pathSegments, null);
-        Dataset ds = FormParamConverter.getDatasetBuilder(formParams).build();
-        ControllerUtils.getClient(request).patchDataset(path, ds);
+        DatacatNode target = client.getObject(path);
+        if(target.getType().isContainer()){
+            DatasetContainer container = FormParamConverter.getContainerBuilder(target.getType(), formParams).build();
+            client.patchContainer(path, container);
+        } else {
+            Dataset ds = FormParamConverter.getDatasetBuilder(formParams).build();
+            client.patchDataset(path, ds);
+        }
+        
         URI returnUri = null;
         if(referer != null && !referer.isEmpty()){
             returnUri = UriBuilder.fromUri(referer).build();
