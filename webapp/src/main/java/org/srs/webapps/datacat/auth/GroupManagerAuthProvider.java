@@ -55,7 +55,7 @@ public class GroupManagerAuthProvider extends DcUserLookupService {
                             Integer userId = Integer.parseInt(userIdString);
                             List<GroupModel> groups = rc.getUserGroups(userId, Optional.<String>absent(), Optional.<String>absent());
                             for(GroupModel group: groups){
-                                userGroups.add(new DcGroup(group.getName(), group.getProject()));
+                                userGroups.add(new DcGroup(group.getName() + "@" + group.getProject()));
                             }
                             return userGroups;
                         }

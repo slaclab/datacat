@@ -150,7 +150,7 @@ public class PermissionsResource extends BaseResource {
             if(groupSpec.isEmpty()){
                 throw new IllegalArgumentException("No Group is specified");
             }
-            target = DcGroup.fromSpec(groupSpec);
+            target = new DcGroup(groupSpec);
             permissions = getProvider().getPermissions(dcp, callContext, (DcGroup) target);
         } else if ("user".equalsIgnoreCase(subject)){
             target = callContext.getSubject();

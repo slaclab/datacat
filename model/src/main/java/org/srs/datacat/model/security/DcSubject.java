@@ -29,10 +29,10 @@ public abstract class DcSubject implements  UserPrincipal, Comparable<DcSubject>
     
     @Override
     public int compareTo(DcSubject o){
-        String thisProject = this instanceof DcGroup ? ((DcGroup) this).getProject() : null;
-        String thatProject = o instanceof DcGroup ? ((DcGroup) o).getProject() : null;
+        Boolean thisIsGroup = this instanceof DcGroup ? true : null;
+        Boolean thatIsGroup = o instanceof DcGroup ? true : null;
         return ComparisonChain.start()
-            .compare(thisProject, thatProject, Ordering.natural().nullsFirst())
+            .compare(thisIsGroup, thatIsGroup, Ordering.natural().nullsFirst())
             .compare(getName(), o.getName(), Ordering.natural().nullsFirst())
             .result();    
     }
@@ -47,18 +47,12 @@ public abstract class DcSubject implements  UserPrincipal, Comparable<DcSubject>
     public static final class Builder {
         
         private String name;
-        private String project;
         private String type;
         
         private Builder(){ }
 
         public Builder name(String val){
             this.name = val;
-            return this;
-        }
-
-        public Builder domain(String val){
-            this.project = val;
             return this;
         }
 
@@ -69,8 +63,8 @@ public abstract class DcSubject implements  UserPrincipal, Comparable<DcSubject>
         
         public DcSubject build(){
             Objects.requireNonNull(this.name, "Need a non-null name");
-            if(this.project != null || "g".equals(this.type)){
-                return new DcGroup(this.name, this.project);
+            if("g".equals(this.type)){
+                return new DcGroup(this.name);
             }
             if(DcGroup.PROTECTED_NAME.equals(name) || DcGroup.PUBLIC_NAME.equals(name)){
                 return new DcGroup(name, null);

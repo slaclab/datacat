@@ -9,37 +9,25 @@ import java.util.Objects;
  */
 public class DcGroup extends DcSubject implements GroupPrincipal {
 
-    public static final DcGroup PUBLIC_GROUP = new DcGroup(PUBLIC_NAME, null);
-    public static final DcGroup PROTECTED_GROUP = new DcGroup(PROTECTED_NAME, null);
-
-    private final String project;
+    public static final DcGroup PUBLIC_GROUP = new DcGroup(PUBLIC_NAME);
+    public static final DcGroup PROTECTED_GROUP = new DcGroup(PROTECTED_NAME);
+    
+    public DcGroup(String name){
+        super(name);
+    }
 
     public DcGroup(String name, String project){
-        super(name);
-        this.project = project;
+        super((name != null ? name : "") + "@" + (project != null ? project : ""));
     }
-    
-    public static DcGroup fromSpec(String spec) throws IllegalArgumentException {
-        int splitIndex = spec.indexOf("@");
-        if(spec.isEmpty() || splitIndex < 0){
-            throw new IllegalArgumentException("Invalid Group Spec");
-        }
-        return new DcGroup(spec.substring(0, splitIndex), spec.substring(splitIndex+1));
-    }
-    
+        
     @Override
     public String toString(){
-        return (getName() != null ? getName() : "") + "@" + (project != null ? project : "");
-    }
-
-    public String getProject(){
-        return project;
+        return getName();
     }
 
     @Override
     public int hashCode(){
-        String hstr = (getName() != null ? getName() : "") + "@" + (project != null ? project : "");
-        return hstr.hashCode();
+        return getName().hashCode();
     }
 
     @Override
@@ -52,10 +40,7 @@ public class DcGroup extends DcSubject implements GroupPrincipal {
             return false;
         }
         final DcGroup other = (DcGroup) obj;
-        if(!Objects.equals(getName(), other.getName())){
-            return false;
-        }
-        return Objects.equals(this.project, other.project);
+        return Objects.equals(getName(), other.getName());
     }
 
 }

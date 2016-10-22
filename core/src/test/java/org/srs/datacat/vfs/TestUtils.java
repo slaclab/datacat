@@ -28,7 +28,7 @@ public class TestUtils {
     protected static final CallContext DEFAULT_TEST_CONTEXT = 
             new CallContext(
                     new DcUser(DbHarness.TEST_USER), 
-                    new HashSet<>(Arrays.asList(DcGroup.PUBLIC_GROUP, new DcGroup("test_group","SRS")))
+                    new HashSet<>(Arrays.asList(DcGroup.PUBLIC_GROUP, new DcGroup("test_group@SRS")))
             );
         
     public static final class TestUserLookupService extends DcUserLookupService {
@@ -42,7 +42,7 @@ public class TestUtils {
         public Set<DcGroup> lookupGroupsForUser(DcUser member) throws IOException{
             Set<DcGroup> ug = new HashSet<>(super.lookupGroupsForUser(member));
             if(member != null && member.getName().equals("test_user")){
-                ug.add(new DcGroup("test_group", "SRS"));
+                ug.add(new DcGroup("test_group@SRS"));
             }
             return ug;
         }

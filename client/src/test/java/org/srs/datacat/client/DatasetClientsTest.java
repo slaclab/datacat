@@ -95,7 +95,7 @@ public class DatasetClientsTest extends JerseyTest {
         expectedPermissions.clear();
         expectedPermissions.add(DcPermissions.READ);
         Assert.assertEquals(expectedPermissions, 
-                client.getPermissions(created.getPath(), DcGroup.fromSpec("fake@")).getPermissions());
+                client.getPermissions(created.getPath(), new DcGroup("fake@")).getPermissions());
     }
         
     public DatasetModel createOne(Client client) throws JsonProcessingException, URISyntaxException{

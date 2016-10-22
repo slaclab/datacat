@@ -379,7 +379,7 @@ create index idx_DSLP_PurgeTime on DatasetLocationPurge (Purged);
 
 insert
   into DatasetLogicalFolder (DatasetLogicalFolder, Name, Parent, ACL)
-  values(0, 'ROOT', NULL, 'test_group@SRS:g:idrwa:,$PUBLIC$@:g:r:');
+  values(0, 'ROOT', NULL, 'test_group@SRS:g:idrwa:,$PUBLIC$:g:r:');
 
 SET DATABASE SQL SYNTAX ORA true;
 
