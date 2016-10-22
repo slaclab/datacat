@@ -36,6 +36,29 @@ public abstract class DcSubject implements  UserPrincipal, Comparable<DcSubject>
             .compare(getName(), o.getName(), Ordering.natural().nullsFirst())
             .result();    
     }
+
+    @Override
+    public int hashCode(){
+        return name.hashCode();
+    }
+    
+    @Override
+    public boolean equals(Object obj){
+        if(obj == null){
+            return false;
+        }
+        if(!getClass().isAssignableFrom(obj.getClass()) &&
+                !obj.getClass().isAssignableFrom(getClass())){
+            return false;
+        }
+        final DcSubject other = (DcSubject) obj;
+        return Objects.equals(getName(), other.getName());
+    }
+
+    @Override
+    public String toString(){
+        return name;
+    }
     
     public static Builder newBuilder(){
         return new Builder();
@@ -67,7 +90,7 @@ public abstract class DcSubject implements  UserPrincipal, Comparable<DcSubject>
                 return new DcGroup(this.name);
             }
             if(DcGroup.PROTECTED_NAME.equals(name) || DcGroup.PUBLIC_NAME.equals(name)){
-                return new DcGroup(name, null);
+                return new DcGroup(name);
             }
             return new DcUser(name);
         }

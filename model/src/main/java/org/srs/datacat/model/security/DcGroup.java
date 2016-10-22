@@ -1,7 +1,6 @@
 package org.srs.datacat.model.security;
 
 import java.nio.file.attribute.GroupPrincipal;
-import java.util.Objects;
 
 /**
  *
@@ -14,33 +13,6 @@ public class DcGroup extends DcSubject implements GroupPrincipal {
     
     public DcGroup(String name){
         super(name);
-    }
-
-    public DcGroup(String name, String project){
-        super((name != null ? name : "") + "@" + (project != null ? project : ""));
-    }
-        
-    @Override
-    public String toString(){
-        return getName();
-    }
-
-    @Override
-    public int hashCode(){
-        return getName().hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj){
-        if(obj == null){
-            return false;
-        }
-        if(!getClass().isAssignableFrom(obj.getClass()) &&
-                !obj.getClass().isAssignableFrom(getClass())){
-            return false;
-        }
-        final DcGroup other = (DcGroup) obj;
-        return Objects.equals(getName(), other.getName());
     }
 
 }
