@@ -18,6 +18,8 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 import org.srs.datacat.client.exception.DcClientException;
 import org.srs.datacat.client.exception.DcException;
@@ -74,7 +76,10 @@ public class Client {
             List<ClientResponseFilter> responseFilters, List<Feature> features,
             Map<String, Object> properties){
         this.modelProvider = new Provider();
+        ClientConfig clientConfig = new ClientConfig();
+        clientConfig.connectorProvider(new ApacheConnectorProvider());
         ClientBuilder builder = ClientBuilder.newBuilder()
+                .withConfig(clientConfig)
                 .register(new JacksonFeature(modelProvider))
                 .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
 
@@ -149,7 +154,7 @@ public class Client {
      * Get datasets and containers at given path.
      * @param path Path of container to search into.
      * @param versionId version ID specifier for datasets you want back (null, "current", "0", "1", etc...)
-     * @param site site specifier for datasets you want back ("any", "master", "SLAC", etc...) 
+     * @param site site specifier for datasets you want back ("any", "master", "SLAC", etc...)
      * @return List of DatacatNodes to return.
      */
     public List<DatacatNode> getChildren(String path, String versionId, String site){
@@ -182,11 +187,11 @@ public class Client {
      */
     public List<DatasetContainer> getContainers(String path){
         Response resp = pathResource.getContainers(path, Optional.<Integer>absent(), Optional.<Integer>absent(),
-                 Optional.<String>absent());
+                Optional.<String>absent());
         checkResponse(resp);
         return resp.readEntity(new GenericType<List<DatasetContainer>>() {});
     }
-    
+
     /**
      * Get children containers.
      * @param path Path to search into for child containers.
@@ -195,7 +200,7 @@ public class Client {
      * @param stat Dataset stat type
      */
     public List<DatasetContainer> getContainers(String path, int offset, int max, String stat){
-        Response resp = pathResource.getContainers(path, Optional.of(offset), Optional.of(max), 
+        Response resp = pathResource.getContainers(path, Optional.of(offset), Optional.of(max),
                 Optional.fromNullable(stat));
         checkResponse(resp);
         return resp.readEntity(new GenericType<List<DatasetContainer>>() {});
@@ -216,7 +221,7 @@ public class Client {
      * Doing so guarantees you get information about the version, it's metadata, and all available locations.
      * @param path Path of object
      * @param versionId version ID specifier for datasets you want back (null, "current", "0", "1", etc...)
-     * @param site site specifier for datasets you want back ("any", "master", "SLAC", etc...) 
+     * @param site site specifier for datasets you want back ("any", "master", "SLAC", etc...)
      */
     public DatacatNode getObject(String path, String versionId, String site){
         Response resp = pathResource.getObject(path, Optional.fromNullable(versionId), Optional.fromNullable(site));
@@ -236,9 +241,9 @@ public class Client {
         checkResponse(resp);
         return resp.readEntity(new GenericType<DatasetContainer>() {});
     }
-    
+
     /**
-     * Create a container. 
+     * Create a container.
      * @param path Path to place the container.
      * @param payload Representation of the container to be created. Should include name.
      * @throws DcClientException if path doesn't exist
@@ -247,7 +252,7 @@ public class Client {
     public DatasetContainer createContainer(String path, DatasetContainer payload){
         return createContainer(path, payload, false);
     }
-    
+
     /**
      * Create a container.
      * @param path Path to place this container in
@@ -280,7 +285,7 @@ public class Client {
         checkResponse(resp);
         return resp.readEntity(new GenericType<DatasetContainer>() {});
     }
-    
+
     /**
      * Patch the container at path with the changes in the payload object.
      * @param path Path of container to be patched.
@@ -305,7 +310,7 @@ public class Client {
         checkResponse(resp);
         return resp.readEntity(new GenericType<DatasetModel>() {});
     }
-    
+
     /**
      * Patch the dataset at given dataset path.
      * @param path Path of dataset to be patched.
@@ -368,12 +373,12 @@ public class Client {
             String query, String folderQuery, String[] sort, String[] show){
         return searchForDatasets(target, versionId, site, query, folderQuery, sort, show, null, null);
     }
-    
+
     public DatasetResultSetModel searchForDatasets(String target, String versionId, String site,
             String query, String[] sort, String[] show, Integer offset, Integer max){
         return searchForDatasets(target, versionId, site, query, null, sort, show, null, null);
     }
-    
+
     /**
      * Search a target. A target is a Container of some sort. It may also be specified as a glob, as in: <p>
      *   1. {@code /path/to} - target {@code /path/to} _only_ <p>
@@ -406,7 +411,7 @@ public class Client {
             throw new DcRequestException(ex);
         }
     }
-    
+
     /**
      * Get the effective permissions for you or a specific group.
      * @param path Path of DatacatNode you want to check permissions for.
@@ -414,12 +419,12 @@ public class Client {
      * @return A DcAclEntry of the permissions.
      */
     public DcAclEntry getPermissions(String path, DcGroup group){
-        Optional<String> groupSpec = Optional.fromNullable(group != null ? group.toString(): null);
+        Optional<String> groupSpec = Optional.fromNullable(group != null ? group.toString() : null);
         Response resp = permissionsResource.getPermissions(path, groupSpec);
         checkResponse(resp);
         return resp.readEntity(new GenericType<AclEntryProxy>() {}).entry();
     }
-    
+
     /**
      * Get the ACL of a given object.
      * @param path Datacat object path
@@ -434,7 +439,7 @@ public class Client {
         }
         return ret;
     }
-    
+
     /**
      * Modify the ACL of an object.
      * Note: A user must have the Admin permission in order to modify the ACL.
@@ -451,7 +456,7 @@ public class Client {
         checkResponse(resp);
         return resp.readEntity(new GenericType<List<AclEntryProxy>>() {});
     }
-    
+
     public static void checkResponse(Response resp) throws DcException{
         if(resp.getStatusInfo().getFamily() == Status.Family.SUCCESSFUL){
             return;
@@ -491,5 +496,5 @@ public class Client {
     public Permissions getPermissionsResource(){
         return permissionsResource;
     }
-    
+
 }
