@@ -31,16 +31,16 @@ public class TestUtils {
                     new HashSet<>(Arrays.asList(DcGroup.PUBLIC_GROUP, new DcGroup("test_group@SRS")))
             );
         
-    public static final class TestUserLookupService extends DcUserLookupService {
+    public static final class TestUserLookupService implements DcUserLookupService {
 
         @Override
         public DcUser lookupPrincipalByName(String name) throws IOException{
-            return super.lookupPrincipalByName(name);
+            return name != null ? new DcUser(name) : null;
         }
 
         @Override
         public Set<DcGroup> lookupGroupsForUser(DcUser member) throws IOException{
-            Set<DcGroup> ug = new HashSet<>(super.lookupGroupsForUser(member));
+            Set<DcGroup> ug = new HashSet<>();
             if(member != null && member.getName().equals("test_user")){
                 ug.add(new DcGroup("test_group@SRS"));
             }
