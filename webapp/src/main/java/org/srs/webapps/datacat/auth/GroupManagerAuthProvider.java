@@ -26,13 +26,16 @@ import org.srs.groupmanager.model.UserModel;
  */
 public class GroupManagerAuthProvider implements DcUserLookupService {
     
-    RestClient rc;
-    private final LoadingCache<String, DcUser> usersCache;
-    private final LoadingCache<DcUser, Set<DcGroup>> groupsCache;
+    private static RestClient rc;
+    private static final LoadingCache<String, DcUser> USERS_CACHE;
+    private static final LoadingCache<DcUser, Set<DcGroup>> GROUPS_CACHE;
+    private static final String GM_URL = "http://srs.slac.stanford.edu/GroupManager/rest";
     
-    public GroupManagerAuthProvider(){
-        rc = new RestClient("http://srs.slac.stanford.edu/GroupManager/rest");
-        usersCache = CacheBuilder.newBuilder()
+    public GroupManagerAuthProvider(){ }
+    
+    static {
+        rc = new RestClient(GM_URL); 
+        USERS_CACHE = CacheBuilder.newBuilder()
             .maximumSize(1000)
             .expireAfterWrite(30, TimeUnit.SECONDS)
             .build(
@@ -44,7 +47,7 @@ public class GroupManagerAuthProvider implements DcUserLookupService {
                         }
                     });
         
-        groupsCache = CacheBuilder.newBuilder()
+        GROUPS_CACHE = CacheBuilder.newBuilder()
             .maximumSize(1000)
             .expireAfterWrite(30, TimeUnit.SECONDS)
             .build(
@@ -62,11 +65,11 @@ public class GroupManagerAuthProvider implements DcUserLookupService {
                         }
                     });
     }
-    
+        
     @Override
     public DcUser lookupPrincipalByName(String name) throws IOException{
         try {
-            return name == null || name.isEmpty() ? usersCache.get(name) : null;
+            return name != null && !name.isEmpty() ? USERS_CACHE.get(name) : null;
         } catch(ExecutionException ex) {
             throw new IOException("Error reading user id", ex.getCause());
         }
@@ -75,10 +78,10 @@ public class GroupManagerAuthProvider implements DcUserLookupService {
     @Override
     public Set<DcGroup> lookupGroupsForUser(DcUser member) throws IOException{
         try {
-            if(member == null){
+            if(member == null || member == DcUser.PUBLIC_USER){
                 return new HashSet<>();
             }
-            return groupsCache.get(member);
+            return GROUPS_CACHE.get(member);
         } catch(ExecutionException ex) {
             throw new RuntimeException("unknown group manager exception", ex.getCause());
         }
