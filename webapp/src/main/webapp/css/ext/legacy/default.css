@@ -1,0 +1,188 @@
+pre.log { border: 1px solid #000000; }
+font.logFile { font-size : 100%; }
+
+body{ 
+    background-color: #fff; padding:0 0 0 0; margin:0 0 0 0;
+}
+
+h2.header, h1.header, h3.header {
+    border-bottom-style: double;
+    border-bottom-color: #6c9dfa;
+    border-bottom-width: 1px; 
+    background-color: #f0f0f0;   
+    padding: 3px;
+}
+
+table.pageHeader{
+    width: 100%;
+}
+
+div.pageBody{
+    margin: 0 0.5% 0 0.5%;
+
+}
+
+div.exampleCode{
+    margin: 0 20px 0 20px;
+    border: 1px dashed #666;
+    background-color: #f0f0f0;   
+}
+
+div.breadCrumb{
+    margin: 0 10px 0 10px;
+}
+
+body, input, select, td, th, textarea{ 
+    font-family: Verdana, Geneva, Arial, Helvetica, sans-serif; 
+    font-size: 11px;
+}
+
+a, a:visited { 
+    text-decoration: none; 
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+img{ 
+    border: none;
+}
+
+table.filtertable {
+    margin: 10px 0px 0px 0px;
+    border: 1px solid #666;
+}
+table.filterTable {
+    margin: 10px 0px 0px 0px;
+    border: 1px solid #666;
+}
+
+span.pagebanner {
+    background-color: #eee;
+    border: 1px dotted #999;
+    padding: 2px 4px 2px 4px;
+    margin-top: 10px;
+    display: block;
+    border-bottom: none;
+}
+
+span.pagelinks {
+    background-color: #eee;
+    border: 1px dotted #999;
+    padding: 2px 4px 2px 4px;
+    display: block;
+    border-top: none;
+    margin-bottom: -5px;
+}
+
+div.taskSummary {
+    background-color: #eee;
+    border: 1px dotted #999;
+    padding: 2px 4px 2px 4px;
+    display: block;
+    border-top: none;
+}
+
+table.datatable {
+    margin: 10px 0px 10px 0px;
+    border: 1px solid #666;
+}
+
+table.datatable thead th {
+    text-align: left;
+}
+
+table.datatable thead th.centerAligned {
+    text-align: center;
+}
+
+table.datatable thead th.emptyCell {
+    background-color: #FFFFFF;
+    border: 0px solid #666;
+}
+
+table.datatable th, table.datatable td {
+    padding: 2px 4px 2px 4px;
+    text-align: right;
+    vertical-align: top;
+}
+
+table.datatable td.leftAligned {
+    text-align: left;
+}
+
+table.datatable thead tr {
+    background-color: #fc0; 
+}
+
+table.datatable thead a {
+    text-decoration: none;
+}
+
+table.datatable th.sorted {
+    background-color: orange;
+}
+
+table.datatable th a, table.datatable th a:visited {
+    color: black;
+}
+
+
+table.datatable th.sorted a, table.datatable th.sortable a {
+    background-position: right;        
+    display: block;
+}
+
+table.datatable tr.odd {
+    background-color: #fff
+}
+
+table.datatable tr.tableRowEven, table.datatable tr.even {
+    background-color: #fea
+}
+
+table.datatable th.sortable a {
+    padding: 0px 10px 0px 0px;
+    background-repeat: no-repeat;
+    background-image: url(//srs.slac.stanford.edu/ImageHandler/imageServlet.jsp?name=arrow_off&experimentName=SRS);
+}
+
+table.datatable th.order1 a {
+    background-repeat: no-repeat;
+    background-image: url(//srs.slac.stanford.edu/ImageHandler/imageServlet.jsp?name=arrow_down&experimentName=SRS);
+}
+
+table.datatable th.order2 a {
+    background-repeat: no-repeat;
+    background-image: url(//srs.slac.stanford.edu/ImageHandler/imageServlet.jsp?name=arrow_up&experimentName=SRS);
+}
+
+.fswmenu {font-family: arial, helvetica, sans-serif; font-size:10pt; width:100%; position:relative; margin:0 0 0 -4px; padding: 0 0 0 0;}
+.fswmenu ul {padding:0; margin:0;list-style-type: none; }
+.fswmenu ul li {float:left; margin:0 0 0 0; padding: 0 0 0 0; position:relative;}
+.fswmenu ul li ul {display: none; }
+.fswmenu ul li a, .menu ul li a:visited {display:block; text-decoration:none; color:#000; width: 92px; height:20px; padding: 0 2px 0 1px; text-align:left; color:#0000ff; border:1px solid #fff; background:#BDBDBD; line-height:20px; font-size:11px}
+
+.fswmenu ul li:hover a {color:#fff; background:#36f}
+.fswmenu ul li:hover ul {display:block; position:absolute; top:21px; left:0; width:112px;}
+.fswmenu ul li:hover ul li:hover a.hide {background:#6fc; color:#000}
+.fswmenu ul li:hover ul li a {display:block; background:#ddd; color:#000; width:200px; padding-left:5px}
+
+
+/* second-level menu properties  */
+.fswmenu ul li:hover ul li a:hover {background:#6fc; color:#000;}
+.fswmenu ul li:hover ul li a.hide {background:#aaa; color:#fff; }
+.fswmenu ul li:hover ul li ul {display: none;}
+.fswmenu ul li:hover ul li:hover ul {display:block; position:absolute; left:105px; top:0;}
+.fswmenu ul li:hover ul li:hover ul.left {left:-105px;}
+
+/* other menu formatting  */
+.fswmenu span.menu {
+    font-size:7pt;
+}
+
+tt {
+    background: #f0f0ff;
+    color: #005;
+}
