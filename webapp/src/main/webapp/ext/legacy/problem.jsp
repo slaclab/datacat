@@ -111,7 +111,7 @@
             <display:column property="SCANSTATUS" title="Status" sortable="true" headerClass="sortable"/>
             <display:column property="datasetsite" title="Site" sortable="true" headerClass="sortable"/>
             <display:column title="Count" sortProperty="COUNT(*)" sortable="true" headerClass="sortable">
-                <a href='${contextPath}/display/datasets${row.namepath}?filter=scanStatus+=+"${row.SCANSTATUS}"+and+site+=+"${row.datasetsite}"'>${row["COUNT(*)"]}</a>
+                <a href='${contextPath}/display/datasets${row.namepath}?filter=scanStatus+=+"${row.SCANSTATUS}"+and+site+=+"${row.datasetsite}"&sort=created-'>${row["COUNT(*)"]}</a>
             </display:column>
         </display:table>
     </body>
