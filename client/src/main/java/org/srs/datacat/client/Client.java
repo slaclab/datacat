@@ -376,7 +376,7 @@ public class Client {
 
     public DatasetResultSetModel searchForDatasets(String target, String versionId, String site,
             String query, String[] sort, String[] show, Integer offset, Integer max){
-        return searchForDatasets(target, versionId, site, query, null, sort, show, null, null);
+        return searchForDatasets(target, versionId, site, query, null, sort, show, offset, max);
     }
 
     /**
