@@ -18,6 +18,7 @@
         <script src="${pageContext.request.contextPath}/js/bootstrap.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/browser.js" type="text/javascript"></script>
         <script src="http://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js" type="text/javascript"></script>
+        <link rel="shortcut icon" type="image/x-icon" href="${pageContext.request.contextPath}/icons/favicon.png" />
     </head>
 
     <body>
