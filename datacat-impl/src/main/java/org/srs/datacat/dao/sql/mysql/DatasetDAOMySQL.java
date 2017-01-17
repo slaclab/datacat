@@ -521,7 +521,7 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
             DatasetLocationModel request) throws SQLException{
         String insertSql = 
               "insert into VerDatasetLocation (DatasetVersion, DatasetSite, Path, RunMin, RunMax, "
-              + " NumberEvents, FileSizeBytes) values (?, ?, ?, ?, ?, ?, ?)";
+              + " NumberEvents, FileSizeBytes, CheckSum) values (?, ?, ?, ?, ?, ?, ?, ?)";
         
         int i = 0;
         DatasetLocation retLoc;
@@ -536,6 +536,17 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
             stmt.setObject(++i, ((DatasetLocation) request).getRunMax() );
             stmt.setObject(++i, ((DatasetLocation) request).getEventCount() );
             stmt.setObject(++i, request.getSize() );
+            String checksumString = null;
+            try {
+                checksumString = ((DatasetLocation) request).getChecksum();
+                Long checksum = null;
+                if(checksumString != null){
+                    checksum = new BigInteger(checksumString, 16).longValueExact();
+                }
+                stmt.setObject(++i, checksum);
+            } catch(ArithmeticException ex) {
+                throw new SQLException("Checksum value will be truncated in database: " + checksumString);
+            }
             stmt.executeUpdate();   // will throw exception if required parameter is empty...
             DatasetLocation.Builder builder = new DatasetLocation.Builder((DatasetLocation) request);
             // now retrieve the primary key:
@@ -763,7 +774,11 @@ public class DatasetDAOMySQL extends BaseDAOMySQL implements org.srs.datacat.dao
                     Patchable p = method.getAnnotation(Patchable.class);
                     String sql = String.format(baseSql, p.column());
                     if("checksum".equalsIgnoreCase(p.column())){
-                        patchedValue = new BigInteger(patchedValue.toString(), 16);
+                        try {
+                            patchedValue = new BigInteger(patchedValue.toString(), 16).longValueExact();
+                        } catch (ArithmeticException ex){
+                            throw new SQLException("Checksum value will be truncated in database: " + patchedValue);
+                        }
                     }
                     if("masterlocation".equalsIgnoreCase(p.column())){
                         if(patch.isMaster()){
