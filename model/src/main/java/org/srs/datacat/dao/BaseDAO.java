@@ -39,9 +39,9 @@ public interface BaseDAO extends AutoCloseable {
     /**
      * Using the parent record, find the object that corresponds to the given path.
      * 
-     * @param parent
+     * @param parent Container (Folder or Group)
      * @param name The file name
-     * @return
+     * @return The object
      * @throws IOException An exception occurred performing the operation or talking to the data source.
      * @throws NoSuchFileException No parent with the name found in parent.
      */
@@ -57,7 +57,7 @@ public interface BaseDAO extends AutoCloseable {
     void mergeMetadata(DatacatRecord record, Map<String, Object> metaData) throws IOException;
     
     /**
-     * Set the ACL field on a record.
+     * Set the ACL field on a record.   
      * 
      * @param record A Folder, Group, or DatasetVersion
      * @param acl String version of the acl to be set.
