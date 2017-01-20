@@ -22,7 +22,7 @@ public interface SearchDAO extends BaseDAO {
      * @param query String to be parsed by underlying search mechanism.
      * @param metaFieldsToRetrieve A list of fields to return as metadata, or null for none.
      * @param sortFields A list of fields to sort by, or null.
-     * @return
+     * @return Stream of datasets from the search
      * @throws ParseException The parser failed to parse the query.
      * @throws IOException An exception occurred performing the operation or talking to the data source.
      */
@@ -35,7 +35,7 @@ public interface SearchDAO extends BaseDAO {
      * @param query String to be parsed by underlying search mechanism.
      * @param metaFieldsToRetrieve A list of fields to return as metadata, or null for none.
      * @param sortFields A list of fields to sort by, or null.
-     * @return
+     * @return Stream of containers from the search
      * @throws ParseException The parser failed to parse the query.
      * @throws IOException An exception occurred performing the operation or talking to the data source.
      */
