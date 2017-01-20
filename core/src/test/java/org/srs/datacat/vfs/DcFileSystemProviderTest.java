@@ -282,9 +282,9 @@ public class DcFileSystemProviderTest {
             
             provider.getAcl(path, TestUtils.DEFAULT_TEST_CONTEXT);
             TestCase.assertEquals("ridwa", provider.getPermissions(path, TestUtils.DEFAULT_TEST_CONTEXT, null));
-            TestCase.assertEquals("ridwa", provider.getPermissions(path, TestUtils.DEFAULT_TEST_CONTEXT, new DcGroup("test_group","SRS")));
+            TestCase.assertEquals("ridwa", provider.getPermissions(path, TestUtils.DEFAULT_TEST_CONTEXT, new DcGroup("test_group@SRS")));
             TestCase.assertEquals("r", provider.getPermissions(path, TestUtils.DEFAULT_TEST_CONTEXT, DcGroup.PUBLIC_GROUP));
-            TestCase.assertEquals("r", provider.getPermissions(path, TestUtils.DEFAULT_TEST_CONTEXT, DcGroup.fromSpec("bogus@")));
+            TestCase.assertEquals("r", provider.getPermissions(path, TestUtils.DEFAULT_TEST_CONTEXT, new DcGroup("bogus@")));
             
             
             /* TODO: Define this behavior - clear = true, permissions = empty

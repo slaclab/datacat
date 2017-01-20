@@ -2,6 +2,7 @@
 package org.srs.datacat.shared;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.srs.datacat.model.container.ContainerStat;
@@ -11,6 +12,11 @@ import org.srs.datacat.model.container.ContainerStat;
  * @author bvan
  */
 @JsonDeserialize(builder=DatasetContainerBuilder.class)
+@JsonSubTypes(value = {
+        @JsonSubTypes.Type(LogicalFolder.class),
+        @JsonSubTypes.Type(DatasetGroup.class),
+        }
+    )
 @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="_type", defaultImpl=DatasetContainer.class)
 public abstract class DatasetContainer extends DatacatObject 
     implements org.srs.datacat.model.DatasetContainer {

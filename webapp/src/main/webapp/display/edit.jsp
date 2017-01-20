@@ -10,7 +10,7 @@
 <html lang="en">
     <head>
         <title>Datacat Editor</title>
-        <%@ include file="../views/jscontext.jsp" %>
+        <%@ include file="/views/jscontext.jsp" %>
 
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/browser.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.css">
@@ -26,25 +26,31 @@
         <script src="http://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js" type="text/javascript"></script>
     </head>
     <body>
+        <div class="container-fluid">
 
-        <div class="col-xs-12">
-            
-            <div class="row">
-                <%@ include file="../views/breadcrumb.jsp" %>
+            <div class="col-xs-12">
+
+                <div class="row">
+                    <%@ include file="/views/tabbar.jsp" %>
+                </div>
+
+                <div class="row">
+                    <%@ include file="/views/breadcrumb.jsp" %>
+                </div>
+
+                <div class="row">
+                    <div class=" col-xs-12" id="info-views">
+                        <c:choose>
+                            <c:when test="${model.target.type.container}" > 
+                                <%@ include file="/views/edit_container.jsp" %> 
+                            </c:when>
+                            <c:otherwise>
+                                <%@ include file="/views/edit_dataset.jsp" %>
+                            </c:otherwise>
+                        </c:choose>
+                    </div> <!-- End right side -->
+                </div> <!-- end row -->
             </div>
-            
-            <div class="row">
-                <div class=" col-xs-12" id="info-views">
-                    <c:choose>
-                        <c:when test="${model.target.type.container}" > 
-                            <%@ include file="../views/edit_container.jsp" %> 
-                        </c:when>
-                        <c:otherwise>
-                            <%@ include file="../views/edit_dataset.jsp" %>
-                        </c:otherwise>
-                    </c:choose>
-                </div> <!-- End right side -->
-            </div> <!-- end row -->
         </div>
     </body>
 </html>

@@ -69,20 +69,16 @@ public class AclEntryProxy {
         
         public AclEntryProxy build(){
             Objects.requireNonNull(subject, "Subject must not be null");
-            String[] uprinWithExp = subject.split("@");
-            String subjectName = uprinWithExp[0];
-            String subjectDomain = uprinWithExp.length > 1 ? uprinWithExp[1] : null;
         
-            DcSubject subject = DcSubject.newBuilder()
-                    .name(subjectName)
-                    .domain(subjectDomain)
+            DcSubject dcSubject = DcSubject.newBuilder()
+                    .name(subject)
                     .type("g").build();
             if(permissions == null){
                 permissions = "";
             }
             DcAclEntry e = DcAclEntry.newBuilder()
                     .permissions(permissions)
-                    .subject(subject)
+                    .subject(dcSubject)
                     .scope(DcAclEntryScope.ACCESS)
                     .build();
             return new AclEntryProxy(e);

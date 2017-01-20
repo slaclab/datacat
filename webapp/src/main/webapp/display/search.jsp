@@ -10,7 +10,7 @@
 <html lang="en">
     <head>
         <title>Search Datasets</title>
-        <%@ include file="../views/jscontext.jsp" %>
+        <%@ include file="/views/jscontext.jsp" %>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/browser.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.css">
@@ -29,12 +29,12 @@
 
             <c:set var="view" value="search"/>
             <div class="row">
-                <%@ include file="../views/tabbar.jsp" %>
+                <%@ include file="/views/tabbar.jsp" %>
             </div>
             
             <div class="row">
                 <div class="container-fluid" id="info-views">
-                    <%@ include file="../views/datasets.jsp" %>
+                    <%@ include file="/views/datasets.jsp" %>
                 </div>
             </div>
         </div>

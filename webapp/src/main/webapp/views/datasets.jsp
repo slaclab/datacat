@@ -83,7 +83,7 @@
                                 <input type="checkbox" value="${child.path}">
                             </td>
                             <td>
-                                <a href="${model.contextPath}/display/datasets${child.path}" pk="${child.pk}">${child.name}</a>
+                                <a href="${model.applicationBase}/datasets${child.path}" pk="${child.pk}">${child.name}</a>
                             </td>
                             <td>${child.dataType}</td>
                             <td>

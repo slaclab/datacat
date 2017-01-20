@@ -12,7 +12,7 @@
 <html lang="en">
     <head>  
         <title>Datacat Tree</title>
-        <%@ include file="../views/jscontext.jsp" %>
+        <%@ include file="/views/jscontext.jsp" %>
 
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/browser.css">
@@ -29,11 +29,11 @@
             <div class="col-xs-12">
                 <c:set var="view" value="tree"/>
                 <div class="row">
-                    <%@ include file="../views/tabbar.jsp" %>
+                    <%@ include file="/views/tabbar.jsp" %>
                 </div>
 
                 <div class="row">
-                    <%@ include file="../views/breadcrumb.jsp" %>
+                    <%@ include file="/views/breadcrumb.jsp" %>
                 </div>
 
                 <div class="row">
@@ -49,10 +49,10 @@
                         <div class="col-sm-6 col-md-7 col-lg-8" id="info-views">
                             <c:choose>
                                 <c:when test="${model.target.type.container}" >
-                                    <%@ include file="../views/container.jsp" %>
+                                    <%@ include file="/views/container.jsp" %>
                                 </c:when>
                                 <c:otherwise>
-                                    <%@ include file="../views/dataset.jsp" %> 
+                                    <%@ include file="/views/dataset.jsp" %> 
                                 </c:otherwise>
                             </c:choose>
                         </div> <!-- End right side -->

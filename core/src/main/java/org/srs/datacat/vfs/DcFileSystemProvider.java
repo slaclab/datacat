@@ -53,6 +53,7 @@ import org.srs.datacat.vfs.attribute.ContainerViewProvider;
 import org.srs.vfs.AbstractFsProvider.AfsException;
 import org.srs.vfs.FileAttributes;
 import org.srs.vfs.FileType;
+import org.srs.vfs.FileType.Directory;
 import org.srs.vfs.GlobToRegex;
 import org.srs.vfs.PathProvider;
 import org.srs.vfs.PathUtils;
@@ -472,7 +473,7 @@ public class DcFileSystemProvider {
         DcFile f = getFile(path, context);
         checkPermission(context, f, DcPermissions.WRITE);
         
-        if(f.getType() != FileType.DIRECTORY){ // Use the constant instead of instanceof
+        if(!(f.getType() instanceof Directory)){
             AfsException.NO_SUCH_FILE.throwError(f, "The file to be patched is a container");
         }
         

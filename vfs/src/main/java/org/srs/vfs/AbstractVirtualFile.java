@@ -4,7 +4,6 @@ package org.srs.vfs;
 import java.nio.file.Path;
 
 import java.nio.file.attribute.AttributeView;
-import java.nio.file.attribute.BasicFileAttributes;
 
 import java.util.Collection;
 

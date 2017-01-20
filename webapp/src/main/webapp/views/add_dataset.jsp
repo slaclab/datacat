@@ -96,7 +96,7 @@
 
     <h3>Version Metadata</h3>
     <c:set var="mdlist" value="${model.target.versionMetadata}" />
-    <%@ include file="../views/edit_metadata.jsp" %>
+    <%@ include file="/views/edit_metadata.jsp" %>
 
 <c:catch var="exception">
     <h3>Locations</h3>

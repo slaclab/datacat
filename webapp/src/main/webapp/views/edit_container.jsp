@@ -18,20 +18,19 @@
     </div>
 
     <div class="clearfix">
-        <form class="form-horizontal" method="POST">
-            <fieldset>
-                <!-- Form Name -->
-                <legend>Edit Container Attributes</legend>
 
-                <div class="control-group">
-                    <label class="control-label" for="description">Description</label>
-                    <div class="controls">
-                        <input id="description" name="description" type="text" placeholder="${model.target.description}" class="input-xlarge">
-                    </div>
+        <fieldset>
+            <!-- Form Name -->
+            <legend>Edit Container Attributes</legend>
+
+            <div class="control-group">
+                <label class="control-label" for="description">Description</label>
+                <div class="controls">
+                    <input id="description" name="description" type="text" placeholder="${model.target.description}" class="input-xlarge">
                 </div>
+            </div>
 
-            </fieldset>
-        </form>
+        </fieldset>
     </div>
 
     <table class="table table-condensed table-striped location-table">
@@ -85,3 +84,6 @@
 
 </div>
 
+<form style="display: hidden" id="edit-form" method="POST">
+    <input type="hidden" name="_referer" value="${header.referer}"/>
+</form>

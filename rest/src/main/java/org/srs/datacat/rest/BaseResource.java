@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -111,21 +112,20 @@ public class BaseResource {
         link.append( "; rel=" + rel );
         return link.toString();
     }
-
-    public HttpServletRequest getRequest(){
-        return request;
-    }
-    
-
-    public Principal getUser(){
-        return securityContext.getUserPrincipal();
-    }
     
     public CallContext buildCallContext() throws IOException{
-        Principal prin = getUser();
+        Principal prin = securityContext.getUserPrincipal();
         String name = prin != null ?  prin.getName() : null;
         DcUser user = lookupService.lookupPrincipalByName(name);
-        Set<DcGroup> groups = lookupService.lookupGroupsForUser(user);
+        if(user == null){
+            user = DcUser.PUBLIC_USER;
+        }
+        Set<DcGroup> groups = new HashSet<>();
+        groups.add(DcGroup.PUBLIC_GROUP);
+        if(user != DcUser.PUBLIC_USER){
+            groups.add(DcGroup.PROTECTED_GROUP);
+        }
+        groups.addAll(lookupService.lookupGroupsForUser(user));
         return new CallContext(user, groups);
     }
 

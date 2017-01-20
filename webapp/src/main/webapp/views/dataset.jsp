@@ -95,7 +95,7 @@
     <c:catch var="exception">
         <h3>Version Metadata</h3>
         <c:set var="mdlist" value="${model.target.versionMetadata}" />
-        <%@ include file="../views/metadata.jsp" %>
+        <%@ include file="/views/metadata.jsp" %>
     </c:catch>
     <%--
         <c:if test="${gm:isUserInGroup(pageContext,'DataCatalogAdmin')}">

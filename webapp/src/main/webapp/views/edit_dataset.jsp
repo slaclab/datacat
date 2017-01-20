@@ -17,37 +17,35 @@
 
 
 <script>
-    $("document").ready(function(){
+    $("document").ready(function () {
         $(".location-table td.ds-patchable").editableTableWidget();
-        
-        $('.location-table').on('validate', function(evt, newValue) {
+
+        $('.location-table').on('validate', function (evt, newValue) {
             var target = $(evt.target);
             var row = target.parent();
             var original = row.data("original").toString();
-            if(newValue !== original){
+            if (newValue !== original) {
                 row.addClass("warning");
             } else {
                 row.removeClass("warning");
             }
         });
 
-        $(".edit-submit").on("click", function() { 
-
-            $("body").append('<form style="display: hidden" id="edit-form" method="POST"/>');
+        $(".edit-submit").on("click", function () {
             var form = $("#edit-form");
             form.attr("action", pageContext.endPoint + pageContext.target.path);
-            
-            $(".ds-patchable").each(function(i, item){
+
+            $(".ds-patchable").each(function (i, item) {
                 item = $(item);
                 var row = item.parent();
-                if(item.text() !== row.data("original").toString()){
+                if (item.text() !== row.data("original").toString()) {
                     var input = $('<input type="hidden" value=""/>');
                     input.attr("name", row.data("key"))
                     input.val(item.text())
                     form.append(input);
                 }
             });
-
+            // Gather all the items, create a form, and submit it.
             var mdItems = mdhandler.getData();
             var mdInput = $('<input type="hidden" id="md-form-data" name="versionMetadata" value=""/>');
             form.append(mdInput);
@@ -86,7 +84,7 @@
                     <tr><th>Source:</th><td>${model.target.dataSource}</td></tr>
                         </c:if>
                     </c:catch>
-            <c:if test="${master != null}">
+                    <c:if test="${master != null}">
                 <tr data-key="size" data-original="${web_dc:formatBytes(master.size)}">
                     <th>Size:</th>
                     <td class="ds-patchable" id="created">${web_dc:formatBytes(master.size)}</td></tr>
@@ -105,31 +103,13 @@
                     <td class="ds-patchable">${web_dc:formatEvents(master.eventCount)}</td>
                 </tr>
             </c:if>
-                    <%--
-                        <c:if test="${empty dataset.processInstance}">
-                            <th>Task:</th><td><a target="_top" href="${appVariables.pipelineUrl}/pi.jsp?pi=${dataset.processInstance}&experiment=${appVariables.experiment}">${dataset.taskName}</a></td>
-                        </c:if>
-                        <c:if test="${!empty dataset.rootversion}">
-                            <th>Root Version:</th><td>${dataset.rootversion}</td>
-                            <th>Tree Name:</th><td>${dataset.ttreename}</td>
-                            <th>SoLib Version:</th><td>${dataset.solibversion}</td>
-                        </c:if>
-                        <th>Links</th>
-                        <td>
-                            <datacat:downloadLink dataset="${dataset.pk}"/>
-                            <c:if test="${dataset.dataType == 'MERIT'}">
-                                <datacat:skimLink path="${folderName}" group="${groupName}" dataset="${dataset.DatasetName}"/>
-                            </c:if>
-                            <a href="logViewer.jsp?minDate=-1&severity=0&dataset=${dataset.dataset}" target="_top">History</a>
-                        </td>
-                    --%>
         </tbody>
     </table>
 
     <h3>Version Metadata</h3>
     <c:set var="mdlist" value="${model.target.versionMetadata}" />
-    <%@ include file="../views/edit_metadata.jsp" %>
-    
+    <%@ include file="/views/edit_metadata.jsp" %>
+
     <button type="button" class="btn btn-success btn-med edit-submit">
         <span class="glyphicon glyphicon-save" aria-hidden="true"></span> Submit
     </button>
@@ -146,7 +126,7 @@
                             <th class="location-ts">Created</th>
                             <th class="location-ts">Last Scanned</th>
                             <th class="location-resource"><div class="location-resource">Resource</div></th>
-                    </tr>
+                        </tr>
                     </thead>
 
                     <tbody>
@@ -169,3 +149,7 @@
         </c:choose>
     </c:catch>
 </div>
+
+<form style="display: hidden" id="edit-form" method="POST">
+    <input type="hidden" name="_referer" value="${header.referer}"/>
+</form>

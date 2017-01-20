@@ -51,47 +51,47 @@ public class DcPermissionsTest {
     public void testMergeAclEntries() throws Exception{
 
         DcAclEntry keepFirstEntry = DcAclEntry.newBuilder()
-                .subject(new DcGroup("user","exo"))
+                .subject(new DcGroup("admin@fermi"))
                 .permissions("rw")
                 .scope(DcAclEntryScope.DEFAULT)
                 .build();
         
-        DcAclEntry keepBeforeEntry = DcAclEntry.newBuilder()
-                .subject(new DcGroup("admin","fermi"))
+        DcAclEntry keepAfterEntry1 = DcAclEntry.newBuilder()
+                .subject(new DcGroup("user@exo"))
                 .permissions("rw")
                 .scope(DcAclEntryScope.DEFAULT)
                 .build();
         
-        DcAclEntry keepAfterEntry = DcAclEntry.newBuilder()
-                .subject(new DcGroup("user","fermi"))
+        DcAclEntry keepAfterEntry2 = DcAclEntry.newBuilder()
+                .subject(new DcGroup("user@fermi"))
                 .permissions("rw")
                 .scope(DcAclEntryScope.DEFAULT)
                 .build();
         
         DcAclEntry oldEntry = DcAclEntry.newBuilder()
-                .subject(new DcGroup("developer","fermi"))
+                .subject(new DcGroup("developer@fermi"))
                 .permissions("r")
                 .scope(DcAclEntryScope.DEFAULT)
                 .build();
         
         DcAclEntry newEntry = DcAclEntry.newBuilder()
-                .subject(new DcGroup("developer","fermi"))
+                .subject(new DcGroup("developer@fermi"))
                 .permissions("ridwa")
                 .scope(DcAclEntryScope.ACCESS)
                 .build();
         
         List<DcAclEntry> existing = new ArrayList<>();
         List<DcAclEntry> updated = new ArrayList<>();
-        existing.add(keepBeforeEntry);
-        existing.add(oldEntry);
-        existing.add(keepAfterEntry);
         existing.add(keepFirstEntry);
+        existing.add(oldEntry);
+        existing.add(keepAfterEntry1);
+        existing.add(keepAfterEntry2);
         updated.add(newEntry);
-        
         updated = AclTransformation.mergeAclEntries(existing, updated);
-        TestCase.assertEquals(updated.get(1).getSubject(), keepBeforeEntry.getSubject());
-        TestCase.assertEquals(updated.get(2).getPermissions(), newEntry.getPermissions());
-        TestCase.assertEquals(updated.get(3).getSubject(), keepAfterEntry.getSubject());
+        TestCase.assertEquals(updated.get(0).getSubject(), keepFirstEntry.getSubject());
+        TestCase.assertEquals(updated.get(1).getSubject(), newEntry.getSubject());
+        TestCase.assertEquals(updated.get(2).getPermissions(), keepAfterEntry1.getPermissions());
+        TestCase.assertEquals(updated.get(3).getSubject(), keepAfterEntry2.getSubject());
         TestCase.assertEquals(updated.size(), 4);
         
     }
@@ -100,46 +100,48 @@ public class DcPermissionsTest {
     public void testRemoveEmptyPermissionEntries() throws Exception{
         
         DcAclEntry keepFirstEntry = DcAclEntry.newBuilder()
-                .subject(new DcGroup("user","exo"))
-                .permissions("rw")
-                .scope(DcAclEntryScope.DEFAULT)
-                .build();
-        
-        DcAclEntry keepBeforeEntry = DcAclEntry.newBuilder()
-                .subject(new DcGroup("admin","fermi"))
-                .permissions("rw")
-                .scope(DcAclEntryScope.DEFAULT)
-                .build();
-        
-        DcAclEntry keepAfterEntry = DcAclEntry.newBuilder()
-                .subject(new DcGroup("user","fermi"))
+                .subject(new DcGroup("admin@fermi"))
                 .permissions("rw")
                 .scope(DcAclEntryScope.DEFAULT)
                 .build();
         
         DcAclEntry oldEntry = DcAclEntry.newBuilder()
-                .subject(new DcGroup("developer","fermi"))
+                .subject(new DcGroup("developer@fermi"))
                 .permissions("r")
                 .scope(DcAclEntryScope.DEFAULT)
                 .build();
         
+        DcAclEntry keepAfterEntry1 = DcAclEntry.newBuilder()
+                .subject(new DcGroup("user@exo"))
+                .permissions("rw")
+                .scope(DcAclEntryScope.DEFAULT)
+                .build();
+        
+        DcAclEntry keepAfterEntry2 = DcAclEntry.newBuilder()
+                .subject(new DcGroup("user@fermi"))
+                .permissions("rw")
+                .scope(DcAclEntryScope.DEFAULT)
+                .build();
+        
+        
         DcAclEntry newEntry = DcAclEntry.newBuilder()
-                .subject(new DcGroup("developer","fermi"))
+                .subject(new DcGroup("developer@fermi"))
                 .permissions(Collections.EMPTY_SET)
                 .scope(DcAclEntryScope.ACCESS)
                 .build();
                 
         List<DcAclEntry> existing = new ArrayList<>();
         List<DcAclEntry> updated = new ArrayList<>();
-        existing.add(keepBeforeEntry);
+        existing.add(keepAfterEntry1);
         existing.add(oldEntry);
-        existing.add(keepAfterEntry);
+        existing.add(keepAfterEntry2);
         existing.add(keepFirstEntry);
         updated.add(newEntry);
         
         updated = AclTransformation.mergeAclEntries(existing, updated);
-        TestCase.assertEquals(updated.get(1).getSubject(), keepBeforeEntry.getSubject());
-        TestCase.assertEquals(updated.get(2).getSubject(), keepAfterEntry.getSubject());
+        TestCase.assertEquals(updated.get(0).getSubject(), keepFirstEntry.getSubject());
+        TestCase.assertEquals(updated.get(1).getSubject(), keepAfterEntry1.getSubject());
+        TestCase.assertEquals(updated.get(2).getSubject(), keepAfterEntry2.getSubject());
         TestCase.assertEquals(updated.size(), 3);
     }
 }

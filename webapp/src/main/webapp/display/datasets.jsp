@@ -10,7 +10,7 @@
 <html lang="en">
     <head>
         <title>Datacat Datasets</title>
-        <%@ include file="../views/jscontext.jsp" %>
+        <%@ include file="/views/jscontext.jsp" %>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.css">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/browser.css">
@@ -29,20 +29,20 @@
             <div class="col-xs-12">
                 <c:set var="view" value="datasets"/>
                 <div class="row">
-                    <%@ include file="../views/tabbar.jsp" %>
+                    <%@ include file="/views/tabbar.jsp" %>
                 </div>
 
                 <div class="row">
-                    <%@ include file="../views/breadcrumb.jsp" %>
+                    <%@ include file="/views/breadcrumb.jsp" %>
                 </div>
 
                 <div class="row">
                     <div class="container-fluid" id="info-views">
 
                         <c:choose>
-                            <c:when test="${!model.target.type.container}" > <%@ include file="../views/dataset.jsp" %> </c:when>
+                            <c:when test="${!model.target.type.container}" > <%@ include file="/views/dataset.jsp" %> </c:when>
                             <c:otherwise>
-                                <%@ include file="../views/datasets.jsp" %>
+                                <%@ include file="/views/datasets.jsp" %>
                             </c:otherwise>
                         </c:choose>
                     </div> <!-- End right side -->

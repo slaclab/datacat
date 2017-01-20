@@ -73,14 +73,9 @@ public final class AclTransformation {
         if(!"g".equals(entryType)){
             throw new IllegalArgumentException("Illegal principal type:" + entryType);
         }
-        
-        String[] uprinWithExp = subjectString.split("@");
-        String subjectName = uprinWithExp[0];
-        String subjectDomain = uprinWithExp.length > 1 ? uprinWithExp[1] : null;
-        
+                
         DcSubject subject = DcSubject.newBuilder()
-                .name(subjectName)
-                .domain(subjectDomain)
+                .name(subjectString)
                 .type(entryType).build();
         
         String permissions = ace[2];

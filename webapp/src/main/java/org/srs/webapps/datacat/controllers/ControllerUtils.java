@@ -22,10 +22,12 @@ import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RecordType;
 import org.srs.datacat.model.security.DcAclEntry;
 import org.srs.datacat.model.security.DcPermissions;
+import org.srs.datacat.shared.BasicStat;
 import org.srs.datacat.shared.DatasetStat;
 import org.srs.datacat.shared.RequestView;
 import org.srs.vfs.PathUtils;
 import org.srs.webapps.datacat.model.NodeTargetModel;
+import org.srs.webapps.datacat.model.ApplicationUriInfo;
 
 /**
  *
@@ -35,14 +37,19 @@ public class ControllerUtils {
     static final int DEFAULT_MAX = 100;
     
     
-    public static ClientRequestFilter getCasClientFilter(HttpServletRequest request){
+    private static ClientRequestFilter getCasClientFilter(HttpServletRequest request){
         Map<String, Object> headers = new HashMap<>();
         // Client configuration can go here if testing
+        String srsClientId = request.getServletContext().getInitParameter("org.srs.datacat.srs_client_id");
+        if(srsClientId != null){
+            headers.put("x-client-id", srsClientId); // This web applications has a clientId which should be trusted
+        }
+
         headers.put("x-cas-username", request.getSession().getAttribute("userName"));
         return new HeaderFilter(headers);
     }
     
-    public static ClientRequestFilter getPassThroughFilter(HttpServletRequest request){
+    private static ClientRequestFilter getPassThroughFilter(HttpServletRequest request){
         final Set<String> passThroughAuths = new HashSet<>(Arrays.asList(
                 HttpServletRequest.BASIC_AUTH,
                 HttpServletRequest.DIGEST_AUTH
@@ -57,7 +64,7 @@ public class ControllerUtils {
         return new HeaderFilter(headers);
     }
     
-    public static ClientRequestFilter getClientFilter(HttpServletRequest request){
+    private static ClientRequestFilter getClientFilter(HttpServletRequest request){
         if(request.getSession().getAttribute("userName") != null){
             return getCasClientFilter(request);
         }
@@ -78,88 +85,95 @@ public class ControllerUtils {
         }
     }
 
-    public static NodeTargetModel collectAttributes(HttpServletRequest request, boolean withDatasets)
-            throws ServletException, IOException{
+    public static NodeTargetModel buildModel(HttpServletRequest request, ApplicationUriInfo info, boolean includeDatasets)
+            throws IOException{
 
-        NodeTargetModel requestModel = collectBasicAttributes(request);
+        String path = info.getDatacatPath();
+        NodeTargetModel requestModel = new NodeTargetModel(info);
         HashMap<String, List<String>> requestQueryParams = getQueryParams(request);
-        RequestView rv = new RequestView(RecordType.FOLDER, null);
+        
         // This Assumes all REST requests are routed to the same base URL
         Client client = getClient(request); 
-        if(request.getPathInfo() == null || request.getPathInfo().length() == 1){
-            requestModel.setParentURL("/");
-            requestModel.setContainers(getContainers(client, "/", rv, requestQueryParams));
-            requestModel.setPath(null);
-        } else {
-            String path = request.getPathInfo();
-            DatacatNode target = client.getObject(path, "current", "all");
+        DatacatNode target = client.getObject(path, "current", "all");
 
-            if(target.getType().isContainer()){
-                target = client.getContainer(path, "dataset");
-            }
-            String parentPath = PathUtils.getParentPath(target.getPath());
-            if(parentPath.length() > 1){
-                requestModel.setParent(client.getContainer(parentPath, "dataset"));
-            }
+        if(target.getType().isContainer()){
+            target = client.getContainer(path, "dataset");
+        }
+        String parentPath = PathUtils.getParentPath(target.getPath());
+        if(parentPath.length() > 1){
+            requestModel.setParent(client.getContainer(parentPath, "dataset"));
+        }
 
-            requestModel.setTarget(target);
-            DcAclEntry e = client.getPermissions(path, null);
-            requestModel.setWritable(e.getPermissions().contains(DcPermissions.WRITE));
-            requestModel.setDeletable(e.getPermissions().contains(DcPermissions.DELETE));
-            requestModel.setInsertable(e.getPermissions().contains(DcPermissions.INSERT));
-            if(target.getType().isContainer()){
-                DatasetStat t = (DatasetStat) ((DatasetContainer) target).getStat();
-                long ccCount = t.getGroupCount() + t.getFolderCount();
-                long dsCount = t.getDatasetCount();
+        requestModel.setTarget(target);
+        DcAclEntry e = client.getPermissions(path, null);
+        requestModel.setWritable(e.getPermissions().contains(DcPermissions.WRITE));
+        requestModel.setDeletable(e.getPermissions().contains(DcPermissions.DELETE));
+        requestModel.setInsertable(e.getPermissions().contains(DcPermissions.INSERT));
+        if(target.getType().isContainer()){
+            DatasetStat t = (DatasetStat) ((DatasetContainer) target).getStat();
+            long ccCount = t.getGroupCount() + t.getFolderCount();
+            long dsCount = t.getDatasetCount();
 
-                int offset = requestQueryParams.containsKey("offset")
-                        ? Integer.valueOf(requestQueryParams.get("offset").get(0)) : 0;
+            int offset = requestQueryParams.containsKey("offset")
+                    ? Integer.valueOf(requestQueryParams.get("offset").get(0)) : 0;
 
-                int max = requestQueryParams.containsKey("max")
-                        ? Integer.valueOf(requestQueryParams.get("max").get(0)) : DEFAULT_MAX;
+            int max = requestQueryParams.containsKey("max")
+                    ? Integer.valueOf(requestQueryParams.get("max").get(0)) : DEFAULT_MAX;
 
-                if(withDatasets && dsCount > 0){
-                    ArrayList<DatacatNode> datasets = new ArrayList<>();
-                    DatasetResultSetModel searchResults = getDatasets(client, path, rv, requestQueryParams, offset, max);
-                    for(DatacatNode d: searchResults.getResults()){
-                        if(!d.getType().isContainer()){
-                            datasets.add(d);
-                        }
+            int cmax = requestQueryParams.containsKey("cmax") ? 
+                    Integer.valueOf(requestQueryParams.get("cmax").get(0)) : 100000;
+            int coffset = requestQueryParams.containsKey("coffset") ? 
+                    Integer.valueOf(requestQueryParams.get("coffset").get(0)) : 0;
+            if(includeDatasets && dsCount > 0){
+                RequestView rv = new RequestView(RecordType.FOLDER, null);
+                ArrayList<DatacatNode> datasets = new ArrayList<>();
+                DatasetResultSetModel searchResults = getDatasets(client, path, rv, requestQueryParams, offset, max);
+                for(DatacatNode d: searchResults.getResults()){
+                    if(!d.getType().isContainer()){
+                        datasets.add(d);
                     }
-                    requestModel.setDatasets(datasets);
-                    requestModel.setDatasetCount(searchResults.getCount());
-                    // Paging
-                    StringBuffer reqUrl = request.getRequestURL();
-                    if(request.getQueryString() != null){
-                        reqUrl.append('?').append(request.getQueryString());
-                    }
-                    requestModel.setContainers(getContainers(client, PathUtils.getParentPath(path), rv, requestQueryParams));
-                } else if (ccCount > 0){
-                    requestModel.setContainers(getContainers(client, path, rv, requestQueryParams));
                 }
-                if (ccCount == 0){
-                    if(requestModel.getContainers() == null){
-                        requestModel.setContainers(getContainers(client, PathUtils.getParentPath(path), rv, requestQueryParams));
-                    }
-                    requestModel.setSelected(target);
+                requestModel.setDatasets(datasets);
+                requestModel.setDatasetCount(searchResults.getCount());
+                // Paging
+                StringBuffer reqUrl = request.getRequestURL();
+                if(request.getQueryString() != null){
+                    reqUrl.append('?').append(request.getQueryString());
                 }
+                requestModel.setContainers(client.getContainers(PathUtils.getParentPath(path), coffset, cmax, null));
+            } else if (ccCount > 0){
+                List<DatasetContainer> childContainers = new ArrayList<>();
+                List<DatasetContainer> containers = client.getContainers(path, coffset, cmax, "basic");
+                for(DatasetContainer container: containers){
+                    BasicStat stat = (BasicStat) container.getStat();
+                    // Dive in recursively until we find a non-empty container
+                    while(stat.getChildCount() == 1 && stat.getFolderCount() + stat.getGroupCount() == 1){
+                        container = client.getContainers(container.getPath(), coffset, cmax, "basic").get(0);
+                        stat = (BasicStat) container.getStat();
+                    }
+                    childContainers.add(container);
+                }
+                requestModel.setContainers(childContainers);
             }
-
-            requestModel.setParentURL(request.getPathInfo());
+            if (ccCount == 0){
+                if(requestModel.getContainers() == null){
+                    requestModel.setContainers(client.getContainers(PathUtils.getParentPath(path), coffset, cmax, null));
+                }
+                requestModel.setSelected(target);
+            }
         }
         return requestModel;
     }
     
     
-    public static NodeTargetModel collectSearchAttributes(HttpServletRequest request)
+    public static NodeTargetModel buildSearchModel(HttpServletRequest request, ApplicationUriInfo info)
             throws ServletException, IOException{
 
-        NodeTargetModel targetModel = collectBasicAttributes(request);
+        NodeTargetModel targetModel = new NodeTargetModel(info);
         HashMap<String, List<String>> requestQueryParams = getQueryParams(request);
         RequestView rv = new RequestView(RecordType.FOLDER, null);
         String searchPath = request.getPathInfo();
         Client client = getClient(request);        
-        
         
         int offset = requestQueryParams.containsKey("offset")
                 ? Integer.valueOf(requestQueryParams.get("offset").get(0)) : 0;
@@ -183,21 +197,7 @@ public class ControllerUtils {
             reqUrl.append('?').append(request.getQueryString());
         }
 
-        targetModel.setParentURL(request.getPathInfo());
         return targetModel;
-    }
-    
-
-    public static NodeTargetModel collectBasicAttributes(HttpServletRequest request){
-        NodeTargetModel requestAttributes = new NodeTargetModel();
-
-        String endPoint = request.getContextPath() + request.getServletPath();
-        requestAttributes.setEndPoint(endPoint);
-
-        String base = endPoint.substring(0, endPoint.lastIndexOf("/"));
-        requestAttributes.setApplicationBase(base);
-        requestAttributes.setContextPath(request.getContextPath());
-        return requestAttributes;
     }
     
     public static HashMap<String, List<String>> getQueryParams(HttpServletRequest request){
@@ -219,24 +219,6 @@ public class ControllerUtils {
                 dsView.getSite(), filter, sort, null, offset, max);
 
         return results;
-    }
-
-    private static List<DatacatNode> getContainers(Client c, String path, RequestView requestView,
-            HashMap<String, List<String>> queryParams){
-        int max = queryParams.containsKey("cmax") ? Integer.valueOf(queryParams.get("cmax").get(0)) : 100000;
-        int offset = queryParams.containsKey("coffset") ? Integer.
-                valueOf(queryParams.get("coffset").get(0)) : 0;
-
-        List<DatacatNode> retList = new ArrayList<>();
-        int count = 0;
-
-        for(DatacatNode n: c.getContainers(path)){
-            if(count >= offset && retList.size() < max){
-                retList.add(n);
-            }
-            count++;
-        }
-        return retList;
     }
 
 }
