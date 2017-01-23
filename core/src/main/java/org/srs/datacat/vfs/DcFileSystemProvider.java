@@ -490,15 +490,16 @@ public class DcFileSystemProvider {
     
     /**
      * Search using a path pattern and a query.
-     * @param pathPattern A glob or regex pattern
+     * @param pathPatterns A glob or regex pattern
      * @param context Call Context
-     * @param checkFolders Check inside folders
-     * @param checkGroups Check inside Groups
      * @param datasetView Apply this view to all datasets
      * @param query A Query String
-     * @param retrieveFields Metadata fields to retrieve
-     * @param sortFields Fields to sort on.
-     * @return Stream of datasets. Make sure to close the stream when done.
+     * @param containerQuery The container query string
+     * @param retrieveFields Metadata fields of datasets to also retrieve
+     * @param sortFields Dataset metadata fiels to sort by
+     * @return Stream of datasets
+     * @throws IOException
+     * @throws ParseException 
      */
     public DirectoryStream<DatasetModel> search(List<String> pathPatterns, CallContext context,
             DatasetView datasetView, String query,
@@ -550,11 +551,8 @@ public class DcFileSystemProvider {
     /**
      * Search using a path pattern and a query.
      *
-     * @param pathPattern A glob or regex pattern
+     * @param pathPatterns A glob or regex pattern
      * @param context Call Context
-     * @param checkFolders Check inside folders
-     * @param checkGroups Check inside Groups
-     * @param datasetView Apply this view to all datasets
      * @param query A Query String
      * @param retrieveFields Metadata fields to retrieve
      * @param sortFields Fields to sort on.

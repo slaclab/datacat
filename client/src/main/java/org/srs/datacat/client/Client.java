@@ -346,7 +346,6 @@ public class Client {
      * @param versionId Version Id to return
      * @param site Site to query
      * @param query Query String
-     * @param folderQuery Query string for matching folders
      * @param sort Fields and Metadata fields to sort on.
      * @param show Metadata fields to optionally return
      * @return Response object of the search
