@@ -110,9 +110,9 @@ public class PathResource extends BaseResource {
         } catch (IllegalArgumentException ex){
             throw new RestException(ex, 400 , "Unable to correctly process view", ex.getMessage());
         } catch (NoSuchFileException ex){
-             throw new RestException(ex,404 , "File doesn't exist", ex.getMessage());
+             throw new RestException(ex, 404 , "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
-             throw new RestException(ex, 403);
+             throw new RestException(ex, 403, ex.getMessage());
         } catch (IOException ex){
             Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex, 500);
@@ -177,9 +177,9 @@ public class PathResource extends BaseResource {
         } catch (NoSuchFileException ex){
              throw new RestException(ex,404 , "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
-             throw new RestException(ex, 403);
+             throw new RestException(ex, 403, ex.getMessage());
         } catch (IOException ex){
-            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex); 
             throw new RestException(ex, 500);
         }
     }

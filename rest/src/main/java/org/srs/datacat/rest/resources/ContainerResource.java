@@ -110,7 +110,7 @@ public class ContainerResource extends BaseResource {
         } catch (NoSuchFileException ex){
              throw new RestException(ex,404, "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
-             throw new RestException(ex, 403);
+             throw new RestException(ex, 403, ex.getMessage());
         } catch (NotDirectoryException ex){
             throw new RestException(ex,404,"File exists, but Path is not a container");
         } catch (IOException ex){
@@ -152,7 +152,7 @@ public class ContainerResource extends BaseResource {
         } catch (NoSuchFileException ex){
              throw new RestException(ex ,404, "Parent file doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
-             throw new RestException(ex, 403);
+             throw new RestException(ex, 403, ex.getMessage());
         } catch (NotDirectoryException ex){
             throw new RestException(ex, 404, "File exists, but Path is not a container");
         } catch (IOException ex){
@@ -186,7 +186,7 @@ public class ContainerResource extends BaseResource {
         } catch (NoSuchFileException ex){
              throw new RestException(ex ,404, "Parent file doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
-             throw new RestException(ex, 403);
+             throw new RestException(ex, 403, ex.getMessage());
         } catch (NotDirectoryException ex){
             throw new RestException(ex, 404, "File exists, but Path is not a container");
         } catch (IOException ex){
@@ -232,7 +232,7 @@ public class ContainerResource extends BaseResource {
         } catch (NoSuchFileException ex){
              throw new RestException(ex, 404, "Directory doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
-             throw new RestException(ex, 403);
+             throw new RestException(ex, 403, ex.getMessage());
         } catch (IOException ex){
             Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex, 500);

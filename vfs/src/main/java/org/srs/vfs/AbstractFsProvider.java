@@ -97,18 +97,12 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
     }
     
     public static enum AfsException {
-        ACCESS_DENIED(AccessDeniedException.class),
-        NO_SUCH_FILE(NoSuchFileException.class),
-        NOT_DIRECTORY(NotDirectoryException.class),
-        DIRECTORY_NOT_EMPTY(DirectoryNotEmptyException.class),
-        FILE_EXISTS(FileAlreadyExistsException.class),
-        GENERIC(FileSystemException.class);
-        
-        private final Class<? extends FileSystemException> exceptionClass;
-        
-        private AfsException(Class<? extends FileSystemException> exceptionClass){
-            this.exceptionClass = exceptionClass;
-        }
+        ACCESS_DENIED,
+        NO_SUCH_FILE,
+        NOT_DIRECTORY,
+        DIRECTORY_NOT_EMPTY,
+        FILE_EXISTS,
+        GENERIC;
         
         /*
           TODO: Untested and unused
@@ -140,7 +134,7 @@ public abstract class AbstractFsProvider<P extends AbstractPath, V extends Virtu
             public String getMessage(){
                 return msg;
             }
-
+            
         }
         
         private static class ContainerNotEmptyException extends DirectoryNotEmptyException {
