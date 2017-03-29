@@ -106,7 +106,7 @@ public class DatasetsResource extends BaseResource  {
             // TODO: Check exception
             throw new RestException(ex, 400 , "The target is not a dataset", ex.getMessage());
         } catch (AccessDeniedException ex){
-             throw new RestException(ex, 403);
+             throw new RestException(ex, 403, ex.getMessage());
         } catch (IOException ex){
             Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             throw new RestException(ex, 500);
@@ -199,7 +199,7 @@ public class DatasetsResource extends BaseResource  {
         } catch (NoSuchFileException ex){
              throw new RestException(ex, 404, "Parent file doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
-             throw new RestException(ex, 403);
+             throw new RestException(ex, 403, ex.getMessage());
         } catch (NotDirectoryException ex){
             throw new RestException(ex, 404, "File exists, but Path is not a container");
         } catch (IOException ex){
@@ -294,7 +294,7 @@ public class DatasetsResource extends BaseResource  {
                 locationHeader.put("Location", newUriBuilder.build());
                 throw new RestException(ex, 409, "A Location Already exists for that site", null, locationHeader);
         }
-        throw new RestException(ex, 409);
+        throw new RestException(ex, 409, ex.getMessage(), ex.getCause().getMessage());
     }
     
     @PATCH
