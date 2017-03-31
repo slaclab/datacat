@@ -17,6 +17,7 @@ import org.srs.datacat.client.ClientBuilder;
 import org.srs.datacat.client.auth.HeaderFilter;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetContainer;
+import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.DatasetView;
 import org.srs.datacat.model.RecordType;
@@ -35,6 +36,7 @@ import org.srs.webapps.datacat.model.ApplicationUriInfo;
  */
 public class ControllerUtils {
     static final int DEFAULT_MAX = 100;
+    static final int DEFAULT_CONTAINER_MAX = 100;
     
     
     private static ClientRequestFilter getCasClientFilter(HttpServletRequest request){
@@ -97,6 +99,7 @@ public class ControllerUtils {
         DatacatNode target = client.getObject(path, "current", "all");
 
         if(target.getType().isContainer()){
+            // Get more info if it's actually a container.
             target = client.getContainer(path, "dataset");
         }
         String parentPath = PathUtils.getParentPath(target.getPath());
@@ -110,9 +113,14 @@ public class ControllerUtils {
         requestModel.setDeletable(e.getPermissions().contains(DcPermissions.DELETE));
         requestModel.setInsertable(e.getPermissions().contains(DcPermissions.INSERT));
         if(target.getType().isContainer()){
+            boolean overflow = false;
             DatasetStat t = (DatasetStat) ((DatasetContainer) target).getStat();
             long ccCount = t.getGroupCount() + t.getFolderCount();
             long dsCount = t.getDatasetCount();
+            if(ccCount > DEFAULT_CONTAINER_MAX){
+                overflow = true;
+            }
+            requestModel.setContainersOverflow(overflow);
 
             int offset = requestQueryParams.containsKey("offset")
                     ? Integer.valueOf(requestQueryParams.get("offset").get(0)) : 0;
@@ -121,19 +129,13 @@ public class ControllerUtils {
                     ? Integer.valueOf(requestQueryParams.get("max").get(0)) : DEFAULT_MAX;
 
             int cmax = requestQueryParams.containsKey("cmax") ? 
-                    Integer.valueOf(requestQueryParams.get("cmax").get(0)) : 100000;
+                    Integer.valueOf(requestQueryParams.get("cmax").get(0)) : DEFAULT_CONTAINER_MAX;
             int coffset = requestQueryParams.containsKey("coffset") ? 
                     Integer.valueOf(requestQueryParams.get("coffset").get(0)) : 0;
             if(includeDatasets && dsCount > 0){
                 RequestView rv = new RequestView(RecordType.FOLDER, null);
-                ArrayList<DatacatNode> datasets = new ArrayList<>();
                 DatasetResultSetModel searchResults = getDatasets(client, path, rv, requestQueryParams, offset, max);
-                for(DatacatNode d: searchResults.getResults()){
-                    if(!d.getType().isContainer()){
-                        datasets.add(d);
-                    }
-                }
-                requestModel.setDatasets(datasets);
+                requestModel.setDatasets(searchResults.getResults());
                 requestModel.setDatasetCount(searchResults.getCount());
                 // Paging
                 StringBuffer reqUrl = request.getRequestURL();
@@ -181,11 +183,11 @@ public class ControllerUtils {
         int max = requestQueryParams.containsKey("max")
                 ? Integer.valueOf(requestQueryParams.get("max").get(0)) : DEFAULT_MAX;
 
-        ArrayList<DatacatNode> datasets = new ArrayList<>();
+        ArrayList<DatasetModel> datasets = new ArrayList<>();
         DatasetResultSetModel searchResults = getDatasets(client, searchPath, rv, requestQueryParams, offset, max);
         for(DatacatNode d: searchResults.getResults()){
             if(!d.getType().isContainer()){
-                datasets.add(d);
+                datasets.add((DatasetModel) d);
             }
         }
         targetModel.setDatasets(datasets);

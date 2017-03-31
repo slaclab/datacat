@@ -3,6 +3,7 @@ package org.srs.webapps.datacat.model;
 import java.util.List;
 import org.srs.datacat.model.DatacatNode;
 import org.srs.datacat.model.DatasetContainer;
+import org.srs.datacat.model.DatasetModel;
 
 /**
  *
@@ -19,8 +20,9 @@ public class NodeTargetModel {
     
     private DatacatNode target;
     private DatacatNode parent;
-    private List<DatacatNode> datasets;
+    private List<DatasetModel> datasets;
     private List<DatasetContainer> containers;
+    private boolean containersOverflow = false;
     private DatacatNode selected;
     private int datasetCount;
     
@@ -85,12 +87,20 @@ public class NodeTargetModel {
     public void setContainers(List<DatasetContainer> containers){
         this.containers = containers;
     }
+    
+    public boolean getContainersOverflow(){
+        return containersOverflow;
+    }
+    
+    public void setContainersOverflow(boolean overflow){
+        this.containersOverflow = overflow;
+    }
 
-    public List<DatacatNode> getDatasets(){
+    public List<DatasetModel> getDatasets(){
         return datasets;
     }
 
-    public void setDatasets(List<DatacatNode> datasets){
+    public void setDatasets(List<DatasetModel> datasets){
         this.datasets = datasets;
     }
 
