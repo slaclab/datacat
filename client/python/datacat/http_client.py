@@ -2,7 +2,12 @@
 import logging
 import os
 import requests
-import urllib
+
+try:
+    from urllib.parse import quote
+except ImportError:
+    from urllib import quote
+
 from .config import ENDPOINTS, DATATYPES
 
 _logger = logging.getLogger(__name__)
@@ -259,7 +264,7 @@ class HttpClient:
         def resolve(_path, part):
             _path = _path if _path[-1] != '/' else _path[:-1]
             part = part if part[0] != '/' else (part[1:] if len(part) > 0 else "")
-            return "%s/%s" % (_path, urllib.quote(part, safe="/*$"))
+            return "%s/%s" % (_path, quote(part, safe="/*$"))
 
         url = resolve(self.base_url, resource(endpoint, self.accept))
         view = ";v=" + str(version) if version is not None else ""
