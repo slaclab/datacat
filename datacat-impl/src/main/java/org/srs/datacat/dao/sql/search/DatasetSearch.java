@@ -214,8 +214,10 @@ public class DatasetSearch {
                     if(retrieve == null){
                         Iterator<Class> typeIter = dmc.getTypes(s).iterator();
                         Class type = typeIter.hasNext() ? typeIter.next() : null;
-                        dsv.setupMetadataOuterJoin( s, type);
-                        retrieve = getColumnFromAllScope( dsv, aliased);
+                        if (type != null) {
+                            dsv.setupMetadataOuterJoin(s, type);
+                            retrieve = getColumnFromAllScope(dsv, aliased);
+                        }
                     }
                     metadataFields.add( s );
                 } else {
