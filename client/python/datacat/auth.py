@@ -21,7 +21,7 @@ class HMACAuth(AuthBase):
         if url:
             self.resource_base_url = url
         self.key_id = str(key_id)
-        self.secret_key = base64.b64decode(str(secret_key))
+        self.secret_key = base64.b64decode(str(secret_key).encode())
         self.header_name = header_name
         self.sig_fmt = signature_format
 
@@ -34,8 +34,8 @@ class HMACAuth(AuthBase):
 
     def get_signature(self, r):
         canonical_string = self.get_canonical_string(r.url, r.headers, r.method)
-        h = hmac.new(self.secret_key, canonical_string, digestmod=hashlib.sha1)
-        return base64.encodestring(h.digest()).strip()
+        h = hmac.new(self.secret_key, canonical_string.encode(), digestmod=hashlib.sha1)
+        return base64.encodestring(h.digest()).strip().decode()
 
     def get_canonical_string(self, url, headers, method):
         parsedurl = urlparse(url)

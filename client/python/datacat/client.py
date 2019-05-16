@@ -148,8 +148,7 @@ class Client(object):
         :param kwargs: Additional location attributes
         :return: A representation of the dataset that was just created.
         """
-        # We piggy back off of build_dataset
-        location = {site: site, resource: resource}
+        location = dict(site=site, resource=resource)
         location.update(**kwargs)
         ds = build_dataset(location=location)
         resp = self.http_client.mkds(path, pack(ds), versionId=versionId)
