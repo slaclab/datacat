@@ -59,7 +59,7 @@ class HttpClient:
         endpoint = "path"
         param_list = "offset:offset max_num:max stat:stat".split(" ")
         param_map = dict([tuple(i.split(":")) for i in param_list])
-        params = {param_map[k]: v for k, v in locals().items() if k in param_map and v is not None}
+        params = {param_map[k]: v for k, v in list(locals().items()) if k in param_map and v is not None}
         target = self._target(endpoint, path, versionId, site) + ";children"
         return self._req("get", target, params, **kwargs)
 
@@ -169,7 +169,7 @@ class HttpClient:
         endpoint = "search"
         param_list = "query:filter sort:sort show:show offset:offset max_num:max".split(" ")
         param_map = dict([tuple(i.split(":")) for i in param_list])
-        params = {param_map[k]: v for k, v in locals().items() if k in param_map and v is not None}
+        params = {param_map[k]: v for k, v in list(locals().items()) if k in param_map and v is not None}
         return self._req("get", self._target(endpoint, target, versionId, site), params, **kwargs)
 
     def permissions(self, path, group=None):
@@ -215,7 +215,7 @@ class HttpClient:
 
         _logger.debug("Request: %s %s" % (http_method, url))
         if headers:
-            for header in headers.items():
+            for header in list(headers.items()):
                 _logger.debug("Request Header: %s" % ": ".join(header))
 
         if data:
@@ -228,7 +228,7 @@ class HttpClient:
         _logger.debug("Response: (%s)", response.status_code)
 
         if headers:
-            for header in headers.items():
+            for header in list(headers.items()):
                 _logger.debug("Response Header: %s" % ": ".join(header))
 
         if response.content:
