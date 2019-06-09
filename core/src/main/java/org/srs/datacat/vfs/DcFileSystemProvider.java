@@ -519,7 +519,7 @@ public class DcFileSystemProvider {
         // The retrieval of the DirectoryStream can fail, so we should clean up if that happens
         try {
             search = dao.search(targetContainers, datasetView, query, retrieveFields, sortFields);
-        } catch(ParseException | IllegalArgumentException | IOException ex) {
+        } catch(ParseException | IOException | RuntimeException ex) {
             dao.close();
             throw ex;
         }
