@@ -81,8 +81,9 @@ public class PermissionsResource extends BaseResource {
              throw new RestException(ex,404 , "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403, ex.getMessage());
-        } catch (IOException ex){
+        } catch (IOException | RuntimeException ex){
             Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+            ex.printStackTrace();
             throw new RestException(ex, 500);
         }
     }
@@ -105,8 +106,9 @@ public class PermissionsResource extends BaseResource {
              throw new RestException(ex,404 , "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403, ex.getMessage());
-        } catch (IOException ex){
+        } catch (IOException | RuntimeException ex){
             Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+            ex.printStackTrace();
             throw new RestException(ex, 500);
         }
     }
@@ -136,8 +138,9 @@ public class PermissionsResource extends BaseResource {
              throw new RestException(ex,404 , "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403, ex.getMessage());
-        } catch (IOException ex){
+        } catch (IOException | RuntimeException ex){
             Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+            ex.printStackTrace();
             throw new RestException(ex, 500);
         }
     }

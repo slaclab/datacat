@@ -82,16 +82,7 @@ public class SearchResource extends BaseResource {
         String[] metafields = metadata.toArray(new String[0]);
         String[] sortFields = sortParams.toArray(new String[0]);
 
-        DatasetView dv = null;
-        try {
-            RequestView rv = new RequestView(RecordType.DATASET, requestMatrixParams);
-            if(rv.getPrimaryView() == RequestView.CHILDREN || rv.getPrimaryView() == RequestView.METADATA){
-                throw new IllegalArgumentException("Children and Metadata views not available when searching");
-            }
-            dv = rv.getDatasetView(DatasetView.MASTER);
-        } catch(IllegalArgumentException ex) {
-            throw new RestException(ex, 400, "Unable to process view", ex.getMessage());
-        }
+        DatasetView dv = getDatasetView();
 
         DatasetResultSetModel searchResults = null;
         try(DirectoryStream<DatasetModel> stream
@@ -113,8 +104,9 @@ public class SearchResource extends BaseResource {
             throw new RestException(ex, 400, "Unable to process query, see message", ex.getMessage());
         } catch(NoSuchFileException ex) {
             throw new RestException(ex, 404, "File doesn't exist", ex.getMessage());
-        } catch(IOException ex) {
+        } catch(IOException | RuntimeException ex) {
             Logger.getLogger(SearchResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+            ex.printStackTrace();
             throw new RestException(ex, 500);
         } catch(ParseException ex) {
             throw new RestException(ex, 422, "Unable to parse filter", ex.getMessage());
@@ -139,16 +131,7 @@ public class SearchResource extends BaseResource {
         String[] metafields = metadata.toArray(new String[0]);
         String[] sortFields = sortParams.toArray(new String[0]);
 
-        DatasetView dv = null;
-        try {
-            RequestView rv = new RequestView(RecordType.DATASET, requestMatrixParams);
-            if(rv.getPrimaryView() == RequestView.CHILDREN || rv.getPrimaryView() == RequestView.METADATA){
-                throw new IllegalArgumentException("Children and Metadata views not available when searching");
-            }
-            dv = rv.getDatasetView(DatasetView.MASTER);
-        } catch(IllegalArgumentException ex) {
-            throw new RestException(ex, 400, "Unable to process view", ex.getMessage());
-        }
+        DatasetView dv = getDatasetView();
 
         DatasetResultSetModel searchResults = null;
         try(DirectoryStream<DatasetModel> stream
@@ -170,8 +153,9 @@ public class SearchResource extends BaseResource {
             throw new RestException(ex, 400, "Unable to process query, see message", ex.getMessage());
         } catch(NoSuchFileException ex) {
             throw new RestException(ex, 404, "File doesn't exist", ex.getMessage());
-        } catch(IOException ex) {
+        } catch(IOException | RuntimeException ex) {
             Logger.getLogger(SearchResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+            ex.printStackTrace();
             throw new RestException(ex, 500);
         } catch(ParseException ex) {
             throw new RestException(ex, 422, "Unable to parse filter", ex.getMessage());
@@ -179,4 +163,15 @@ public class SearchResource extends BaseResource {
         return Response.ok(new GenericEntity<DatasetResultSetModel>(searchResults) {}).build();
     }
 
+    private DatasetView getDatasetView(){
+        try {
+            RequestView rv = new RequestView(RecordType.DATASET, requestMatrixParams);
+            if(rv.getPrimaryView() == RequestView.CHILDREN || rv.getPrimaryView() == RequestView.METADATA){
+                throw new IllegalArgumentException("Children and Metadata views not available when searching");
+            }
+            return rv.getDatasetView(DatasetView.MASTER);
+        } catch(IllegalArgumentException ex) {
+            throw new RestException(ex, 400, "Unable to process view", ex.getMessage());
+        }
+    }
 }
