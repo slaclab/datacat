@@ -158,7 +158,7 @@ public class DcFileSystemProvider {
         return stream;
     }
     
-    private DirectoryStream<Path> unCachedDirectoryStream(final Path dir,
+    protected DirectoryStream<Path> unCachedDirectoryStream(final Path dir,
             final DirectoryStream.Filter<? super Path> filter, final Optional<DatasetView> view,
             final boolean cacheDatasets) throws IOException{
         final DcFile dirFile = resolveFile(dir);
@@ -522,7 +522,13 @@ public class DcFileSystemProvider {
         final DirectoryStream<DatasetModel> search;
         // The retrieval of the DirectoryStream can fail, so we should clean up if that happens
         try {
-            search = dao.search((DirectoryStream<DatacatNode>) targetContainers, datasetView, query, retrieveFields, sortFields);
+            search = dao.search(
+                    (DirectoryStream<DatacatNode>) targetContainers,
+                    datasetView,
+                    query,
+                    retrieveFields,
+                    sortFields
+            );
         } catch(ParseException | IOException | RuntimeException ex) {
             dao.close();
             throw ex;
