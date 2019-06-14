@@ -145,21 +145,20 @@ public class DcFileSystemProvider {
         }
         ChildrenView view = dirFile.getAttributeView(ChildrenView.class);
         DirectoryStream<Path> stream;
-        boolean useCache = viewPrefetch.isPresent() ? maybeUseCache(dirFile, viewPrefetch.get()) : false;
+        boolean useCache = viewPrefetch.isPresent() && maybeUseCache(dirFile, viewPrefetch.get());
         if(view != null && useCache){
             if(!view.hasCache()){
                 view.refreshCache();
             }
             stream = cachedDirectoryStream(dir, context, filter);
         } else {
-            boolean fillCache = viewPrefetch.isPresent() ? 
-                    canFitDatasetsInCache(dirFile, max, viewPrefetch.get()) : false;
+            boolean fillCache = viewPrefetch.isPresent() && canFitDatasetsInCache(dirFile, max, viewPrefetch.get());
             stream = unCachedDirectoryStream(dir, filter, viewPrefetch, fillCache);
         }
         return stream;
     }
     
-    protected DirectoryStream<Path> unCachedDirectoryStream(final Path dir,
+    private DirectoryStream<Path> unCachedDirectoryStream(final Path dir,
             final DirectoryStream.Filter<? super Path> filter, final Optional<DatasetView> view,
             final boolean cacheDatasets) throws IOException{
         final DcFile dirFile = resolveFile(dir);
@@ -206,19 +205,24 @@ public class DcFileSystemProvider {
                 @Override
                 public void close() throws IOException{
                     // TODO: This assumes datasets
-                    if(dsCount.get() > 0){
-                        dirFile.getAttributeView(ContainerViewProvider.class)
-                            .setViewStats(view.get(), dsCount.get());
+                    if (view.isPresent()) {
+                        if(dsCount.get() > 0){
+                            dirFile.getAttributeView(ContainerViewProvider.class)
+                                    .setViewStats(view.get(), dsCount.get());
+                        }
                     }
-                    super.close();
-                    dao.close();  // Make sure to close dao (and underlying connection)
+                    try {
+                        super.close();
+                    } finally {
+                        dao.close();  // Make sure to close dao (and underlying connection)
+                    }
                 }
 
             };
         return wrapper;
     }
 
-    protected DirectoryStream<Path> cachedDirectoryStream(Path dir, CallContext context,
+    private DirectoryStream<Path> cachedDirectoryStream(Path dir, CallContext context,
             final DirectoryStream.Filter<? super Path> filter) throws IOException{
         final DcFile dirFile = resolveFile(dir);
         checkPermission(context, dirFile, DcPermissions.READ);
@@ -506,9 +510,9 @@ public class DcFileSystemProvider {
             String containerQuery,
             String[] retrieveFields, String[] sortFields) throws IOException, ParseException{
         
-        final DirectoryStream<DatacatNode> targetContainers;
+        final DirectoryStream<? extends DatacatNode> targetContainers;
         if(containerQuery != null){
-            targetContainers = (DirectoryStream) 
+            targetContainers =
                     searchContainers(pathPatterns, context, containerQuery, null, null);
         } else {
             targetContainers = Utils.getStream(walk(pathPatterns, context));
@@ -518,7 +522,7 @@ public class DcFileSystemProvider {
         final DirectoryStream<DatasetModel> search;
         // The retrieval of the DirectoryStream can fail, so we should clean up if that happens
         try {
-            search = dao.search(targetContainers, datasetView, query, retrieveFields, sortFields);
+            search = dao.search((DirectoryStream<DatacatNode>) targetContainers, datasetView, query, retrieveFields, sortFields);
         } catch(ParseException | IOException | RuntimeException ex) {
             dao.close();
             throw ex;
@@ -540,9 +544,7 @@ public class DcFileSystemProvider {
                 if(search != null){
                     search.close();
                 }
-                if(dao != null){
-                    dao.close();
-                }
+                dao.close();
             }
 
         };
@@ -589,9 +591,7 @@ public class DcFileSystemProvider {
                 if(search != null){
                     search.close();
                 }
-                if(dao != null){
-                    dao.close();
-                }
+                dao.close();
             }
 
         };
