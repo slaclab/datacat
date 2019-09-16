@@ -5,12 +5,12 @@
     <parent>
         <groupId>srs</groupId>
         <artifactId>org-srs-maven-project-war</artifactId>
-        <version>4.3</version>
+        <version>5.1</version>
     </parent>
     
     <groupId>srs</groupId>
     <artifactId>org-srs-webapps-datacat</artifactId>
-    <version>0.5-SNAPSHOT</version>
+    <version>0.5</version>
     <packaging>war</packaging>
 
     <name>SRS Webapps for DataCatalog</name>

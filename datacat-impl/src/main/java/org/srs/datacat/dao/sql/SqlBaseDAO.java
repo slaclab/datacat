@@ -639,7 +639,7 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
                 break;
         }
         String datasetSqlLocations
-                = "WITH Dataset (dataset, parent, name, latestversion) as ("
+            = "WITH Dataset (dataset, parent, name, latestversion) as ("
                 + "  SELECT ds.dataset, CASE WHEN ds.datasetlogicalfolder is not null "
                 + "      THEN ds.datasetlogicalfolder else ds.datasetgroup END parent, "
                 + "      ds.datasetname name, ds.latestversion "
@@ -684,19 +684,19 @@ public class SqlBaseDAO implements org.srs.datacat.dao.BaseDAO {
 
     protected String getVersionMetadataSql() {
         String sql =
-                "WITH DSV (dsv) AS ( "
-                        + "  SELECT ? FROM DUAL "
-                        + ") "
-                        + "SELECT type, metaname, metastring, metanumber, metatimestamp FROM  "
-                        + " ( SELECT 'N' mdtype, mn.metaname, null metastring, mn.metavalue metanumber, null metatimestamp "
-                        + "     FROM VerDatasetMetaNumber mn where mn.DatasetVersion = (SELECT dsv FROM DSV) "
-                        + "   UNION ALL "
-                        + "   SELECT 'S' mdtype, ms.metaname, ms.metavalue metastring, null metanumber, null metatimestamp "
-                        + "     FROM VerDatasetMetaString ms where ms.DatasetVersion = (SELECT dsv FROM DSV) "
-                        + "   UNION ALL "
-                        + "   SELECT 'T' mdtype, mt.metaname, null metastring, null metanumber, mt.metavalue metatimestamp "
-                        + "     FROM VerDatasetMetaTimestamp mt where mt.DatasetVersion = (SELECT dsv FROM DSV) "
-                        + "  )";
+            "WITH DSV (dsv) AS ( "
+                + "  SELECT ? FROM DUAL "
+                + ") "
+                + "SELECT type, metaname, metastring, metanumber, metatimestamp FROM  "
+                + " ( SELECT 'N' mdtype, mn.metaname, null metastring, mn.metavalue metanumber, null metatimestamp "
+                + "     FROM VerDatasetMetaNumber mn where mn.DatasetVersion = (SELECT dsv FROM DSV) "
+                + "   UNION ALL "
+                + "   SELECT 'S' mdtype, ms.metaname, ms.metavalue metastring, null metanumber, null metatimestamp "
+                + "     FROM VerDatasetMetaString ms where ms.DatasetVersion = (SELECT dsv FROM DSV) "
+                + "   UNION ALL "
+                + "   SELECT 'T' mdtype, mt.metaname, null metastring, null metanumber, mt.metavalue metatimestamp "
+                + "     FROM VerDatasetMetaTimestamp mt where mt.DatasetVersion = (SELECT dsv FROM DSV) "
+                + "  )";
         return sql;
     }
 
