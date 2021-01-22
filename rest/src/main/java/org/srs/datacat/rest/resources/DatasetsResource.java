@@ -202,8 +202,8 @@ public class DatasetsResource extends BaseResource  {
              throw new RestException(ex, 403, ex.getMessage());
         } catch (NotDirectoryException ex){
             throw new RestException(ex, 404, "File exists, but Path is not a container");
-        } catch (IOException ex){
-            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+        } catch (IOException | RuntimeException ex){
+            Logger.getLogger(DatasetsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
             ex.printStackTrace();
             throw new RestException(ex, 500);
         }
@@ -270,7 +270,8 @@ public class DatasetsResource extends BaseResource  {
             existing = getProvider().getFile(datasetPath, buildCallContext())
                     .getAttributeView(DatasetViewProvider.class).withView(existingView, true);
         } catch(IOException ex2) {
-            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+            Logger.getLogger(DatasetsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+            ex.printStackTrace();
             throw new RestException(ex2, 500, "Unable to check current dataset", ex2.getMessage());
         }
         DatasetViewInfoModel currentViewInfo = existing instanceof DatasetWithViewModel
@@ -322,8 +323,9 @@ public class DatasetsResource extends BaseResource  {
             throw new RestException(ex ,404, "Dataset doesn't exist", ex.getMessage());
         } catch (IllegalArgumentException ex){
             throw new RestException(ex, 400, "Unable to validate request view", ex.getMessage());
-        } catch (IOException ex){
-            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+        } catch (IOException | RuntimeException ex){
+            Logger.getLogger(DatasetsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+            ex.printStackTrace();
             throw new RestException(ex, 500);
         }
     }
@@ -342,8 +344,9 @@ public class DatasetsResource extends BaseResource  {
             throw new RestException(ex ,404, "Dataset doesn't exist", ex.getMessage());
         } catch (IllegalArgumentException ex){
             throw new RestException(ex, 400, "Unable to delete a dataset by view", ex.getMessage());
-        } catch (IOException ex){
-            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+        } catch (IOException | RuntimeException ex){
+            Logger.getLogger(DatasetsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+            ex.printStackTrace();
             throw new RestException(ex, 500);
         }
     }

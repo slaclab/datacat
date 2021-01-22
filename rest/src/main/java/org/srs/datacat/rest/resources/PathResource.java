@@ -113,8 +113,9 @@ public class PathResource extends BaseResource {
              throw new RestException(ex, 404 , "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403, ex.getMessage());
-        } catch (IOException ex){
-            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+        } catch (IOException | RuntimeException ex){
+            Logger.getLogger(PathResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+            ex.printStackTrace();
             throw new RestException(ex, 500);
         }
     }
@@ -178,8 +179,9 @@ public class PathResource extends BaseResource {
              throw new RestException(ex,404 , "File doesn't exist", ex.getMessage());
         } catch (AccessDeniedException ex){
              throw new RestException(ex, 403, ex.getMessage());
-        } catch (IOException ex){
-            Logger.getLogger(PermissionsResource.class.getName()).log(Level.WARNING, "Unknown exception", ex); 
+        } catch (IOException | RuntimeException ex){
+            Logger.getLogger(PathResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+            ex.printStackTrace();
             throw new RestException(ex, 500);
         }
     }
@@ -246,21 +248,21 @@ public class PathResource extends BaseResource {
                 if(stream != null){
                     stream.close();
                 }
-            } catch(IOException ex) {
+            } catch(IOException | RuntimeException ex) {
+                Logger.getLogger(PathResource.class.getName()).log(Level.WARNING, "Unknown exception", ex);
+                ex.printStackTrace();
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                         .entity("Error accessing the file system: " + ex.getMessage()).build();
             }
-            
         }
         
         String start = Integer.toString(offset);
         String end = Integer.toString(offset+ (retList.size() - 1));
         String len= showCount ? Integer.toString(count - 1) : "*";
-        Response resp = Response
+        return Response
                 .ok( new GenericEntity<List<DatacatNode>>(retList) {})
                 .header( "Content-Range", String.format("items %s-%s/%s", start, end, len))
                 .build();
-        return resp;
     }
 
 }
