@@ -29,7 +29,7 @@ public class GroupManagerAuthProvider implements DcUserLookupService {
     private static RestClient rc;
     private static final LoadingCache<String, DcUser> USERS_CACHE;
     private static final LoadingCache<DcUser, Set<DcGroup>> GROUPS_CACHE;
-    private static final String GM_URL = "http://srs.slac.stanford.edu/GroupManager/rest";
+    private static final String GM_URL = "https://srs.slac.stanford.edu/GroupManager/rest";
     
     public GroupManagerAuthProvider(){ }
     
