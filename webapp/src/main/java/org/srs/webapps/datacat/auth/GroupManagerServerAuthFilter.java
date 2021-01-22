@@ -42,7 +42,7 @@ public class GroupManagerServerAuthFilter implements ContainerRequestFilter {
                         new CacheLoader<String, DcUser>() {
                             @Override
                             public DcUser load(String name) throws IOException, GroupManagerException{
-                                final RestClient rc = new RestClient("http://srs.slac.stanford.edu/GroupManager/rest");
+                                final RestClient rc = new RestClient("https://srs.slac.stanford.edu/GroupManager/rest");
                                 UserModel user = rc.findUserByAccount(name, Optional.<String>absent());
                                 return new DcUser(Integer.toString(user.getId()));
                             }

@@ -14,7 +14,7 @@
     <packaging>war</packaging>
 
     <name>SRS Webapps for DataCatalog</name>
-    <url>http://srs.slac.stanford.edu/webapps/datacat</url>
+    <url>https://srs.slac.stanford.edu/webapps/datacat</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -24,12 +24,12 @@
         <repository>
             <id>srs-maven2-public</id>
             <name>SRS Maven 2 central repository</name>
-            <url>http://srs.slac.stanford.edu/nexus/content/groups/srs-maven2-public/</url>
+            <url>https://srs.slac.stanford.edu/nexus/content/groups/srs-maven2-public/</url>
         </repository>
         <repository>
             <id>freehep-maven</id>
             <name>Maven FreeHEP</name>
-            <url>http://java.freehep.org/maven2</url>
+            <url>https://java.freehep.org/maven2</url>
         </repository>
     </repositories>
 
