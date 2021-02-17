@@ -23,8 +23,8 @@ pipeline {
             }
             post {
                 always {
-                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-                    junit testResults: 'target/surefire-reports/**/*.xml', allowEmptyResults: true
+                    archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+                    junit testResults: '**/target/surefire-reports/**/*.xml', allowEmptyResults: true
                 }
             }
         }
