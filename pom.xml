@@ -27,7 +27,7 @@
         <site>
             <id>srs-site</id>
             <name>SRS Maven2 centreal site repository</name>
-            <url>dav:http://srs.slac.stanford.edu/nexus/content/sites/srs-site/${project.artifactId}</url>
+            <url>dav:https://srs.slac.stanford.edu/nexus/content/sites/srs-site/${project.artifactId}</url>
         </site>
     </distributionManagement>
     
@@ -39,12 +39,12 @@
         <repository>
             <id>srs-maven2-public</id>
             <name>SRS Maven 2 central repository</name>
-            <url>http://srs.slac.stanford.edu/nexus/content/groups/srs-maven2-public/</url>
+            <url>https://srs.slac.stanford.edu/nexus/content/groups/srs-maven2-public/</url>
         </repository>
         <repository>
             <id>freehep-maven</id>
             <name>Maven FreeHEP</name>
-            <url>http://java.freehep.org/maven2</url>
+            <url>https://java.freehep.org/maven2</url>
         </repository>
     </repositories>
 
