@@ -30,7 +30,7 @@ pipeline {
         }
         stage ('Deploy') {
             when {
-                branch 'master'
+                branch '0.4'
             }
             steps {
                 sh 'mvn -s /nfs/slac/g/srs/hudson/hudson-settings-srs.xml -U validate jar:jar deploy:deploy'
@@ -39,7 +39,7 @@ pipeline {
         stage('Release') {
             when {
                 expression { params.RELEASE }
-                branch 'master'
+                branch '0.4'
             }
             steps {
                 script {
