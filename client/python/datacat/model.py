@@ -1,5 +1,4 @@
 
-from collections import OrderedDict, MutableMapping
 from datetime import datetime
 import json
 import logging
@@ -204,9 +203,9 @@ def build_dataset(name=None, dataType=None, fileFormat=None,
     return Dataset(**params)
 
 
-class Metadata(MutableMapping):
+class Metadata(dict):
     def __init__(self, seq=None):
-        self.dct = OrderedDict(seq) if seq else OrderedDict()
+        self.dct = dict(seq) if seq else dict()
 
     def __contains__(self, key):
         return self.dct.__contains__(key)
@@ -324,9 +323,9 @@ def _default_serializer(obj):
                     if type(v) == datetime:
                         v = _to_timestamp(v)
                     typ = type_mapping[type(v)]
-                    ret.append(OrderedDict([("key", k), ("value", v), ("type", typ)]))
+                    ret.append(dict([("key", k), ("value", v), ("type", typ)]))
                 else:
-                    ret.append(OrderedDict([("key", k), ("value", v)]))
+                    ret.append(dict([("key", k), ("value", v)]))
             return ret
         if isinstance(obj, AclEntry):
             return dict(subject=obj.subject, permissions=Permissions.pack(obj.permissions))

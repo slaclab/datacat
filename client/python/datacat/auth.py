@@ -35,7 +35,7 @@ class HMACAuth(AuthBase):
     def get_signature(self, r):
         canonical_string = self.get_canonical_string(r.url, r.headers, r.method)
         h = hmac.new(self.secret_key, canonical_string.encode(), digestmod=hashlib.sha1)
-        return base64.encodestring(h.digest()).strip().decode()
+        return base64.encodebytes(h.digest()).strip().decode()
 
     def get_canonical_string(self, url, headers, method):
         parsedurl = urlparse(url)
