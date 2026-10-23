@@ -29,7 +29,7 @@
         <repository>
             <id>freehep-maven</id>
             <name>Maven FreeHEP</name>
-            <url>https://java.freehep.org/maven2</url>
+            <url>https://srs.slac.stanford.edu/nexus/content/groups/freehep-maven2-public/</url>
         </repository>
     </repositories>
 
