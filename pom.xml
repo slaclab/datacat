@@ -55,6 +55,7 @@
         <module>model</module>
         <module>datacat-impl</module>
         <module>rest</module>
+        <module>webapp</module>
     </modules>
 
     <dependencies>
