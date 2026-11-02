@@ -122,7 +122,7 @@ function getChecked() {
 
 var count = 0;
 function updateCount(){
-    count = $(".datatable-datasets input:checkbox:checked").size();
+    count = $(".datatable-datasets input:checkbox:checked").length;
     $("#count").text(count);
     if(count){
         $("#dl-actions").show();
